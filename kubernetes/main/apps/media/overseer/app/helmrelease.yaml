@@ -75,10 +75,11 @@ spec:
     ingress:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-        className: internal
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_MEDIA}"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+        className: external
         hosts:
-          - host: "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
+          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
@@ -96,6 +97,11 @@ spec:
                 service:
                   identifier: app
                   port: http
+        tls:
+          - hosts:
+              - "${SECRET_DOMAIN_MEDIA}"
+              - "www.${SECRET_DOMAIN_MEDIA}"
+              - *host
     persistence:
       config:
         existingClaim: overseerr

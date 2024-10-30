@@ -37,6 +37,7 @@ spec:
               tag: 1.41.1.9057-af5eaea7a@sha256:5926b77196bb7c9f75b52f431d0483abea0fef1f576b7201592b385449201456
             env:
               TZ: ${TIME_ZONE}
+              PLEX_LAN_NETWORKS: 192.168.1.0/24,10.100.0.0/24,10.69.0.0/16
               PLEX_ADVERTISE_URL: https://plex.${SECRET_DOMAIN_MEDIA}:443,http://10.100.0.24:32400
               PLEX_NO_AUTH_NETWORKS: 192.168.1.0/24
               NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
@@ -67,7 +68,7 @@ spec:
               requests:
                 cpu: 100m
               limits:
-                nvidia.com/gpu: 1
+                nvidia.com/gpu: 6
                 memory: 32Gi
     defaultPodOptions:
       securityContext:
@@ -140,6 +141,10 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/Library/Application Support/Plex Media Server/Logs
+      plex-media:
+        existingClaim: plex-media
+        globalMounts:
+          - path: /config/Library/Application Support/Plex Media Server/Media
       tmp:
         type: emptyDir
         medium: Memory

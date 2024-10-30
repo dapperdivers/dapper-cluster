@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: grafana
+  name: &app grafana
 spec:
   interval: 30m
   chart:
@@ -28,10 +28,18 @@ spec:
     admin:
       existingSecret: grafana-admin-secret
     env:
+      GF_ANALYTICS_CHECK_FOR_UPDATES: false
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: false
+      GF_ANALYTICS_REPORTING_ENABLED: false
+      GF_AUTH_ANONYMOUS_ENABLED: false
+      GF_AUTH_BASIC_ENABLED: false
       GF_DATE_FORMATS_USE_BROWSER_LOCALE: true
       GF_EXPLORE_ENABLED: true
+      GF_FEATURE_TOGGLES_ENABLE: publicDashboards
+      GF_LOG_MODE: console
+      GF_NEWS_NEWS_FEED_ENABLED: false
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: natel-discrete-panel,pr0ps-trackmap-panel,panodata-map-panel
-      GF_SECURITY_ANGULAR_SUPPORT_ENABLED: true
+      GF_SECURITY_COOKIE_SAMESITE: grafana
       GF_SERVER_ROOT_URL: "https://{{ .Release.Name }}.${SECRET_DOMAIN}"
     grafana.ini:
       analytics:
@@ -87,6 +95,7 @@ spec:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/default
+
     dashboards:
       default:
         apc-ups:
@@ -240,6 +249,7 @@ spec:
         nvidia-dcgm:
           url: https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/main/grafana/dcgm-exporter-dashboard.json
           datasource: Prometheus
+
     sidecar:
       dashboards:
         enabled: true
@@ -253,6 +263,7 @@ spec:
         enabled: true
         searchNamespace: ALL
         labelValue: ""
+
     plugins:
       - grafana-clock-panel
       - grafana-piechart-panel
@@ -269,7 +280,7 @@ spec:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
         hosts:
-          - host: "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host:  "grafana.${SECRET_DOMAIN}"
             paths:
               - path: /
                 service:
