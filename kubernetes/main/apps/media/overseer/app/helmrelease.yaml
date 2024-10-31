@@ -79,7 +79,7 @@ spec:
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
         className: external
         hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
+          - host: "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
