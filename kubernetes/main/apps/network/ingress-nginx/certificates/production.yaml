@@ -12,5 +12,78 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN}"
     - "*.${SECRET_DOMAIN}"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_MEDIA/./-}-production"
+spec:
+  secretName: "${SECRET_DOMAIN_MEDIA/./-}-production-tls"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_MEDIA}"
+  dnsNames:
     - "${SECRET_DOMAIN_MEDIA}"
     - "*.${SECRET_DOMAIN_MEDIA}"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
+
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_PERSONAL/./-}-production"
+spec:
+  secretName: "${SECRET_DOMAIN_PERSONAL/./-}-production-tls"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_PERSONAL}"
+  dnsNames:
+    - "${SECRET_DOMAIN_PERSONAL}"
+    - "*.${SECRET_DOMAIN_PERSONAL}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_DIVING/./-}-production"
+spec:
+  secretName: "${SECRET_DOMAIN_DIVING/./-}-production-tls"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_DIVING}"
+  dnsNames:
+    - "${SECRET_DOMAIN_DIVING}"
+    - "*.${SECRET_DOMAIN_DIVING}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_WIFE/./-}-production"
+spec:
+  secretName: "${SECRET_DOMAIN_WIFE/./-}-production-tls"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_WIFE}"
+  dnsNames:
+    - "${SECRET_DOMAIN_WIFE}"
+    - "*.${SECRET_DOMAIN_WIFE}"
+
+

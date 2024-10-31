@@ -12,6 +12,7 @@ resources:
   - ./grafana.yaml
   - ./infisical.yaml
   - ./intel.yaml
+  - ./emberstack.yaml
   - ./ingress-nginx.yaml
   - ./jetstack.yaml
   - ./k8s-gateway.yaml

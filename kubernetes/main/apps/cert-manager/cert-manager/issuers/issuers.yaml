@@ -18,6 +18,9 @@ spec:
           dnsZones:
             - "${SECRET_DOMAIN}"
             - "${SECRET_DOMAIN_MEDIA}"
+            - "${SECRET_DOMAIN_PERSONAL}"
+            - "${SECRET_DOMAIN_DIVING}"
+            - "${SECRET_DOMAIN_WIFE}"
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -39,3 +42,6 @@ spec:
           dnsZones:
             - "${SECRET_DOMAIN}"
             - "${SECRET_DOMAIN_MEDIA}"
+            - "${SECRET_DOMAIN_PERSONAL}"
+            - "${SECRET_DOMAIN_DIVING}"
+            - "${SECRET_DOMAIN_WIFE}"

@@ -72,12 +72,16 @@ spec:
       app:
         className: internal
         hosts:
-          - host: "dashboard.${SECRET_DOMAIN_MEDIA}"
+          - host: &host "dashboard.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
                   identifier: app
                   port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-production-tls
     persistence:
       config:
         type: configMap

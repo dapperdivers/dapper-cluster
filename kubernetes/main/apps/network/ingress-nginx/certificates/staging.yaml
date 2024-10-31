@@ -12,5 +12,64 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN}"
     - "*.${SECRET_DOMAIN}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_MEDIA/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN_MEDIA/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_MEDIA}"
+  dnsNames:
     - "${SECRET_DOMAIN_MEDIA}"
     - "*.${SECRET_DOMAIN_MEDIA}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_PERSONAL/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN_PERSONAL/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_PERSONAL}"
+  dnsNames:
+    - "${SECRET_DOMAIN_PERSONAL}"
+    - "*.${SECRET_DOMAIN_PERSONAL}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_DIVING/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN_DIVING/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_DIVING}"
+  dnsNames:
+    - "${SECRET_DOMAIN_DIVING}"
+    - "*.${SECRET_DOMAIN_DIVING}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN_WIFE/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN_WIFE/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN_WIFE}"
+  dnsNames:
+    - "${SECRET_DOMAIN_WIFE}"
+    - "*.${SECRET_DOMAIN_WIFE}"
+

@@ -90,12 +90,16 @@ spec:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
         className: internal
         hosts:
-          - host: "4kradarr.${SECRET_DOMAIN_MEDIA}"
+          - host: &host "4kradarr.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
                   identifier: app
                   port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-production-tls
     persistence:
       config:
         existingClaim: radarr-uhd

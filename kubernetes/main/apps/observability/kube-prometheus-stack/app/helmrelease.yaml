@@ -41,6 +41,10 @@ spec:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
         ingressClassName: internal
         hosts: ["alertmanager.${SECRET_DOMAIN}"]
+        tls:
+          - hosts:
+              - alertmanager.${SECRET_DOMAIN}
+            secretName: ${SECRET_DOMAIN/./-}-production-tls
         pathType: Prefix
       alertmanagerSpec:
         useExistingSecret: true
@@ -75,6 +79,10 @@ spec:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
         ingressClassName: internal
         hosts: ["prometheus.${SECRET_DOMAIN}"]
+        tls:
+          - hosts:
+              - prometheus.${SECRET_DOMAIN}
+            secretName: ${SECRET_DOMAIN/./-}-production-tls
         pathType: Prefix
       prometheusSpec:
         scrapeInterval: 1m # Must match interval in Grafana Helm chart

@@ -1,3 +1,1 @@
-awsProfile: my-profile-1
-gcpCredentialsPath: /home/user/Downloads/my-key.json
 ageKeyFile: ./age.key

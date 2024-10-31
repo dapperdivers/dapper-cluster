@@ -51,12 +51,11 @@ spec:
                 memory: 2Gi
     service:
       app:
-        controller: *app
         type: LoadBalancer
-        externalTrafficPolicy: Cluster
-        loadBalancerIP: &ip ${UNIFI_VIP_GATEWAY}
+        controller: *app
         annotations:
-          io.cilium/lb-ipam-ips: *ip
+          io.cilium/lb-ipam-ips: &ip ${UNIFI_VIP_GATEWAY}
+        externalTrafficPolicy: Cluster
         ports:
           http:
             port: 8443
@@ -106,7 +105,7 @@ spec:
         tls:
           - hosts:
               - *host
-
+            secretName: ${SECRET_DOMAIN/./-}-production-tls
     persistence:
       data:
         enabled: true

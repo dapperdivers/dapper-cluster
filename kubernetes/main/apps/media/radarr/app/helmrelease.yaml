@@ -88,14 +88,20 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
+          external-dns.alpha.kubernetes.io/hostname: "internal.${SECRET_DOMAIN_MEDIA}"
         className: internal
         hosts:
-          - host: "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
+          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
                   identifier: app
                   port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-production-tls
+
     persistence:
       config:
         existingClaim: radarr

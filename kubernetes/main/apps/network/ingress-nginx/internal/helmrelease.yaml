@@ -26,9 +26,8 @@ spec:
     controller:
       service:
         annotations:
-          io.cilium/lb-ipam-ips: "10.100.0.20"
+          io.cilium/lb-ipam-ips: ${INTERNAL_VIP_GATEWAY}
         externalTrafficPolicy: Cluster
-        #% endif %#
       ingressClassResource:
         name: internal
         default: true
@@ -64,8 +63,6 @@ spec:
           enabled: true
           namespaceSelector:
             any: true
-      extraArgs:
-        default-ssl-certificate: "network/${SECRET_DOMAIN/./-}-production-tls"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname

@@ -78,14 +78,12 @@ spec:
         fsGroup: 140
         seccompProfile: { type: RuntimeDefault }
     service:
-      *app :
-        controller: *app
+      app:
         type: LoadBalancer
-        externalTrafficPolicy: Cluster
-        loadBalancerIP: &ip ${PLEX_VIP_GATEWAY}
+        controller: *app
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: plex.${SECRET_DOMAIN_MEDIA}
-          io.cilium/lb-ipam-ips: *ip
+          io.cilium/lb-ipam-ips: &ip ${PLEX_VIP_GATEWAY}
+        externalTrafficPolicy: Cluster
         ports:
           http:
             port: &port 32400
@@ -115,6 +113,7 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN_MEDIA}
+          external-dns.alpha.kubernetes.io/hostname: "external.${SECRET_DOMAIN_MEDIA}"
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
         className: external
         hosts:
@@ -122,11 +121,12 @@ spec:
             paths:
               - path: /
                 service:
-                  identifier: *app
+                  identifier: app
                   port: *port
         tls:
           - hosts:
               - *host
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-production-tls
     persistence:
       config:
         existingClaim: plex
