@@ -19,7 +19,6 @@ jobs:
         with:
           app-id: "${{ secrets.DUNCE_BOT_APP_ID }}"
           private-key: "${{ secrets.DUNCE_BOT_APP_PRIVATE_KEY }}"
-
       - name: Labeler
         uses: actions/labeler@v5
         with:
