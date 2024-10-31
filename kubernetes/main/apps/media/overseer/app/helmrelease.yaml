@@ -76,7 +76,6 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_MEDIA}"
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
         className: external
         hosts:
           - host: "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
@@ -86,6 +85,12 @@ spec:
                   identifier: app
                   port: http
           - host: "www.${SECRET_DOMAIN_MEDIA}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+          - host: "${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
