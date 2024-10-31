@@ -91,12 +91,6 @@ spec:
                 service:
                   identifier: app
                   port: http
-          - host: "${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
     persistence:
       config:
         existingClaim: overseerr
