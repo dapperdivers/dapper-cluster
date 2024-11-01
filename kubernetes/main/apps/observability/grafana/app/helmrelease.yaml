@@ -278,6 +278,10 @@ spec:
       app:
         enabled: true
         annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: Grafana
+          gethomepage.dev/icon: si-grafana
+          gethomepage.dev/group: Monitoring
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
         hosts:
