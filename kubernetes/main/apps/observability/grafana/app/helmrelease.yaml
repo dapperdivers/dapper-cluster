@@ -273,23 +273,19 @@ spec:
       - vonage-status-panel
     serviceMonitor:
       enabled: true
+
     ingress:
       app:
         enabled: true
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
-        hosts:
-          - host: &host "grafana.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
+        hosts: &host "grafana.${SECRET_DOMAIN}"
         tls:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-production-tls
+
     persistence:
       enabled: false
     testFramework:
