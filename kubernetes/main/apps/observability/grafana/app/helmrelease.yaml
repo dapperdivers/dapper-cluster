@@ -284,8 +284,7 @@ spec:
           gethomepage.dev/group: Monitoring
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
-        hosts:
-          - &host "grafana.${SECRET_DOMAIN}"
+        hosts: &host "grafana.${SECRET_DOMAIN}"
         tls:
           - hosts:
               - *host
