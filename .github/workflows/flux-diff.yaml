@@ -30,7 +30,7 @@ jobs:
         id: changed-clusters
         uses: tj-actions/changed-files@v45
         with:
-          files: kubernetes/**
+          files: kubernetes/main/**
           dir_names: true
           dir_names_max_depth: 2
           json: true
