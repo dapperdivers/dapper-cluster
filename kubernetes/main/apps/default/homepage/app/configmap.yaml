@@ -161,7 +161,7 @@ data:
             description: app-template Helm Chart Values
   settings.yaml: |
     ---
-    title: My Personal Home Dashboard
+    title: Home Dashboard
     theme: dark
     color: slate
     headerStyle: clean
