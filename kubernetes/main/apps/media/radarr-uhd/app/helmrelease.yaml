@@ -45,9 +45,9 @@ spec:
               RADARR__UPDATE__BRANCH: develop
               PUSHOVER_DEBUG: "false"
               PUSHOVER_PRIORITY: "0"
-              envFrom:
-                - secretRef:
-                    name: 4k-radarr-secret
+            envFrom:
+              - secretRef:
+                  name: 4k-radarr-secret
             probes:
               liveness: &probes
                 enabled: true
