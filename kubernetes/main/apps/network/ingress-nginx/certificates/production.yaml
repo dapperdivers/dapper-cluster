@@ -1,20 +1,3 @@
-# trying fix from: https://github.com/allenporter/flux-local/pull/734
----
-apiVersion: v1
-data:
-  SECRET_DOMAIN: example.com
-  SECRET_DOMAIN_MEDIA: example_media.com
-  SECRET_DOMAIN_PERSONAL: example_personal.com
-  SECRET_DOMAIN_DIVING: example_diving.com
-  SECRET_DOMAIN_WIFE: example_wife.com
-  cluster_label: example-value
-kind: ConfigMap
-metadata:
-  name: hack-flux-local-ci
-  labels:
-    kustomize.toolkit.fluxcd.io/name: flux-system
-    kustomize.toolkit.fluxcd.io/namespace: flux-system
-
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
