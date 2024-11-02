@@ -33,6 +33,7 @@ spec:
               repository: ghcr.io/onedr0p/sonarr-develop
               tag: 4.0.10.2579@sha256:6b4134faf8a7896a2cd9ec00bc1d98e2953959d12f8840d65bc11e087982aad9
             env:
+              TZ: "${TIME_ZONE}"
               SONARR__APP__INSTANCENAME: Sonarr-UHD
               SONARR__APP__THEME: dark
               SONARR__AUTH__METHOD: External
@@ -41,12 +42,6 @@ spec:
               SONARR__LOG__LEVEL: info
               SONARR__SERVER__PORT: &port 80
               SONARR__UPDATE__BRANCH: develop
-              SONARR__API__KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: sonarr-uhd-secret
-                    key: api_key
-              TZ: "${TIME_ZONE}"
             probes:
               liveness: &probes
                 enabled: true

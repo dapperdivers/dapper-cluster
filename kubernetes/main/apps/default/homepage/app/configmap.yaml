@@ -113,13 +113,18 @@ data:
               url: http://nzbget.media.svc.cluster.local:6767
               key: {{HOMEPAGE_VAR_NZBGET_KEY}}
     - Network:
-        - OpnSense:
+        - Opnsense:
             icon: opnsense.png
             href: https://firewall.manor:8443/
             description: Router
             widget:
               type: opnsense
               url: https://firewall.manor:8443/
+        - UptimeRobot:
+              icon: uptimerobot.png
+              type: uptimerobot
+              url: https://api.uptimerobot.com
+              key: {{HOMEPAGE_VAR_NZBGET_KEY}}
     - Favorites:
         - My GitHub Repo:
             icon: si-github
