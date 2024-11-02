@@ -29,7 +29,7 @@ data:
     ---
     - Media:
         - HomeAssistant:
-            href: https://home.${SECRET_DOMAIN}
+            href: https://hass.${SECRET_DOMAIN}
             icon: home-assistant.png
             description: Home Assistant
             widget:
@@ -54,33 +54,15 @@ data:
             description: Media Requests
             widget:
               type: overseer
-              url: http://overseer.default.svc.cluster.local:3579
+              url: http://overseer.media.svc.cluster.local:3579
               key: {{HOMEPAGE_VAR_OVERSEER_KEY}}
-        - Immich:
-            icon: immich.png
-            href: https://photos.${SECRET_DOMAIN_MEDIA}
-            description: Photos and Videos Backup
-            widget:
-              type: immich
-              url: http://immich-server.default.svc.cluster.local:2283
-              key: {{HOMEPAGE_VAR_IMMICH_KEY}}
-              version: 2
-        - qBittorrent:
-            icon: qbittorrent.png
-            href: https://qbit.${SECRET_DOMAIN_MEDIA}
-            description: Torrent Management
-            widget:
-              type: qbittorrent
-              url: http://qbittorrent.default.svc.cluster.local:8080
-              username: {{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}
-              password: {{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}
         - Radarr:
             icon: radarr.png
             href: https://radarr.${SECRET_DOMAIN_MEDIA}
             description: Movies Management
             widget:
               type: radarr
-              url: http://radarr.default.svc.cluster.local:7878
+              url: http://radarr.media.svc.cluster.local:7878
               key: {{HOMEPAGE_VAR_RADARR_KEY}}
         - 4kRadarr:
             icon: radarr.png
@@ -88,7 +70,7 @@ data:
             description: Movies Management
             widget:
               type: radarr
-              url: http://radarr-uhd.default.svc.cluster.local:7878
+              url: http://radarr-uhd.media.svc.cluster.local:7878
               key: {{HOMEPAGE_VAR_4K_RADARR_KEY}}
         - Sonarr:
             icon: sonarr.png
@@ -96,7 +78,7 @@ data:
             description: TV Shows Management
             widget:
               type: sonarr
-              url: http://sonarr.default.svc.cluster.local:8989
+              url: http://sonarr.media.svc.cluster.local:8989
               key: {{HOMEPAGE_VAR_SONARR_KEY}}
         - 4kSonarr:
             icon: sonarr.png
@@ -104,7 +86,7 @@ data:
             description: TV Shows Management
             widget:
               type: sonarr
-              url: http://sonarr-uhd.default.svc.cluster.local:8989
+              url: http://sonarr-uhd.media.svc.cluster.local:8989
               key: {{HOMEPAGE_VAR_4K_SONARR_KEY}}
         - Lidarr:
             icon: lidarr.png
@@ -112,7 +94,7 @@ data:
             description: Musics Management
             widget:
               type: lidarr
-              url: http://lidarr.default.svc.cluster.local:8686
+              url: http://lidarr.media.svc.cluster.local:8686
               key: {{HOMEPAGE_VAR_LIDARR_KEY}}
         - Bazarr:
             icon: bazarr.png
@@ -120,7 +102,7 @@ data:
             description: Subtitles Management
             widget:
               type: bazarr
-              url: http://bazarr.default.svc.cluster.local:6767
+              url: http://bazarr.media.svc.cluster.local:6767
               key: {{HOMEPAGE_VAR_BAZARR_KEY}}
         - NzbGet:
             icon: nzbget.png
@@ -128,12 +110,12 @@ data:
             description: Usenet Downloader
             widget:
               type: nzbget
-              url: http://nzbget.default.svc.cluster.local:6767
+              url: http://nzbget.media.svc.cluster.local:6767
               key: {{HOMEPAGE_VAR_NZBGET_KEY}}
     - Network:
         - OpnSense:
             icon: opnsense.png
-            href: https://firewall.manor
+            href: https://firewall.manor:8443/
             description: Router
             widget:
               type: opnsense
@@ -147,10 +129,10 @@ data:
             icon: si-grafana
             href: https://grafana.${SECRET_DOMAIN}
             description: My Cluster Metrics Visualization
-        - k8s-at-home-search:
+        - home-ops-search:
             icon: si-kubernetes
             href: https://kubesearch.dev/
-            description: Search KAH HelmReleases
+            description: Home Operations Search
         - onedr0p home-ops:
             icon: si-github
             href: https://github.com/onedr0p/home-ops
