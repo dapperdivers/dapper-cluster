@@ -18,7 +18,7 @@ metadata:
 spec:
   ingressClassName: internal
   tls:
-    - hosts:
+    - hosts: # test
         - &host "firewall.${SECRET_DOMAIN}"
       secretName: ${SECRET_DOMAIN/./-}-production-tls
   rules:
