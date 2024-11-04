@@ -11,7 +11,7 @@ resources:
   - ./radarr/ks.yaml
   - ./radarr-uhd/ks.yaml
   - ./sabnzbd/ks.yaml
-  - ./overseer/ks.yaml
+  - ./overseerr/ks.yaml
   - ./prowlarr/ks.yaml
   - ./plex/ks.yaml
   - ./wizarr/ks.yaml

@@ -24,7 +24,7 @@ spec:
       retries: 3
   dependsOn:
     - name: plex
-      namespace: default
+      namespace: media
   values:
     controllers:
       plex-off-deck:

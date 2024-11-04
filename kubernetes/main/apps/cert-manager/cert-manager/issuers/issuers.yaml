@@ -3,8 +3,9 @@ kind: ClusterIssuer
 metadata:
   name: letsencrypt-production
 spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
+  acme: # Using staging for a bit to fix the cluster
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    #server: https://acme-v02.api.letsencrypt.org/directory
     email: "${SECRET_ACME_EMAIL}"
     privateKeySecretRef:
       name: letsencrypt-production

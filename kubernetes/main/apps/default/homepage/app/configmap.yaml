@@ -53,8 +53,8 @@ data:
             href: https://www.${SECRET_DOMAIN_MEDIA}
             description: Media Requests
             widget:
-              type: overseer
-              url: http://overseer.media.svc.cluster.local:3579
+              type: overseerr
+              url: http://overseerr.media.svc.cluster.local:3579
               key: {{HOMEPAGE_VAR_OVERSEER_KEY}}
         - Radarr:
             icon: radarr.png
