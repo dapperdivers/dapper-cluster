@@ -12,7 +12,7 @@ spec:
       app.kubernetes.io/name: *app
   dependsOn:
     - name: kyverno-policies
-      namespace: flux-system
+      namespace: kyverno
   path: ./kubernetes/main/apps/volsync-system/volsync/app
   prune: true
   sourceRef:
