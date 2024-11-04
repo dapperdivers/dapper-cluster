@@ -1,0 +1,111 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app vaultwarden
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: volsync
+      namespace: volsync-system
+  values:
+    controllers:
+      vaultwarden:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/dani-garcia/vaultwarden
+              tag: 1.32.3@sha256:7de8fd442afc26e4932a0b2521e2eec82db9f17667eef7b46fd9c2fa2e639de2
+            env:
+              TZ: ${TIME_ZONE}
+              DATA_FOLDER: "/data"
+              DOMAIN: https://vault.${SECRET_DOMAIN}
+              SIGNUPS_ALLOWED: false
+              SHOW_PASSWORD_HINT: false
+              SMTP_FROM: vaultwarden@${SECRET_DOMAIN}
+              SMTP_FROM_NAME: Vaultwarden
+              SMTP_HOST: smtp-relay.networking.svc.cluster.local
+              SMTP_SECURITY: "off"
+              SMTP_PORT: 2525
+            envFrom:
+              - secretRef:
+                  name: vaultwarden-secret
+              - secretRef:
+                  name: vaultwarden-db-secret
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+        pod:
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 150
+            fsGroup: 140
+            fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: vaultwarden
+        ports:
+          http:
+            port: 80
+    ingress:
+      app:
+        className: internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        hosts:
+          - host: &host "vault.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: "${SECRET_DOMAIN/./-}-production-tls"
+      admin:
+        className: internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        hosts:
+          - host: *host
+            paths:
+              - path: /admin
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: "${SECRET_DOMAIN/./-}-production-tls"
+    persistence:
+      data:
+        existingClaim: vaultwarden
+        globalMounts:
+          - path: /data

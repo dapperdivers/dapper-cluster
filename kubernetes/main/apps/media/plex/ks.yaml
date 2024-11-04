@@ -33,10 +33,10 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  targetNamespace: default
+  targetNamespace: media
   dependsOn:
     - name: external-secrets-stores
-  path: ./kubernetes/main/apps/default/plex/tools
+  path: ./kubernetes/main/apps/media/plex/tools
   prune: true
   sourceRef:
     kind: GitRepository
