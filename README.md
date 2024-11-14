@@ -3,6 +3,9 @@
 Reset steps:
 
     ```sh
+    task talos:reset
+    # remove k8s dir on nas
+    rm -rf k8s/*
     task bootstrap:talos
     task bootstrap:flux
     ```
