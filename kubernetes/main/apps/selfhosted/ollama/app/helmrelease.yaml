@@ -29,9 +29,7 @@ spec:
         type: 'nvidia'
         number: 4
       models:
-        - codellama
-        - mistral
-        - llama3
+        - llama3.1:8b
     extraEnv:
       - name: TZ
         value: "${TIME_ZONE}"
