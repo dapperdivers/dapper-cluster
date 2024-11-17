@@ -98,8 +98,6 @@ spec:
         className: internal
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          authentik.home.arpa/enabled: "true"
-          nginx.ingress.kubernetes.io/auth-signin: "https://vault.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         hosts:
           - host: &host vault.${SECRET_DOMAIN}
             paths:
@@ -115,23 +113,25 @@ spec:
                 service:
                   identifier: app
                   port: *websocket-port
-        tls:
+        tls: &tls
           - hosts:
               - *host
             secretName: "${SECRET_DOMAIN/./-}-production-tls"
-      admin:
-        className: internal
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${DOMAIN}
-          # disabled for 40x because it is used for the authentication
-          nginx.ingress.kubernetes.io/whitelist-source-range: 10.100.0.0/24, 10.69.0.0/16, 192.168.1.0/24
-        hosts:
-          - host: *host
-            paths:
-              - path: /admin
-                service:
-                  identifier: app
-                  port: http
+      # admin:
+      #   className: internal
+      #   annotations:
+      #     external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+      #     authentik.home.arpa/enabled: "true"
+      #     nginx.ingress.kubernetes.io/auth-signin: "https://vault.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
+      #     nginx.ingress.kubernetes.io/whitelist-source-range: 10.100.0.0/24, 10.69.0.0/16, 192.168.1.0/24
+      #   hosts:
+      #     - host: *host
+      #       paths:
+      #         - path: /admin
+      #           service:
+      #             identifier: app
+      #             port: http
+      #  tls: *tls
     persistence:
       config:
         existingClaim: vaultwarden

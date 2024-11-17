@@ -27,10 +27,11 @@ spec:
       gpu:
         enabled: true
         type: 'nvidia'
-        number: 4
       models:
         - llama3.1:8b
     extraEnv:
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: all
       - name: TZ
         value: "${TIME_ZONE}"
       - name: OLLAMA_DEBUG
@@ -52,10 +53,8 @@ spec:
       requests:
         cpu: 200m
         memory: 30Gi
-        nvidia.com/gpu: 4
       limits:
         memory: 80Gi
-        nvidia.com/gpu: 4
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
