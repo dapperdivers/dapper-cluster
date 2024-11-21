@@ -9,7 +9,7 @@ spec:
   timeout: 15m
   chart:
     spec:
-      chart: *app
+      chart: open-webui
       version: 3.6.0
       sourceRef:
         kind: HelmRepository
@@ -36,7 +36,7 @@ spec:
 
     ollama:
       enabled: false
-    ollamaUrls: ["http://ollama.selfhosted.svc.cluster.local.:11434"]
+    ollamaUrls: ["http://ollama.selfhosted.svc.cluster.local:11434"]
     pipelines:
       enabled: true
       persistence:
@@ -71,16 +71,19 @@ spec:
           secretKeyRef:
             name: *app
             key: WEBUI_SECRET_KEY
+      - name: OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: *app
+            key: OPENAI_API_KEY
     ingress:
       enabled: true
       class: internal
       annotations:
         external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        nginx.ingress.kubernetes.io/rewrite-target: "/"
       host: chat.${SECRET_DOMAIN}
-      tls:
-        enabled: true
-        existingSecret: ${SECRET_DOMAIN/./-}-production-tls
+      tls: true
+      existingSecret: ${SECRET_DOMAIN/./-}-production-tls
     persistence:
       enabled: true
       existingClaim: open-webui

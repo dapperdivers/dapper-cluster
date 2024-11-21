@@ -9,17 +9,15 @@
         "*.json5": "jsonc",
         "./kubernetes/**/*.sops.toml": "plaintext"
     },
-     "material-icon-theme.files.associations": {
-      // TODO: https://github.com/PKief/vscode-material-icon-theme/issues/330
-      "*.sops.env": "lock",
-      "*.sops.yaml": "lock"
+    "json.schemas": [{
+        "fileMatch": ["renovate.json5"],
+        "url": "https://docs.renovatebot.com/renovate-schema.json"
+    }],
+    "material-icon-theme.files.associations": {
+        "*.sops.env": "lock",
+        "*.sops.yaml": "lock"
     },
     "material-icon-theme.folders.associations": {
-        // top level
-        ".archive": "archive",
-        // .github
-        ".github/workflows": "robot",
-        // namespaces
         "actions-runner-system": "github",
         "cert-manager": "guard",
         "default": "home",
@@ -35,18 +33,24 @@
         "storage": "dump",
         "system-upgrade": "update",
         "tools": "tools",
-        "volsync": "aws"
+        "volsync": "aws",
+        ".archive": "archive",
+        ".github/workflows": "robot"
     },
     "sops.defaults.ageKeyFile": "age.key",
-
     "vs-kubernetes": {
         "vs-kubernetes.kubeconfig": "./kubeconfig",
         "vs-kubernetes.knownKubeconfigs": [
-          "./kubeconfig"
-      ]
+            "./kubeconfig"
+        ]
     },
     "yaml.schemaStore.enable": true,
     "yaml.schemas": {
         "Kubernetes": "./kubernetes/*.yaml"
-    }
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.formatOnSave": true
+    },
+    "json.validate.enable": false
 }

@@ -157,7 +157,7 @@ radarr:
           # - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
         assign_scores_to:
           - name: HD Bluray + WEB
-  uhd-bluray-web:
+  radarr-uhd:
     base_url: http://radarr-uhd.media.svc.cluster.local
     api_key: !env_var RADARR_UHD_API_KEY
     delete_old_custom_formats: true

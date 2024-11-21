@@ -20,6 +20,7 @@ spec:
     name: home-kubernetes
   wait: false
   dependsOn:
+    - name: volsync
     - name: external-secrets-stores
   postBuild:
     substitute:

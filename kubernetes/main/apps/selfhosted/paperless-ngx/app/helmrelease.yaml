@@ -100,18 +100,12 @@ spec:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-production-tls
     persistence:
-      config:
-        enabled: true
+      data:
         existingClaim: paperless-ngx
         advancedMounts:
           main:
             app:
-              - path: /usr/src/paperless/data
-                subPath: data
-              - path: /usr/src/paperless/consume
-                subPath: consume
-              - path: /usr/src/paperless/media
-                subPath: media
+              - path: /data/local
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
