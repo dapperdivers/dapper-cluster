@@ -87,7 +87,8 @@ spec:
     persistence:
       enabled: true
       existingClaim: open-webui
-
+    copyAppData:
+      resources: {}
     containerSecurityContext:
       runAsUser: 1000
       runAsGroup: 150
