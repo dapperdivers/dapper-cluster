@@ -100,7 +100,7 @@ spec:
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           hajimari.io/icon: simple-icons:ubiquiti
         hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: &host "unifi.${SECRET_DOMAIN}"
             paths:
               - path: /
                 service:
