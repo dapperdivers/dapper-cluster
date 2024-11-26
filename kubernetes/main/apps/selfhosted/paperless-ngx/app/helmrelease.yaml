@@ -25,7 +25,7 @@ spec:
           01-init-db:
             image:
               repository: ghcr.io/onedr0p/postgres-init
-              tag: 14.9
+              tag: 16.6
               pullPolicy: IfNotPresent
             envFrom:
               - secretRef:
@@ -66,7 +66,7 @@ spec:
           gotenberg:
             image:
               repository: gotenberg/gotenberg
-              tag: 8.13.0
+              tag: 8.14.1
               pullPolicy: IfNotPresent
             ports:
               - containerPort: 3000

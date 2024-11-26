@@ -43,7 +43,7 @@ spec:
           app:
             image:
               repository: ghcr.io/onedr0p/home-assistant
-              tag: 2024.11.2@sha256:bc1bae360366c10e16f486eaf945da0381b18598070495343c4f64217a617e29
+              tag: 2024.11.3@sha256:f45f502b1738e46eb435fbc8947cdcc2574f3713b156c6738129ea2ea9b49018
             env:
               TZ: ${TIME_ZONE}
               UV_SYSTEM_PYTHON: true
