@@ -33,7 +33,8 @@ spec:
   values:
     annotations:
       reloader.stakater.com/auto: "true"
-
+    copyAppData:
+      resources: {}
     ollama:
       enabled: false
     ollamaUrls: ["http://ollama.selfhosted.svc.cluster.local:11434"]
@@ -87,8 +88,6 @@ spec:
     persistence:
       enabled: true
       existingClaim: open-webui
-    copyAppData:
-      resources: {}
     containerSecurityContext:
       runAsUser: 1000
       runAsGroup: 150
