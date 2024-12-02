@@ -13,6 +13,7 @@ resources:
   - ./sabnzbd/ks.yaml
   - ./overseerr/ks.yaml
   - ./prowlarr/ks.yaml
+  - ./threadfin/ks.yaml
   - ./plex/ks.yaml
   - ./wizarr/ks.yaml
 
