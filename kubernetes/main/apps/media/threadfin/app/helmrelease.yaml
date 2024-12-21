@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: fyb3roptik/threadfin
-              tag: 1.2.20@sha256:822636be62a5d7f83aed4e464d5e5bdb4ca55a42c80de89825368f866a89d34e
+              tag: 1.2.21@sha256:53d7efb4dcc3cc70b35073091dee6f6e30432a9e5e1ba1d5a8cbe9a9f898c327
               pullPolicy: IfNotPresent
 
             env:
