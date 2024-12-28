@@ -60,7 +60,11 @@ spec:
         seccompProfile: { type: RuntimeDefault }
     service:
       app:
+        type: LoadBalancer
         controller: *app
+        annotations:
+          lbipam.cilium.io/ips: &ip ${ESP_HOME_VIP_GATEWAY}
+        externalTrafficPolicy: Cluster
         ports:
           http:
             port: 6052
