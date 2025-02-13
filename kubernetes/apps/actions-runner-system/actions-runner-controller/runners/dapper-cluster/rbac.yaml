@@ -20,6 +20,6 @@ subjects:
 apiVersion: talos.dev/v1alpha1
 kind: ServiceAccount
 metadata:
-  name: home-ops-runner
+  name: dapper-cluster-runner
 spec:
   roles: ["os:admin"]
