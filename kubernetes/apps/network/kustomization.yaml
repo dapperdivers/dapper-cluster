@@ -10,3 +10,4 @@ resources:
   - ./internal/ks.yaml
   - ./multus/ks.yaml
   - ./smtp-relay/ks.yaml
+  - ./home-reverse-proxy/ks.yaml
