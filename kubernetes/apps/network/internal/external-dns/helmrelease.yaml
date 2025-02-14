@@ -26,7 +26,8 @@ spec:
       retries: 3
   values:
     fullnameOverride: *app
-    enableServiceLinks: false
+    podAnnotations:
+      secret.reloader.stakater.com/reload: extnernal-dns-bind-secret
     provider: rfc2136
     env:
       - name: EXTERNAL_DNS_RFC2136_HOST
@@ -55,7 +56,6 @@ spec:
     txtOwnerId: default
     txtPrefix: k8s.
     domainFilters: ["${SECRET_DOMAIN}","${SECRET_DOMAIN_MEDIA}"]
+    enableServiceLinks: false
     serviceMonitor:
       enabled: true
-    podAnnotations:
-      secret.reloader.stakater.com/reload: extnernal-dns-bind-secret
