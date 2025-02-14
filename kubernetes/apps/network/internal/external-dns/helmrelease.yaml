@@ -39,12 +39,12 @@ spec:
       - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET_ALG
         valueFrom:
           secretKeyRef:
-            name: internal-external-dns-secret
+            name: extnernal-dns-bind-secret
             key: BIND_RNSC_ALG
       - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
         valueFrom:
           secretKeyRef:
-            name: internal-external-dns-secret
+            name: extnernal-dns-bind-secret
             key: BIND_RNDC_KEY
     extraArgs:
       - --rfc2136-zone=${SECRET_DOMAIN}
@@ -57,4 +57,4 @@ spec:
     serviceMonitor:
       enabled: true
     podAnnotations:
-      secret.reloader.stakater.com/reload: internal-external-dns-secret
+      secret.reloader.stakater.com/reload: extnernal-dns-bind-secret
