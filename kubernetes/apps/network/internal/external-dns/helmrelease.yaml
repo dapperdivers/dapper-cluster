@@ -26,6 +26,7 @@ spec:
       retries: 3
   values:
     fullnameOverride: *app
+    enableServiceLinks: false
     provider: rfc2136
     env:
       - name: EXTERNAL_DNS_RFC2136_HOST
