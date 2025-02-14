@@ -42,7 +42,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: extnernal-dns-bind-secret
-            key: BIND_RNSC_ALG
+            key: BIND_RNDC_ALG
       - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
         valueFrom:
           secretKeyRef:
