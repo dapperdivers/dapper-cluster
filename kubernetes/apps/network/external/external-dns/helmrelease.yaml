@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: external-dns
-      version: 1.15.0 # revert till https://github.com/kubernetes-sigs/external-dns/pull/5087/files
+      version: 1.15.2 # revert till https://github.com/kubernetes-sigs/external-dns/pull/5087/files
       sourceRef:
         kind: HelmRepository
         name: external-dns
