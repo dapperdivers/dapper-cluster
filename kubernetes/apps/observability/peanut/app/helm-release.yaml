@@ -1,0 +1,71 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app peanut
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      peanut:
+        containers:
+          app:
+            image:
+              repository: brandawg93/peanut
+              tag: 5.5.0
+            securityContext:
+              privileged: true
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            env:
+              NUT_HOST: nut-upsd.kube-system.svc.cluster.local
+              NUT_PORT: 3493
+              WEB_PORT: &httpPort 8080
+            envFrom:
+              - secretRef:
+                  name: peanut-secret
+    service:
+      app:
+        controller: peanut
+        ports:
+          http:
+            port: *httpPort
+
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &host ups.${SECRET_DOMAIN}
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls

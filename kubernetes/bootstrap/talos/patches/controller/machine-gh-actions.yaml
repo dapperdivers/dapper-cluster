@@ -1,4 +1,7 @@
 machine:
+  udev:
+    rules:
+      # - KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660" GROUP="nut" don't think this is needed after all
   features:
     rbac: true
     stableHostname: true

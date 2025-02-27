@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: ghcr.io/onedr0p/radarr-develop
-              tag: 5.19.0.9697@sha256:7b92d611e751c47b6f110d5945f771761e999511b8731c6e7c565943235d1fcf
+              tag: 5.19.1.9704
             env:
               TZ: "${TIME_ZONE}"
               RADARR__APP__INSTANCENAME: Radarr
@@ -92,7 +92,7 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-          authentik.home.arpa/enabled: "true"
+          authentik.home.arpa/internal: "true"
           nginx.ingress.kubernetes.io/auth-signin: "https://radarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:

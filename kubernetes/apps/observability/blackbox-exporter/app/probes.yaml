@@ -17,3 +17,4 @@ spec:
         - firewall.manor
         - zigbee-controller.manor
         - zigbee-controller-garage.manor
+        - nut-upsd.kube-system.svc.cluster.local

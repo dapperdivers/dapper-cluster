@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: ghcr.io/onedr0p/prowlarr-develop
-              tag: 1.31.1.4959@sha256:92490cca2f373286a3b4423aebf43e5628ee75dcd55cb325dbe6e1c846cce835
+              tag: 1.31.2.4975@sha256:fa776c72b6cdd900f36df88a8c3980ac91da16830157ae19eb1c044e2c09e2a7
             env:
               TZ: "{TIME_ZONE}"
               PROWLARR__APP__INSTANCENAME: Prowlarr
@@ -88,7 +88,7 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN_MEDIA}
-          authentik.home.arpa/enabled: "true"
+          authentik.home.arpa/internal: "true"
           nginx.ingress.kubernetes.io/auth-signin: "https://prowlarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:

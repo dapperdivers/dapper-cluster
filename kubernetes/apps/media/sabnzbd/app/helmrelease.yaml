@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: ghcr.io/onedr0p/sabnzbd
-              tag: 4.4.1@sha256:fd85776610865ba5bd8da40415759871ee70dfe9371f88ee88f18a847391ce6a
+              tag: 4.4.1@sha256:b7380cd5a93a0a232c5ce25803531b1575453953e99de4e6b8a1398e73442e5b
             env:
               TZ: ${TIME_ZONE}
               SABNZBD__PORT: &port 80
@@ -105,7 +105,7 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN_MEDIA}
-          authentik.home.arpa/enabled: "true"
+          authentik.home.arpa/internal: "true"
           nginx.ingress.kubernetes.io/auth-signin: "https://sabnzbd.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:

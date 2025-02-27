@@ -9,6 +9,6 @@ resources:
   - ./open-webui/ks.yaml
   - ./n8n/ks.yaml
   - ./ollama/ks.yaml
-  - ./wyoming-whisper/ks.yaml
+  #- ./wyoming-whisper/ks.yaml
 
 

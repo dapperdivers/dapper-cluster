@@ -39,7 +39,7 @@ spec:
           app:
             image:
               repository: docker.io/n8nio/n8n
-              tag: 1.79.0
+              tag: 1.80.3
             env:
               GENERIC_TIMEZONE: ${TIME_ZONE}
               N8N_PORT: &port 80
@@ -94,7 +94,7 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          authentik.home.arpa/enabled: "true"
+          authentik.home.arpa/internal: "true"
           nginx.ingress.kubernetes.io/auth-signin: "https://n8n.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:

@@ -25,7 +25,7 @@ spec:
           01-init-db:
             image:
               repository: ghcr.io/onedr0p/postgres-init
-              tag: 16.6
+              tag: 16.8
               pullPolicy: IfNotPresent
             envFrom:
               - secretRef:
@@ -85,7 +85,7 @@ spec:
         enabled: true
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          authentik.home.arpa/enabled: "true"
+          authentik.home.arpa/internal: "true"
           nginx.ingress.kubernetes.io/auth-signin: "https://docs.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:

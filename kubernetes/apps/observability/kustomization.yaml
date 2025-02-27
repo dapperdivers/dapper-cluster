@@ -8,9 +8,12 @@ components:
 resources:
   - ./blackbox-exporter/ks.yaml
   - ./exporters/dcgm-exporter/ks.yaml
+  - ./exporters/snmp-exporter/ks.yaml
+  - ./exporters/nut-exporter/ks.yaml
   - ./gatus/ks.yaml
   - ./grafana/ks.yaml
   - ./goldilocks/ks.yaml
+  - ./peanut/ks.yaml
   - ./promtail/ks.yaml
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
