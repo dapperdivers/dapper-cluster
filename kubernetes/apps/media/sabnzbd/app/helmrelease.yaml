@@ -79,8 +79,8 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
-        runAsGroup: 150
-        fsGroup: 140
+        runAsGroup: 140
+        fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }
@@ -93,7 +93,7 @@ spec:
                   matchExpressions:
                     - key: app.kubernetes.io/name
                       operator: In
-                      values: ["qbittorrent"]
+                      values: ["qbittorrent","plex"]
                 topologyKey: kubernetes.io/hostname
     service:
       app:
