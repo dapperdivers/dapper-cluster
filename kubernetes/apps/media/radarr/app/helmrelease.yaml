@@ -33,8 +33,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/onedr0p/radarr-develop
-              tag: 5.20.0.9752
+              repository: ghcr.io/home-operations/radarr
+              tag: 5.20.1.9773@sha256:407eb673a46134648c991bb7727b1b788897a181eb9234376105dd763c2b8406
             env:
               TZ: "${TIME_ZONE}"
               RADARR__APP__INSTANCENAME: Radarr
@@ -77,8 +77,8 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
-        runAsGroup: 150
-        fsGroup: 140
+        runAsGroup: 140
+        fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }

@@ -33,8 +33,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/onedr0p/tautulli
-              tag: 2.15.1@sha256:2d5a1bce27a8e29e287aec1735001e68fc23dea08806c7124587cdbfaf0ddcff
+              repository: ghcr.io/home-operations/tautulli
+              tag: 2.15.1@sha256:48029409b1a98d2e7564fdf2fc7eced0c9355533fd7a20a3167b964305f1ab0e
             env:
               TZ: ${TIME_ZONE}
               TAUTULLI__PORT: &port 80
