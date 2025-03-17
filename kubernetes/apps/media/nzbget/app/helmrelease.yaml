@@ -54,7 +54,7 @@ spec:
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false # I don't like this.
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
