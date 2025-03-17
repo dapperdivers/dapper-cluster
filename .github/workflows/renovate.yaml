@@ -63,6 +63,6 @@ jobs:
       - name: Renovate
         uses: renovatebot/github-action@08ed9fa83e24bfe6222557f9e221395c57972127 # v41.0.16
         with:
-          configurationFile: .github/renovate.json5
+          configurationFile: .github/.renovaterc.json5
           token: "${{ steps.app-token.outputs.token }}"
           renovate-version: "${{ env.WORKFLOW_RENOVATE_VERSION }}"
