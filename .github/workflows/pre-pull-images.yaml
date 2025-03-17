@@ -92,7 +92,7 @@
     pull:
       if: ${{ needs.pre-job.outputs.any_changed == 'true' && needs.compare.outputs.images != '[]' }}
       name: Image Pull - Pull Images
-      runs-on: home-ops-runner
+      runs-on: dapper-cluster-runner
       needs: ["pre-job", "compare"]
       strategy:
         matrix:
