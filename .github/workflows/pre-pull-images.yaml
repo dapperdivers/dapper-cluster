@@ -45,7 +45,7 @@
             ref: "${{ matrix.branches == 'default' && github.event.repository.default_branch || '' }}"
 
         - name: Gather Images
-          uses: docker://ghcr.io/allenporter/flux-local:v7.2.1
+          uses: docker://ghcr.io/allenporter/flux-local:v7.2.1@sha256:f4ee605be9744aba67758dd0d3e9ea9dfc374ac4f019952b8c487f27e1674344
           with:
             args: >-
               get cluster
@@ -53,18 +53,17 @@
               --path /github/workspace/kubernetes/flux/cluster
               --enable-images
               --only-images
-              --output json
-              --output-file images.json
+              --output yaml
+              --output-file images.yaml
 
-        - name: Output Images
-          id: images
+
+        - name: Extract Images
+          id: extract-images
           run: |
-            echo "${{ matrix.branches }}=$(jq --compact-output '.' images.json)" >> $GITHUB_OUTPUT
-
-            echo '## Branch ${{ matrix.branches }} images' >> $GITHUB_STEP_SUMMARY
-            echo '```json' >> $GITHUB_STEP_SUMMARY
-            jq '.' images.json >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            images=$(yq --indent=0 --output-format=json \
+            '[.. | .images? | select(. != null)] | flatten | sort | unique' images.yaml \
+            )
+            echo "${{ matrix.branches }}=${images}" >> $GITHUB_OUTPUT
 
     compare:
       if: ${{ needs.pre-job.outputs.any_changed == 'true' && needs.extract.outputs.default != needs.extract.outputs.pull }}
