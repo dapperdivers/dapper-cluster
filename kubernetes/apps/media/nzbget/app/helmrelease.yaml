@@ -84,7 +84,7 @@ spec:
         controller: nzbget
         ports:
           http:
-            port: *port
+            port: 6789
     ingress:
       app:
         annotations:
