@@ -52,10 +52,6 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false # I don't like this.
-              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 8000m
@@ -67,9 +63,6 @@ spec:
         runAsUser: 1000
         runAsGroup: 140
         fsGroup: 150
-        fsGroupChangePolicy: OnRootMismatch
-        supplementalGroups: [10000]
-        seccompProfile: { type: RuntimeDefault }
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
