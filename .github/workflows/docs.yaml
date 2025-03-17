@@ -20,7 +20,7 @@ permissions:
 jobs:
   build:
     name: Build Docs
-    runs-on: ubuntu-latest
+    runs-on: ["dapper-cluster-runner"]
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
