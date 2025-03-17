@@ -37,6 +37,8 @@ spec:
               tag: v24.7@sha256:831f288fc14be224533fc9aeace5b830283923cb7404a3806849749d4101031c
             env:
               TZ: ${TIME_ZONE}
+              PUID: 1000
+              PGID: 140
             probes:
               liveness: &probes
                 enabled: true
