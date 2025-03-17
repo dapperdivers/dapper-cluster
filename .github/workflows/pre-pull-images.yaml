@@ -19,7 +19,7 @@ env:
 jobs:
   extract-images:
     name: Extract Images
-    runs-on: ubuntu-latest
+    runs-on: ["dapper-cluster-runner"]
     strategy:
       matrix:
         branches: ["default", "pull"]
