@@ -13,16 +13,24 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Flux Local Test
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        with:
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run flux-local test
-        uses: docker://ghcr.io/allenporter/flux-local:v7.2.1
+        uses: docker://ghcr.io/allenporter/flux-local:v7.2.1@sha256:f4ee605be9744aba67758dd0d3e9ea9dfc374ac4f019952b8c487f27e1674344
         with:
           args: test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
 
@@ -38,19 +46,24 @@ jobs:
       max-parallel: 4
       fail-fast: false
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        with:
+          egress-policy: audit
+
       - name: Checkout Pull Request Branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: pull
 
       - name: Checkout Default Branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: "${{ github.event.repository.default_branch }}"
           path: default
 
       - name: Run flux-local diff
-        uses: docker://ghcr.io/allenporter/flux-local:v7.2.1
+        uses: docker://ghcr.io/allenporter/flux-local:v7.2.1@sha256:f4ee605be9744aba67758dd0d3e9ea9dfc374ac4f019952b8c487f27e1674344
         with:
           args: >-
             diff ${{ matrix.resources }}
@@ -81,7 +94,7 @@ jobs:
 
       - if: ${{ steps.diff.outputs.diff != '' }}
         name: Add Comment
-        uses: mshick/add-pr-comment@v2
+        uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
         with:
           message-id: "${{ github.event.pull_request.number }}/kubernetes/${{ matrix.resources }}"
           message-failure: Diff was not successful
@@ -96,6 +109,11 @@ jobs:
     name: Flux Local successful
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        with:
+          egress-policy: audit
+
       - name: Check flux-local status
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
