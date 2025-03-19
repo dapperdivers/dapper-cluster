@@ -51,6 +51,7 @@ spec:
               - containerPort: &port 4000
             env:
               TZ: "${TIME_ZONE}"
+              STORE_MODEL_IN_DB: True
             envFrom:
               - secretRef:
                   name: litellm-secret
