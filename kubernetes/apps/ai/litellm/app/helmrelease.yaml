@@ -51,6 +51,7 @@ spec:
               - containerPort: &port 4000
             env:
               TZ: "${TIME_ZONE}"
+              REDIS_URL: redis://dragonfly.database.svc.cluster.local
               STORE_MODEL_IN_DB: True
             envFrom:
               - secretRef:
