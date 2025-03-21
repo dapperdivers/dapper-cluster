@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: ghcr.io/nzbgetcom/nzbget
-              tag: v24.7@sha256:831f288fc14be224533fc9aeace5b830283923cb7404a3806849749d4101031c
+              tag: v24.8@sha256:c21a1dc5592aa20b3467b97e728bf16fa1a79f1081041ec1774e9b282fae3fb8
             env:
               TZ: ${TIME_ZONE}
               PUID: 1000
