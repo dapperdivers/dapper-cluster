@@ -31,7 +31,7 @@ libraries: # This is called out once within the config.yaml file
     minimum_items: 2
     radarr:
       url: http://4kradarr.media.svc.cluster.local:7878
-      token: ${RADARR_UHD_API_KEY}
+      token: <<RADARR_UHD_API_KEY>>
       add_missing: false
       add_existing: false
       root_folder_path: "/media/baby_plex/movies-4k"
@@ -75,7 +75,7 @@ libraries: # This is called out once within the config.yaml file
     minimum_items: 2
     radarr:
       url: http://radarr.media.svc.cluster.local:7878
-      token: ${RADARR_API_KEY}
+      token: <<RADARR_API_KEY>>
       add_missing: false
       add_existing: false
       root_folder_path: "/media/baby_plex/Movies"
@@ -123,7 +123,7 @@ libraries: # This is called out once within the config.yaml file
         managed: true
     sonarr:
       url: http://4ksonarr.media.svc.cluster.local:80
-      token: ${SONARR_UHD_API_KEY}
+      token: <<SONARR_UHD_API_KEY>>
       add_missing: false
       add_existing: false
       root_folder_path: "/media/baby_plex/tv-4k"
@@ -173,7 +173,7 @@ libraries: # This is called out once within the config.yaml file
         managed: true
     sonarr:
       url: http://sonarr.media.svc.cluster.local:80
-      token: ${SONARR_API_KEY}
+      token: <<SONARR_API_KEY>>
       add_missing: false
       add_existing: false
       root_folder_path: "/media/baby_plex/Shows"
@@ -210,7 +210,7 @@ settings:
   run_again_delay: 2
   missing_only_released: false
   missing_path: config/missing
-  custom_repo: https://github.com/h3mmy/bloopysphere/tree/main/cluster/apps/media/plex-meta-manager/app/custom/
+  custom_repo: https://github.com/DapperDivers/dapper-cluster/tree/main/kubernetes/apps/media/kometa/app/custom
   only_filter_missing: false
   show_unmanaged: false
   show_filtered: false
@@ -232,29 +232,29 @@ settings:
 
 plex:
   url: http://plex.media.svc.cluster.local:32400
-  token: ${PLEX_TOKEN}
+  token: <<PLEX_TOKEN>>
   timeout: 60
   clean_bundles: true
   empty_trash: false
   optimize: false
 
 tmdb: # REQUIRED for the script to run
-  apikey: ${TMDB_API_KEY}
+  apikey: <<TMDB_API_KEY>>
   language: en
   cache_expiration: 60
   region:
 
 tautulli:
   url: http://tautulli.media.svc.cluster.local:8181
-  apikey: ${TAUTULLI_API_KEY}
+  apikey: <<TAUTULLI_API_KEY>>
 
 omdb:
-  apikey: ${OMDB_API_KEY}
+  apikey: <<OMDB_API_KEY>>
   cache_expiration: 60
 
 mdblist:
-  apikey: ${MDBLIST_API_KEY}
+  apikey: <<MDBLIST_API_KEY>>
   cache_expiration: 60
 
 # notifiarr:
-#   API_KEY: ${NOTIFIARR_API_KEY}
+#   API_KEY: <<NOTIFIARR_API_KEY>>

@@ -34,7 +34,7 @@ spec:
         cronjob:
           schedule: "@daily"
           timeZone: &timeZone ${TIME_ZONE}
-          concurrencyPolicy: Allow
+          concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
         containers:
@@ -47,10 +47,7 @@ spec:
               - -c
             args:
               - |
-                python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
-                python3 kometa.py --run --read-only-config --run-libraries "Movies";
-                python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows";
-                python3 kometa.py --run --read-only-config --run-libraries "TV Shows";
+                cat /config/config.yml
             env:
               TZ: *timeZone
             envFrom:
@@ -58,7 +55,7 @@ spec:
                   name: kometa-secret
             resources:
               requests:
-                cpu: 10m
+                cpu: 1000m
                 memory: 4096M
               limits:
                 memory: 8192M
