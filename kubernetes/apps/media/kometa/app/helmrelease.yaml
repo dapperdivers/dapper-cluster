@@ -58,7 +58,7 @@ spec:
                   name: kometa-secret
             resources:
               requests:
-                cpu: 1000m
+                cpu: 500m
                 memory: 4096M
               limits:
                 memory: 8192M
