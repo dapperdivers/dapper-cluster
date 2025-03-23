@@ -1,5 +1,4 @@
 libraries: # This is called out once within the config.yaml file
-
   4k-Movies:
     run_order:
       - collections
@@ -21,10 +20,10 @@ libraries: # This is called out once within the config.yaml file
       - repo: Movies - Overlays - Studios.yaml
     operations:
       mass_genre_update: imdb
-      mass_content_rating_update: [omdb]
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
+      mass_content_rating_update: [omdb, 2.0]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
@@ -65,10 +64,10 @@ libraries: # This is called out once within the config.yaml file
       - repo: Movies - Overlays - Studios.yaml
     operations:
       mass_genre_update: imdb
-      mass_content_rating_update: [omdb]
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
+      mass_content_rating_update: [omdb, 2.0]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
@@ -112,12 +111,12 @@ libraries: # This is called out once within the config.yaml file
     operations:
       mass_genre_update: tmdb
       mass_content_rating_update: omdb
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
-      mass_episode_audience_rating_update: [mdb_tomatoesaudience]
-      mass_episode_critic_rating_update: [mdb_metacritic]
-      mass_episode_user_rating_update: [imdb]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
+      mass_episode_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_episode_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_episode_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
@@ -138,6 +137,8 @@ libraries: # This is called out once within the config.yaml file
       sonarr_path:
       plex_path:
       upgrade_existing: false
+
+
   TV Shows:
     run_order:
       - collections
@@ -162,12 +163,12 @@ libraries: # This is called out once within the config.yaml file
     operations:
       mass_genre_update: tmdb
       mass_content_rating_update: omdb
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
-      mass_episode_audience_rating_update: [mdb_tomatoesaudience]
-      mass_episode_critic_rating_update: [mdb_metacritic]
-      mass_episode_user_rating_update: [imdb]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
+      mass_episode_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_episode_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_episode_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
