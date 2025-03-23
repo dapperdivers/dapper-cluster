@@ -1,30 +1,29 @@
-libraries: # This is called out once within the config.yaml file
+libraries: # This is called out once within the config.yml file
   4k-Movies:
     library_name: 4k-Movies
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
-      - repo: Movies.yaml
-      - repo: People.yaml
+      - repo: Movies.yml
       - pmm: basic
       - pmm: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: Movies - Overlays - Charts.yaml
-      - repo: Movies - Overlays - Oscars.yaml
-      - repo: Movies - Overlays - Ratings.yaml
-      - repo: Movies - Overlays - Stand-up.yaml
-      - repo: Movies - Overlays - Streaming Services.yaml
-      - repo: Movies - Overlays - Studios.yaml
+      - repo: Movies - Overlays - Charts.yml
+      - repo: Movies - Overlays - Oscars.yml
+      - repo: Movies - Overlays - Ratings.yml
+      - repo: Movies - Overlays - Stand-up.yml
+      - repo: Movies - Overlays - Streaming Services.yml
+      - repo: Movies - Overlays - Studios.yml
     operations:
       mass_genre_update: imdb
-      mass_content_rating_update: [omdb, 2.0]
-      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
-      mass_critic_rating_update: [mdb_metacritic, 2.0]
-      mass_user_rating_update: [imdb, 2.0]
+      mass_content_rating_update: omdb
+      mass_audience_rating_update: mdb_tomatoesaudience
+      mass_critic_rating_update: mdb_metacritic
+      mass_user_rating_update: imdb
       delete_collections:
         configured: false
         managed: true
@@ -36,6 +35,8 @@ libraries: # This is called out once within the config.yaml file
       add_existing: false
       root_folder_path: "/media/baby_plex/movies-4k"
       monitor: true
+      monitor_existing: true
+      ignore_cache: false
       availability: announced
       quality_profile: UHD Bluray + WEB
       tag:
@@ -46,29 +47,28 @@ libraries: # This is called out once within the config.yaml file
   Movies:
     library_name: Movies
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
-      - repo: Movies.yaml
-      - repo: People.yaml
+      - repo: Movies.yml
       - pmm: basic
       - pmm: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: Movies - Overlays - Charts.yaml
-      - repo: Movies - Overlays - Oscars.yaml
-      - repo: Movies - Overlays - Ratings.yaml
-      - repo: Movies - Overlays - Stand-up.yaml
-      - repo: Movies - Overlays - Streaming Services.yaml
-      - repo: Movies - Overlays - Studios.yaml
+      - repo: Movies - Overlays - Charts.yml
+      - repo: Movies - Overlays - Oscars.yml
+      - repo: Movies - Overlays - Ratings.yml
+      - repo: Movies - Overlays - Stand-up.yml
+      - repo: Movies - Overlays - Streaming Services.yml
+      - repo: Movies - Overlays - Studios.yml
     operations:
       mass_genre_update: imdb
-      mass_content_rating_update: [omdb, 2.0]
-      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
-      mass_critic_rating_update: [mdb_metacritic, 2.0]
-      mass_user_rating_update: [imdb, 2.0]
+      mass_content_rating_update: omdb
+      mass_audience_rating_update: mdb_tomatoesaudience
+      mass_critic_rating_update: mdb_metacritic
+      mass_user_rating_update: imdb
       delete_collections:
         configured: false
         managed: true
@@ -80,6 +80,8 @@ libraries: # This is called out once within the config.yaml file
       add_existing: false
       root_folder_path: "/media/baby_plex/Movies"
       monitor: true
+      monitor_existing: true
+      ignore_cache: false
       availability: announced
       quality_profile: HD Bluray + WEB
       tag:
@@ -90,34 +92,33 @@ libraries: # This is called out once within the config.yaml file
   4k-TV Shows:
     library_name: 4k-TV Shows
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
-      - repo: TV Shows.yaml
-      - repo: People.yaml
+      - repo: TV Shows.yml
       - default: cannes
       - default: basic
       - default: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: TV Shows - Overlays - Charts.yaml
-      - repo: TV Shows - Overlays - Networks.yaml
-      - repo: TV Shows - Overlays - Ratings.yaml
-      - repo: TV Shows - Overlays - Statuses.yaml
-      - repo: TV Shows - Overlays - Streaming Services.yaml
-      - repo: TV Shows - Overlays - Studios.yaml
+      - repo: TV Shows - Overlays - Charts.yml
+      - repo: TV Shows - Overlays - Networks.yml
+      - repo: TV Shows - Overlays - Ratings.yml
+      - repo: TV Shows - Overlays - Statuses.yml
+      - repo: TV Shows - Overlays - Streaming Services.yml
+      - repo: TV Shows - Overlays - Studios.yml
     minimum_items: 2
     operations:
       mass_genre_update: tmdb
       mass_content_rating_update: omdb
-      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
-      mass_critic_rating_update: [mdb_metacritic, 2.0]
-      mass_user_rating_update: [imdb, 2.0]
-      mass_episode_audience_rating_update: [mdb_tomatoesaudience, 2.0]
-      mass_episode_critic_rating_update: [mdb_metacritic, 2.0]
-      mass_episode_user_rating_update: [imdb, 2.0]
+      mass_audience_rating_update: mdb_tomatoesaudience
+      mass_critic_rating_update: mdb_metacritic
+      mass_user_rating_update: imdb
+      mass_episode_audience_rating_update: mdb_tomatoesaudience
+      mass_episode_critic_rating_update: mdb_metacritic
+      mass_episode_user_rating_update: imdb
       delete_collections:
         configured: false
         managed: true
@@ -141,34 +142,33 @@ libraries: # This is called out once within the config.yaml file
   TV Shows:
     library_name: TV Shows
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
-      - repo: TV Shows.yaml
-      - repo: People.yaml
+      - repo: TV Shows.yml
       - default: cannes
       - default: basic
       - default: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: TV Shows - Overlays - Charts.yaml
-      - repo: TV Shows - Overlays - Networks.yaml
-      - repo: TV Shows - Overlays - Ratings.yaml
-      - repo: TV Shows - Overlays - Statuses.yaml
-      - repo: TV Shows - Overlays - Streaming Services.yaml
-      - repo: TV Shows - Overlays - Studios.yaml
+      - repo: TV Shows - Overlays - Charts.yml
+      - repo: TV Shows - Overlays - Networks.yml
+      - repo: TV Shows - Overlays - Ratings.yml
+      - repo: TV Shows - Overlays - Statuses.yml
+      - repo: TV Shows - Overlays - Streaming Services.yml
+      - repo: TV Shows - Overlays - Studios.yml
     minimum_items: 2
     operations:
       mass_genre_update: tmdb
       mass_content_rating_update: omdb
-      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
-      mass_critic_rating_update: [mdb_metacritic, 2.0]
-      mass_user_rating_update: [imdb, 2.0]
-      mass_episode_audience_rating_update: [mdb_tomatoesaudience, 2.0]
-      mass_episode_critic_rating_update: [mdb_metacritic, 2.0]
-      mass_episode_user_rating_update: [imdb, 2.0]
+      mass_audience_rating_update: mdb_tomatoesaudience
+      mass_critic_rating_update: mdb_metacritic
+      mass_user_rating_update: imdb
+      mass_episode_audience_rating_update: mdb_tomatoesaudience
+      mass_episode_critic_rating_update: mdb_metacritic
+      mass_episode_user_rating_update: imdb
       delete_collections:
         configured: false
         managed: true
@@ -194,7 +194,7 @@ settings:
   cache: true
   cache_expiration: 60
   asset_directory: config/assets
-  asset_folders: false
+  asset_folders: true
   asset_depth: 0
   create_asset_folders: false
   prioritize_assets: false
@@ -203,7 +203,7 @@ settings:
   show_missing_season_assets: false
   show_missing_episode_assets: false
   show_asset_not_needed: true
-  sync_mode: sync
+  sync_mode: append
   minimum_items: 1
   default_collection_order:
   delete_below_minimum: true
@@ -212,18 +212,18 @@ settings:
   missing_only_released: false
   missing_path: config/missing
   custom_repo: https://github.com/DapperDivers/dapper-cluster/tree/main/kubernetes/apps/media/kometa/app/custom/
-  only_filter_missing: false
-  show_unmanaged: false
+  show_unmanaged: true
   show_filtered: false
   show_options: false
   show_missing: false
-  show_missing_assets: false
-  save_report: false
+  show_missing_assets: true
+  only_filter_missing: false
+  save_report: true
   tvdb_language: eng
   ignore_ids:
   ignore_imdb_ids:
   item_refresh_delay: 0
-  playlist_sync_to_user: all
+  playlist_sync_to_users: all
   playlist_exclude_user:
   playlist_report: false
   verify_ssl: true
@@ -258,5 +258,16 @@ mdblist:
   apikey: <<MDBLIST_API_KEY>>
   cache_expiration: 60
 
+trakt:
+  client_id: <<TRAKT_CLIENT_ID>>
+  client_secret: <<TRAKT_CLIENT_SECRET>>
+  authorization:
+    access_token: <<TRAKT_ACCESS_TOKEN>>
+    token_type: Bearer
+    expires_in: <<TRAKT_EXPIRES_IN>>
+    refresh_token: <<TRAKT_REFRESH_TOKEN>>
+    scope: public
+    created_at: <<TRAKT_CREATED_AT>>
+  pin:
 # notifiarr:
 #   API_KEY: <<NOTIFIARR_API_KEY>>
