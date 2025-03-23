@@ -5,18 +5,18 @@ overlays:
 ############################                                            This does not work for all shows
 
   AMC+:
-    overlay: AMC+
+    overlay:
     suppress_overlays: AMC
     plex_search:
       all:
         collection: AMC+
   Apple TV+:
-    overlay: Apple TV+
+    overlay:
     plex_search:
       all:
         collection: Apple TV+
   Disney+:
-    overlay: Disney+
+    overlay:
     suppress_overlays:
       - Cartoon Network
       - Comedy Central
@@ -25,12 +25,12 @@ overlays:
       all:
         collection: Disney+
   HBO Max:
-    overlay: HBO Max
+    overlay:
     plex_search:
       all:
         collection: HBO Max
   Hulu:
-    overlay: Hulu
+    overlay:
     suppress_overlays:
       - The CW
       - Disney+
@@ -38,7 +38,7 @@ overlays:
       all:
         collection: Hulu
   Netflix Series:
-    overlay: Netflix Series
+    overlay:
     suppress_overlays:
       - BBC
       - CBC Television
@@ -49,19 +49,19 @@ overlays:
       all:
         collection: Netflix
   Paramount+:
-    overlay: Paramount+
+    overlay:
     suppress_overlays:
       - Comedy Central
     plex_search:
       all:
         collection: Paramount+
   Peacock:
-    overlay: Peacock
+    overlay:
     plex_search:
       all:
         collection: Peacock
   Prime Video:
-    overlay: Prime Video
+    overlay:
     plex_search:
       all:
         collection: Prime Video

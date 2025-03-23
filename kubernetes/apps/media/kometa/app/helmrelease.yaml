@@ -25,32 +25,38 @@ spec:
   dependsOn:
     - name: plex
       namespace: media
+    - name: volsync
+      namespace: storage
+
   values:
     controllers:
-      kometa:
-        type: cronjob
+      4k-movies:
+        type: &type cronjob
         annotations:
           reloader.stakater.com/auto: "true"
-        cronjob:
-          schedule: "@daily"
+        cronjob: &cronjob
+          schedule: "30 4 * * *"
           timeZone: &timeZone ${TIME_ZONE}
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
         containers:
-          app:
+          app: &container_app
             image:
               repository: kometateam/kometa
-              tag: v2.1.0@sha256:af441b1eeaa3be6a55820f16102d950d12fa52f3bb791b835a6a768385cd3a30
+              tag: nightly@sha256:8393e7231e1e349ce136431cf8aa34e297cbc119f05e5c4f38538724f39a0f0d
             command:
               - /bin/sh
               - -c
             args:
               - |
                 python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
-                python3 kometa.py --run --read-only-config --run-libraries "Movies";
-                python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows";
-                python3 kometa.py --run --read-only-config --run-libraries "TV Shows";
+            #args:
+            #  - |
+            #    python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
+            #    python3 kometa.py --run --read-only-config --run-libraries "Movies";
+            #    python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows";
+            #    python3 kometa.py --run --read-only-config --run-libraries "TV Shows";
             env:
               TZ: *timeZone
             envFrom:
@@ -58,15 +64,26 @@ spec:
                   name: kometa-secret
             resources:
               requests:
-                cpu: 2000m
+                cpu: 100m
                 memory: 4096M
               limits:
-                cpu: 5000m
+                cpu: 2000m
                 memory: 8192M
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
+      standard-movies:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "0 12,18 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "Movies"
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -84,7 +101,11 @@ spec:
           - path: /config/config.yml
             subPath: config.yml
             readOnly: true
-      logs:
-        type: emptyDir
+      assets:
+        existingClaim: plex-posters
         globalMounts:
-          - path: /config/logs
+        - path: /assets
+#      logs:
+#        type: emptyDir
+#        globalMounts:
+#          - path: /config/logs

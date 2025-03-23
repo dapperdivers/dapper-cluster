@@ -227,7 +227,7 @@ collections:
   Star Trek:
     template: {name: Regular}
     tmdb_list: https://www.themoviedb.org/list/7071553
-    file_poster: /config/assets/Star Trek-2.png                         # 2 because the regular one is a poster for movies
+    file_poster: /config/overlays/Star Trek-2.png                         # 2 because the regular one is a poster for movies
   Star Wars (Animated):
     template: {name: Regular}
     tmdb_list: https://www.themoviedb.org/list/7091278
@@ -351,7 +351,7 @@ collections:
     tvdb_show:
       - 78650   # The Flash                                             # This is needed because it gives this error: [Convert Error: No TVDb ID Found for TMDb ID:]
       - 365677  # Harley Quinn                                          # List is Live-action only
-    file_poster: /config/assets/DC-2.png                                # 2 because the regular one is a poster for movies
+    file_poster: /config/overlays/DC-2.png                                # 2 because the regular one is a poster for movies
   Disney Channel:
     template: {name: Studios}
     mdblist_list: https://mdblist.com/lists/awesomeaustn/disney-channel-shows

@@ -5,7 +5,7 @@ overlays:
 ############################
 
   20th Century Fox:
-    overlay: 20th Century Fox
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -14,141 +14,141 @@ overlays:
           - 20th Century Fox Animation
           - 20th Century Fox Television
   Amazon Studios:
-    overlay: Amazon Studios
+    overlay:
     plex_search:
       all:
         studio.is: Amazon Studios
   Amblin Entertainment:
-    overlay: Amblin Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Amblin Entertainment
   Bad Robot:
-    overlay: Bad Robot
+    overlay:
     plex_search:
       all:
         studio.is: Bad Robot
   Blue Sky Studios:
-    overlay: Blue Sky Studios
+    overlay:
     plex_search:
       all:
         studio.is: Blue Sky Studios
   Castle Rock Entertainment:
-    overlay: Castle Rock Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Castle Rock Entertainment
   Chernin Entertainment:
-    overlay: Chernin Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Chernin Entertainment
   Columbia Pictures:
-    overlay: Columbia Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Columbia Pictures
   Davis Entertainment:
-    overlay: Davis Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Davis Entertainment
   DC:
-    overlay: DC
+    overlay:
     plex_search:
       any:
         studio.is:
           - DC Comics
           - DC Entertainment
   Dimension Films:
-    overlay: Dimension Films
+    overlay:
     plex_search:
       all:
         studio.is: Dimension Films
   Disney Channel:
-    overlay: Disney Channel
+    overlay:
     plex_search:
       all:
         studio.is: Disney Channel
   DreamWorks Pictures:
-    overlay: DreamWorks Pictures
+    overlay:
     plex_search:
       all:
         studio.is: DreamWorks Pictures
   DreamWorks Animation:
-    overlay: DreamWorks Animation
+    overlay:
     plex_search:
       all:
         studio.is: DreamWorks Animation
   Eon Productions:
-    overlay: Eon Productions
+    overlay:
     plex_search:
       all:
         studio.is: Eon Productions
   Focus Features:
-    overlay: Focus Features
+    overlay:
     plex_search:
       all:
         studio.is: Focus Features
   Fox 2000 Pictures:
-    overlay: Fox 2000 Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Fox 2000 Pictures
   Fox Searchlight Pictures:
-    overlay: Fox Searchlight Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Fox Searchlight Pictures
   Happy Madison Productions:
-    overlay: Happy Madison Productions
+    overlay:
     plex_search:
       all:
         studio.is: Happy Madison Productions
   HBO:
-    overlay: HBO
+    overlay:
     plex_search:
       all:
         studio.is: HBO
   Illumination:
-    overlay: Illumination
+    overlay:
     plex_search:
       any:
         studio.is:
           - Illumination
           - Illumination Entertainment
   Legendary Pictures:
-    overlay: Legendary Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Legendary Pictures
   Lionsgate:
-    overlay: Lionsgate
+    overlay:
     plex_search:
       any:
         studio.is:
           - Lions Gate Films
           - Lionsgate
   Lucasfilm:
-    overlay: Lucasfilm
+    overlay:
     plex_search:
       all:
         studio.is: Lucasfilm
   Marvel:
-    overlay: Marvel
+    overlay:
     plex_search:
       any:
         studio.is:
           - Marvel Enterprises
           - Marvel Entertainment
   Marvel Studios:
-    overlay: Marvel Studios
+    overlay:
     plex_search:
       any:
         studio.is: Marvel Studios
         title.is: "Marvel's Infinity Saga: The Sacred Timeline"
   Metro-Goldwyn-Mayer:
-    overlay: Metro-Goldwyn-Mayer
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -156,32 +156,32 @@ overlays:
           - Metro-Goldwyn-Mayer (MGM)
           - MGM Home Entertainment
   Miramax:
-    overlay: Miramax
+    overlay:
     plex_search:
       all:
         studio.is: Miramax
   NBC:
-    overlay: NBC-2                                                      # 2 because the regular one is a netwwork for TV Shows
+    overlay:                                                     # 2 because the regular one is a netwwork for TV Shows
     plex_search:
       all:
         studio.is: NBC
   New Line Cinema:
-    overlay: New Line Cinema
+    overlay:
     plex_search:
       all:
         studio.is: New Line Cinema
   Original Film:
-    overlay: Original Film
+    overlay:
     plex_search:
       all:
         studio.is: Original Film
   Orion Pictures:
-    overlay: Orion Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Orion Pictures
   Paramount:
-    overlay: Paramount
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -191,7 +191,7 @@ overlays:
           - Paramount Pictures Digital Entertainment
           - Paramount Vantage
   Pixar:
-    overlay: Pixar
+    overlay:
     suppress_overlays:
       - Disney
     plex_search:
@@ -201,7 +201,7 @@ overlays:
           - Pixar Shorts
           - Pixar SparkShorts
   RatPac Entertainment:
-    overlay: RatPac Entertainment
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -209,7 +209,7 @@ overlays:
           - Dune Entertainment III
           - RatPac Entertainment
   Regency:
-    overlay: Regency
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -217,77 +217,77 @@ overlays:
           - New Regency Productions
           - Regency Enterprises
   Relativity Media:
-    overlay: Relativity Media
+    overlay:
     plex_search:
       all:
         studio.is: Relativity Media
   Screen Gems:
-    overlay: Screen Gems
+    overlay:
     plex_search:
       all:
         studio.is: Screen Gems
   Showtime Networks:
-    overlay: Showtime Networks
+    overlay:
     plex_search:
       all:
         studio.is: Showtime Networks
   Silver Pictures:
-    overlay: Silver Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Silver Pictures
   Sony Pictures:
-    overlay: Sony Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Sony Pictures
   Sony Pictures Animation:
-    overlay: Sony Pictures Animation
+    overlay:
     plex_search:
       all:
         studio.is: Sony Pictures Animation
   Summit Entertainment:
-    overlay: Summit Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Summit Entertainment
   The Weinstein Company:
-    overlay: The Weinstein Company
+    overlay:
     plex_search:
       all:
         studio.is: The Weinstein Company
   Touchstone Pictures:
-    overlay: Touchstone Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Touchstone Pictures
   TriStar Pictures:
-    overlay: TriStar Pictures
+    overlay:
     plex_search:
       all:
         studio.is: TriStar Pictures
   United Artists:
-    overlay: United Artists
+    overlay:
     plex_search:
       all:
         studio.is: United Artists
   Universal Pictures:
-    overlay: Universal Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Universal Pictures
   Village Roadshow Pictures:
-    overlay: Village Roadshow Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Village Roadshow Pictures
   Walt Disney Animation Studios:
-    overlay: Walt Disney Animation Studios
+    overlay:
     plex_search:
       all:
         studio.is: Walt Disney Animation Studios
   Walt Disney Pictures:
-    overlay: Walt Disney Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Walt Disney Pictures
@@ -308,12 +308,12 @@ overlays:
           - Auntie Edna
           - Lamp Life
   Walt Disney Productions:
-    overlay: Walt Disney Productions
+    overlay:
     plex_search:
       all:
         studio.is: Walt Disney Productions
   Warner Bros. Pictures:
-    overlay: Warner Bros. Pictures
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -326,7 +326,7 @@ overlays:
           - Warner Music Group
           - Warner Premiere
   Warren Miller Entertainment:
-    overlay: Warren Miller Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Warren Miller Entertainment

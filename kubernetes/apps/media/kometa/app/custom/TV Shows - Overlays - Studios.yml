@@ -5,19 +5,19 @@ overlays:
 ############################
 
   DC:
-    overlay: DC
+    overlay:
     plex_search:
       any:
         studio.is:
           - DC Comics
           - DC Entertainment
   Marvel:
-    overlay: Marvel
+    overlay:
     plex_search:
       all:
         studio.is: Marvel Television
   Marvel Studios:
-    overlay: Marvel Studios
+    overlay:
     plex_search:
       all:
         studio.is: Marvel Studios

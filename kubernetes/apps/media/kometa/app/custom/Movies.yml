@@ -183,6 +183,7 @@ collections:
     tmdb_trending_weekly: 30
   Top 10 Pirated Movies:
     template: {name: Charts}
+    radarr_add_missing: true
     mdblist_list: https://mdblist.com/lists/awesomeaustn/top-10-pirated-movies-of-the-week
 # Trakt Trending:                                                       # I'm using this instead: Movies - Trakt (Unplayed) by Magic815
 #   template: {name: Charts}
@@ -623,7 +624,7 @@ collections:
       any:
         title:
           - "Marvel's Infinity Saga: The Sacred Timeline"               # Fan edit
-    file_poster: /config/assets/Marvel Cinematic Universe.png
+    file_poster: /config/overlays/Marvel Cinematic Universe.png
 # Marvel Cinematic Universe (Chronological):                            # This includes the TV Shows also
 #   template: {name: Studios}
 #   trakt_list: https://trakt.tv/users/donxy/lists/marvel-cinematic-universe?sort=rank,asc
@@ -631,7 +632,7 @@ collections:
 #     any:
 #       title:
 #         - "Marvel's Infinity Saga: The Sacred Timeline"               # Fan edit
-#   file_poster: /config/assets/Marvel Cinematic Universe.png
+#   file_poster: /config/overlays/Marvel Cinematic Universe.png
   Pixar:
     template: {name: Studios}
     imdb_list: https://www.imdb.com/list/ls084018331
