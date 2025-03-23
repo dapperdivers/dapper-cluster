@@ -1,4 +1,4 @@
-libraries: # This is called out once within the config.yaml file
+libraries: # This is called out once within the config.yml file
   4k-Movies:
     library_name: 4k-Movies
     run_order:
@@ -7,18 +7,17 @@ libraries: # This is called out once within the config.yaml file
       - operations
       - overlays
     collection_files:
-      - repo: Movies.yaml
-      - repo: People.yaml
+      - repo: Movies.yml
       - pmm: basic
       - pmm: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: Movies - Overlays - Charts.yaml
-      - repo: Movies - Overlays - Oscars.yaml
-      - repo: Movies - Overlays - Ratings.yaml
-      - repo: Movies - Overlays - Stand-up.yaml
-      - repo: Movies - Overlays - Streaming Services.yaml
-      - repo: Movies - Overlays - Studios.yaml
+      - repo: Movies - Overlays - Charts.yml
+      - repo: Movies - Overlays - Oscars.yml
+      - repo: Movies - Overlays - Ratings.yml
+      - repo: Movies - Overlays - Stand-up.yml
+      - repo: Movies - Overlays - Streaming Services.yml
+      - repo: Movies - Overlays - Studios.yml
     operations:
       mass_genre_update: imdb
       mass_content_rating_update: [omdb, 2.0]
@@ -51,18 +50,17 @@ libraries: # This is called out once within the config.yaml file
       - operations
       - overlays
     collection_files:
-      - repo: Movies.yaml
-      - repo: People.yaml
+      - repo: Movies.yml
       - pmm: basic
       - pmm: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: Movies - Overlays - Charts.yaml
-      - repo: Movies - Overlays - Oscars.yaml
-      - repo: Movies - Overlays - Ratings.yaml
-      - repo: Movies - Overlays - Stand-up.yaml
-      - repo: Movies - Overlays - Streaming Services.yaml
-      - repo: Movies - Overlays - Studios.yaml
+      - repo: Movies - Overlays - Charts.yml
+      - repo: Movies - Overlays - Oscars.yml
+      - repo: Movies - Overlays - Ratings.yml
+      - repo: Movies - Overlays - Stand-up.yml
+      - repo: Movies - Overlays - Streaming Services.yml
+      - repo: Movies - Overlays - Studios.yml
     operations:
       mass_genre_update: imdb
       mass_content_rating_update: [omdb, 2.0]
@@ -95,19 +93,18 @@ libraries: # This is called out once within the config.yaml file
       - operations
       - overlays
     collection_files:
-      - repo: TV Shows.yaml
-      - repo: People.yaml
+      - repo: TV Shows.yml
       - default: cannes
       - default: basic
       - default: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: TV Shows - Overlays - Charts.yaml
-      - repo: TV Shows - Overlays - Networks.yaml
-      - repo: TV Shows - Overlays - Ratings.yaml
-      - repo: TV Shows - Overlays - Statuses.yaml
-      - repo: TV Shows - Overlays - Streaming Services.yaml
-      - repo: TV Shows - Overlays - Studios.yaml
+      - repo: TV Shows - Overlays - Charts.yml
+      - repo: TV Shows - Overlays - Networks.yml
+      - repo: TV Shows - Overlays - Ratings.yml
+      - repo: TV Shows - Overlays - Statuses.yml
+      - repo: TV Shows - Overlays - Streaming Services.yml
+      - repo: TV Shows - Overlays - Studios.yml
     minimum_items: 2
     operations:
       mass_genre_update: tmdb
@@ -146,19 +143,18 @@ libraries: # This is called out once within the config.yaml file
       - operations
       - overlays
     collection_files:
-      - repo: TV Shows.yaml
-      - repo: People.yaml
+      - repo: TV Shows.yml
       - default: cannes
       - default: basic
       - default: imdb
     overlay_files:
       - remove_overlays: false
-      - repo: TV Shows - Overlays - Charts.yaml
-      - repo: TV Shows - Overlays - Networks.yaml
-      - repo: TV Shows - Overlays - Ratings.yaml
-      - repo: TV Shows - Overlays - Statuses.yaml
-      - repo: TV Shows - Overlays - Streaming Services.yaml
-      - repo: TV Shows - Overlays - Studios.yaml
+      - repo: TV Shows - Overlays - Charts.yml
+      - repo: TV Shows - Overlays - Networks.yml
+      - repo: TV Shows - Overlays - Ratings.yml
+      - repo: TV Shows - Overlays - Statuses.yml
+      - repo: TV Shows - Overlays - Streaming Services.yml
+      - repo: TV Shows - Overlays - Studios.yml
     minimum_items: 2
     operations:
       mass_genre_update: tmdb
@@ -258,5 +254,16 @@ mdblist:
   apikey: <<MDBLIST_API_KEY>>
   cache_expiration: 60
 
+trakt:
+  client_id: <<TRAKT_CLIENT_ID>>
+  client_secret: <<TRAKT_CLIENT_SECRET>>
+  authorization:
+    access_token: <<TRAKT_ACCESS_TOKEN>>
+    token_type: Bearer
+    expires_in: <<TRAKT_EXPIRES_IN>>
+    refresh_token: <<TRAKT_REFRESH_TOKEN>>
+    scope: public
+    created_at: <<TRAKT_CREATED_AT>>
+  pin:
 # notifiarr:
 #   API_KEY: <<NOTIFIARR_API_KEY>>

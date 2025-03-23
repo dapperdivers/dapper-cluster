@@ -9,3 +9,15 @@ spec:
     requests:
       storage: 100Gi
   storageClassName: mayastor-single-replica
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-posters
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 75Gi
+  storageClassName: used-nfs
