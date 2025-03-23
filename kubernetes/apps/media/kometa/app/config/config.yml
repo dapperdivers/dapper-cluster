@@ -1,6 +1,6 @@
 libraries: # This is called out once within the config.yaml file
-
   4k-Movies:
+    library_name: 4k-Movies
     run_order:
       - collections
       - metadata
@@ -21,16 +21,16 @@ libraries: # This is called out once within the config.yaml file
       - repo: Movies - Overlays - Studios.yaml
     operations:
       mass_genre_update: imdb
-      mass_content_rating_update: [omdb]
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
+      mass_content_rating_update: [omdb, 2.0]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
     minimum_items: 2
     radarr:
-      url: http://4kradarr.media.svc.cluster.local:7878
+      url: http://radarr-uhd.media
       token: <<RADARR_UHD_API_KEY>>
       add_missing: false
       add_existing: false
@@ -43,8 +43,8 @@ libraries: # This is called out once within the config.yaml file
       radarr_path:
       plex_path:
       upgrade_existing: false
-
   Movies:
+    library_name: Movies
     run_order:
       - collections
       - metadata
@@ -65,16 +65,16 @@ libraries: # This is called out once within the config.yaml file
       - repo: Movies - Overlays - Studios.yaml
     operations:
       mass_genre_update: imdb
-      mass_content_rating_update: [omdb]
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
+      mass_content_rating_update: [omdb, 2.0]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
     minimum_items: 2
     radarr:
-      url: http://radarr.media.svc.cluster.local:7878
+      url: http://radarr.media
       token: <<RADARR_API_KEY>>
       add_missing: false
       add_existing: false
@@ -87,8 +87,8 @@ libraries: # This is called out once within the config.yaml file
       radarr_path:
       plex_path:
       upgrade_existing: false
-
   4k-TV Shows:
+    library_name: 4k-TV Shows
     run_order:
       - collections
       - metadata
@@ -112,17 +112,17 @@ libraries: # This is called out once within the config.yaml file
     operations:
       mass_genre_update: tmdb
       mass_content_rating_update: omdb
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
-      mass_episode_audience_rating_update: [mdb_tomatoesaudience]
-      mass_episode_critic_rating_update: [mdb_metacritic]
-      mass_episode_user_rating_update: [imdb]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
+      mass_episode_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_episode_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_episode_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
     sonarr:
-      url: http://4ksonarr.media.svc.cluster.local:80
+      url: http://sonarr-uhd.media
       token: <<SONARR_UHD_API_KEY>>
       add_missing: false
       add_existing: false
@@ -139,6 +139,7 @@ libraries: # This is called out once within the config.yaml file
       plex_path:
       upgrade_existing: false
   TV Shows:
+    library_name: TV Shows
     run_order:
       - collections
       - metadata
@@ -162,17 +163,17 @@ libraries: # This is called out once within the config.yaml file
     operations:
       mass_genre_update: tmdb
       mass_content_rating_update: omdb
-      mass_audience_rating_update: [mdb_tomatoesaudience]
-      mass_critic_rating_update: [mdb_metacritic]
-      mass_user_rating_update: [imdb]
-      mass_episode_audience_rating_update: [mdb_tomatoesaudience]
-      mass_episode_critic_rating_update: [mdb_metacritic]
-      mass_episode_user_rating_update: [imdb]
+      mass_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_user_rating_update: [imdb, 2.0]
+      mass_episode_audience_rating_update: [mdb_tomatoesaudience, 2.0]
+      mass_episode_critic_rating_update: [mdb_metacritic, 2.0]
+      mass_episode_user_rating_update: [imdb, 2.0]
       delete_collections:
         configured: false
         managed: true
     sonarr:
-      url: http://sonarr.media.svc.cluster.local:80
+      url: http://sonarr.media
       token: <<SONARR_API_KEY>>
       add_missing: false
       add_existing: false
@@ -210,7 +211,7 @@ settings:
   run_again_delay: 2
   missing_only_released: false
   missing_path: config/missing
-  custom_repo: https://github.com/DapperDivers/dapper-cluster/tree/main/kubernetes/apps/media/kometa/app/custom
+  custom_repo: https://github.com/DapperDivers/dapper-cluster/tree/main/kubernetes/apps/media/kometa/app/custom/
   only_filter_missing: false
   show_unmanaged: false
   show_filtered: false
@@ -231,11 +232,12 @@ settings:
   playlist_exclude_users:
 
 plex:
-  url: http://plex.media.svc.cluster.local:32400
-  token: <<PLEX_TOKEN>>
+  url: http://plex.media:32400
+  token: <<PLEX_API_KEY>>
   timeout: 60
+  db_cache: 4096
   clean_bundles: true
-  empty_trash: false
+  empty_trash: true
   optimize: false
 
 tmdb: # REQUIRED for the script to run
@@ -245,7 +247,7 @@ tmdb: # REQUIRED for the script to run
   region:
 
 tautulli:
-  url: http://tautulli.media.svc.cluster.local:8181
+  url: http://tautulli.media
   apikey: <<TAUTULLI_API_KEY>>
 
 omdb:
