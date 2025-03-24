@@ -25,18 +25,18 @@ overlays:
 ############################                                            This does not work for all shows
 
   AMC+:
-    overlay: AMC+
+    overlay:
     suppress_overlays: AMC
     plex_search:
       all:
         collection: AMC+
   Apple TV+:
-    overlay: +
+    overlay:
     plex_search:
       all:
         collection: Apple TV+
   Disney+:
-    overlay: Disney+
+    overlay:
     suppress_overlays:
       - Cartoon Network
       - Comedy Central
@@ -50,7 +50,7 @@ overlays:
       all:
         collection: HBO Max
   Hulu:
-    overlay: Hulu
+    overlay:
     suppress_overlays:
       - The CW
       - Disney+
@@ -69,14 +69,14 @@ overlays:
       all:
         collection: Netflix
   Paramount+:
-    overlay: Paramount+
+    overlay:
     suppress_overlays:
       - Comedy Central
     plex_search:
       all:
         collection: Paramount+
   Peacock:
-    overlay: Peacock
+    overlay:
     plex_search:
       all:
         collection: Peacock
@@ -91,7 +91,7 @@ overlays:
 ############################                                            This does not work for all shows
 
   ABC:
-    overlay: ABC
+    overlay:
     suppress_overlays:
       - CBS
       - Comedy Central
@@ -105,7 +105,7 @@ overlays:
           - ABC
           - ABC Family
   AMC:
-    overlay: AMC
+    overlay:
     plex_search:
       all:
         network: AMC
@@ -115,7 +115,7 @@ overlays:
       all:
         network: Animal Planet
   BBC:
-    overlay: BBC
+    overlay:
     suppress_overlays:
       - FX
       - PBS
@@ -126,7 +126,7 @@ overlays:
           - BBC Television
           - BBC Two
   Bravo:
-    overlay: Bravo
+    overlay:
     plex_search:
       all:
         network: Bravo
@@ -145,7 +145,7 @@ overlays:
       all:
         network: CBC Television
   CBS:
-    overlay: CBS
+    overlay:
     suppress_overlays:
       - The CW
     plex_search:
@@ -157,7 +157,7 @@ overlays:
       all:
         network: Channel 4
   CNN:
-    overlay: CNN
+    overlay:
     plex_search:
       all:
         network: CNN
@@ -174,7 +174,7 @@ overlays:
       all:
         network: The CW
   Discovery:
-    overlay: Discovery
+    overlay:
     suppress_overlays:
       - Science
     plex_search:
@@ -193,7 +193,7 @@ overlays:
       all:
         network: Disney XD
   FOX:
-    overlay: FOX
+    overlay:
     suppress_overlays:
       - Comedy Central
       - Hulu
@@ -208,33 +208,33 @@ overlays:
       all:
         network: Food Network
   FX:
-    overlay: FX
+    overlay:
     suppress_overlays:
       - FXX
     plex_search:
       all:
         network: FX
   FXX:
-    overlay: FXX
+    overlay:
     plex_search:
       all:
         network: FXX
   HBO:
-    overlay: HBO-2                                                      # 2 because the regular one is a studio for movies
+    overlay:
     suppress_overlays:
       - Channel 4
     plex_search:
       all:
         network: HBO
   History:
-    overlay: History
+    overlay:
     suppress_overlays:
       - Prime Video
     plex_search:
       all:
         network: History
   MTV:
-    overlay: MTV
+    overlay:
     plex_search:
       all:
         network: MTV
@@ -244,7 +244,7 @@ overlays:
       all:
         network: National Geographic
   NBC:
-    overlay: NBC
+    overlay:
     suppress_overlays:
       - ABC
       - USA Network
@@ -254,7 +254,7 @@ overlays:
           - NBC
           - NBCSN
   Nickelodeon:
-    overlay: Nickelodeon
+    overlay:
     suppress_overlays:
       - ABC
     plex_search:
@@ -263,30 +263,30 @@ overlays:
           - Nickelodeon
           - Nicktoons
   PBS:
-    overlay: PBS
+    overlay:
     plex_search:
       all:
         network: PBS
   Science:
-    overlay: Science
+    overlay:
     plex_search:
       all:
         network:
           - Science
   Showtime:
-    overlay: Showtime
+    overlay:
     suppress_overlays:
       - Syfy
     plex_search:
       all:
         network: Showtime
   Starz:
-    overlay: Starz
+    overlay:
     plex_search:
       all:
         network: Starz
   Syfy:
-    overlay: Syfy
+    overlay:
     suppress_overlays:
       - Prime Video
     plex_search:
@@ -298,7 +298,7 @@ overlays:
       all:
         network: Travel Channel
   TruTV:
-    overlay: TruTV
+    overlay:
     plex_search:
       all:
         network: TruTV
@@ -322,14 +322,14 @@ overlays:
 ############################
 
   DC:
-    overlay: DC
+    overlay:
     plex_search:
       any:
         studio.is:
           - DC Comics
           - DC Entertainment
   Marvel:
-    overlay: Marvel
+    overlay:
     plex_search:
       all:
         studio.is: Marvel Television
@@ -443,7 +443,7 @@ overlays:
 ############################
 
   Cancelled:
-    overlay: Cancelled
+    overlay:
     plex_all: true
     filters:
       tmdb_status: canceled

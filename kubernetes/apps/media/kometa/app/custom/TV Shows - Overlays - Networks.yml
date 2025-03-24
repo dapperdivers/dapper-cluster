@@ -134,7 +134,7 @@ overlays:
       all:
         network: FXX
   HBO:
-    overlay:-2                                                      # 2 because the regular one is a studio for movies
+    overlay:
     suppress_overlays:
       - Channel 4
     plex_search:
