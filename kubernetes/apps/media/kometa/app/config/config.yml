@@ -38,12 +38,7 @@ libraries: # This is called out once within the config.yml file
       radarr_path:
       plex_path:
       upgrade_existing: false
-    settings:
-      run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+
   Movies:
     collection_files:
       - repo: Movies.yml
@@ -83,12 +78,7 @@ libraries: # This is called out once within the config.yml file
       radarr_path:
       plex_path:
       upgrade_existing: false
-    settings:
-      run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+
   4k-TV Shows:
     collection_files:
       - repo: TV Shows.yml
@@ -133,12 +123,7 @@ libraries: # This is called out once within the config.yml file
       sonarr_path:
       plex_path:
       upgrade_existing: false
-    settings:
-      run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+
   TV Shows:
     collection_files:
       - repo: TV Shows.yml
@@ -183,12 +168,6 @@ libraries: # This is called out once within the config.yml file
       sonarr_path:
       plex_path:
       upgrade_existing: false
-    settings:
-      run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
 
 settings:
   cache: true
@@ -224,12 +203,18 @@ settings:
   ignore_imdb_ids:
   item_refresh_delay: 0
   playlist_sync_to_users: all
-  playlist_exclude_user:
+  playlist_exclude_users:
+    run_order:
+    - operations
+    - metadata
+    - collections
+    - overlays
+  overlay_artwork_quality: 75
+  overlay_artwork_filetype: jpg
   playlist_report: false
   verify_ssl: true
   check_nightly: false
   show_unconfigured: true
-  playlist_exclude_users:
 
 plex:
   url: http://plex.media:32400

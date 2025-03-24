@@ -171,17 +171,17 @@ overlays:
       all:
         studio.is: New Line Cinema
   Original Film:
-    overlay: Original Film
+    overlay:
     plex_search:
       all:
         studio.is: Original Film
   Orion Pictures:
-    overlay: Orion Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Orion Pictures
   Paramount:
-    overlay: Paramount
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -191,7 +191,7 @@ overlays:
           - Paramount Pictures Digital Entertainment
           - Paramount Vantage
   Pixar:
-    overlay: Pixar
+    overlay:
     suppress_overlays:
       - Disney
     plex_search:
