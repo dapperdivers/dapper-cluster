@@ -30,7 +30,7 @@ spec:
 
   values:
     controllers:
-      kometa:
+      4k-movies:
         type: &type cronjob
         annotations:
           reloader.stakater.com/auto: "true"
