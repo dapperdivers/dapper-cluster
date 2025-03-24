@@ -1,5 +1,8 @@
 libraries: # This is called out once within the config.yml file
   4k-Movies: &movie_config
+    settings: &posterizarr_settings
+      asset_directory: /assets/4K-Movies
+      prioritize_assets: true
     run_order: &run_order
       - collections
       - metadata
@@ -333,6 +336,9 @@ libraries: # This is called out once within the config.yml file
 
   Movies:
     <<: *movie_config
+    settings:
+      <<: *posterizarr_settings
+      asset_directory: /assets/Movies
     radarr:
       <<: *radarr
       url: http://radarr.media
@@ -341,6 +347,9 @@ libraries: # This is called out once within the config.yml file
       quality_profile: HD Bluray + WEB
 
   4k-TV Shows: &tv_config
+    settings:
+      <<: *posterizarr_settings
+      asset_directory: /assets/4k-TV Shows
     run_order: *run_order
     template_variables:
       sep_style: gray                               # use the gray separators globally for this library
@@ -739,6 +748,9 @@ libraries: # This is called out once within the config.yml file
 
   TV Shows:
     <<: *tv_config
+    settings:
+      <<: *posterizarr_settings
+      asset_directory: /assets/TV Shows
     sonarr:
       <<: *sonarr
       url: http://sonarr.media
