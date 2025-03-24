@@ -1,5 +1,8 @@
 libraries: # This is called out once within the config.yml file
   4k-Movies: &movie_config
+    settings: &posterizarr_settings
+      asset_directory: /assets/4K-Movies
+      prioritize_assets: true
     run_order: &run_order
       - collections
       - metadata
@@ -98,7 +101,7 @@ libraries: # This is called out once within the config.yml file
         collection_section: '001'
         use_separator: false
         style: diiivoycolor
-        name_format: 🎂 Anniversaire de <<key_name>>
+        name_format: 🎂 <<key_name>>'s Birthday
         translation_key: birthday
         sort_by: audience_rating.desc
         title_format: <<key_name>>'s Birthday
@@ -137,13 +140,7 @@ libraries: # This is called out once within the config.yml file
           depth: 1
           limit: 15
     - default: audio_language                       # English, French, Arabic, German, etc. audio language
-    - default: content_rating_nz                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_au                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_cs                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_de                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
     - default: content_rating_us                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_uk                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_mal                   # Choose content_rating_mal for anime ratings
     - default: genre                                # Action, Comedy, Drama, etc.
     - default: resolution                           # 4K HDR, 1080P FHD, etc. with the standards style
       # template_variables:
@@ -339,6 +336,9 @@ libraries: # This is called out once within the config.yml file
 
   Movies:
     <<: *movie_config
+    settings:
+      <<: *posterizarr_settings
+      asset_directory: /assets/Movies
     radarr:
       <<: *radarr
       url: http://radarr.media
@@ -347,6 +347,9 @@ libraries: # This is called out once within the config.yml file
       quality_profile: HD Bluray + WEB
 
   4k-TV Shows: &tv_config
+    settings:
+      <<: *posterizarr_settings
+      asset_directory: /assets/4k-TV Shows
     run_order: *run_order
     template_variables:
       sep_style: gray                               # use the gray separators globally for this library
@@ -393,7 +396,7 @@ libraries: # This is called out once within the config.yml file
         collection_section: '001'
         use_separator: false
         style: diiivoycolor
-        name_format: 🎂 Anniversaire de <<key_name>>
+        name_format: 🎂 <<key_name>>'s Birthday
         translation_key: birthday
         sort_by: audience_rating.desc
         title_format: <<key_name>>'s Birthday
@@ -745,6 +748,9 @@ libraries: # This is called out once within the config.yml file
 
   TV Shows:
     <<: *tv_config
+    settings:
+      <<: *posterizarr_settings
+      asset_directory: /assets/TV Shows
     sonarr:
       <<: *sonarr
       url: http://sonarr.media
