@@ -183,6 +183,7 @@ collections:
     tmdb_trending_weekly: 30
   Top 10 Pirated Movies:
     template: {name: Charts}
+    radarr_add_missing: true
     mdblist_list: https://mdblist.com/lists/awesomeaustn/top-10-pirated-movies-of-the-week
 # Trakt Trending:                                                       # I'm using this instead: Movies - Trakt (Unplayed) by Magic815
 #   template: {name: Charts}

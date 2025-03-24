@@ -26,7 +26,7 @@ libraries: # This is called out once within the config.yml file
       url: http://radarr-uhd.media
       token: <<RADARR_UHD_API_KEY>>
       add_missing: false
-      add_existing: false
+      add_existing: true
       root_folder_path: "/media/baby_plex/movies-4k"
       monitor: true
       monitor_existing: true
@@ -71,7 +71,7 @@ libraries: # This is called out once within the config.yml file
       url: http://radarr.media
       token: <<RADARR_API_KEY>>
       add_missing: false
-      add_existing: false
+      add_existing: true
       root_folder_path: "/media/baby_plex/Movies"
       monitor: true
       monitor_existing: true
@@ -120,7 +120,7 @@ libraries: # This is called out once within the config.yml file
       url: http://sonarr-uhd.media
       token: <<SONARR_UHD_API_KEY>>
       add_missing: false
-      add_existing: false
+      add_existing: true
       root_folder_path: "/media/baby_plex/tv-4k"
       monitor: all
       quality_profile: WEB-2160p
@@ -170,7 +170,7 @@ libraries: # This is called out once within the config.yml file
       url: http://sonarr.media
       token: <<SONARR_API_KEY>>
       add_missing: false
-      add_existing: false
+      add_existing: true
       root_folder_path: "/media/baby_plex/Shows"
       monitor: all
       quality_profile: WEB-1080p
