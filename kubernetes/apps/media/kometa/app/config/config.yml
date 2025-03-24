@@ -1,9 +1,17 @@
 libraries: # This is called out once within the config.yml file
   4k-Movies:
+    run_order:
+      - collections
+      - metadata
+      - operations
+      - overlays
     collection_files:
+      # - file: config/Pre-rolls.yml #Mounted by Kustomization
       - repo: Movies.yml
-      - pmm: basic
-      - pmm: imdb
+      - repo: Movies - Holidays by Drazzizzi.yml
+      - repo: Movies - Trakt (Unplayed) by Magic815.yml
+      - default: basic
+      - default: imdb
     overlay_files:
       - remove_overlays: false
       - repo: Movies - Overlays - Charts.yml
@@ -40,10 +48,18 @@ libraries: # This is called out once within the config.yml file
       upgrade_existing: false
 
   Movies:
+    run_order:
+      - collections
+      - metadata
+      - operations
+      - overlays
     collection_files:
+      # - file: config/Pre-rolls.yml #Mounted by Kustomization
       - repo: Movies.yml
-      - pmm: basic
-      - pmm: imdb
+      - repo: Movies - Holidays by Drazzizzi.yml
+      - repo: Movies - Trakt (Unplayed) by Magic815.yml
+      - default: basic
+      - default: imdb
     overlay_files:
       - remove_overlays: false
       - repo: Movies - Overlays - Charts.yml
@@ -82,9 +98,8 @@ libraries: # This is called out once within the config.yml file
   4k-TV Shows:
     collection_files:
       - repo: TV Shows.yml
-      - default: cannes
-      - default: basic
-      - default: imdb
+      - pmm: basic
+      - pmm: imdb
     overlay_files:
       - remove_overlays: false
       - repo: TV Shows - Overlays - Charts.yml
@@ -127,9 +142,8 @@ libraries: # This is called out once within the config.yml file
   TV Shows:
     collection_files:
       - repo: TV Shows.yml
-      - default: cannes
-      - default: basic
-      - default: imdb
+      - pmm: basic
+      - pmm: imdb
     overlay_files:
       - remove_overlays: false
       - repo: TV Shows - Overlays - Charts.yml
