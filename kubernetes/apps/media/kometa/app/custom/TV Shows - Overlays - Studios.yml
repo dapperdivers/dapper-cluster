@@ -17,7 +17,7 @@ overlays:
       all:
         studio.is: Marvel Television
   Marvel Studios:
-    overlay: Marvel Studios
+    overlay:
     plex_search:
       all:
         studio.is: Marvel Studios

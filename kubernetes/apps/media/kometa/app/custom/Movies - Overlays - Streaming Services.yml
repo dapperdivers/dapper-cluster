@@ -5,37 +5,37 @@ overlays:
 ############################
 
   Apple TV+:
-    overlay: Apple TV+
+    overlay:
     plex_search:
       all:
         collection: Apple TV+
   HBO Max:
-    overlay: HBO Max
+    overlay:
     plex_search:
       all:
         collection: HBO Max
   Hulu:
-    overlay: Hulu
+    overlay:
     plex_search:
       all:
         collection: Hulu
   Netflix Film:
-    overlay: Netflix Film
+    overlay:
     plex_search:
       all:
         collection: Netflix
   Netflix Stand-up:
-    overlay: Netflix Stand-up
+    overlay:
     plex_search:
       all:
         collection: Netflix Stand-up
   Paramount+:
-    overlay: Paramount+
+    overlay:
     plex_search:
       all:
         collection: Paramount+
   Prime Video:
-    overlay: Prime Video
+    overlay:
     plex_search:
       all:
         collection: Prime Video

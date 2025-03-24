@@ -105,7 +105,7 @@ spec:
         existingClaim: plex-posters
         globalMounts:
         - path: /assets
-      logs:
-        type: emptyDir
-        globalMounts:
-          - path: /config/logs
+#      logs:
+#        type: emptyDir
+#        globalMounts:
+#          - path: /config/logs
