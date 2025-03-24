@@ -73,10 +73,6 @@ spec:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
-            lifecycle:
-              postStart:
-                exec:
-                  command: ["/bin/bash", "-c", "mkdir -p /config"]
       standard-movies:
         type: *type
         cronjob:
