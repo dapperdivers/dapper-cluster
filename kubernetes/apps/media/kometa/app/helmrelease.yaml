@@ -51,12 +51,6 @@ spec:
             args:
               - |
                 python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
-            #args:
-            #  - |
-            #    python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
-            #    python3 kometa.py --run --read-only-config --run-libraries "Movies";
-            #    python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows";
-            #    python3 kometa.py --run --read-only-config --run-libraries "TV Shows";
             env:
               TZ: *timeZone
             envFrom:
@@ -77,13 +71,35 @@ spec:
         type: *type
         cronjob:
           <<: *cronjob
-          schedule: "0 12,18 * * *"
+          schedule: "0 5 * * *"
         containers:
           app:
             <<: *container_app
             args:
               - |
                 python3 kometa.py --run --read-only-config --run-libraries "Movies"
+      4k-tv:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "30 5 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows"
+      standard-tv:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "0 6 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "TV Shows"
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
