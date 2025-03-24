@@ -96,6 +96,11 @@ libraries: # This is called out once within the config.yml file
       upgrade_existing: false
 
   4k-TV Shows:
+    run_order:
+      - collections
+      - metadata
+      - operations
+      - overlays
     collection_files:
       - repo: TV Shows.yml
       - pmm: basic
@@ -140,6 +145,11 @@ libraries: # This is called out once within the config.yml file
       upgrade_existing: false
 
   TV Shows:
+    run_order:
+      - collections
+      - metadata
+      - operations
+      - overlays
     collection_files:
       - repo: TV Shows.yml
       - pmm: basic
