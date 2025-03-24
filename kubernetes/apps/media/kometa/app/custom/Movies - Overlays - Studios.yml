@@ -242,52 +242,52 @@ overlays:
       all:
         studio.is: Sony Pictures
   Sony Pictures Animation:
-    overlay: Sony Pictures Animation
+    overlay:
     plex_search:
       all:
         studio.is: Sony Pictures Animation
   Summit Entertainment:
-    overlay: Summit Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Summit Entertainment
   The Weinstein Company:
-    overlay: The Weinstein Company
+    overlay:
     plex_search:
       all:
         studio.is: The Weinstein Company
   Touchstone Pictures:
-    overlay: Touchstone Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Touchstone Pictures
   TriStar Pictures:
-    overlay: TriStar Pictures
+    overlay:
     plex_search:
       all:
         studio.is: TriStar Pictures
   United Artists:
-    overlay: United Artists
+    overlay:
     plex_search:
       all:
         studio.is: United Artists
   Universal Pictures:
-    overlay: Universal Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Universal Pictures
   Village Roadshow Pictures:
-    overlay: Village Roadshow Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Village Roadshow Pictures
   Walt Disney Animation Studios:
-    overlay: Walt Disney Animation Studios
+    overlay:
     plex_search:
       all:
         studio.is: Walt Disney Animation Studios
   Walt Disney Pictures:
-    overlay: Walt Disney Pictures
+    overlay:
     plex_search:
       all:
         studio.is: Walt Disney Pictures
@@ -308,12 +308,12 @@ overlays:
           - Auntie Edna
           - Lamp Life
   Walt Disney Productions:
-    overlay: Walt Disney Productions
+    overlay:
     plex_search:
       all:
         studio.is: Walt Disney Productions
   Warner Bros. Pictures:
-    overlay: Warner Bros. Pictures
+    overlay:
     plex_search:
       any:
         studio.is:
@@ -326,7 +326,7 @@ overlays:
           - Warner Music Group
           - Warner Premiere
   Warren Miller Entertainment:
-    overlay: Warren Miller Entertainment
+    overlay:
     plex_search:
       all:
         studio.is: Warren Miller Entertainment
