@@ -137,13 +137,7 @@ libraries: # This is called out once within the config.yml file
           depth: 1
           limit: 15
     - default: audio_language                       # English, French, Arabic, German, etc. audio language
-    - default: content_rating_nz                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_au                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_cs                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_de                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
     - default: content_rating_us                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_uk                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_mal                   # Choose content_rating_mal for anime ratings
     - default: genre                                # Action, Comedy, Drama, etc.
     - default: resolution                           # 4K HDR, 1080P FHD, etc. with the standards style
       # template_variables:
