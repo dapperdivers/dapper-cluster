@@ -1,6 +1,5 @@
 libraries: # This is called out once within the config.yml file
   4k-Movies:
-    library_name: 4k-Movies
     run_order:
     - collections
     - metadata
@@ -45,7 +44,6 @@ libraries: # This is called out once within the config.yml file
       plex_path:
       upgrade_existing: false
   Movies:
-    library_name: Movies
     run_order:
     - collections
     - metadata
@@ -90,7 +88,6 @@ libraries: # This is called out once within the config.yml file
       plex_path:
       upgrade_existing: false
   4k-TV Shows:
-    library_name: 4k-TV Shows
     run_order:
     - collections
     - metadata
@@ -140,7 +137,6 @@ libraries: # This is called out once within the config.yml file
       plex_path:
       upgrade_existing: false
   TV Shows:
-    library_name: TV Shows
     run_order:
     - collections
     - metadata
@@ -193,7 +189,7 @@ libraries: # This is called out once within the config.yml file
 settings:
   cache: true
   cache_expiration: 60
-  asset_directory: config/assets
+  asset_directory: /assets
   asset_folders: true
   asset_depth: 0
   create_asset_folders: false

@@ -44,7 +44,7 @@ spec:
           app: &container_app
             image:
               repository: kometateam/kometa
-              tag: develop@sha256:cbeec2bf8007dd7183bc86d1b179d313e83eed5da69ecfd04b571716ef4c20c5
+              tag: nightly@sha256:8393e7231e1e349ce136431cf8aa34e297cbc119f05e5c4f38538724f39a0f0d
             command:
               - /bin/sh
               - -c
@@ -76,7 +76,7 @@ spec:
             lifecycle:
               postStart:
                 exec:
-                  command: ["/bin/bash", "-c", "mkdir -p /config/assets/{anime,awards,decades,genres,holidays,networks,suggestions,posters}"]
+                  command: ["/bin/bash", "-c", "mkdir -p /config"]
       standard-movies:
         type: *type
         cronjob:
@@ -98,6 +98,8 @@ spec:
     persistence:
       config:
         existingClaim: *app
+        globalMounts:
+          - path: /config
       config-file:
         type: configMap
         name: kometa-configmap
@@ -108,7 +110,7 @@ spec:
       assets:
         existingClaim: plex-posters
         globalMounts:
-        - path: /config/assets
+        - path: /assets
       logs:
         type: emptyDir
         globalMounts:

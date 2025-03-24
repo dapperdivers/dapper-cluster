@@ -623,7 +623,7 @@ collections:
       any:
         title:
           - "Marvel's Infinity Saga: The Sacred Timeline"               # Fan edit
-    file_poster: /config/assets/Marvel Cinematic Universe.png
+    file_poster: /config/overlays/Marvel Cinematic Universe.png
 # Marvel Cinematic Universe (Chronological):                            # This includes the TV Shows also
 #   template: {name: Studios}
 #   trakt_list: https://trakt.tv/users/donxy/lists/marvel-cinematic-universe?sort=rank,asc
@@ -631,7 +631,7 @@ collections:
 #     any:
 #       title:
 #         - "Marvel's Infinity Saga: The Sacred Timeline"               # Fan edit
-#   file_poster: /config/assets/Marvel Cinematic Universe.png
+#   file_poster: /config/overlays/Marvel Cinematic Universe.png
   Pixar:
     template: {name: Studios}
     imdb_list: https://www.imdb.com/list/ls084018331
