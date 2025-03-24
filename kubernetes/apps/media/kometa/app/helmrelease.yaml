@@ -88,7 +88,7 @@ spec:
             subPath: config.yml
             readOnly: true
       assets:
-        existingClaim: plex-postersdGd
+        existingClaim: plex-posters
         globalMounts:
         - path: /config/assets
       logs:
