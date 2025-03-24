@@ -1,0 +1,127 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name:  &app kometa
+
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: plex
+      namespace: media
+    - name: volsync
+      namespace: storage
+
+  values:
+    controllers:
+      4k-movies:
+        type: &type cronjob
+        annotations:
+          reloader.stakater.com/auto: "true"
+        cronjob: &cronjob
+          schedule: "30 4 * * *"
+          timeZone: &timeZone ${TIME_ZONE}
+          concurrencyPolicy: Forbid
+          successfulJobsHistory: 1
+          failedJobsHistory: 1
+        containers:
+          app: &container_app
+            image:
+              repository: kometateam/kometa
+              tag: nightly@sha256:8393e7231e1e349ce136431cf8aa34e297cbc119f05e5c4f38538724f39a0f0d
+            command:
+              - /bin/sh
+              - -c
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
+            env:
+              TZ: *timeZone
+            envFrom:
+              - secretRef:
+                  name: kometa-secret
+            resources:
+              requests:
+                cpu: 2000m
+                memory: 4096M
+              limits:
+                cpu: 2000m
+                memory: 8192M
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+      standard-movies:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "0 5 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "Movies"
+      4k-tv:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "30 5 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows"
+      standard-tv:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "0 6 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "TV Shows"
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 140
+        fsGroup: 150
+        fsGroupChangePolicy: OnRootMismatch
+    persistence:
+      config:
+        existingClaim: *app
+      config-file:
+        type: configMap
+        name: kometa-configmap
+        globalMounts:
+          - path: /config/config.yml
+            subPath: config.yml
+            readOnly: true
+      assets:
+        existingClaim: plex-posters
+        globalMounts:
+        - path: /assets
+      logs:
+        type: emptyDir
+        globalMounts:
+          - path: /config/logs
