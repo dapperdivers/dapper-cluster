@@ -25,23 +25,26 @@ spec:
   dependsOn:
     - name: plex
       namespace: media
+    - name: volsync
+      namespace: storage
+
   values:
     controllers:
       kometa:
-        type: cronjob
+        type: &type cronjob
         annotations:
           reloader.stakater.com/auto: "true"
-        cronjob:
-          schedule: "@daily"
+        cronjob: &cronjob
+          schedule: "30 4 * * *"
           timeZone: &timeZone ${TIME_ZONE}
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
         containers:
-          app:
+          app: &container_app
             image:
               repository: kometateam/kometa
-              tag: v2.1.0@sha256:af441b1eeaa3be6a55820f16102d950d12fa52f3bb791b835a6a768385cd3a30
+              tag: develop@sha256:cbeec2bf8007dd7183bc86d1b179d313e83eed5da69ecfd04b571716ef4c20c5
             command:
               - /bin/sh
               - -c
@@ -61,15 +64,30 @@ spec:
                   name: kometa-secret
             resources:
               requests:
-                cpu: 1000m
+                cpu: 100m
                 memory: 4096M
               limits:
-                cpu: 5000m
+                cpu: 2000m
                 memory: 8192M
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
+            lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/bash", "-c", "mkdir -p /config/assets/{anime,awards,decades,genres,holidays,networks,suggestions,posters}"]
+      standard-movies:
+        type: *type
+        cronjob:
+          <<: *cronjob
+          schedule: "0 12,18 * * *"
+        containers:
+          app:
+            <<: *container_app
+            args:
+              - |
+                python3 kometa.py --run --read-only-config --run-libraries "Movies"
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true

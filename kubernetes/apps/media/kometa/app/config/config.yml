@@ -2,10 +2,10 @@ libraries: # This is called out once within the config.yml file
   4k-Movies:
     library_name: 4k-Movies
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
       - repo: Movies.yml
       - pmm: basic
@@ -45,10 +45,10 @@ libraries: # This is called out once within the config.yml file
   Movies:
     library_name: Movies
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
       - repo: Movies.yml
       - pmm: basic
@@ -88,10 +88,10 @@ libraries: # This is called out once within the config.yml file
   4k-TV Shows:
     library_name: 4k-TV Shows
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
       - repo: TV Shows.yml
       - default: cannes
@@ -138,10 +138,10 @@ libraries: # This is called out once within the config.yml file
   TV Shows:
     library_name: TV Shows
     run_order:
-      - collections
-      - metadata
-      - operations
-      - overlays
+    - collections
+    - metadata
+    - operations
+    - overlays
     collection_files:
       - repo: TV Shows.yml
       - default: cannes
@@ -190,7 +190,7 @@ settings:
   cache: true
   cache_expiration: 60
   asset_directory: config/assets
-  asset_folders: false
+  asset_folders: true
   asset_depth: 0
   create_asset_folders: false
   prioritize_assets: false
@@ -199,7 +199,7 @@ settings:
   show_missing_season_assets: false
   show_missing_episode_assets: false
   show_asset_not_needed: true
-  sync_mode: sync
+  sync_mode: append
   minimum_items: 1
   default_collection_order:
   delete_below_minimum: true
@@ -208,18 +208,18 @@ settings:
   missing_only_released: false
   missing_path: config/missing
   custom_repo: https://github.com/DapperDivers/dapper-cluster/tree/main/kubernetes/apps/media/kometa/app/custom/
-  only_filter_missing: false
-  show_unmanaged: false
+  show_unmanaged: true
   show_filtered: false
   show_options: false
   show_missing: false
   show_missing_assets: false
-  save_report: false
+  only_filter_missing: false
+  save_report: true
   tvdb_language: eng
   ignore_ids:
   ignore_imdb_ids:
   item_refresh_delay: 0
-  playlist_sync_to_user: all
+  playlist_sync_to_users: all
   playlist_exclude_user:
   playlist_report: false
   verify_ssl: true
