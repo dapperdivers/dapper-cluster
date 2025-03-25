@@ -13,8 +13,6 @@ libraries: # This is called out once within the config.yml file
       collection_mode: hide                         # hide the collections
       language: en                                  # could be default(which is en), da, de, fr, pt-br or another lang code that we have translated
       placeholder_imdb_id: tt8579674                # 1917 (2019) placeholder id for the separators
-    metadata_files:                                 # These files contain metadata: attributes
-    - git: bullmoose20/godzilla                     # Custom metadata file for Godzilla stuff
     collection_files:                               # These files contain collections: and/or dynamic_collections attributes
     - default: based                                # collections based on a book, comic, story, video game
     # - file: config/overlays/overlay_label.yml       # Creates collection of all items with an Overlay label (Testing only)
@@ -356,8 +354,6 @@ libraries: # This is called out once within the config.yml file
       collection_mode: hide                         # hide the collections
       language: en                                  # could be default(which is en), da, de, fr, pt-br or another lang code that we have translated
       placeholder_imdb_id: tt1190634                # The Boys (2019) placeholder id for the separators
-    metadata_files:                                 # These files contain metadata: attributes
-    - git: bullmoose20/money_heist                  # Custom metadata file for Money Heist
     collection_files:                               # These files contain collections: and/or dynamic_collections attributes
     - default: based                                # collections based on a book, comic, story, video game
     # - file: config/overlays/overlay_label.yml       # Creates collection of all items with an Overlay label (Testing only)
