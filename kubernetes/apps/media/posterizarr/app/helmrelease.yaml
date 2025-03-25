@@ -37,7 +37,7 @@ spec:
           app:
             image:
               repository: ghcr.io/fscorrupt/docker-posterizarr
-              tag: latest@sha256:bf0ca036a6c267ea2235004dcbcc21b6f3aa7eead1b72c873b18c885a3712728
+              tag: latest@sha256:a9c56d7fe659721f1efa2de904cb648061b0e147f55ee4435cb9ca06e2bd84a
             command:
               - /bin/sh
               - -c
