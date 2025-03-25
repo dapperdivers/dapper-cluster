@@ -1,7 +1,7 @@
 libraries: # This is called out once within the config.yml file
   4k-Movies: &movie_config
     settings: &posterizarr_settings
-      asset_directory: /assets/4K-Movies
+      asset_directory: /assets/4k-Movies
       prioritize_assets: true
     run_order: &run_order
       - collections

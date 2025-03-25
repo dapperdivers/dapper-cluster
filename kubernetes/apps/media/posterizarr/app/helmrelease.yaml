@@ -36,14 +36,10 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/fscorrupt/posterizarr
+              repository: ghcr.io/dapperdivers/posterizarr
               tag: v1.9.33@sha256:a9c56d7fe659721f1efa2de904cb648061b0e147f55ee4435cb9ca06e2bd84a
-            command:
-              - /bin/sh
-              - -c
             args:
-              - |
-                s6-setuidgid abc pwsh Posterizarr.ps1 -Manual
+              - -Manual
             env:
               TZ: *timezone
               PGID: 140
