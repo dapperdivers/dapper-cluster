@@ -63,21 +63,17 @@ spec:
         fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
     persistence:
-      config:
-        existingClaim: *app
-        globalMounts:
-          - path: /config
-      assets:
-        existingClaim: plex-posters
-        globalMounts:
-        - path: /assets
       config-file:
         type: configMap
         name: posterizarr-configmap
         globalMounts:
         - path: /config/config.json
           subPath: config.json
+      assets:
+        existingClaim: plex-posters
+        globalMounts:
+        - path: /assets
       logs:
-        type: emptyDir
+        existingClaim: *app
         globalMounts:
         - path: /config/Logs
