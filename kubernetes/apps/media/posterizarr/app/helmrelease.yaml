@@ -65,6 +65,8 @@ spec:
     persistence:
       config:
         existingClaim: *app
+        globalMounts:
+          - path: /config
       assets:
         existingClaim: plex-posters
         globalMounts:
