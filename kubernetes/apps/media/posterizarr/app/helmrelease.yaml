@@ -37,7 +37,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
-              tag: v1.9.34@sha256:f83a4dc878cadf2a361677e02a35685656f3afa3376e6d812f93f4f90efbad66
+              tag: v1.9.34@sha256:0b56dcb50e8a2d5721e0360852c0f4a52a5eb0b717d6b855adf7bff16bb00e6c
             command:
               - "sh"
               - "-c"

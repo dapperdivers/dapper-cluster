@@ -6,10 +6,16 @@
     "PlexToken": "${PLEX_TOKEN}",
     "FavProvider": "tmdb",
     "PreferredLanguageOrder": [
-      "xx"
+      "xx",
+      "en"
     ],
     "PreferredSeasonLanguageOrder": [
-      "xx"
+      "xx",
+      "en"
+    ],
+    "PreferredBackgroundLanguageOrder": [
+            "xx",
+            "en"
     ],
     "tmdb_vote_sorting": "vote_average",
     "WidthHeightFilter": "false",
