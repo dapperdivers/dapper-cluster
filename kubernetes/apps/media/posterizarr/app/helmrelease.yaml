@@ -38,12 +38,8 @@ spec:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
               tag: v1.9.33@sha256:a9c56d7fe659721f1efa2de904cb648061b0e147f55ee4435cb9ca06e2bd84a
-            args:
-              - -Manual
             env:
               TZ: *timezone
-              PGID: 140
-              PUID: 1000
             envFrom:
             - secretRef:
                 name: posterizarr-secret
@@ -53,6 +49,19 @@ spec:
                 memory: 4096M
               limits:
                 memory: 8192M
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                - ALL
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 140
+        fsGroup: 150
+        fsGroupChangePolicy: OnRootMismatch
     persistence:
       config:
         existingClaim: *app
