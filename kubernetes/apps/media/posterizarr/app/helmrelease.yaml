@@ -38,11 +38,6 @@ spec:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
               tag: v1.9.34@sha256:0b56dcb50e8a2d5721e0360852c0f4a52a5eb0b717d6b855adf7bff16bb00e6c
-            command:
-              - "sh"
-              - "-c"
-            args:
-              - "tail -f /dev/null"
             env:
               TZ: *timezone
             envFrom:
@@ -68,17 +63,15 @@ spec:
         fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
     persistence:
+      config:
+        existingClaim: *app
       config-file:
         type: configMap
         name: posterizarr-configmap
         globalMounts:
-        - path: /config/config.json
+        - path: /app/config/config.json
           subPath: config.json
       assets:
         existingClaim: plex-posters
         globalMounts:
         - path: /assets
-      logs:
-        existingClaim: *app
-        globalMounts:
-        - path: /config/Logs
