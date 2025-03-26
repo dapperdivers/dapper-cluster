@@ -38,6 +38,11 @@ spec:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
               tag: v1.9.34@sha256:f83a4dc878cadf2a361677e02a35685656f3afa3376e6d812f93f4f90efbad66
+            command:
+              - "sh"
+              - "-c"
+            args:
+              - "tail -f /dev/null"
             env:
               TZ: *timezone
             envFrom:
