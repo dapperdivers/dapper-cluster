@@ -11,6 +11,8 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
+    - name: plex
+      namespace: media
     - name: external-secrets-stores
       namespace: external-secrets
   commonMetadata:

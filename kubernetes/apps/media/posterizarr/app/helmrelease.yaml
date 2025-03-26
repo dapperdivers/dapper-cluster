@@ -28,7 +28,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         cronjob:
-          schedule: "0 */1 * * *"
+          schedule: "0 2 * * *"
           timeZone: &timezone ${TIME_ZONE}
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
@@ -36,18 +36,10 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/fscorrupt/posterizarr
-              tag: v1.9.33@sha256:a9c56d7fe659721f1efa2de904cb648061b0e147f55ee4435cb9ca06e2bd84a
-            command:
-              - /bin/sh
-              - -c
-            args:
-              - |
-                s6-setuidgid abc pwsh Posterizarr.ps1 -Manual
+              repository: ghcr.io/dapperdivers/posterizarr
+              tag: v1.9.34@sha256:0b56dcb50e8a2d5721e0360852c0f4a52a5eb0b717d6b855adf7bff16bb00e6c
             env:
               TZ: *timezone
-              PGID: 140
-              PUID: 1000
             envFrom:
             - secretRef:
                 name: posterizarr-secret
@@ -57,20 +49,29 @@ spec:
                 memory: 4096M
               limits:
                 memory: 8192M
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                - ALL
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 140
+        fsGroup: 150
+        fsGroupChangePolicy: OnRootMismatch
     persistence:
       config:
         existingClaim: *app
-      assets:
-        existingClaim: plex-posters
-        globalMounts:
-        - path: /assets
       config-file:
         type: configMap
         name: posterizarr-configmap
         globalMounts:
-        - path: /config/config.json
+        - path: /app/config/config.json
           subPath: config.json
-      logs:
-        type: emptyDir
+      assets:
+        existingClaim: plex-posters
         globalMounts:
-        - path: /config/Logs
+        - path: /assets

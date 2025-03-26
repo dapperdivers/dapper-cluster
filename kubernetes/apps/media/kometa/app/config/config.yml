@@ -1,7 +1,7 @@
 libraries: # This is called out once within the config.yml file
   4k-Movies: &movie_config
     settings: &posterizarr_settings
-      asset_directory: /assets/4K-Movies
+      asset_directory: /assets/4k-Movies
       prioritize_assets: true
     run_order: &run_order
       - collections
@@ -337,6 +337,8 @@ libraries: # This is called out once within the config.yml file
     settings:
       <<: *posterizarr_settings
       asset_directory: /assets/Movies
+    operations:
+      <<: *movie_operations
     radarr:
       <<: *radarr
       url: http://radarr.media
@@ -697,7 +699,7 @@ libraries: # This is called out once within the config.yml file
       template_variables:
         builder_level: episode
     minimum_items: *minimum_items
-    operations: &tv_config
+    operations: &tv_operations
       split_duplicates: false                       # Splits all duplicate movies/shows found in this library
       assets_for_all: true                          # Search in assets for images for every item in your library
       delete_collections:
@@ -747,6 +749,8 @@ libraries: # This is called out once within the config.yml file
     settings:
       <<: *posterizarr_settings
       asset_directory: /assets/TV Shows
+    operations:
+      <<: *tv_operations
     sonarr:
       <<: *sonarr
       url: http://sonarr.media
