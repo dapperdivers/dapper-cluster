@@ -14,15 +14,17 @@
       "en"
     ],
     "PreferredBackgroundLanguageOrder": [
-            "xx",
-            "en"
+      "xx",
+      "en"
     ],
     "tmdb_vote_sorting": "vote_average",
     "WidthHeightFilter": "false",
     "PosterMinWidth": "2000",
     "PosterMinHeight": "3000",
     "BgTcMinWidth": "3840",
-    "BgTcMinHeight": "2160"
+    "BgTcMinHeight": "2160",
+    "JellyfinAPIKey": "JELLYFINAPIKEY",
+    "EmbyAPIKey": "EMBYAPIKEY"
   },
   "EmbyPart": {
     "EmbyUrl": "",
@@ -39,13 +41,13 @@
   "Notification": {
     "AppriseUrl": "",
     "Discord": "",
-    "SendNotification": "false"
+    "SendNotification": "false",
+    "DiscordUserName": "Posterizarr",
+    "UseUptimeKuma": "false",
+    "UptimeKumaUrl": "https://uptimekuma"
   },
   "PlexPart": {
     "LibstoExclude": [
-      "",
-      "",
-      "",
       "Demos"
     ],
     "PlexUrl": "http://plex.media:32400",
@@ -53,15 +55,14 @@
     "UploadExistingAssets": "false"
   },
   "PrerequisitePart": {
-    "AssetPath": "./assets",
-    "magickinstalllocation": "./magick",
+    "AssetPath": "/assets",
     "maxLogs": "5",
     "font": "Comfortaa-Medium.ttf",
     "backgroundfont": "Comfortaa-Medium.ttf",
     "titlecardfont": "Comfortaa-Medium.ttf",
-    "overlayfile": "bottom-up-fade.png",
-    "backgroundoverlayfile": "bottom-up-fade-background.png",
-    "titlecardoverlayfile": "bottom-up-fade-background.png",
+    "overlayfile": "overlay.png",
+    "backgroundoverlayfile": "backgroundoverlay.png",
+    "titlecardoverlayfile": "backgroundoverlay.png",
     "LibraryFolders": "true",
     "Posters": "true",
     "SeasonPosters": "true",
@@ -73,14 +74,23 @@
     "SkipJapTitle": "false",
     "AssetCleanup": "true",
     "AutoUpdateIM": "true",
-    "seasonoverlayfile": "bottom-up-fade.png",
+    "seasonoverlayfile": "overlay.png",
     "RTLFont": "Colus-Regular.ttf",
     "NewLineOnSpecificSymbols": "false",
     "NewLineSymbols": [
       " - "
     ],
     "PlexUpload": "false",
-    "BackupPath": "P:\\assetsbackup"
+    "BackupPath": "/assetsbackup",
+    "ManualAssetPath": "/manualassets",
+    "SkipAddText": "false",
+    "FollowSymlink": "false",
+    "ForceRunningDeletion": "false",
+    "AutoUpdatePosterizarr": "false",
+    "poster4k": "overlay-innerglow.png",
+    "Poster1080p": "overlay-innerglow.png",
+    "UsePosterResolutionOverlays": "false",
+    "magickinstalllocation": "/usr/local/bin"
   },
   "OverlayPart": {
     "ImageProcessing": "true",
@@ -176,7 +186,8 @@
     "AddTextStroke": "false",
     "strokecolor": "black",
     "strokewidth": "6",
-    "lineSpacing": "0"
+    "lineSpacing": "0",
+    "ShowFallback": "false"
   },
   "ShowTitleOnSeasonPosterPart": {
     "AddShowTitletoSeason": "false",

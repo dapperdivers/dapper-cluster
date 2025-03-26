@@ -33,16 +33,38 @@ spec:
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
+        initContainers:
+          init-config:
+            image:
+              repository: docker.io/mikefarah/yq
+              tag: 4.45.1@sha256:2c100efaca06e95ffe452cfe9bfc0048b493f0f3a072d5fe06f828c638d9462b
+              pullPolicy: IfNotPresent
+            command:
+              - "/bin/sh"
+            args:
+              - "/app/config-file/init-config.sh"
+            envFrom:
+            - secretRef:
+                name: posterizarr-secret
+            resources:
+              requests:
+                cpu: 10m
+                memory: 10Mi
+              limits:
+                memory: 128Mi
         containers:
           app:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
-              tag: v1.9.34@sha256:0b56dcb50e8a2d5721e0360852c0f4a52a5eb0b717d6b855adf7bff16bb00e6c
+              tag: v1.9.34@sha256:63d104caf157c13a7bf54d55891371cd20290b2e638f0b2dbafec65fe8926aef
+            command:
+              - "sh"
+              - "-c"
+            args:
+              - "tail -f /dev/null"
             env:
               TZ: *timezone
-            envFrom:
-            - secretRef:
-                name: posterizarr-secret
+
             resources:
               requests:
                 cpu: 100m
@@ -65,13 +87,16 @@ spec:
     persistence:
       config:
         existingClaim: *app
+        globalMounts:
+          - path: /app/config
       config-file:
         type: configMap
+        defaultMode: 511
         name: posterizarr-configmap
         globalMounts:
-        - path: /app/config/config.json
-          subPath: config.json
+          - path: /app/config-file
       assets:
         existingClaim: plex-posters
         globalMounts:
         - path: /assets
+
