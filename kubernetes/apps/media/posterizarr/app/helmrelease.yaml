@@ -28,7 +28,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         cronjob:
-          schedule: "0 */1 * * *"
+          schedule: "0 2 * * *"
           timeZone: &timezone ${TIME_ZONE}
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
