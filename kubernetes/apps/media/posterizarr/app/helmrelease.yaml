@@ -57,14 +57,8 @@ spec:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
               tag: v1.9.34@sha256:63d104caf157c13a7bf54d55891371cd20290b2e638f0b2dbafec65fe8926aef
-            command:
-              - "sh"
-              - "-c"
-            args:
-              - "tail -f /dev/null"
             env:
               TZ: *timezone
-
             resources:
               requests:
                 cpu: 100m
