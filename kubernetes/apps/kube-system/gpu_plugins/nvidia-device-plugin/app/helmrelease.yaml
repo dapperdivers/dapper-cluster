@@ -31,8 +31,8 @@ spec:
       retries: 3
   values:
     image:
-      repository: nvcr.io/nvidia/k8s-device-plugin
-      tag: v0.17.1
+      repository: ghcr.io/nvidia/k8s-device-plugin
+      tag: 4501db42-ubi9@sha256:19fafd16502de87778d298bcad62dd92a1f124a674857c9c32c042c8f9033b16
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
     runtimeClassName: nvidia
