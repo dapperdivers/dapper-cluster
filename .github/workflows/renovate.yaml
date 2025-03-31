@@ -22,8 +22,8 @@ on:
   push:
     branches: ["main"]
     paths:
-      - .github/.renovaterc.json5
-      - .github/renovate/**.json5
+      - .renovate.json5
+      - .renovate/**.json5
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
