@@ -37,9 +37,6 @@ spec:
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
     runtimeClassName: nvidia
-    resources:
-      limits:
-        nvidia.com/gpu: 1
     serviceMonitor:
       interval: 15s
       honorLabels: true
