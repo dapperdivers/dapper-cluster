@@ -36,7 +36,7 @@ spec:
           nodeSelector:
             nvidia.feature.node.kubernetes.io/gpu: "true"
         containers:
-          app:
+          app: &node
             image:
               repository: ghcr.io/haveagitgat/tdarr_node
               tag: 2.37.01@sha256:7e9d8e4c6520c3865387565b0cb9744f7dafb79b594fcd88c2ad93d5ad001e37
@@ -52,12 +52,10 @@ spec:
               ffmpegVersion: 7
             resources:
               requests:
-                cpu: 5000m
+                cpu: 1000m
                 memory: 10Gi
                 nvidia.com/gpu: 1
               limits:
-                cpu: 5500m
-                memory: 40Gi
                 nvidia.com/gpu: 1
     defaultPodOptions:
       runtimeClassName: nvidia
