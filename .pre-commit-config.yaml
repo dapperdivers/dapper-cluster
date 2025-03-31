@@ -240,6 +240,6 @@ repos:
     hooks:
       - id: shellcheck
   - repo: https://github.com/pylint-dev/pylint
-    rev: v2.17.2
+    rev: v2.17.7
     hooks:
       - id: pylint
