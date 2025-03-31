@@ -25,11 +25,16 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
+    - name: nvidia-device-plugin
+      namespace: kube-system
   values:
     controllers:
       tdarr-node:
         annotations:
           reloader.stakater.com/auto: "true"
+        pod:
+          nodeSelector:
+            nvidia.feature.node.kubernetes.io/gpu: "true"
         containers:
           app:
             image:
@@ -49,9 +54,13 @@ spec:
               requests:
                 cpu: 5000m
                 memory: 10Gi
+                nvidia.com/gpu: 1
               limits:
                 cpu: 5500m
-                memory: 20Gi
+                memory: 40Gi
+                nvidia.com/gpu: 1
+    defaultPodOptions:
+      runtimeClassName: nvidia
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -61,9 +70,6 @@ spec:
                   operator: In
                   values:
                     - "true"
-    nodeSelector:
-      nvidia.feature.node.kubernetes.io/gpu: "true"
-    runtimeClassName: nvidia
     service:
       app:
         controller: tdarr-node
