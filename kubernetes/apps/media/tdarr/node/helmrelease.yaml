@@ -30,34 +30,40 @@ spec:
       tdarr-node:
         annotations:
           reloader.stakater.com/auto: "true"
-        pod:
-          nodeSelector:
-            nvidia.feature.node.kubernetes.io/gpu: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/haveagitgat/tdarr-node
+              repository: ghcr.io/haveagitgat/tdarr_node
               tag: 2.37.01@sha256:7e9d8e4c6520c3865387565b0cb9744f7dafb79b594fcd88c2ad93d5ad001e37
             env:
               TZ: ${TIME_ZONE}
+              PGID: 150
+              PUID: 1000
+              serverIP: tdarr.media
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
               nodeName: P100
               inContainer: true
               ffmpegVersion: 7
-            probes:
-              liveness: &probes
-                enabled: true
             resources:
               requests:
-                cpu: 10m
+                cpu: 5000m
+                memory: 10Gi
               limits:
-                memory: 1Gi
-    defaultPodOptions:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 150
-        fsGroup: 140
+                cpu: 5500m
+                memory: 20Gi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: nvidia.feature.node.kubernetes.io/gpu
+                  operator: In
+                  values:
+                    - "true"
+    nodeSelector:
+      nvidia.feature.node.kubernetes.io/gpu: "true"
+    runtimeClassName: nvidia
     service:
       app:
         controller: tdarr-node
@@ -76,8 +82,10 @@ spec:
         path: /Used
         globalMounts:
           - path: /media
-      transcode_cache:
+      transcode:
         type: emptyDir
         medium: Memory
         sizeLimit: 40Gi
+        globalMounts:
+          - path: /temp
 
