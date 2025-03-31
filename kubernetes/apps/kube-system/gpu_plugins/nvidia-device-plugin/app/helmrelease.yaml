@@ -32,7 +32,7 @@ spec:
   values:
     image:
       repository: ghcr.io/nvidia/k8s-device-plugin
-      tag: 4501db42-ubi9@sha256:19fafd16502de87778d298bcad62dd92a1f124a674857c9c32c042c8f9033b16
+      tag: 99990375-ubi9@sha256:75d1dfc49cc1e2783d34c183c24b7fa5136af488e7e0a6daa8ed1e2f122a7ad8
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
     runtimeClassName: nvidia
