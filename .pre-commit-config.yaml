@@ -24,7 +24,7 @@ repos:
   # ----------------------------- 🔒 Security Tools ---------------------------- #
 
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.22.1
+    rev: v8.24.2
     hooks:
       - id: gitleaks
         name: "🔒 security · Detect hardcoded secrets"
@@ -33,7 +33,7 @@ repos:
 
   ### Python Tools ###
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.1
+    rev: v0.11.2
     hooks:
       - id: ruff-format
         name: "🐍 python · Format with Ruff"
@@ -50,7 +50,7 @@ repos:
   #       name: "🐍 python · Check types"
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.23
+    rev: v0.24.1
     hooks:
       - id: validate-pyproject
         name: "🐍 python · Validate pyproject.toml"
@@ -58,7 +58,7 @@ repos:
 
   ### Javascript & Web Tools ###
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v0.6.1"
+    rev: "v1.9.4"
     hooks:
       - id: biome-check
         name: "🟨 javascript · Lint, format, and safe fixes with Biome"
@@ -66,7 +66,7 @@ repos:
 
   ### Data & Config Validation ###
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.31.0
+    rev: 0.32.1
     hooks:
       - id: check-github-workflows
         name: "🐙 github-actions · Validate gh workflow files"
@@ -76,7 +76,7 @@ repos:
 
   ### Markdown ###
   - repo: https://github.com/hukkin/mdformat
-    rev: 0.7.21
+    rev: 0.7.22
     hooks:
       - id: mdformat
         name: "📝 markdown · Format markdown"
@@ -119,7 +119,7 @@ repos:
   ### SQL ###
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.3.0
+    rev: 3.3.1
     hooks:
       - id: sqlfluff-fix
         name: "📊 SQL · Attempts to fix rule violations."
@@ -149,7 +149,7 @@ repos:
 
   ### PNG Images ###
   - repo: https://github.com/shssoichiro/oxipng
-    rev: v9.1.3
+    rev: v9.1.4
     hooks:
       - id: oxipng
         name: "🖼️ images · Optimize PNG files"
@@ -205,7 +205,7 @@ repos:
 
   ### Commit Message Standards ###
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.1.0
+    rev: v4.4.1
     hooks:
       - id: commitizen
         name: "🌳 git · Validate commit message"
@@ -240,6 +240,6 @@ repos:
     hooks:
       - id: shellcheck
   - repo: https://github.com/pylint-dev/pylint
-    rev: v2.17.2
+    rev: v3.3.6
     hooks:
       - id: pylint

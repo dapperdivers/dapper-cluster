@@ -1,7 +1,11 @@
 {
-    "files.associations": {
-        "*.json5": "jsonc"
-    },
+    "json.schemas": [
+        {
+            "fileMatch": ["renovate.json5"],
+            "url": "https://docs.renovatebot.com/renovate-schema.json"
+        }
+    ],
+    "eslint.validate": ["json", "jsonc", "json5"],
     "sops.defaults.ageKeyFile": "age.key",
     "yaml.schemas": {
         "Kubernetes": "./kubernetes/*.yaml"
