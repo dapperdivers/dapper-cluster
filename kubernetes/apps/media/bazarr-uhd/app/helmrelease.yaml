@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: bazarr
+  name: bazarr-uhd
 spec:
   interval: 30m
   chart:
@@ -27,7 +27,7 @@ spec:
       namespace: storage
   values:
     controllers:
-      bazarr:
+      bazarr-uhd:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -39,7 +39,7 @@ spec:
               TZ: ${TIME_ZONE}
             envFrom:
               - secretRef:
-                  name: bazarr-secret
+                  name: bazarr-uhd-secret
             probes:
               liveness: &probes
                 enabled: true
@@ -93,7 +93,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
     service:
       app:
-        controller: bazarr
+        controller: bazarr-uhd
         ports:
           http:
             port: *port
@@ -102,10 +102,10 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN_MEDIA}
           authentik.home.arpa/internal: "true"
-          nginx.ingress.kubernetes.io/auth-signin: "https://bazarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
+          nginx.ingress.kubernetes.io/auth-signin: "https://4kbazarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:
-          - host: &host bazarr.${SECRET_DOMAIN_MEDIA}
+          - host: &host 4kbazarr.${SECRET_DOMAIN_MEDIA}
             paths:
               - path: /
                 service:
@@ -123,7 +123,7 @@ spec:
         globalMounts:
           - path: /config/cache
       config:
-        existingClaim: bazarr
+        existingClaim: bazarr-uhd
       log:
         type: emptyDir
         globalMounts:
@@ -136,7 +136,7 @@ spec:
           - path: /media
       scripts:
         type: configMap
-        name: bazarr-scripts
+        name: bazarr-uhd-scripts
         defaultMode: 0775
         globalMounts:
           - path: /scripts/subcleaner.sh
