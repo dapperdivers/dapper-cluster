@@ -4,6 +4,8 @@
     "tvdbapi": "${TVDB_API_KEY}",
     "tmdbtoken": "${TMDB_READ_API_TOKEN}",
     "PlexToken": "${PLEX_TOKEN}",
+    "JellyfinAPIKey": "JELLYFINAPIKEY",
+    "EmbyAPIKey": "EMBYAPIKEY",
     "FavProvider": "tmdb",
     "WidthHeightFilter": "false",
     "PosterMinWidth": "2000",
