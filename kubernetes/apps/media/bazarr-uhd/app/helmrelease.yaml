@@ -138,8 +138,5 @@ spec:
         type: configMap
         name: bazarr-uhd-scripts
         defaultMode: 0775
-        globalMounts:
-          - path: /scripts/subcleaner.sh
-          - readOnly: true
       tmp:
         type: emptyDir
