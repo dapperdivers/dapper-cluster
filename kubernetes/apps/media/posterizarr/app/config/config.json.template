@@ -29,8 +29,6 @@
       "Demos",
       "Test-TV",
       "Test-Movies"
-
-
     ],
 
     "PlexUrl": "http://plex.media:32400",
@@ -65,8 +63,8 @@
     "SendNotification": "false",
     "DiscordUserName": "Posterizarr",
     "UseUptimeKuma": "false",
-    "AppriseUrl": "discord://{WebhookID}/{WebhookToken}/",
-    "Discord": "https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}",
+    "AppriseUrl": "discord://${WebhookID}/${WebhookToken}/",
+    "Discord": "https://discordapp.com/api/webhooks/${WebhookID}/${WebhookToken}",
     "UptimeKumaUrl": "https://uptime-kuma"
   },
   "PrerequisitePart": {
