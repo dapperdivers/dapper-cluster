@@ -46,6 +46,7 @@ spec:
               N8N_HOST: &host "n8n.${SECRET_DOMAIN}"
               WEBHOOK_URL: "https://n8n.${SECRET_DOMAIN}"
               N8N_USER_FOLDER: /config
+              N8N_RUNNERS_ENABLED: true
 
               # User management
               EXTERNAL_HOOK_FILES: /config/.n8n/hooks.js
