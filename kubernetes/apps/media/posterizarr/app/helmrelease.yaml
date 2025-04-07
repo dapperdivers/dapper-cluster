@@ -56,7 +56,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/posterizarr
-              tag: 1.9.36@sha256:d6654f4ec6b3c6c831a456248e8531930e0a179f2e3db6c885b31215854c53dc
+              tag: 1.9.37@sha256:05f15232c8515f2112399dbee107217bcf329625bdb76b53efd03ee02ee17b3a
             env:
               TZ: *timezone
             resources:
