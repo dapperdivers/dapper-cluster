@@ -1,9 +1,9 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: radarr
-
+  name: bazarr-uhd
 spec:
   interval: 30m
   chart:
@@ -27,76 +27,85 @@ spec:
       namespace: storage
   values:
     controllers:
-      radarr:
+      bazarr-uhd:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/home-operations/radarr
-              tag: 5.22.1.9832@sha256:e697db98905b4b03a8112fa581bb313e6c36531cc5da96005c5d63a463ea3f2c
+              repository: ghcr.io/home-operations/bazarr
+              tag: 1.5.1@sha256:a1b0d3a4e6462adb448dbfe4bf466e1d1bc920c17ac97c705b6db6eeb02b37b9
             env:
-              TZ: "${TIME_ZONE}"
-              RADARR__APP__INSTANCENAME: Radarr
-              RADARR__APP__THEME: dark
-              RADARR__AUTH__METHOD: External
-              RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
-              RADARR__LOG__DBENABLED: "False"
-              RADARR__LOG__LEVEL: info
-              RADARR__SERVER__PORT: &port 80
-              RADARR__UPDATE__BRANCH: develop
-              PUSHOVER_APP_URL: &host "radarr.${SECRET_DOMAIN_MEDIA}"
-              PUSHOVER_DEBUG: "false"
-              PUSHOVER_PRIORITY: "0"
+              TZ: ${TIME_ZONE}
             envFrom:
               - secretRef:
-                  name: radarr-secret
+                  name: bazarr-uhd-secret
             probes:
               liveness: &probes
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /ping
-                    port: *port
+                    path: /health
+                    port: &port 6767
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-            securityContext:
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext: &securityContext
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 250m
+                cpu: 10m
               limits:
                 memory: 1Gi
+          subcleaner:
+            image:
+              repository: registry.k8s.io/git-sync/git-sync
+              tag: v4.4.0@sha256:0330739a707a2969d617e859f096659ab6d149212658ac0ad7e550b59482ebf0
+            env:
+              GITSYNC_REPO: https://github.com/KBlixt/subcleaner
+              GITSYNC_REF: master
+              GITSYNC_PERIOD: 24h
+              GITSYNC_ROOT: /add-ons
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 1Gi
+            securityContext: *securityContext
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
-        runAsGroup: 140
-        fsGroup: 150
+        runAsGroup: 150
+        fsGroup: 140
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }
     service:
       app:
-        controller: radarr
+        controller: bazarr-uhd
         ports:
           http:
             port: *port
     ingress:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN_MEDIA}
           authentik.home.arpa/internal: "true"
-          nginx.ingress.kubernetes.io/auth-signin: "https://radarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
+          nginx.ingress.kubernetes.io/auth-signin: "https://4kbazarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:
-          - host: *host
+          - host: &host 4kbazarr.${SECRET_DOMAIN_MEDIA}
             paths:
               - path: /
                 service:
@@ -106,15 +115,28 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
-
     persistence:
-      config:
-        existingClaim: radarr
-      tmp:
+      add-ons:
         type: emptyDir
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /config/cache
+      config:
+        existingClaim: bazarr-uhd
+      log:
+        type: emptyDir
+        globalMounts:
+          - path: /config/log
       media:
         type: nfs
         server: openmediavault-used.manor
         path: /Used
         globalMounts:
           - path: /media
+      scripts:
+        type: configMap
+        name: bazarr-uhd-scripts
+        defaultMode: 0775
+      tmp:
+        type: emptyDir

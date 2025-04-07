@@ -37,7 +37,7 @@ spec:
               tag: 2.37.01@sha256:5b15acbf9bb0e35bbbb876609b0fb2688fad8cb28cd02730cce3a4c1db349986
             env:
               TZ: ${TIME_ZONE}
-              PGID: 150
+              PGID: 140
               PUID: 1000
               internalNode: false
             resources:
