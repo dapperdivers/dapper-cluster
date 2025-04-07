@@ -64,8 +64,8 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
-        runAsGroup: 150
-        fsGroup: 140
+        runAsGroup: 140
+        fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: RuntimeDefault }
     service:
@@ -93,12 +93,21 @@ spec:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     persistence:
-      config: #fight me
+      config:
         existingClaim: tautulli
       cache:
         existingClaim: tautulli-cache
         globalMounts:
           - path: /config/cache
+      posterizarr-watcher:
+        existingClaim: posterizarr-watcher
+        globalMounts:
+          - path: /posterizarr/watcher
+      posterizarr-watcher-script:
+        type: configMap
+        name: posterizarr-watcher
+        globalMounts:
+          - path: /scripts
       logs:
         type: emptyDir
         globalMounts:

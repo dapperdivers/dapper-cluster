@@ -37,19 +37,6 @@ spec:
               tag: 24.8.0@sha256:e0eadaf83dee871ba61eb07bac002852ee7dae869860959e526ee3344505527a
             env:
               TZ: ${TIME_ZONE}
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /api?mode=version
-                    port: 6789
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
             resources:
               requests:
                 cpu: 8000m
