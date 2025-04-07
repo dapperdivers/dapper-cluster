@@ -38,8 +38,8 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/n8nio/n8n
-              tag: 1.87.0
+              repository: ghcr.io/n8n-io/n8n
+              tag: 1.87.0@sha256:55f76b8f0007ef6a73f909a5dcc0e79ffeae19ffa35cbe4bb117d87ae6771096
             env:
               GENERIC_TIMEZONE: ${TIME_ZONE}
               N8N_PORT: &port 80
@@ -47,6 +47,7 @@ spec:
               WEBHOOK_URL: "https://n8n.${SECRET_DOMAIN}"
               N8N_USER_FOLDER: /config
               N8N_RUNNERS_ENABLED: true
+              N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
 
               # User management
               EXTERNAL_HOOK_FILES: /config/.n8n/hooks.js
@@ -117,6 +118,13 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/.cache
+      hook-files:
+        type: configMap
+        name: n8n-configmap
+        globalMounts:
+          - path: /config/.n8n
+            subPath: hooks.js
+            readOnly: true
       files:
         enabled: true
         existingClaim: n8n-files

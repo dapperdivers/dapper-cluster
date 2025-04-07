@@ -93,12 +93,21 @@ spec:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     persistence:
-      config: #fight me
+      config:
         existingClaim: tautulli
       cache:
         existingClaim: tautulli-cache
         globalMounts:
           - path: /config/cache
+      posterizarr-watcher:
+        existingClaim: posterizarr-watcher
+        globalMounts:
+          - path: /posterizarr/watcher
+      posterizarr-watcher-script:
+        type: configMap
+        name: posterizarr-watcher
+        globalMounts:
+          - path: /scripts
       logs:
         type: emptyDir
         globalMounts:

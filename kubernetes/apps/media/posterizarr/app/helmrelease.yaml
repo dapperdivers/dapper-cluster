@@ -24,15 +24,8 @@ spec:
   values:
     controllers:
       posterizarr:
-        type: cronjob
         annotations:
           reloader.stakater.com/auto: "true"
-        cronjob:
-          schedule: "0 2 * * *"
-          timeZone: &timezone ${TIME_ZONE}
-          concurrencyPolicy: Forbid
-          successfulJobsHistory: 1
-          failedJobsHistory: 1
         initContainers:
           init-config:
             image:
@@ -55,10 +48,10 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/home-operations/posterizarr
-              tag: 1.9.37@sha256:05f15232c8515f2112399dbee107217bcf329625bdb76b53efd03ee02ee17b3a
+              repository: ghcr.io/dapperdivers/posterizarr
+              tag: 1.0.6@sha256:de02a50f11c14c88a304bc10559b8d1c4776f070234ec03e23ca89362d1332bd
             env:
-              TZ: *timezone
+              TZ: ${TIME_ZONE}
             resources:
               requests:
                 cpu: 100m
@@ -81,8 +74,10 @@ spec:
     persistence:
       config:
         existingClaim: *app
+      posterizarr-watcher:
+        existingClaim: posterizarr-watcher
         globalMounts:
-          - path: /app/config
+          - path: /config/watcher
       config-file:
         type: configMap
         defaultMode: 511
@@ -93,4 +88,5 @@ spec:
         existingClaim: plex-posters
         globalMounts:
         - path: /assets
+
 

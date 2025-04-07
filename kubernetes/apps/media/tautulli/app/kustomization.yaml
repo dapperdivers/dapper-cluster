@@ -5,4 +5,10 @@ kind: Kustomization
 resources:
   - ./pvc.yaml
   - ./helmrelease.yaml
+configMapGenerator:
+  - name: posterizarr-watcher
+    files:
+      - posterizarr.py=./scripts/posterizarr.py
+generatorOptions:
+  disableNameSuffixHash: true
 
