@@ -117,6 +117,16 @@ spec:
           - path: /config/config.yml
             subPath: config.yml
             readOnly: true
+      custom:
+        type: configMap
+        name: kometa-custom
+        globalMounts:
+          - path: /config/custom
+      fonts:
+        type: configMap
+        name: kometa-fonts
+        globalMounts:
+          - path: /config/fonts
       assets:
         existingClaim: plex-posters
         globalMounts:

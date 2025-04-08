@@ -9,5 +9,16 @@ configMapGenerator:
   - name: kometa-configmap
     files:
       - ./config/config.yml
+  - name: kometa-custom
+    files:
+      - ./custom/movie_overlays.yml
+      - ./custom/movie_subgenre.yml
+      - ./custom/tv_overlays.yml
+      - ./custom/tv_topic.yml
+      - ./custom/tv_documentaries.yml
+  - name: kometa-fonts
+    files:
+      - ./custom/fonts/CircularStd-Bold.otf
+      - ./custom/fonts/Colus-Regular.ttf
 generatorOptions:
   disableNameSuffixHash: true
