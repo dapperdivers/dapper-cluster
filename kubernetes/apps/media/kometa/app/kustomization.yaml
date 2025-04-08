@@ -5,9 +5,4 @@ kind: Kustomization
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
-configMapGenerator:
-  - name: kometa-configmap
-    files:
-      - ./config/config.yml
-generatorOptions:
-  disableNameSuffixHash: true
+# config loaded by https://github.com/dapperdivers/kometa-config

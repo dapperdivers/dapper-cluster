@@ -3,7 +3,6 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name:  &app kometa
-
 spec:
   interval: 30m
   chart:
@@ -30,18 +29,39 @@ spec:
 
   values:
     controllers:
-      4k-movies:
-        type: &type cronjob
+      kometa:
+        type: cronjob
         annotations:
           reloader.stakater.com/auto: "true"
-        cronjob: &cronjob
-          schedule: "30 4 * * *"
+        cronjob:
+          schedule: "0 1 * * *"
           timeZone: &timeZone ${TIME_ZONE}
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
+        initContainers:
+          git-sync:
+            env:
+              GITSYNC_REPO: https://github.com/dapperdivers/kometa-config/
+              GITSYNC_REF: master
+              GITSYNC_PERIOD: 10s # 1 day
+              GITSYNC_ROOT: /git
+              GITSYNC_DEPTH: 1
+            image:
+              repository: registry.k8s.io/git-sync/git-sync
+              tag: v4.4.0@sha256:0330739a707a2969d617e859f096659ab6d149212658ac0ad7e550b59482ebf0
+            restartPolicy: Always
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
+            securityContext:
+              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
         containers:
-          app: &container_app
+          app:
             image:
               repository: kometateam/kometa
               tag: nightly@sha256:fca7ed9a867e5e21c513eaeef5450c7debc9ddbcaf8c5f66ce50e3eeb2e02488
@@ -50,9 +70,20 @@ spec:
               - -c
             args:
               - |
-                python3 kometa.py --run --read-only-config --run-libraries "4k-Movies";
+                sleep 5 && cp -r /git/kometa-config/. /config/ && \
+                python3 kometa.py --read-only-config --run;
             env:
               TZ: *timeZone
+              KOMETA_TAUTULLI_HOST: "http://tautulli.media"
+              KOMETA_PLEX_HOST: "http://plex.media:32400"
+              KOMETA_RADARR_HOST: "http://radarr.media"
+              KOMETA_RADARR_ROOT_FOLDER_PATH: "/media/baby_plex/Movies"
+              KOMETA_RADARR_UHD_HOST: "http://radarr-uhd.media"
+              KOMETA_RADARR_UHD_ROOT_FOLDER_PATH: "/media/baby_plex/movies-4k"
+              KOMETA_SONARR_HOST: "http://sonarr.media"
+              KOMETA_SONARR_ROOT_FOLDER_PATH: "/media/baby_plex/Shows"
+              KOMETA_SONARR_UHD_HOST: "http://sonarr-uhd.media"
+              KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/media/baby_plex/tv-4k"
             envFrom:
               - secretRef:
                   name: kometa-secret
@@ -67,39 +98,6 @@ spec:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
-      standard-movies:
-        type: *type
-        cronjob:
-          <<: *cronjob
-          schedule: "0 5 * * *"
-        containers:
-          app:
-            <<: *container_app
-            args:
-              - |
-                python3 kometa.py --run --read-only-config --run-libraries "Movies"
-      4k-tv:
-        type: *type
-        cronjob:
-          <<: *cronjob
-          schedule: "30 5 * * *"
-        containers:
-          app:
-            <<: *container_app
-            args:
-              - |
-                python3 kometa.py --run --read-only-config --run-libraries "4k-TV Shows"
-      standard-tv:
-        type: *type
-        cronjob:
-          <<: *cronjob
-          schedule: "0 6 * * *"
-        containers:
-          app:
-            <<: *container_app
-            args:
-              - |
-                python3 kometa.py --run --read-only-config --run-libraries "TV Shows"
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -110,18 +108,11 @@ spec:
     persistence:
       config:
         existingClaim: *app
-      config-file:
-        type: configMap
-        name: kometa-configmap
-        globalMounts:
-          - path: /config/config.yml
-            subPath: config.yml
-            readOnly: true
       assets:
         existingClaim: plex-posters
         globalMounts:
         - path: /assets
-      logs:
+      git:
         type: emptyDir
         globalMounts:
-          - path: /config/logs
+          - path: /git
