@@ -10,81 +10,26 @@ libraries: # This is called out once within the config.yml file
       - overlays
     template_variables:
       sep_style: gray                               # use the gray separators globally for this library
-      collection_mode: hide                         # hide the collections
+      collection_mode: show                         # hide the collections
       language: en                                  # could be default(which is en), da, de, fr, pt-br or another lang code that we have translated
       placeholder_imdb_id: tt8579674                # 1917 (2019) placeholder id for the separators
-    collection_files:                               # These files contain collections: and/or dynamic_collections attributes
+    collection_files:                               # These files contain collections: and/or dynamic_collections attribute
+    - file: /config/custom/movie_subgenre.yml
     - default: based                                # collections based on a book, comic, story, video game
     # - file: config/overlays/overlay_label.yml       # Creates collection of all items with an Overlay label (Testing only)
-    - default: aspect                               # Creates collections based on aspect ratio of media item
-    - git: bullmoose20/movies_refresh               # tells plex to refresh media items added within the last 7 days
     - default: separator_award                      # An "index card"
-    - default: nfr                                  # National Film Registry Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: pca                                  # People's Choice Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: sag                                  # Screen Actors Guild Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: tiff                                 # Toronto International Film Festival Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
-    - default: berlinale                            # Berlinale Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
-    - default: razzie                               # Razzie Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
-    - default: venice                               # Venice Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
-    - default: cesar                                # Cesar Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: bafta                                # BAFTA Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: cannes                               # Cannes Film Festival Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: choice                               # Critic's Choice Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: emmy                                 # Emmy Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: golden                               # Golden Globes Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: oscars                               # The Oscars
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: spirit                               # Independent Spirit Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: sundance                             # Sundance Film Festival Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: separator_chart                      # An "index card"
-    - default: anilist                              # AniDB Charts (Popular, Trending, etc.)
     - default: imdb                                 # IMDb Charts (Popular, Trending, etc.)
     - default: myanimelist                          # MAL Charts (Popular, Trending, etc.)
     - default: other_chart                          # Other Charts (Popular, Trending, etc.)
@@ -122,43 +67,18 @@ libraries: # This is called out once within the config.yml file
           limit: 15
     - default: producer                             # Producers
       template_variables:                           # bw, rainier, diiivoy, diiivoycolor, or orig style is used. depth and limit is set low, but sometimes I boost to 10, 150
-        exclude:                                    # ever have some random person... you can exclude them if you want
-        - Jeremy Kleiner
-        - Thomas Hayslip
         style: signature
         data:
           depth: 1
           limit: 15
     - default: writer                               # Writers
       template_variables:                           # bw, rainier, diiivoy, diiivoycolor, or orig style is used. depth and limit is set low, but sometimes I boost to 10, 150
-        exclude:                                    # ever have some random person... you can exclude them if you want
-        - Donald Kaufman
         style: signature
         data:
           depth: 1
           limit: 15
-    - default: audio_language                       # English, French, Arabic, German, etc. audio language
-    - default: content_rating_us                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
     - default: genre                                # Action, Comedy, Drama, etc.
-    - default: resolution                           # 4K HDR, 1080P FHD, etc. with the standards style
-      # template_variables:
-        # style: standards
     - default: studio                               # DreamWorks Studios, Lucasfilm Ltd, etc.
-    - default: subtitle_language                    # English, French, Arabic, German, etc. subtitles
-    - default: year                                 # Year the media item was released starting from 1880 to current_year
-      template_variables:
-        data:
-          starting: 1880
-          ending: current_year
-    - default: country                              # Country associated to the media item
-      template_variables:
-        style: color
-    - default: region                               # Region associated to the media item
-      template_variables:
-        style: color
-    - default: continent                            # Continent associated to the media item
-      template_variables:
-        style: color
     - default: decade                               # Decade the media item was released
     - git: bullmoose20/separator_franchise          # Separator for franchise
       template_variables:
@@ -167,108 +87,74 @@ libraries: # This is called out once within the config.yml file
       template_variables:
         collection_section: '035'                   # Set to "035" to be right before universe. Should be the same here and above
     - default: seasonal                             # Christmas, Halloween, etc.
-      template_variables:                           # Canadian Thankgsgiving is a different date range. Otherwise, I want to ALWAYS see the seasonal
-        schedule_years: daily
-        schedule_valentine: daily
-        schedule_patrick: daily
-        schedule_easter: daily
-        schedule_mother: daily
-        schedule_memorial: daily
-        schedule_father: daily
-        schedule_independence: daily
-        schedule_labor: daily
-        schedule_halloween: daily
-        schedule_veteran: daily
-        # schedule_thanksgiving: range(10/01-10/31)
-        schedule_thanksgiving: daily
-        schedule_christmas: daily
-        schedule_aapi: daily
-        schedule_disabilities: daily
-        schedule_black_history: daily
-        schedule_lgbtq: daily
-        schedule_latinx: daily
-        schedule_women: daily
+      template_variables:
+        schedule_years: daily                     # Keep as daily unless specific year-end/new-year range is desired
+        schedule_valentine: range(02/01-02/14)    # First half of February
+        schedule_patrick: range(03/01-03/17)    # First half of March up to St. Patrick's Day
+        schedule_easter: range(03/15-04/15)   # Covers typical Easter timeframe (late March - mid April)
+        schedule_mother: range(05/01-05/15)    # First half of May for Mother's Day
+        schedule_memorial: range(05/15-05/31)   # Second half of May for Memorial Day
+        schedule_father: range(06/01-06/21)    # First three weeks of June for Father's Day
+        schedule_independence: range(07/01-07/07) # Week of July 4th
+        schedule_labor: range(09/01-09/10)    # Early September for Labor Day
+        schedule_halloween: range(10/15-10/31)   # Second half of October for Halloween
+        schedule_veteran: range(11/01-11/11)    # Early November up to Veteran's Day
+        schedule_thanksgiving: range(11/15-11/30) # Second half of November for Thanksgiving (US)
+        schedule_christmas: range(12/01-12/25)   # December leading up to Christmas
+        schedule_aapi: range(05/01-05/31)       # AAPI Heritage Month (May)
+        schedule_disabilities: range(07/01-07/31) # Disability Pride Month (July)
+        schedule_black_history: range(02/01-02/28) # Black History Month (February)
+        schedule_lgbtq: range(06/01-06/30)       # LGBTQ+ Pride Month (June)
+        schedule_latinx: range(09/15-10/15)   # Latinx Heritage Month (Mid-Sep to Mid-Oct)
+        schedule_women: range(03/01-03/31)       # Women's History Month (March)
     - default: streaming                            # Streaming on Disney+, Netflix, etc.
     - default: universe                             # Marvel Cinematic Universe, Wizarding World, etc.
     overlay_files:
-    #- reapply_overlays: true
-    - default: network
-      template_variables:
-        builder_level: season
-        vertical_position: bottom
-        horizontal_position: center
-        horizontal_offset: 30
-        vertical_offset: 50
-        back_color: '#00000000'
-    - default: languages
-      template_variables:
-        builder_level: episode
-        overlay_limit: 5
-        horizontal_position: left
-        vertical_position: bottom
-        style: square
-        back_color: '#00000000'
-        font_color: '#00000000'
-        back_width: 102
-        text: ''
-        final_name: <<key>>
-    - default: status
-      template_variables:
-        horizontal_align: center
-        vertical_align: bottom
-        vertical_offset: 23
-        horizontal_offset: 0
-        back_height: 149
-        back_width: 965
-        font: config/fonts/Colus-Regular.ttf
-        font_size: 80
-        font_color_airing: '#27C24C'
-        font_color_returning: '#FFA500'
-        font_color_canceled: '#ED1F1F'
-        font_color_ended: '#FF0000'
-        back_color: '#00000000'
+    - file: /config/overlays/custom/media_info.yml
+    - file: /config/overlays/audience_rating.yml
+    - default: mediastinger
     - default: runtimes
       template_variables:
-        builder_level: episode
-        horizontal_align: right
-        back_color: '#00000000'
-        back_height: 80
-        vertical_offset: 20
-        horizontal_offset: 18
+        vertical_offset: 37
+        horizontal_align: center
+        horizontal_offset: 140
         text: ''
         back_width: 205
+        back_color: '#00000000'
     - remove_overlays: false
-    - file: config/overlays_tv.yml
-      template_variables:
-      # Which overlay(s) should be used?
-      # Posters
-        4K: true
-        4K_banner: true                       # Remux, DVD, Blu-Ray, etc. in bottom left
     operations: &movie_operations
-      split_duplicates: false                       # Splits all duplicate movies/shows found in this library
-      assets_for_all: true                          # Search in assets for images for every item in your library
-      delete_collections:
-        configured: false                           # False - Collection must be an Unconfigured Collection to be deleted (collection is not in the config file of the specific Kometa run).
-        managed: false                              # False - Collection must be an Unmanaged Collection to be deleted (the collection does not have the Kometa label)
-        less: 99999                                 # Effectively all collections regardless of teh number of items in the collection
-      mass_user_rating_update: mdb_tomatoes         # Update user ratings with mdb_tomatoes
-      mass_critic_rating_update: imdb               # Update critic ratings with imdb
-      mass_audience_rating_update: tmdb             # Update audience ratings with tmdb
-      mass_genre_update:
-      - tmdb                                        # Update all genres from tmdb
-      - imdb                                        # Update all genres from imdb if not from tmdb
-      - tvdb                                        # Update all genres from tvdb if not from imdb
-      mass_content_rating_update:
-      - mdb_commonsense                             # Changes Content Rating to "1", "2" etc. to specify appropriate age
-      - omdb                                        # Changes Content Rating from omdb if not found on mdb_commonsense
-      mass_studio_update:
-      - tmdb                                        # Update all studios from tmdb
-      mass_originally_available_update:
-      - tmdb                                        # Update all original available date from tmdb
-      - tvdb                                        # Update all original available date from tvdb if not from tmdb
-      - omdb                                        # Update all original available date from omdb(imdb) if not from tvdb
-      mass_imdb_parental_labels: none               # Apply all Parental Labels with a value of None, Mild, Moderate, or Severe to match IMDb parental guide
-      # mass_poster_update: tmdb                      # Resets posters to tmdb, plex, locked, unlock which is useful to remove all overlays when running with -r -op
+      - schedule: daily
+        split_duplicates: false                       # Splits all duplicate movies/shows found in this library
+        assets_for_all: true                          # Search in assets for images for every item in your library
+        delete_collections:
+          configured: false                           # False - Collection must be an Unconfigured Collection to be deleted (collection is not in the config file of the specific Kometa run).
+          managed: false                              # False - Collection must be an Unmanaged Collection to be deleted (the collection does not have the Kometa label)
+          less: 99999                                 # Effectively all collections regardless of teh number of items in the collection
+      - schedule: Weekly (monday)
+        mass_user_rating_update: mdb_tomatoes
+      - schedule: Weekly (tuesday)
+        mass_critic_rating_update: imdb
+      - schedule: Weekly (wednesday)
+        mass_audience_rating_update: tmdb
+      - schedule: yearly(01/01)
+        mass_genre_update:
+        - tmdb                                        # Update all genres from tmdb
+        - imdb                                        # Update all genres from imdb if not from tmdb
+        - tvdb                                        # Update all genres from tvdb if not from imdb
+      - schedule: Weekly (friday)
+        mass_content_rating_update:
+        - mdb_commonsense                             # Changes Content Rating to "1", "2" etc. to specify appropriate age
+        - omdb                                        # Changes Content Rating from omdb if not found on mdb_commonsense
+      - schedule: Weekly (saturday)
+        mass_studio_update:
+        - tmdb
+        - tvdb
+        - omdb                                     # Update all studios from tmdb
+      - schedule: Weekly (sunday)
+        mass_originally_available_update:
+        - tmdb                                        # Update all original available date from tmdb
+        - tvdb                                        # Update all original available date from tvdb if not from tmdb
+        - omdb                                        # Update all original available date from omdb(imdb) if not from tvdb
     minimum_items: &minimum_items 3
     radarr: &radarr
       url: http://radarr-uhd.media
@@ -286,29 +172,15 @@ libraries: # This is called out once within the config.yml file
       radarr_path:
       plex_path:
       upgrade_existing: false
-
   Movies:
     <<: *movie_config
     settings:
       <<: *posterizarr_settings
       asset_directory: /assets/Movies
     overlay_files:
-    - default: commonsense
-      template_variables:
-        vertical_offset: 37
-        horizontal_offset: 255
-        back_width: 230
-        back_color: '#00000000'
-    - default: languages
-      template_variables:
-        overlay_limit: 5
-        horizontal_position: left
-        vertical_position: bottom
-        style: square
-        back_color: '#00000000'
-        font_color: '#00000000'
-        text: ''
-        final_name: <<key>>
+    - file: /config/overlays/media_info.yml
+    - file: /config/overlays/audience_rating.yml
+    - default: mediastinger
     - default: runtimes
       template_variables:
         vertical_offset: 37
@@ -318,12 +190,6 @@ libraries: # This is called out once within the config.yml file
         back_width: 205
         back_color: '#00000000'
     - remove_overlays: false
-    - file: config/overlays_movies.yml
-      template_variables:
-      # Which overlay(s) should be used?
-      # Posters
-        4K_banner: false
-        4K: false
     operations:
       <<: *movie_operations
     radarr:
@@ -340,7 +206,7 @@ libraries: # This is called out once within the config.yml file
     run_order: *run_order
     template_variables:
       sep_style: gray                               # use the gray separators globally for this library
-      collection_mode: hide                         # hide the collections
+      collection_mode: show                         # hide the collections
       language: en                                  # could be default(which is en), da, de, fr, pt-br or another lang code that we have translated
       placeholder_imdb_id: tt1190634                # The Boys (2019) placeholder id for the separators
     collection_files:                               # These files contain collections: and/or dynamic_collections attributes
@@ -350,21 +216,9 @@ libraries: # This is called out once within the config.yml file
     - git: bullmoose20/tv_refresh                   # Tells plex to refresh media items added within the last 7 days
     - default: separator_award                      # An "index card"
     - default: pca                                  # People's Choice Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: choice                               # Critic's Choice Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: golden                               # Golden Globes Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: emmy                                 # Emmy Awards
-      template_variables:                           # based on when the award show started
-        data:
-          starting: first
     - default: separator_chart                      # An "index card"
     - default: anilist                              # AniDB Charts (Popular, Trending, etc.)
     - default: imdb                                 # IMDb Charts (Popular, Trending, etc.)
@@ -400,34 +254,8 @@ libraries: # This is called out once within the config.yml file
         data:
           depth: 1
           limit: 15
-    - default: audio_language                       # English, French, Arabic, German, etc. audio language
-    - default: content_rating_nz                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_au                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_cs                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_de                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_us                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_uk                    # Choose content_rating_nz, content_rating_au, content_rating_uk, content_rating_us, content_rating_de, content_rating_mal, content_rating_cs, or all
-    - default: content_rating_mal                   # Choose content_rating_mal for anime ratings
     - default: genre                                # Action, Comedy, Drama, etc.
-    - default: resolution                           # 4K HDR, 1080P FHD, etc. with the standards style
-      # template_variables:
-        # style: standards
     - default: studio                               # DreamWorks Studios, Lucasfilm Ltd, etc.
-    - default: subtitle_language                    # English, French, Arabic, German, etc. subtitles
-    - default: year                                 # Year the media item was released starting from 1880 to current_year
-      template_variables:
-        data:
-          starting: 1880
-          ending: current_year
-    - default: country                              # Country associated to the media item
-      template_variables:
-        style: color
-    - default: region                               # Region associated to the media item
-      template_variables:
-        style: color
-    - default: continent                            # Continent associated to the media item
-      template_variables:
-        style: color
     - default: decade                               # Decade the media item was released
     - git: bullmoose20/separator_franchise          # Separator for franchise
       template_variables:
@@ -439,37 +267,34 @@ libraries: # This is called out once within the config.yml file
     - default: streaming                            # Streaming on Disney+, Netflix, etc.
     - default: universe                             # Marvel Cinematic Universe, Wizarding World, etc.
     overlay_files:
-    - default: commonsense
+    - file: /config/overlays/media_info.yml
+    - file: /config/overlays/audience_rating.yml
+    - default: status
       template_variables:
-        vertical_offset: 37
-        horizontal_offset: 255
-        back_width: 230
+        horizontal_align: center
+        vertical_align: bottom
+        vertical_offset: 23
+        horizontal_offset: 0
+        back_height: 149
+        back_width: 965
+        font: /config/fonts/Colus-Regular.ttf
+        font_size: 80
+        font_color_airing: '#27C24C'
+        font_color_returning: '#FFA500'
+        font_color_canceled: '#ED1F1F'
+        font_color_ended: '#FF0000'
         back_color: '#00000000'
-    - default: languages
-      template_variables:
-        overlay_limit: 5
-        horizontal_position: left
-        vertical_position: bottom
-        style: square
-        back_color: '#00000000'
-        font_color: '#00000000'
-        text: ''
-        final_name: <<key>>
     - default: runtimes
       template_variables:
-        vertical_offset: 37
-        horizontal_align: center
-        horizontal_offset: 140
+        builder_level: episode
+        horizontal_align: right
+        back_color: '#00000000'
+        back_height: 80
+        vertical_offset: 20
+        horizontal_offset: 18
         text: ''
         back_width: 205
-        back_color: '#00000000'
     - remove_overlays: false
-    - file: config/overlays_movies.yml
-      template_variables:
-      # Which overlay(s) should be used?
-      # Posters
-        4K_banner: true
-        4K: false
     minimum_items: *minimum_items
     operations: &tv_operations
       split_duplicates: false                       # Splits all duplicate movies/shows found in this library
@@ -522,7 +347,8 @@ libraries: # This is called out once within the config.yml file
       <<: *posterizarr_settings
       asset_directory: /assets/TV Shows
     overlay_files:
-    #- reapply_overlays: true
+    - file: /config/overlays/media_info.yml
+    - file: /config/overlays/audience_rating.yml
     - default: network
       template_variables:
         builder_level: season
@@ -531,18 +357,6 @@ libraries: # This is called out once within the config.yml file
         horizontal_offset: 30
         vertical_offset: 50
         back_color: '#00000000'
-    - default: languages
-      template_variables:
-        builder_level: episode
-        overlay_limit: 5
-        horizontal_position: left
-        vertical_position: bottom
-        style: square
-        back_color: '#00000000'
-        font_color: '#00000000'
-        back_width: 102
-        text: ''
-        final_name: <<key>>
     - default: status
       template_variables:
         horizontal_align: center
@@ -551,7 +365,7 @@ libraries: # This is called out once within the config.yml file
         horizontal_offset: 0
         back_height: 149
         back_width: 965
-        font: config/fonts/Colus-Regular.ttf
+        font: /config/fonts/Colus-Regular.ttf
         font_size: 80
         font_color_airing: '#27C24C'
         font_color_returning: '#FFA500'
@@ -569,12 +383,6 @@ libraries: # This is called out once within the config.yml file
         text: ''
         back_width: 205
     - remove_overlays: false
-    - file: config/overlays_tv.yml
-      template_variables:
-      # Which overlay(s) should be used?
-      # Posters
-        4K: false
-        4K_banner: false
     operations:
       <<: *tv_operations
     sonarr:
@@ -605,7 +413,6 @@ settings:
   run_again_delay: 2
   missing_only_released: false
   missing_path: /config/missing
-  custom_repo: https://github.com/DapperDivers/dapper-cluster/tree/main/kubernetes/apps/media/kometa/app/custom/
   show_unmanaged: true
   show_filtered: false
   show_options: false

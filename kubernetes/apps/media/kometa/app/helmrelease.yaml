@@ -40,6 +40,28 @@ spec:
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
+        initContainers: &init_container
+          git-sync:
+            env:
+              GITSYNC_REPO: https://github.com/jmxd/Kometa/
+              GITSYNC_REF: main
+              GITSYNC_PERIOD: 10s # 1 day
+              GITSYNC_ROOT: /git
+              GITSYNC_DESTINATION: /config/overlays
+              GITSYNC_DEPTH: 1
+            image:
+              repository: registry.k8s.io/git-sync/git-sync
+              tag: v4.4.0@sha256:0330739a707a2969d617e859f096659ab6d149212658ac0ad7e550b59482ebf0
+            restartPolicy: Always
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
+            securityContext:
+              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
         containers:
           app: &container_app
             image:
@@ -72,6 +94,7 @@ spec:
         cronjob:
           <<: *cronjob
           schedule: "0 5 * * *"
+        initContainers: *init_container
         containers:
           app:
             <<: *container_app
@@ -83,6 +106,7 @@ spec:
         cronjob:
           <<: *cronjob
           schedule: "30 5 * * *"
+        initContainers: *init_container
         containers:
           app:
             <<: *container_app
@@ -94,6 +118,7 @@ spec:
         cronjob:
           <<: *cronjob
           schedule: "0 6 * * *"
+        initContainers: *init_container
         containers:
           app:
             <<: *container_app
@@ -117,6 +142,16 @@ spec:
           - path: /config/config.yml
             subPath: config.yml
             readOnly: true
+      custom:
+        type: configMap
+        name: kometa-custom
+        globalMounts:
+          - path: /config/custom
+      fonts:
+        type: configMap
+        name: kometa-fonts
+        globalMounts:
+          - path: /config/fonts
       assets:
         existingClaim: plex-posters
         globalMounts:
@@ -125,3 +160,7 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/logs
+      git:
+        type: emptyDir
+        globalMounts:
+          - path: /git
