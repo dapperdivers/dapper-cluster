@@ -6,7 +6,7 @@
       matchDatasources: ["docker"],
       automerge: true,
       matchUpdateTypes: ["digest"],
-      matchPackagePrefixes: ["ghcr.io/home-operations", "ghcr.io/onedr0p", "ghcr.io/bjw-s", "ghcr.io/bjw-s-labs"],
+      matchPackagePrefixes: ["ghcr.io/home-operations", "ghcr.io/onedr0p","ghcr.io/dapperdivers", "ghcr.io/bjw-s", "ghcr.io/bjw-s-labs"],
       ignoreTests: false,
     },
     {
