@@ -47,7 +47,8 @@
     ],
     "JellyfinUrl": "http://local/jellyfin",
     "UseJellyfin": "false",
-    "UploadExistingAssets": "false"
+    "UploadExistingAssets": "false",
+    "ReplaceThumbwithBackdrop": "false"
   },
   "EmbyPart": {
     "LibstoExclude": [
@@ -59,7 +60,8 @@
     ],
     "EmbyUrl": "http:/local/emby",
     "UseEmby": "false",
-    "UploadExistingAssets": "false"
+    "UploadExistingAssets": "false",
+    "ReplaceThumbwithBackdrop": "false"
   },
   "Notification": {
     "SendNotification": "false",
