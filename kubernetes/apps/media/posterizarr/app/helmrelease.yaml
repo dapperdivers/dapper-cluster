@@ -49,7 +49,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
-              tag: 1.0.10@sha256:ceca43e38e820053964e717e356bcd224be8b1fb5a0238a0a879f96aef5f2d15
+              tag: 1.0.11@sha256:367dad33e84e5d90af94dc1db8a249a1297f918feb40a69ff8582edabdbbbb51
             env:
               TZ: ${TIME_ZONE}
             resources:
