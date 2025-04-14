@@ -44,7 +44,7 @@ spec:
             env:
               GITSYNC_REPO: https://github.com/dapperdivers/kometa-config/
               GITSYNC_REF: master
-              GITSYNC_PERIOD: 10s # 1 day
+              GITSYNC_PERIOD: 60s # 1 day
               GITSYNC_ROOT: /git
               GITSYNC_DEPTH: 1
             image:
