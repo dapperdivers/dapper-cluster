@@ -149,7 +149,7 @@ repos:
 
   ### PNG Images ###
   - repo: https://github.com/shssoichiro/oxipng
-    rev: v9.1.4
+    rev: v9.1.5
     hooks:
       - id: oxipng
         name: "🖼️ images · Optimize PNG files"
