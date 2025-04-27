@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/radarr
-              tag: 5.22.2.9862@sha256:9f24da505e2ba09957355a2b638660af2325e9861efb8b77583ca71fa6790789
+              tag: 5.23.0.9907@sha256:36cd279903d97e74fc687c937d6a5693a6fb69a01787203795b17ab66fb0e3e9
             env:
               TZ: "${TIME_ZONE}"
               RADARR__APP__INSTANCENAME: 4K Radarr
