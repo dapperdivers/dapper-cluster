@@ -12,6 +12,8 @@ spec:
     staticConfig:
       static:
         - openmediavault-used.manor
+        - proxmox-03.manor
+        - proxmox-04.manor
         - athena.manor
         - circe.manor
         - firewall.manor
