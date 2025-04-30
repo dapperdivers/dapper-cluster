@@ -169,7 +169,7 @@ spec:
           - path: /media
       unraid:
         type: nfs
-        server: tower.manor
+        server: Tower.manor
         path: /mnt/user/Media
         globalMounts:
           - path: /tower
