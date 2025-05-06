@@ -205,7 +205,7 @@ repos:
 
   ### Commit Message Standards ###
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.6.0
+    rev: v4.6.2
     hooks:
       - id: commitizen
         name: "🌳 git · Validate commit message"
