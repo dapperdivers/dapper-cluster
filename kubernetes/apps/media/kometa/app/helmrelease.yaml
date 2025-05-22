@@ -49,7 +49,7 @@ spec:
               GITSYNC_DEPTH: 1
             image:
               repository: registry.k8s.io/git-sync/git-sync
-              tag: v4.4.0@sha256:0330739a707a2969d617e859f096659ab6d149212658ac0ad7e550b59482ebf0
+              tag: v4.4.1@sha256:699b654e373f000c356756c24290a6dbb86500934b65ce6093fd92c434c61c6b
             restartPolicy: Always
             resources:
               requests:
@@ -64,7 +64,7 @@ spec:
           app:
             image:
               repository: kometateam/kometa
-              tag: nightly@sha256:7aaa3532581213718a5c2bff99ccacefd68c7f33eb31e4eaa8e3b7414f5d3e9a
+              tag: nightly@sha256:ede395e749ac1c033c1be92c80b37aa905f5fd4f3b931562efba22a93f279d33
             command:
               - /bin/sh
               - -c
