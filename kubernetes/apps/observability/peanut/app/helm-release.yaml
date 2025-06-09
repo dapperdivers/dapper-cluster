@@ -30,7 +30,7 @@ spec:
           app:
             image:
               repository: brandawg93/peanut
-              tag: 5.7.5
+              tag: 5.8.0
             securityContext:
               privileged: true
             resources:
