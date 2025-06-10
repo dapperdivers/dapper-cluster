@@ -24,3 +24,11 @@ spec:
       retries: 3
   values:
     installCRDs: true
+    manager:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 256Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
