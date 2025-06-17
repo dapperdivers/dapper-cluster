@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: external-dns
-      version: 1.16.1 #https://github.com/kubernetes-sigs/external-dns/issues/5035
+      version: 1.17.0 #https://github.com/kubernetes-sigs/external-dns/issues/5035
       sourceRef:
         kind: HelmRepository
         name: external-dns
