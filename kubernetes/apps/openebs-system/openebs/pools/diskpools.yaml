@@ -1,5 +1,5 @@
 ---
-apiVersion: "openebs.io/v1beta2"
+apiVersion: "openebs.io/v1beta3"
 kind: DiskPool
 metadata:
   name: talos-node-gpu-1
@@ -9,7 +9,7 @@ spec:
   disks: ["/dev/sda"]
 
 ---
-apiVersion: "openebs.io/v1beta2"
+apiVersion: "openebs.io/v1beta3"
 kind: DiskPool
 metadata:
   name: talos-node-large-1
@@ -19,7 +19,7 @@ spec:
   disks: ["/dev/sda"]
 
 ---
-apiVersion: "openebs.io/v1beta2"
+apiVersion: "openebs.io/v1beta3"
 kind: DiskPool
 metadata:
   name: talos-node-large-2
@@ -29,7 +29,7 @@ spec:
   disks: ["/dev/sda"]
 
 ---
-apiVersion: "openebs.io/v1beta2"
+apiVersion: "openebs.io/v1beta3"
 kind: DiskPool
 metadata:
   name: talos-node-large-3
