@@ -9,7 +9,7 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.8-9@sha256:aa3ec69f34e9e5d256d3987ff0469e83d0a1241f3a157af70a98e99bbd93d412
   primaryUpdateStrategy: unsupervised
   storage:
-    size: 41Gi
+    size: 42Gi
     storageClass: mayastor-single-replica
   superuserSecret:
     name: cloudnative-pg-secret
@@ -26,7 +26,7 @@ spec:
   monitoring:
     enablePodMonitor: true
   backup:
-    retentionPolicy: 30d
+    retentionPolicy: 15d
     barmanObjectStore: &barmanObjectStore
       # when recovering from an existing cnpg cluster
       # Note: serverName version needs to be incremented
