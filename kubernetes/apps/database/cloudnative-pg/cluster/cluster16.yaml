@@ -9,7 +9,7 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.8-9@sha256:aa3ec69f34e9e5d256d3987ff0469e83d0a1241f3a157af70a98e99bbd93d412
   primaryUpdateStrategy: unsupervised
   storage:
-    size: 40Gi
+    size: 41Gi
     storageClass: mayastor-single-replica
   superuserSecret:
     name: cloudnative-pg-secret
