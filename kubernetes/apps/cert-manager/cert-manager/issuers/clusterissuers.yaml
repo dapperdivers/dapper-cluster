@@ -45,3 +45,11 @@ spec:
             - "${SECRET_DOMAIN_PERSONAL}"
             - "${SECRET_DOMAIN_DIVING}"
             - "${SECRET_DOMAIN_WIFE}"
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: self-signed
+spec:
+  selfSigned: {}

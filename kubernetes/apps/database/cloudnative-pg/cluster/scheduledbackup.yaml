@@ -5,7 +5,7 @@ metadata:
   name: postgres-backup
 spec:
   cluster:
-    name: postgres
+    name: postgres16
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
