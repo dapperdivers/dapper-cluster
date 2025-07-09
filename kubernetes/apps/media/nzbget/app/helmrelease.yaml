@@ -20,7 +20,7 @@ spec:
   upgrade:
     cleanupOnFail: true
     remediation:
-      strategy: uninstall
+      strategy: rollback
       retries: 3
   dependsOn:
     - name: volsync
@@ -98,3 +98,9 @@ spec:
         globalMounts:
           - path: /media/downloads/usenet
             subPath: downloads/usenet
+      safe:
+        type: nfs
+        server: vault.manor
+        path: /mnt/Tank/Media
+        globalMounts:
+          - path: /safe

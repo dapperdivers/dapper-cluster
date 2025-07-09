@@ -25,7 +25,7 @@ spec:
   upgrade:
     cleanupOnFail: true
     remediation:
-      strategy: uninstall
+      strategy: rollback
       retries: 3
   values:
     controllers:
@@ -119,5 +119,5 @@ spec:
       securityContext:
         runAsUser: 1000
         runAsGroup: 150
-        fsGroup: 140
+        fsGroup: 150
         fsGroupChangePolicy: "OnRootMismatch"

@@ -1,12 +1,12 @@
 const { dirname, resolve } = require('path')
-const Layer = require('express/lib/router/layer')
+const Layer = require('router/lib/layer')
 const { issueCookie } = require(resolve(dirname(require.resolve('n8n')), 'auth/jwt'))
 const ignoreAuthRegexp = /^\/(assets|healthz|webhook|rest\/oauth2-credential)/
 module.exports = {
     n8n: {
         ready: [
             async function ({ app }, config) {
-                const { stack } = app._router
+                const { stack } = app.router
                 const index = stack.findIndex((l) => l.name === 'cookieParser')
                 stack.splice(index + 1, 0, new Layer('/', {
                     strict: false,

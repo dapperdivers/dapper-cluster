@@ -23,7 +23,7 @@ spec:
   upgrade:
     cleanupOnFail: true
     remediation:
-      strategy: uninstall
+      strategy: rollback
       retries: 3
   values:
     controllers:
@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: quay.io/minio/minio
-              tag: RELEASE.2024-10-29T16-01-48Z@sha256:ebd2af76d40ff25ccc630533615f7ccd55fbe83d629a4b7c7a1b6311c1af3d6c
+              tag: RELEASE.2025-06-13T11-33-47Z-cpuv1@sha256:ad8a8318847c0bb7dcfe59caf407f12fad6f387bb66386ee772c4704f0a48d50
             env:
               MINIO_API_CORS_ALLOW_ORIGIN: https://minio.${SECRET_DOMAIN},https://s3.${SECRET_DOMAIN}
               MINIO_BROWSER_REDIRECT_URL: https://minio.${SECRET_DOMAIN}
@@ -76,7 +76,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 150
-        fsGroup: 140
+        fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }
@@ -127,3 +127,9 @@ spec:
         path: /Used/k8s/minio
         globalMounts:
           - path: /data
+      safe:
+        type: nfs
+        server: vault.manor
+        path: /mnt/Tank/k8s/minio
+        globalMounts:
+          - path: /safe
