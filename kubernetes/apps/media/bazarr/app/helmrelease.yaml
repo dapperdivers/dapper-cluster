@@ -105,7 +105,7 @@ spec:
           nginx.ingress.kubernetes.io/auth-signin: "https://bazarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
         className: internal
         hosts:
-          - host: &host bazarr.${SECRET_DOMAIN_MEDIA}
+          - host: &host bazarr.${SECRET_DOMAIN_MEDIA} #test
             paths:
               - path: /
                 service:
