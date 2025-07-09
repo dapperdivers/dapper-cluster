@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
 sonarr:
-  sonarr: &sonarr-settings
+  sonarr:
     base_url: http://sonarr.media.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
@@ -48,9 +48,21 @@ sonarr:
         assign_scores_to:
           - name: WEB-1080p
   sonarr-uhd:
-    <<: *sonarr-settings
     base_url: http://sonarr-uhd.media.svc.cluster.local
     api_key: !env_var SONARR_UHD_API_KEY
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+    # For Sonarr
+    media_naming:
+      series: standard
+      season: standard
+      episodes:
+        rename: true
+        standard: standard
+        daily: standard
+        anime: standard
+    quality_definition:
+      type: series
     include:
       # Comment out any of the following includes to disable them
       - template: sonarr-quality-definition-series
@@ -103,7 +115,7 @@ sonarr:
         assign_scores_to:
           - name: WEB-2160p
 radarr:
-  radarr: &radarr-settings
+  radarr:
     base_url: http://radarr.media.svc.cluster.local
     api_key: !env_var RADARR_API_KEY
     delete_old_custom_formats: true
@@ -158,9 +170,17 @@ radarr:
         assign_scores_to:
           - name: HD Bluray + WEB
   radarr-uhd:
-    <<: *radarr-settings
     base_url: http://radarr-uhd.media.svc.cluster.local
     api_key: !env_var RADARR_UHD_API_KEY
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+    media_naming:
+      folder: standard
+      movie:
+        rename: true
+        standard: standard
+    quality_definition:
+      type: movie
     include:
       # Comment out any of the following includes to disable them
       - template: radarr-quality-definition-movie
