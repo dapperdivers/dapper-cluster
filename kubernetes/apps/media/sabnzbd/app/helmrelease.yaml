@@ -145,4 +145,5 @@ spec:
         server: vault.manor
         path: /mnt/Tank/Media
         globalMounts:
-          - path: /safe
+          - path: /safe/downloads/usenet
+            subPath: downloads/usenet
