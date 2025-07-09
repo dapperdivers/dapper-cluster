@@ -19,7 +19,7 @@ spec:
   ingressClassName: internal
   tls:
     - hosts:
-        - &host "vault.${SECRET_DOMAIN}"
+        - &host "tank.${SECRET_DOMAIN}"
       secretName: ${SECRET_DOMAIN/./-}-tls
   rules:
     - host: *host

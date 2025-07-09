@@ -130,6 +130,6 @@ spec:
       safe:
         type: nfs
         server: vault.manor
-        path: /mnt/Tank/k8s/minio
+        path: /mnt/Tank/Minio
         globalMounts:
           - path: /safe

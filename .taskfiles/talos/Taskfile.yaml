@@ -57,6 +57,15 @@ tasks:
       - test -f {{.TALOSCONFIG}}
       - which talhelper talosctl yq
 
+  upgrade-talos:
+    desc: Upgrade Talos on all nodes
+    dir: '{{.TALHELPER_DIR}}'
+    cmd: talhelper gencommand upgrade | bash
+    preconditions:
+      - talosctl config info
+      - test -f {{.TALOSCONFIG}}
+      - which talhelper talosctl yq
+
   reset:
     desc: Resets nodes back to maintenance mode
     dir: '{{.TALHELPER_DIR}}'
