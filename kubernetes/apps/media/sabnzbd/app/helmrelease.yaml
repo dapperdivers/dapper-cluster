@@ -125,6 +125,7 @@ spec:
       tmp:
         medium: Memory
         type: emptyDir
+        sizeLimit: 70Gi
         globalMounts:
           - path: /tmp
       scripts:
