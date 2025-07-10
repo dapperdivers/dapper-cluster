@@ -1,6 +1,6 @@
 //$schema: "https://docs.renovatebot.com/renovate-schema.json",
 {
-  packageRules:
+  packageRules: [
     {
       description: "Auto merge container digests",
       matchDatasources: ["docker"],
@@ -27,4 +27,5 @@
       minimumReleaseAge: "3 days",
       ignoreTests: true,
     }
+  ],
 }
