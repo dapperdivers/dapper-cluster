@@ -1,5 +1,5 @@
+//$schema: "https://docs.renovatebot.com/renovate-schema.json",
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
   packageRules:
     {
       description: "Auto merge container digests",
@@ -26,6 +26,5 @@
       matchUpdateTypes: ["minor", "patch", "digest"],
       minimumReleaseAge: "3 days",
       ignoreTests: true,
-
-    },
+    }
 }
