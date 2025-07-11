@@ -71,7 +71,7 @@ spec:
         runAsGroup: 150
         fsGroup: 140
         supplementalGroups:
-          - 150
+          - 150 # TODO: remove this once app delpoys
         fsGroupChangePolicy: OnRootMismatch
     persistence:
       config:
