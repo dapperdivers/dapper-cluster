@@ -51,7 +51,7 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-            securityContext:
+            securityContext: &securityContext
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
@@ -60,6 +60,21 @@ spec:
                 cpu: 10m
               limits:
                 memory: 1Gi
+          jbops:
+            image:
+              repository: registry.k8s.io/git-sync/git-sync
+              tag: v4.4.2@sha256:3089d9787b89bdc5af01d9f6e8d515aefb9672e8aea3972d7ff67478112bacb3
+            env:
+              GITSYNC_REPO: https://github.com/blacktwin/JBOPS
+              GITSYNC_REF: master
+              GITSYNC_PERIOD: 24h
+              GITSYNC_ROOT: /add-ons
+            securityContext: *securityContext
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -95,6 +110,8 @@ spec:
     persistence:
       config:
         existingClaim: tautulli
+      add-ons:
+        type: emptyDir
       cache:
         existingClaim: tautulli-cache
         globalMounts:
