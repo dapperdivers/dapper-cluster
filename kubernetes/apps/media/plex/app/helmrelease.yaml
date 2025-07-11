@@ -75,9 +75,7 @@ spec:
               requests:
                 cpu: 1
                 memory: 12Gi
-                nvidia.com/gpu: 1
               limits:
-                nvidia.com/gpu: 1
                 memory: 32Gi
     defaultPodOptions:
       runtimeClassName: nvidia
@@ -87,6 +85,15 @@ spec:
         runAsGroup: 140
         fsGroup: 150
         seccompProfile: { type: RuntimeDefault }
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: nvidia.feature.node.kubernetes.io/gpu
+                  operator: In
+                  values:
+                    - "true"
     service:
       app:
         type: LoadBalancer
