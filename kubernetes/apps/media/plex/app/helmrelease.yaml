@@ -168,6 +168,7 @@ spec:
       transcode:
         type: emptyDir
         medium: Memory
+        sizeLimit: 15Gi
       safe:
         type: nfs
         server: vault.manor
