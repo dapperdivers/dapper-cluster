@@ -69,9 +69,8 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 150
-        fsGroup: 140
         supplementalGroups:
-          - 150 # TODO: remove this once app delpoys
+          - 140
         fsGroupChangePolicy: OnRootMismatch
     persistence:
       config:
