@@ -91,13 +91,6 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
-      media:
-        type: nfs
-        server: openmediavault-used.manor
-        path: /Used
-        globalMounts:
-          - path: /media/downloads/usenet
-            subPath: downloads/usenet
       safe:
         type: nfs
         server: vault.manor

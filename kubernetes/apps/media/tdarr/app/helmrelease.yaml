@@ -80,12 +80,6 @@ spec:
         existingClaim: *app
         globalMounts:
           - path: /app/server
-      media:
-        type: nfs
-        server: openmediavault-used.manor
-        path: /Used
-        globalMounts:
-          - path: /media
       safe:
         type: nfs
         server: vault.manor

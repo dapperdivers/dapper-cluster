@@ -111,12 +111,6 @@ spec:
         existingClaim: radarr-uhd
       tmp:
         type: emptyDir
-      media:
-        type: nfs
-        server: openmediavault-used.manor
-        path: /Used
-        globalMounts:
-          - path: /media
       safe:
         type: nfs
         server: vault.manor
