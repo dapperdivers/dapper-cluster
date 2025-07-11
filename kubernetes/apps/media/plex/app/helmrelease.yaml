@@ -75,9 +75,8 @@ spec:
               requests:
                 cpu: 1
                 memory: 12Gi
-                nvidia.com/gpu: 1
               limits:
-                nvidia.com/gpu: 1
+                cpu: 4
                 memory: 32Gi
     defaultPodOptions:
       runtimeClassName: nvidia
@@ -159,8 +158,11 @@ spec:
         type: emptyDir
         medium: Memory
       transcode:
-        type: emptyDir
         medium: Memory
+        type: emptyDir
+        sizeLimit: 15Gi
+        globalMounts:
+          - path: /transcode
       safe:
         type: nfs
         server: vault.manor
