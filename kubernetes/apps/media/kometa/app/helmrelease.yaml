@@ -77,13 +77,13 @@ spec:
               KOMETA_TAUTULLI_HOST: "http://tautulli.media"
               KOMETA_PLEX_HOST: "http://plex.media:32400"
               KOMETA_RADARR_HOST: "http://radarr.media"
-              KOMETA_RADARR_ROOT_FOLDER_PATH: "/media/baby_plex/Movies"
+              KOMETA_RADARR_ROOT_FOLDER_PATH: "/safe/movies"
               KOMETA_RADARR_UHD_HOST: "http://radarr-uhd.media"
-              KOMETA_RADARR_UHD_ROOT_FOLDER_PATH: "/media/baby_plex/movies-4k"
+              KOMETA_RADARR_UHD_ROOT_FOLDER_PATH: "/safe/movies-4k"
               KOMETA_SONARR_HOST: "http://sonarr.media"
-              KOMETA_SONARR_ROOT_FOLDER_PATH: "/media/baby_plex/Shows"
+              KOMETA_SONARR_ROOT_FOLDER_PATH: "/safe/tv"
               KOMETA_SONARR_UHD_HOST: "http://sonarr-uhd.media"
-              KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/media/baby_plex/tv-4k"
+              KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/safe/tv-4k"
             envFrom:
               - secretRef:
                   name: kometa-secret
