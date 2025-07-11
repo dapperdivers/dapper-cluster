@@ -1,6 +1,6 @@
 ## Contribution guidelines
 
-Welcome to [home-ops]! We're thrilled that you'd like to contribute. Your help is essential for making it better.
+Welcome to [dapper-cluster]! We're thrilled that you'd like to contribute. Your help is essential for making it better.
 
 ### Getting Started
 
