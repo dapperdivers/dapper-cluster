@@ -58,7 +58,7 @@ spec:
                     path: /identity
                     port: 32400
                   initialDelaySeconds: 0
-                  periodSeconds: 10es
+                  periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
