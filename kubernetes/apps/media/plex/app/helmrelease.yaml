@@ -58,7 +58,7 @@ spec:
                     path: /identity
                     port: 32400
                   initialDelaySeconds: 0
-                  periodSeconds: 10
+                  periodSeconds: 10es
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
@@ -75,8 +75,10 @@ spec:
               requests:
                 cpu: 1
                 memory: 12Gi
+                nvidia.com/gpu: 1
               limits:
                 memory: 32Gi
+                nvidia.com/gpu: 4
     defaultPodOptions:
       runtimeClassName: nvidia
       securityContext:
