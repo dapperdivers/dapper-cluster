@@ -141,3 +141,10 @@ spec:
         globalMounts:
           - path: /safe/downloads/usenet
             subPath: downloads/usenet
+      tower:
+        type: nfs
+        server: tower.manor
+        path: /mnt/user/Media
+        globalMounts:
+          - path: /tower/downloads/usenet
+            subPath: downloads/usenet
