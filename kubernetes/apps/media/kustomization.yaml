@@ -12,6 +12,7 @@ resources:
   - ./recyclarr/ks.yaml
   - ./sonarr/ks.yaml
   - ./sonarr-uhd/ks.yaml
+  - ./huntarr/ks.yaml
   - ./radarr/ks.yaml
   - ./radarr-uhd/ks.yaml
   - ./kometa/ks.yaml
