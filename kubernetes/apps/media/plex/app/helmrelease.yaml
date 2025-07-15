@@ -175,7 +175,7 @@ spec:
         path: /mnt/user/Media
         globalMounts:
           - path: /tower
-      tower-2:
+      tower-2: #and again
         type: nfs
         server: tower-2.manor
         path: /mnt/user/Media
