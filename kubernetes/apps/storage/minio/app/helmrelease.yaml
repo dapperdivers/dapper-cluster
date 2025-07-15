@@ -123,13 +123,7 @@ spec:
     persistence:
       config:
         type: nfs
-        server: openmediavault-used.manor
-        path: /Used/k8s/minio
-        globalMounts:
-          - path: /data
-      safe:
-        type: nfs
         server: vault.manor
         path: /mnt/Tank/Minio
         globalMounts:
-          - path: /safe
+          - path: /data

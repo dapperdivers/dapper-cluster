@@ -7,5 +7,5 @@ spec:
   accessModes: ["ReadWriteMany"]
   resources:
     requests:
-      storage: 1Mi
-  storageClassName: used-nfs
+      storage: 1Gi
+  storageClassName: safe-nfs
