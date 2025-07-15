@@ -107,7 +107,7 @@
       " – "
     ],
     "seasonoverlayfile": "overlay-innerglow.png",
-    "RTLFont": "VarelaRound-Regular.ttf",
+    "RTLFont": "Colus-Regular.ttf",
     "PlexUpload": "false",
     "BackupPath": "/assetsbackup",
     "ManualAssetPath": "/manualassets",
