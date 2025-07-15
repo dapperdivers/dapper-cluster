@@ -71,6 +71,6 @@ spec:
                 volumes:
                   - name: repository
                     nfs:
-                      server:   vault.manor
+                      server: vault.manor
                       share: /mnt/Tank/k8s
                       path: /mnt/Tank/k8s/volsync
