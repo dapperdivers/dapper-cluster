@@ -118,3 +118,9 @@ spec:
         path: /mnt/Tank/Media
         globalMounts:
           - path: /safe
+      tower-2:
+        type: nfs
+        server: tower-2.manor
+        path: /mnt/user/Media
+        globalMounts:
+          - path: /tower-2

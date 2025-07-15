@@ -134,6 +134,18 @@ spec:
         path: /mnt/Tank/Media
         globalMounts:
           - path: /safe
+      tower:
+        type: nfs
+        server: tower.manor
+        path: /mnt/user/Media
+        globalMounts:
+          - path: /tower
+      tower-2:
+        type: nfs
+        server: tower-2.manor
+        path: /mnt/user/Media
+        globalMounts:
+          - path: /tower-2
       scripts:
         type: configMap
         name: bazarr-uhd-scripts
