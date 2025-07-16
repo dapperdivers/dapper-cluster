@@ -39,17 +39,18 @@ spec:
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
-        containers:
+        initContainers:
           git-sync:
             env:
               GITSYNC_REPO: https://github.com/dapperdivers/kometa-config/
               GITSYNC_REF: master
               GITSYNC_ROOT: /git
               GITSYNC_DEPTH: 1
-              GITSYNC_LINK: current
+              GIT_SYNC_ONE_TIME: "true"
             image:
               repository: registry.k8s.io/git-sync/git-sync
               tag: v4.4.2@sha256:3089d9787b89bdc5af01d9f6e8d515aefb9672e8aea3972d7ff67478112bacb3
+            restartPolicy: Always
             resources:
               requests:
                 cpu: 10m
@@ -59,6 +60,7 @@ spec:
               readOnlyRootFilesystem: false
               allowPrivilegeEscalation: false
               capabilities: { drop: ["ALL"] }
+        containers:
           app:
             image:
               repository: kometateam/kometa
