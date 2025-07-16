@@ -62,6 +62,9 @@ spec:
                 }
               PAPERLESS_OCR_LANGUAGE: eng
               PAPERLESS_TIKA_ENABLED: true
+              PAPERLESS_CONSUMPTION_DIR: /safe/consume
+              PAPERLESS_MEDIA_ROOT: /safe/media
+
             envFrom:
               - secretRef:
                   name: paperless-ngx-secret
@@ -115,6 +118,12 @@ spec:
           main:
             app:
               - path: /data/local
+      safe:
+        type: nfs
+        server: vault.manor
+        path: /mnt/Tank/Paperless-ngx
+        globalMounts:
+          - path: /safe
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
