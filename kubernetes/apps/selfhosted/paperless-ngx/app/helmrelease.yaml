@@ -49,6 +49,7 @@ spec:
               COMPOSE_PROJECT_NAME: paperless-ngx
               PAPERLESS_TIME_ZONE: US/Central
               PAPERLESS_URL: https://docs.${SECRET_DOMAIN}
+              PAPERLESS_CALLBACK_URL: https://docs.${SECRET_DOMAIN}/api/oauth/callback
               PAPERLESS_FILENAME_FORMAT: "{{created_year}}/{{correspondent}}/{{title}}"
               PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: true
               PAPERLESS_CONSUMER_POLLING: 60
