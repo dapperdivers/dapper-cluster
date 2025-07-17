@@ -46,11 +46,19 @@ spec:
               THREADFIN_BRANCH: main
               THREADFIN_DEBUG: 0
               THREADFIN_PORT: &port 34400
-            resources:
-              limits:
-                memory: 5Gi
-              requests:
-                cpu: 100m
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 120
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -103,3 +111,8 @@ spec:
         existingClaim: threadfin
         globalMounts:
           - path: /home/threadfin/conf
+      tmp:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
