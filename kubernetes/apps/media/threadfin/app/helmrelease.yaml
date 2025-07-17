@@ -63,18 +63,6 @@ spec:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: nvidia.feature.node.kubernetes.io/gpu
-                  operator: In
-                  values:
-                    - "true"
-    nodeSelector:
-      nvidia.feature.node.kubernetes.io/gpu: "true"
-    runtimeClassName: nvidia
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
