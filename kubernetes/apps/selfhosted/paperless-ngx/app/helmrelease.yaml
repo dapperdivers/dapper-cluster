@@ -9,7 +9,7 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: app-template # redploy
+      chart: app-template
       version: 4.1.2
       sourceRef:
         kind: HelmRepository
@@ -97,12 +97,10 @@ spec:
       app:
         enabled: true
         annotations:
-          #external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
-          #authentik.home.arpa/internal: "true"
-          #nginx.ingress.kubernetes.io/auth-signin: "https://docs.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
-        #className: internal
-        className: external
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+          authentik.home.arpa/internal: "true"
+          nginx.ingress.kubernetes.io/auth-signin: "https://docs.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
+        className: internal
         hosts:
           - host: &host docs.${SECRET_DOMAIN}
             paths:
