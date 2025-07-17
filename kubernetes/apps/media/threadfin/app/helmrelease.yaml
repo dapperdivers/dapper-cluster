@@ -26,6 +26,10 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
+    - name: intel-device-plugin-gpu
+      namespace: kube-system
+    - name: nvidia-device-plugin
+      namespace: kube-system
   values:
     controllers:
       threadfin:
@@ -37,16 +41,14 @@ spec:
               repository: fyb3roptik/threadfin
               tag: 1.2.35@sha256:31ee09478929b561070b5c22840552f556495e59b0474b6f9231fbe19e07f162
               pullPolicy: IfNotPresent
-
             env:
               TZ: ${TIME_ZONE}
               THREADFIN_BRANCH: main
               THREADFIN_DEBUG: 0
               THREADFIN_PORT: &port 34400
-
             resources:
               limits:
-                memory: 1024Mi
+                memory: 5Gi
               requests:
                 cpu: 20m
             probes:
@@ -66,12 +68,24 @@ spec:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: nvidia.feature.node.kubernetes.io/gpu
+                  operator: In
+                  values:
+                    - "true"
+    nodeSelector:
+      nvidia.feature.node.kubernetes.io/gpu: "true"
+    runtimeClassName: nvidia
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 150
-        fsGroup: 140
+        fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: RuntimeDefault }
     service:
@@ -80,7 +94,6 @@ spec:
         ports:
           http:
             port: *port
-
     ingress:
       app:
         annotations:
