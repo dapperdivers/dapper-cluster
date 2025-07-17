@@ -131,6 +131,12 @@ spec:
           main:
             app:
               - path: /data/local
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        globalMounts:
+          - path: /tmp
       safe:
         type: nfs
         server: vault.manor
