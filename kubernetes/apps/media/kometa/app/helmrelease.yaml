@@ -112,6 +112,6 @@ spec:
         globalMounts:
         - path: /assets
       git:
-        type: emptyDir
+        type: emptyDir # redeploy
         globalMounts:
           - path: /git
