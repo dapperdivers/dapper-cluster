@@ -52,19 +52,22 @@ spec:
               PAPERLESS_CALLBACK_URL: https://docs.${SECRET_DOMAIN}/api/oauth/callback/
               PAPERLESS_FILENAME_FORMAT: "{created_year}/{correspondent}/{title}"
               PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: true
-              PAPERLESS_CONSUMER_POLLING: 60
-              PAPERLESS_CONSUMER_DELETE_DUPLICATES: true
-              PAPERLESS_CONSUMER_RECURSIVE: true
-              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: true
               PAPERLESS_OCR_USER_ARGS: >
                 {
                   "invalidate_digital_signatures": true,
                   "continue_on_soft_render_error": true
                 }
-              PAPERLESS_OCR_LANGUAGE: eng
+              PAPERLESS_OCR_LANGUAGE: "nor+eng"
+              PAPERLESS_OCR_LANGUAGES: "nor"
               PAPERLESS_TIKA_ENABLED: true
-              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
-              PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+              PAPERLESS_TIKA_ENDPOINT: "http://localhost:9998"
+              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://localhost:3000"
+
+              # Consumer settings
+              PAPERLESS_CONSUMER_POLLING: 3600
+              PAPERLESS_CONSUMER_DELETE_DUPLICATES: true
+              PAPERLESS_CONSUMER_RECURSIVE: true
+              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: true
               PAPERLESS_CONSUMPTION_DIR: /safe/consume
               PAPERLESS_MEDIA_ROOT: /safe/media
 
@@ -85,10 +88,14 @@ spec:
               pullPolicy: IfNotPresent
             ports:
               - containerPort: 3000
-            command:
-              - "gotenberg"
-              - "--chromium-disable-javascript=true"
-              - "--chromium-allow-list=file:///tmp/.*"
+            command: ['/usr/bin/gotenberg']
+            args: ['--chromium-disable-javascript=true', '--chromium-allow-list=file:///tmp/.*']
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 150
+        fsGroup: 150
+        fsGroupChangePolicy: "OnRootMismatch"
     service:
       app:
         controller: main
@@ -127,9 +134,4 @@ spec:
         path: /mnt/Tank/Paperless-ngx
         globalMounts:
           - path: /safe
-    defaultPodOptions:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 150
-        fsGroup: 150
-        fsGroupChangePolicy: "OnRootMismatch"
+
