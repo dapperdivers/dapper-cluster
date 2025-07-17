@@ -57,8 +57,7 @@ spec:
                   "invalidate_digital_signatures": true,
                   "continue_on_soft_render_error": true
                 }
-              PAPERLESS_OCR_LANGUAGE: "nor+eng"
-              PAPERLESS_OCR_LANGUAGES: "nor"
+              PAPERLESS_OCR_LANGUAGE: "eng"
               PAPERLESS_TIKA_ENABLED: true
               PAPERLESS_TIKA_ENDPOINT: "http://localhost:9998"
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://localhost:3000"
