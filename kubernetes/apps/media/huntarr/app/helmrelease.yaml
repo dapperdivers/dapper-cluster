@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: ghcr.io/plexguide/huntarr
-              tag: 8.1.12@sha256:7dec203557f434db3d5f2e15beb281e73ac718a2bcb9d0f167ed7e6af1251d25
+              tag: 8.1.15@sha256:a705e690e20bfd6f52081c126a3dc8d6e987374c9feda8c146a56ddac42dca47
             env:
               TZ: "${TIME_ZONE}"
               PUSHOVER_APP_URL: &host "huntarr.${SECRET_DOMAIN_MEDIA}"
