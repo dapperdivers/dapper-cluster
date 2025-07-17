@@ -19,6 +19,7 @@ resources:
   - ./posterizarr/ks.yaml
   - ./nzbget/ks.yaml
   - ./tdarr/ks.yaml
+  - ./threadfin/ks.yaml
   - ./sabnzbd/ks.yaml
   - ./overseerr/ks.yaml
   - ./prowlarr/ks.yaml
