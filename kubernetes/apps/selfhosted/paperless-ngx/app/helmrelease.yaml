@@ -39,8 +39,6 @@ spec:
             envFrom:
               - secretRef:
                   name: paperless-ngx-postgres-secret
-              - configMapRef:
-                  name: &config paperless-config
         containers:
           app:
             image:
@@ -50,6 +48,8 @@ spec:
             envFrom:
               - secretRef:
                   name: paperless-ngx-secret
+              - configMapRef:
+                  name: paperless-config
           tika:
             image:
               repository: ghcr.io/paperless-ngx/tika
