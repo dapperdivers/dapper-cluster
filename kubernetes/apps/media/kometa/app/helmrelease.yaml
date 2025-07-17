@@ -46,7 +46,7 @@ spec:
               GITSYNC_REF: master
               GITSYNC_ROOT: /git
               GITSYNC_DEPTH: 1
-              GIT_SYNC_ONE_TIME: "true"
+              GITSYNC_ONE_TIME: "true"
             image:
               repository: registry.k8s.io/git-sync/git-sync
               tag: v4.4.2@sha256:3089d9787b89bdc5af01d9f6e8d515aefb9672e8aea3972d7ff67478112bacb3
