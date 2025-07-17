@@ -34,6 +34,7 @@ spec:
       GATUS_PATH: /web/index.html
       GATUS_DOMAIN: ${SECRET_DOMAIN_MEDIA}
       VOLSYNC_CAPACITY: 80Gi
+      VOLSYNC_CACHE_CAPACITY: 40Gi
 
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
