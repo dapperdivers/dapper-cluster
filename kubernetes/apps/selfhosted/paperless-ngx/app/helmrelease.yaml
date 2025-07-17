@@ -63,6 +63,8 @@ spec:
                 }
               PAPERLESS_OCR_LANGUAGE: eng
               PAPERLESS_TIKA_ENABLED: true
+              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+              PAPERLESS_TIKA_ENDPOINT: http://tika:9998
               PAPERLESS_CONSUMPTION_DIR: /safe/consume
               PAPERLESS_MEDIA_ROOT: /safe/media
 
