@@ -50,20 +50,7 @@ spec:
               limits:
                 memory: 5Gi
               requests:
-                cpu: 20m
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /status
-                    port: *port
-                  initialDelaySeconds: 5
-                  periodSeconds: 10
-                  timeoutSeconds: 10
-                  failureThreshold: 3
-              readiness: *probes
+                cpu: 100m
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -94,6 +81,7 @@ spec:
         ports:
           http:
             port: *port
+
     ingress:
       app:
         annotations:
