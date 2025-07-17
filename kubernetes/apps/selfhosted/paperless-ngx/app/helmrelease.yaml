@@ -91,8 +91,7 @@ spec:
             args: ['--chromium-disable-javascript=true', '--chromium-allow-list=file:///tmp/.*']
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              readOnlyRootFilesystem: false
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
