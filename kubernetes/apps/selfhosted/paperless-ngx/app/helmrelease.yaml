@@ -111,7 +111,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 1Gi
+        sizeLimit: 5Gi
         globalMounts:
           - path: /tmp
       safe:
