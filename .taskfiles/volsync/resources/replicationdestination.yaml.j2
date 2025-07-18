@@ -2,8 +2,8 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationDestination
 metadata:
-  name: {{ ENV.APP }}-manual
-  namespace: {{ ENV.NS }}
+  name: {{ APP }}-manual
+  namespace: {{ NS }}
 spec:
   trigger:
     manual: restore-once

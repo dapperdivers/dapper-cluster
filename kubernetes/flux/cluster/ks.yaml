@@ -10,7 +10,7 @@ spec:
     provider: sops
     secretRef:
       name: sops-age
-  interval: 30m
+  interval: 15m
   path: ./kubernetes/flux/meta
   prune: true
   sourceRef:

@@ -24,17 +24,23 @@ tasks:
       - '[[ "{{.STATE}}" == "suspend" || "{{.STATE}}" == "resume" ]]'
       - which flux kubectl
 
-  unlock:
-    desc: Unlock all restic source repos
-    cmds:
-      - for: { var: SOURCES, split: "\n" }
-        cmd: kubectl --namespace {{splitList "," .ITEM | first}} patch --field-manager=flux-client-side-apply replicationsources {{splitList "," .ITEM | last}} --type merge --patch "{\"spec\":{\"restic\":{\"unlock\":\"{{now | unixEpoch}}\"}}}"
+  unlock: &un
+    desc: Unlock Restic repo using env vars from cluster secrets.
     vars:
-      SOURCES:
-        sh: kubectl get replicationsources --all-namespaces --no-headers --output=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name}{"\n"}{end}'
-    preconditions:
-      - which kubectl
-
+      NS: &ns-fail '{{ or .NS (fail "Missing `NS` environment variable!") }}'
+      REPO: &restic-repo '{{ or .REPO (fail "Missing `REPO` environment variable!") }}'
+      TS: '{{now | unixEpoch}}'
+    cmds:
+      - kubectl patch --field-manager=flux-client-side-apply replicationsources -n {{.NS}} {{.REPO}} --type merge --patch '{"spec":{"restic":{"unlock":"{{.TS}}"}}}'
+  unlock-all:
+    dir: "/{{.ROOT_DIR}}"
+    vars:
+      FAILCONTINUE: '{{ .FAILCONTINUE | default "false" }}'
+    cmds:
+      - |
+        kubectl get replicationsources -A -o jsonpath='{range .items[*]}{"NS="}{.metadata.namespace}{" "}{"REPO="}{.metadata.name}{"\n"}{end}' | while read -r i; do
+          task volsync:unlock ${i} || {{.FAILCONTINUE}}
+        done
   snapshot:
     desc: Snapshot an app [NS=default] [APP=required]
     cmds:
@@ -49,7 +55,13 @@ tasks:
     preconditions:
       - kubectl --namespace {{.NS}} get replicationsources {{.APP}}
       - which kubectl
-
+  run:
+    desc: Unlock Restic repo using env vars from cluster secrets.
+    vars:
+      NS: *ns-fail
+      REPO: *restic-repo
+    cmds:
+      - env $(kubectl get secrets -n {{.NS}} {{.REPO}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic {{.CLI_ARGS}}
   restore:
     desc: Restore an app [NS=default] [APP=required] [PREVIOUS=required]
     cmds:
