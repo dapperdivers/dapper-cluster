@@ -9,6 +9,7 @@ resources:
   - ./actual/ks.yaml
   - ./atuin/ks.yaml
   - ./unifi/ks.yaml
+  - ./gotenberg/ks.yaml
   - ./paperless-ngx/ks.yaml
   - ./searxng/ks.yaml
   - ./obsidian-couchdb/ks.yaml
