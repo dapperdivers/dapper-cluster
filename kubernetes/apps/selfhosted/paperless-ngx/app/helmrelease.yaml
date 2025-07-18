@@ -8,7 +8,6 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
-    namespace: flux-system
   dependsOn:
     - name: cloudnative-pg
       namespace: database
@@ -51,7 +50,7 @@ spec:
               PAPERLESS_CONSUMPTION_DIR: /safe/consume
               PAPERLESS_DATA_DIR: /data/local
               PAPERLESS_MEDIA_ROOT: /safe/media
-              PAPERLESS_FILENAME_FORMAT: "{{document_type}}/{{correspondent}}_{{title}}_{{created}}"
+              PAPERLESS_FILENAME_FORMAT: "{created_year}/{correspondent}/{title}"
               PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: 'true'
 
               # Logging
