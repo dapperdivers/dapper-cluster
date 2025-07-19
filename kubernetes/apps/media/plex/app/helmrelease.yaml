@@ -68,10 +68,10 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 1
+                cpu: 4
                 memory: 12Gi
               limits:
-                cpu: 4
+                cpu: 8
                 memory: 32Gi
     defaultPodOptions:
       runtimeClassName: nvidia
