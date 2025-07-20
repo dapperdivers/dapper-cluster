@@ -27,6 +27,10 @@ spec:
         ]
         no_match: "allow"
       }
+      mqtt {
+        max_packet_size = 100MB
+        retain_available = true
+      }
   coreTemplate:
     metadata:
       annotations:
