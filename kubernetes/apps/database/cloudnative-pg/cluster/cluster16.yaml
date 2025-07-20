@@ -5,7 +5,7 @@ metadata:
   name: postgres16
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17.5-11@sha256:6d41466de5d43a80544cc5768038b2de964ae5b1d725683c03c5d9f81fdc2e43
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.8-9@sha256:aa3ec69f34e9e5d256d3987ff0469e83d0a1241f3a157af70a98e99bbd93d412
   primaryUpdateStrategy: unsupervised
   storage:
     size: 42Gi
@@ -29,7 +29,7 @@ spec:
     barmanObjectStore: &barmanObjectStore
       # when recovering from an existing cnpg cluster
       # Note: serverName version needs to be incremented
-      serverName: &currentCluster postgres16-v8
+      serverName: &currentCluster postgres16-v9
       destinationPath: s3://cloudnative-pg/
       endpointURL: http://minio.storage.svc.cluster.local:9000
       s3Credentials:
@@ -54,7 +54,7 @@ spec:
   #      name: cloudnative-pg-secret
   bootstrap:
     recovery:
-      source: &previousCluster postgres16-v7
+      source: &previousCluster postgres16-v8
 
   # NOTE: externalClusters is needed when recovering from an existing cnpg cluster
   externalClusters:
