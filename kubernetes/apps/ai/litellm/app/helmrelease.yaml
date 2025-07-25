@@ -41,7 +41,7 @@ spec:
           litellm:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: v1.74.0-stable@sha256:5ebd68360d6a047a2ba8eb96104bab358ccd255b1d29713eb8c50f4b2a425222
+              tag: v1.74.7-stable@sha256:3b02ce9a4b9ed37415c37cb8f106bf9d239dee5bdf731679fbf7b36bb492075e
             ports:
               - containerPort: &port 4000
             env:
