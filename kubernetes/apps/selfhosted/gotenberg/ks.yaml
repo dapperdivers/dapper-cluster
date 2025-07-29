@@ -6,8 +6,8 @@ metadata:
   namespace: &namespace selfhosted
 spec:
   targetNamespace: *namespace
-  components:
-    - ../../../../flux/components/volsync
+  compotents:
+    - ../../../../flux/components/common
   dependsOn:
     - name: volsync
       namespace: storage
