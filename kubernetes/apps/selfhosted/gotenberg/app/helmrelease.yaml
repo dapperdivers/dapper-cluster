@@ -22,9 +22,9 @@ spec:
     keepHistory: false
   values:
     controllers:
-      gotenberg:
+      main:
         containers:
-          gotenberg:
+          app:
             image:
               repository: gotenberg/gotenberg
               tag: 8.21@sha256:91486863744f7420ca985ee6cef7c216910e40faffd378f3da7c0fad724d01ba
@@ -32,14 +32,14 @@ spec:
               - "gotenberg"
               - "--chromium-disable-javascript=true"
               - "--chromium-allow-list=file:///tmp/.*"
-            securityContext: &sc
+            securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
     service:
       app:
-        controller: gotenberg
+        controller: main
         ports:
           http:
             port: 3000
