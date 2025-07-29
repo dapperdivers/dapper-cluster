@@ -33,7 +33,7 @@ spec:
               - "--chromium-disable-javascript=true"
               - "--chromium-allow-list=file:///tmp/.*"
             securityContext:
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
