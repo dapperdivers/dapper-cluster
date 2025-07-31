@@ -15,7 +15,7 @@ python = "3.13"
 uv = "latest"
 pre-commit = "latest"
 # Operations tools
-"aqua:budimanjojo/talhelper" = "3.0.31"
+"aqua:budimanjojo/talhelper" = "3.0.32"
 "aqua:cloudflare/cloudflared" = "2025.7.0"
 "aqua:FiloSottile/age" = "1.2.1"
 "aqua:fluxcd/flux2" = "2.6.4"
