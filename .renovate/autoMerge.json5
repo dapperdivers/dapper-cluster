@@ -1,13 +1,105 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   packageRules: [
+    // Exclude networking and storage packages from automerge
+    {
+      description: "Disable automerge for networking packages",
+      matchPackageNames: [
+        "cilium",
+        "multus",
+        "ingress-nginx", 
+        "external-dns",
+        "cloudflared",
+        "k8s-gateway",
+        "coredns",
+        "/cilium/",
+        "/nginx/",
+        "/cloudflare/"
+      ],
+      automerge: false,
+    },
+    {
+      description: "Disable automerge for storage packages",
+      matchPackageNames: [
+        "openebs",
+        "csi-driver-nfs",
+        "volsync", 
+        "minio",
+        "/openebs/",
+        "/minio/",
+        "/rook/"
+      ],
+      automerge: false,
+    },
     {
       description: "Auto-merge trusted container digests",
       matchDatasources: ["docker"],
       automerge: true,
       automergeType: "pr",
       matchUpdateTypes: ["digest"],
-      matchPackageNames: ["/home-operations/", "/dapperdivers/", "/onedr0p/", "/bjw-s/","bjw-s-labs/"],
+      matchPackageNames: [
+        "/home-operations/", 
+        "/dapperdivers/", 
+        "/onedr0p/", 
+        "/bjw-s/",
+        "bjw-s-labs/",
+        "/ghcr.io/",
+        "/linuxserver/",
+        "/hotio/"
+      ],
+      ignoreTests: false,
+    },
+    {
+      description: "Auto-merge container minor and patch updates for standard apps",
+      matchDatasources: ["docker"],
+      automerge: true,
+      automergeType: "pr",
+      matchUpdateTypes: ["minor", "patch"],
+      matchPackageNames: [
+        // Media apps
+        "/plex/",
+        "/sonarr/",
+        "/radarr/",
+        "/bazarr/",
+        "/prowlarr/",
+        "/tautulli/",
+        "/overseerr/",
+        "/sabnzbd/",
+        "/nzbget/",
+        "/tdarr/",
+        "/recyclarr/",
+        "/autobrr/",
+        "/omegabrr/",
+        "/wizarr/",
+        // Observability
+        "/grafana/",
+        "/prometheus/",
+        "/loki/",
+        "/promtail/",
+        "/goldilocks/",
+        // Home automation
+        "/home-assistant/",
+        "/esphome/",
+        "/zigbee2mqtt/",
+        "/node-red/",
+        // Self-hosted apps
+        "/authentik/",
+        "/vaultwarden/",
+        "/actual/",
+        "/paperless/",
+        "/atuin/",
+        "/searxng/",
+        // AI apps
+        "/ollama/",
+        "/open-webui/",
+        "/litellm/",
+        "/n8n/",
+        // Database
+        "/cloudnative-pg/",
+        "/dragonfly/",
+        "/emqx/"
+      ],
+      minimumReleaseAge: "12 hours",
       ignoreTests: false,
     },
     {
@@ -20,12 +112,21 @@
       ignoreTests: false,
     },
     {
+      description: "Auto-merge Helm chart minor and patch updates",
+      matchManagers: ["helm-values", "flux"],
+      automerge: true,
+      automergeType: "pr",
+      matchUpdateTypes: ["minor", "patch"],
+      minimumReleaseAge: "1 day",
+      ignoreTests: false,
+    },
+    {
       description: "Auto-merge GitHub Actions",
       matchManagers: ["github-actions"],
       automerge: true,
       automergeType: "branch",
       matchUpdateTypes: ["minor", "patch", "digest"],
-      minimumReleaseAge: "3 days",
+      minimumReleaseAge: "1 day",
       ignoreTests: true,
     },
     {
@@ -47,7 +148,16 @@
       automerge: true,
       automergeType: "branch",
       matchUpdateTypes: ["minor", "patch"],
-      matchPackageNames: ["/external-dns/", "/gateway-api/", "/prometheus-operator/"],
+      matchPackageNames: [
+        "/gateway-api/", 
+        "/prometheus-operator/",
+        "/kyverno/",
+        "/cert-manager/",
+        "/metrics-server/",
+        "/reloader/",
+        "/reflector/",
+        "/external-secrets/"
+      ],
       ignoreTests: true,
     },
   ],
