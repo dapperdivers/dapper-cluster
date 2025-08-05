@@ -26,6 +26,10 @@ includes:
     taskfile: .taskfiles/yaml/Taskfile.yaml
     vars:
       ROOT_DIR: '{{.ROOT_DIR}}'
+  resources:
+    taskfile: .taskfiles/resources/Taskfile.yaml
+    vars:
+      ROOT_DIR: '{{.ROOT_DIR}}'
 
 tasks:
 

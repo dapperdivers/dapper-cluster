@@ -59,6 +59,13 @@ spec:
         retention_period: 14d
     singleBinary:
       replicas: 1
+      resources:
+        requests:
+          cpu: 35m
+          memory: 450Mi
+        limits:
+          cpu: 200m
+          memory: 600Mi
       persistence:
         enabled: true
         storageClass: mayastor-single-replica

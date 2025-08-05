@@ -19,13 +19,6 @@ spec:
       strategy: rollback
       retries: 3
   values:
-    resources:
-      requests:
-        cpu: 20m
-        memory: 128M
-      limits:
-        memory: 512M
-
     controllers:
       n8n:
         initContainers:
@@ -41,6 +34,13 @@ spec:
             image:
               repository: ghcr.io/n8n-io/n8n
               tag: 1.105.0@sha256:73e728289edda75024cf546b004f81a8aa3420450d0353a8c8e1ce134e9ea0fe
+            resources:
+              requests:
+                cpu: 1400m
+                memory: 380Mi
+              limits:
+                cpu: 2000m
+                memory: 512Mi
             env:
               GENERIC_TIMEZONE: ${TIME_ZONE}
               N8N_PORT: &port 80

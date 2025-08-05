@@ -1,0 +1,129 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+vars:
+  RESOURCES_DIR: '{{.ROOT_DIR}}/kubernetes/patches/resources'
+  RECOMMENDATIONS_BRANCH: 'resource-recommendations'
+
+tasks:
+  install-krr:
+    desc: Install Kubernetes Resource Recommender (KRR)
+    cmds:
+      - curl -sSL https://raw.githubusercontent.com/robusta-dev/krr/main/install.sh | bash
+    status:
+      - command -v krr
+    silent: true
+
+  analyze:
+    desc: Analyze resource usage and generate recommendations
+    deps: [install-krr]
+    cmds:
+      - mkdir -p {{.RESOURCES_DIR}}
+      - |
+        echo "🔍 Analyzing resource usage across namespaces..."
+        for ns in $(kubectl get ns -l goldilocks.fairwinds.com/enabled=true -o jsonpath='{.items[*].metadata.name}'); do
+          echo "  Processing namespace: $ns"
+          krr simple -n "$ns" --output yaml > "{{.RESOURCES_DIR}}/${ns}-recommendations.yaml" || true
+        done
+      - echo "✅ Recommendations saved to {{.RESOURCES_DIR}}"
+
+  analyze-namespace:
+    desc: Analyze resource usage for a specific namespace
+    deps: [install-krr]
+    vars:
+      NS: '{{ or .NS (fail "Missing NS variable") }}'
+    cmds:
+      - mkdir -p {{.RESOURCES_DIR}}
+      - krr simple -n {{.NS}} --output yaml
+      - krr simple -n {{.NS}} --output yaml > "{{.RESOURCES_DIR}}/{{.NS}}-recommendations.yaml"
+      - echo "✅ Recommendations for {{.NS}} saved to {{.RESOURCES_DIR}}/{{.NS}}-recommendations.yaml"
+
+  goldilocks-export:
+    desc: Export Goldilocks VPA recommendations
+    cmds:
+      - mkdir -p {{.RESOURCES_DIR}}
+      - |
+        echo "📊 Exporting Goldilocks recommendations..."
+        kubectl get vpa -A -o json | jq -r '
+          .items[] | 
+          select(.status.recommendation != null) |
+          "---\n# Namespace: \(.metadata.namespace)\n# Resource: \(.metadata.name)\n" +
+          "# Recommended by Goldilocks/VPA\n" +
+          (. | tojson)
+        ' > "{{.RESOURCES_DIR}}/goldilocks-recommendations.json"
+      - echo "✅ Goldilocks recommendations exported"
+
+  report:
+    desc: Generate a summary report of all recommendations
+    cmds:
+      - |
+        if [ -z "$(ls -A {{.RESOURCES_DIR}} 2>/dev/null)" ]; then
+          echo "❌ No recommendations found. Run 'task resources:analyze' first."
+          exit 1
+        fi
+      - |
+        echo "📊 Resource Recommendations Summary"
+        echo "=================================="
+        echo ""
+        for file in {{.RESOURCES_DIR}}/*.yaml; do
+          if [ -f "$file" ]; then
+            ns=$(basename "$file" -recommendations.yaml)
+            echo "Namespace: $ns"
+            echo "File: $file"
+            echo "---"
+          fi
+        done
+      - echo ""
+      - echo "✅ Review the files in {{.RESOURCES_DIR}}/ for detailed recommendations"
+
+  preview:
+    desc: Preview resource recommendations without creating files
+    deps: [install-krr]
+    cmds:
+      - |
+        echo "🔍 Preview mode - showing recommendations without saving..."
+        for ns in $(kubectl get ns -l goldilocks.fairwinds.com/enabled=true -o jsonpath='{.items[*].metadata.name}'); do
+          echo -e "\n=== Namespace: $ns ==="
+          krr simple -n "$ns" --output table || true
+        done
+
+  clean:
+    desc: Clean up generated recommendation files
+    cmds:
+      - rm -rf {{.RESOURCES_DIR}}
+      - echo "✅ Cleaned up recommendation files"
+
+  apply-to-helmrelease:
+    desc: Generate Flux Kustomization patches for HelmReleases
+    vars:
+      NS: '{{ or .NS (fail "Missing NS variable") }}'
+      APP: '{{ or .APP (fail "Missing APP variable") }}'
+    cmds:
+      - mkdir -p {{.ROOT_DIR}}/kubernetes/apps/{{.NS}}/{{.APP}}/app/patches
+      - |
+        # Read the recommendations
+        if [ -f "{{.RESOURCES_DIR}}/{{.NS}}-recommendations.yaml" ]; then
+          echo "📝 Creating patch for {{.NS}}/{{.APP}}"
+          cat > {{.ROOT_DIR}}/kubernetes/apps/{{.NS}}/{{.APP}}/app/patches/resources.yaml << 'EOF'
+        apiVersion: helm.toolkit.fluxcd.io/v2
+        kind: HelmRelease
+        metadata:
+          name: {{.APP}}
+        spec:
+          values:
+            resources:
+              # TODO: Copy the recommended values from {{.RESOURCES_DIR}}/{{.NS}}-recommendations.yaml
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+              limits:
+                cpu: "500m"
+                memory: "512Mi"
+        EOF
+          echo "✅ Created patch template at kubernetes/apps/{{.NS}}/{{.APP}}/app/patches/resources.yaml"
+          echo "⚠️  Please update the resource values based on the recommendations"
+        else
+          echo "❌ No recommendations found for namespace {{.NS}}"
+          echo "   Run 'task resources:analyze' first"
+        fi
