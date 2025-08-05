@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio
-              tag:  latest@sha256:065e86d2cbdb5c1edbe1f9f97581e87e02e88e0c756b0b9ce72ab60cfa6e1f23
+              tag:  latest@sha256:fc593b4656415d19b1e9ed1d8c7e4f40fe9ac29e850a89c4e09466a8833c6be6
             env:
               ALLOWED_DOMAINS: ${SECRET_DOMAIN_PERSONAL}
             securityContext:
