@@ -7,37 +7,30 @@ vars:
   RECOMMENDATIONS_BRANCH: 'resource-recommendations'
 
 tasks:
-  install-krr:
-    desc: Install Kubernetes Resource Recommender (KRR)
-    cmds:
-      - curl -sSL https://raw.githubusercontent.com/robusta-dev/krr/main/install.sh | bash
-    status:
-      - command -v krr
-    silent: true
-
   analyze:
-    desc: Analyze resource usage and generate recommendations
-    deps: [install-krr]
+    desc: Analyze resource usage and generate recommendations using Goldilocks
     cmds:
-      - mkdir -p {{.RESOURCES_DIR}}
-      - |
-        echo "🔍 Analyzing resource usage across namespaces..."
-        for ns in $(kubectl get ns -l goldilocks.fairwinds.com/enabled=true -o jsonpath='{.items[*].metadata.name}'); do
-          echo "  Processing namespace: $ns"
-          krr simple -n "$ns" --output yaml > "{{.RESOURCES_DIR}}/${ns}-recommendations.yaml" || true
-        done
-      - echo "✅ Recommendations saved to {{.RESOURCES_DIR}}"
+      - task: goldilocks-export
+      - task: report
 
   analyze-namespace:
     desc: Analyze resource usage for a specific namespace
-    deps: [install-krr]
     vars:
       NS: '{{ or .NS (fail "Missing NS variable") }}'
     cmds:
       - mkdir -p {{.RESOURCES_DIR}}
-      - krr simple -n {{.NS}} --output yaml
-      - krr simple -n {{.NS}} --output yaml > "{{.RESOURCES_DIR}}/{{.NS}}-recommendations.yaml"
-      - echo "✅ Recommendations for {{.NS}} saved to {{.RESOURCES_DIR}}/{{.NS}}-recommendations.yaml"
+      - |
+        echo "📊 Exporting Goldilocks recommendations for namespace {{.NS}}..."
+        kubectl get vpa -n {{.NS}} -o json | jq -r '
+          .items[] | 
+          select(.status.recommendation != null) |
+          "---\n# Resource: \(.metadata.name)\n" +
+          "# Container: \(.status.recommendation.containerRecommendations[0].containerName)\n" +
+          "# Target CPU: \(.status.recommendation.containerRecommendations[0].target.cpu)\n" +
+          "# Target Memory: \(.status.recommendation.containerRecommendations[0].target.memory)\n" +
+          (. | tojson)
+        ' > "{{.RESOURCES_DIR}}/{{.NS}}-recommendations.json"
+      - echo "✅ Recommendations for {{.NS}} saved to {{.RESOURCES_DIR}}/{{.NS}}-recommendations.json"
 
   goldilocks-export:
     desc: Export Goldilocks VPA recommendations
@@ -79,13 +72,12 @@ tasks:
 
   preview:
     desc: Preview resource recommendations without creating files
-    deps: [install-krr]
     cmds:
       - |
-        echo "🔍 Preview mode - showing recommendations without saving..."
+        echo "🔍 Preview mode - showing Goldilocks recommendations..."
         for ns in $(kubectl get ns -l goldilocks.fairwinds.com/enabled=true -o jsonpath='{.items[*].metadata.name}'); do
           echo -e "\n=== Namespace: $ns ==="
-          krr simple -n "$ns" --output table || true
+          kubectl get vpa -n "$ns" -o custom-columns=NAME:.metadata.name,CPU:.status.recommendation.containerRecommendations[0].target.cpu,MEMORY:.status.recommendation.containerRecommendations[0].target.memory,CONTAINER:.status.recommendation.containerRecommendations[0].containerName | grep -v "<none>" || echo "  No recommendations available"
         done
 
   clean:
