@@ -54,9 +54,10 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 20m
-                memory: 512Mi
+                cpu: 25m
+                memory: 830Mi
               limits:
+                cpu: 100m
                 memory: 1Gi
     containerSecurityContext:
       runAsUser: 1000

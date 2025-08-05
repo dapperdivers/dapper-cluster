@@ -33,6 +33,13 @@ spec:
   values:
     annotations:
       reloader.stakater.com/auto: "true"
+    resources:
+      requests:
+        cpu: 15m
+        memory: 700Mi
+      limits:
+        cpu: 200m
+        memory: 1Gi
     copyAppData:
       resources: {}
     ollama:
@@ -44,6 +51,13 @@ spec:
         existingClaim: open-webui-pipelines
     tika:
       enabled: true
+      resources:
+        requests:
+          cpu: 15m
+          memory: 650Mi
+        limits:
+          cpu: 100m
+          memory: 800Mi
     websocket:
       enabled: true
 
