@@ -32,11 +32,16 @@ spec:
               tag: 25.2.0@sha256:1eea992c839f16cb23e7635b407a576eec928db1f2989f3aca801289ba782f59
             env:
               TZ: ${TIME_ZONE}
+            envFrom:
+              - secretRef:
+                  name: nzbget-secret
             resources:
               requests:
-                cpu: 8000m
+                cpu: 500m
+                memory: 512Mi
               limits:
-                memory: 80Gi
+                cpu: 2000m
+                memory: 2Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -92,3 +97,10 @@ spec:
         path: /mnt/Tank/Media
         globalMounts:
           - path: /safe
+      nzbget-config:
+        type: configMap
+        name: nzbget-config
+        globalMounts:
+          - path: /config/nzbget.conf
+            subPath: nzbget.conf
+            readOnly: true
