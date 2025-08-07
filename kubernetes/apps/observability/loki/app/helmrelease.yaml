@@ -36,17 +36,25 @@ spec:
         reporting_enabled: false
       server:
         log_level: info
-        http_listen_port: 3100
-        grpc_listen_port: 9095
       commonConfig:
         replication_factor: 1
-        path_prefix: /var/loki
       compactor:
         working_directory: /var/loki/compactor/retention
         delete_request_store: filesystem
         retention_enabled: true
       ingester:
         chunk_encoding: snappy
+      storage:
+        type: filesystem
+        # Required for helm chart 6.34.0+ even with filesystem storage
+        # These are dummy values since filesystem doesn't use buckets
+        bucketNames:
+          chunks: chunks
+          ruler: ruler
+          admin: admin
+        filesystem:
+          chunks_directory: /var/loki/chunks
+          rules_directory: /var/loki/rules
       schemaConfig:
         configs:
           - from: "2024-04-01" # quote
@@ -58,6 +66,16 @@ spec:
               period: 24h
       limits_config:
         retention_period: 14d
+        allow_structured_metadata: true
+        volume_enabled: true
+      pattern_ingester:
+        enabled: false  # Disable if not needed, can reduce resource usage
+      ruler:
+        enable_api: true
+        storage:
+          type: local
+          local:
+            directory: /var/loki/rules
     singleBinary:
       replicas: 1
       resources:
@@ -79,6 +97,26 @@ spec:
       replicas: 0
     write:
       replicas: 0
+    ingester:
+      replicas: 0
+    querier:
+      replicas: 0
+    queryFrontend:
+      replicas: 0
+    queryScheduler:
+      replicas: 0
+    distributor:
+      replicas: 0
+    compactor:
+      replicas: 0
+    indexGateway:
+      replicas: 0
+    bloomCompactor:
+      replicas: 0
+    bloomGateway:
+      replicas: 0
+    minio:
+      enabled: false
     chunksCache:
       enabled: false
     resultsCache:
