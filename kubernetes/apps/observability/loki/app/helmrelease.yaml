@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: loki
-      version: 6.35.0
+      version: 6.35.1
       sourceRef:
         kind: HelmRepository
         name: grafana
@@ -36,6 +36,8 @@ spec:
         reporting_enabled: false
       server:
         log_level: info
+        http_listen_port: 3100
+        grpc_listen_port: 9095
       commonConfig:
         replication_factor: 1
       compactor:
