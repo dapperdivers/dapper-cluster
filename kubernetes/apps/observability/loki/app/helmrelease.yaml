@@ -41,11 +41,6 @@ spec:
       commonConfig:
         replication_factor: 1
         path_prefix: /var/loki
-      storage:
-        type: filesystem
-        filesystem:
-          chunks_directory: /var/loki/chunks
-          rules_directory: /var/loki/rules
       compactor:
         working_directory: /var/loki/compactor/retention
         delete_request_store: filesystem
