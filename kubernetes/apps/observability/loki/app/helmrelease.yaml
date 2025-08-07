@@ -36,6 +36,9 @@ spec:
         reporting_enabled: false
       server:
         log_level: info
+        admin_api_directory: /var/loki/admin
+        chunks_directory: /var/loki/chunks
+        rules_directory: /var/loki/rules
       commonConfig:
         replication_factor: 1
       compactor:
