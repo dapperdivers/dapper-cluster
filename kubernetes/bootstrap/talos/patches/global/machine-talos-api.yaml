@@ -1,0 +1,11 @@
+---
+# Enable Talos API access from Kubernetes
+# This allows pods to interact with the Talos API using ServiceAccounts
+machine:
+  features:
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles:
+        - os:admin
+      allowedKubernetesNamespaces:
+        - system-upgrade

@@ -210,4 +210,5 @@ controlPlane:
     - "@./patches/controller/admission-controller-patch.yaml"
     - "@./patches/controller/cluster.yaml"
     - "@./patches/controller/machine-gh-actions.yaml"
+    - "@./patches/global/machine-talos-api.yaml"
 
