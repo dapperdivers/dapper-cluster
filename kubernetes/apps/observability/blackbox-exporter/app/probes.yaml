@@ -20,4 +20,16 @@ spec:
         - firewall.manor
         - zigbee-controller.manor
         - zigbee-controller-garage.manor
-        - nut-upsd.kube-system.svc.cluster.local
+---
+kind: Probe
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: services-tcp
+spec:
+  module: tcp_connect
+  prober:
+    url: blackbox-exporter.observability.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - nut-upsd.kube-system.svc.cluster.local:3493
