@@ -26,6 +26,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
+          hostNetwork: false
           annotations:
             k8s.v1.cni.cncf.io/networks: |
               [{
@@ -51,7 +52,9 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: 
+                drop: ["ALL"]
+                add: ["NET_RAW", "NET_ADMIN"]
             resources:
               requests:
                 cpu: 500m
