@@ -101,6 +101,11 @@ spec:
     persistence:
       config:
         existingClaim: *app
+      logs:
+        existingClaim: *app
+        globalMounts:
+        - path: /logs
+          subPath: logs
       assets:
         existingClaim: plex-posters
         globalMounts:
