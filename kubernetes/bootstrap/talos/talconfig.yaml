@@ -115,6 +115,8 @@ nodes:
       - deviceSelector:
           hardwareAddr: "bc:24:11:83:e6:99"  # ens19 interface for 192.168.1.0/24
         dhcp: true  # Using DHCP for the IoT network
+        dhcpOptions:
+          routeMetric: 2048  # Lower priority than main interface
         mtu: 1500
     schematic:
       customization:
@@ -146,6 +148,8 @@ nodes:
       - deviceSelector:
           hardwareAddr: "bc:24:11:6f:f5:98"  # ens19 interface for 192.168.1.0/24
         dhcp: true  # Using DHCP for the IoT network
+        dhcpOptions:
+          routeMetric: 2048  # Lower priority than main interface
         mtu: 1500
     schematic:
       customization:
@@ -174,6 +178,8 @@ nodes:
       - deviceSelector:
           hardwareAddr: "bc:24:11:ae:97:e4"  # ens19 interface for 192.168.1.0/24
         dhcp: true  # Using DHCP for the IoT network
+        dhcpOptions:
+          routeMetric: 2048  # Lower priority than main interface
         mtu: 1500
     schematic:
       customization:
@@ -202,6 +208,8 @@ nodes:
       - deviceSelector:
           hardwareAddr: "bc:24:11:aa:77:dc"  # ens19 interface for 192.168.1.0/24
         dhcp: true  # Using DHCP for the IoT network
+        dhcpOptions:
+          routeMetric: 2048  # Lower priority than main interface
         mtu: 1500
     schematic:
       customization:
