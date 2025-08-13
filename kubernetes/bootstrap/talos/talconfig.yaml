@@ -112,12 +112,6 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:83:e6:99"  # ens19 interface for 192.168.1.0/24
-        dhcp: false  # Disable DHCP to prevent gateway route
-        addresses:
-          - "192.168.1.202/24"  # Set static IP for IoT network
-        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -146,12 +140,6 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:6f:f5:98"  # ens19 interface for 192.168.1.0/24
-        dhcp: false  # Disable DHCP to prevent gateway route
-        addresses:
-          - "192.168.1.201/24"  # Set static IP for IoT network
-        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -176,12 +164,6 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:ae:97:e4"  # ens19 interface for 192.168.1.0/24
-        dhcp: false  # Disable DHCP to prevent gateway route
-        addresses:
-          - "192.168.1.203/24"  # Set static IP for IoT network
         mtu: 1500
     schematic:
       customization:
@@ -208,12 +190,6 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:aa:77:dc"  # ens19 interface for 192.168.1.0/24
-        dhcp: false  # Disable DHCP to prevent gateway route
-        addresses:
-          - "192.168.1.204/24"  # Set static IP for IoT network
-        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -239,4 +215,3 @@ controlPlane:
     - "@./patches/controller/cluster.yaml"
     - "@./patches/controller/machine-gh-actions.yaml"
     - "@./patches/global/machine-talos-api.yaml"
-
