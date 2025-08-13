@@ -128,6 +128,7 @@ nodes:
     patches:
       - "@./patches/gpu/nvidia-gpu.yaml"
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
   - hostname: "talos-node-large-1"
     ipAddress: "10.100.0.54"
     installDisk: "/dev/vda"
@@ -158,6 +159,7 @@ nodes:
             - siderolabs/qemu-guest-agent
     patches:
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
   - hostname: "talos-node-large-2"
     ipAddress: "10.100.0.55"
     installDisk: "/dev/vda"
@@ -188,6 +190,7 @@ nodes:
             - siderolabs/qemu-guest-agent
     patches:
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
   - hostname: "talos-node-large-3"
     ipAddress: "10.100.0.56"
     installDisk: "/dev/vda"
@@ -218,6 +221,7 @@ nodes:
             - siderolabs/qemu-guest-agent
     patches:
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
 # Global patches
 patches:
   - "@./patches/global/cluster-discovery.yaml"
