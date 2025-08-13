@@ -58,7 +58,7 @@ spec:
               memory: "512Mi"
       etcd:
         clusterDomain: cluster.local
-      io-engine:
+      io_engine:
         resources:
           limits:
             cpu: "4"
