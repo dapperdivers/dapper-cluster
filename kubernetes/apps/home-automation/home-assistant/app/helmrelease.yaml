@@ -26,19 +26,13 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
-          annotations:
-            k8s.v1.cni.cncf.io/networks: |
-              [{
-                "name":"multus-main",
-                "namespace": "network",
-                "ips": ["192.168.1.222/24"],
-                "mac": "3e:59:e4:f7:43:08"
-              }]
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
         containers:
           app:
             image:
               repository: ghcr.io/home-operations/home-assistant
-              tag: 2025.8.0@sha256:f418461e9481e7ad27a0d01ba201b810ce1a7f117ae3fe78d0529db4f15c244f
+              tag: 2025.8.1@sha256:4e59d68e002d84a8e48f77df029ecd629fd444f57601931cca39a4ee08a45eec
             env:
               TZ: ${TIME_ZONE}
               UV_SYSTEM_PYTHON: true
@@ -51,7 +45,9 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: 
+                drop: ["ALL"]
+                add: ["NET_RAW", "NET_ADMIN", "NET_BROADCAST"]
             resources:
               requests:
                 cpu: 500m
@@ -62,7 +58,7 @@ spec:
           code-server:
             image:
               repository: ghcr.io/coder/code-server
-              tag: 4.102.2@sha256:8c2aaafb74a2978f48d193135eb3ea6fc0e24563dd59c028b9f1808cefd0fa33
+              tag: 4.103.0@sha256:7a7431c11eff50f446ebe800df0cf3e27b1ba556f906745dd000c9e46b624097
             args: [
               "--auth", "none",
               "--user-data-dir", "/config/.vscode",

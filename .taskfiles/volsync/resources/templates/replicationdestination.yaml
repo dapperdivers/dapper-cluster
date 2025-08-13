@@ -1,0 +1,24 @@
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: {{ .Values.repo }}-manual
+  namespace: {{ .Values.ns }}
+spec:
+  trigger:
+    manual: restore-once
+  restic:
+    repository: {{ .Values.repo }}-volsync-secret
+    destinationPVC: {{ .Values.claim }}
+    copyMethod: Direct
+    storageClassName: {{ .Values.storageClassName }}
+    accessModes: {{ .Values.accessModes }}
+    capacity: {{ .Values.capacity | default "5Gi" }}
+    previous: {{ .Values.previous }}
+    moverSecurityContext:
+      runAsUser: {{ .Values.puid }}
+      runAsGroup: {{ .Values.pgid }}
+      fsGroup: {{ .Values.pgid }}
+    enableFileDeletion: true
+    cleanupCachePVC: true
+    cleanupTempPVC: true

@@ -30,6 +30,10 @@ includes:
     taskfile: .taskfiles/resources/Taskfile.yaml
     vars:
       ROOT_DIR: '{{.ROOT_DIR}}'
+  pod-logs:
+    taskfile: .taskfiles/pod-logs/Taskfile.yaml
+    vars:
+      ROOT_DIR: '{{.ROOT_DIR}}'
 
 tasks:
 

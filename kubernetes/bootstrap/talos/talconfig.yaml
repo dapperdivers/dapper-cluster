@@ -112,6 +112,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:83:e6:99"  # ens19 interface for 192.168.1.0/24
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.202/24"  # Set static IP for IoT network
+        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -122,6 +128,7 @@ nodes:
     patches:
       - "@./patches/gpu/nvidia-gpu.yaml"
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
   - hostname: "talos-node-large-1"
     ipAddress: "10.100.0.54"
     installDisk: "/dev/vda"
@@ -139,6 +146,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:6f:f5:98"  # ens19 interface for 192.168.1.0/24
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.201/24"  # Set static IP for IoT network
+        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -146,6 +159,7 @@ nodes:
             - siderolabs/qemu-guest-agent
     patches:
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
   - hostname: "talos-node-large-2"
     ipAddress: "10.100.0.55"
     installDisk: "/dev/vda"
@@ -163,6 +177,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:ae:97:e4"  # ens19 interface for 192.168.1.0/24
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.203/24"  # Set static IP for IoT network
+        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -170,6 +190,7 @@ nodes:
             - siderolabs/qemu-guest-agent
     patches:
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
   - hostname: "talos-node-large-3"
     ipAddress: "10.100.0.56"
     installDisk: "/dev/vda"
@@ -187,6 +208,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:aa:77:dc"  # ens19 interface for 192.168.1.0/24
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.204/24"  # Set static IP for IoT network
+        mtu: 1500
     schematic:
       customization:
         systemExtensions:
@@ -194,6 +221,7 @@ nodes:
             - siderolabs/qemu-guest-agent
     patches:
       - "@./patches/storage/mayastor.yaml"
+      - "@./patches/worker/iot-broadcast.yaml"
 # Global patches
 patches:
   - "@./patches/global/cluster-discovery.yaml"

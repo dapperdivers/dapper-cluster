@@ -29,8 +29,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         cronjob:
-          schedule: "* * * * 1"
-          #schedule: "0 1 * * *"
+          schedule: "0 5 * * *"
           timeZone: &timeZone ${TIME_ZONE}
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
@@ -46,7 +45,6 @@ spec:
             image:
               repository: registry.k8s.io/git-sync/git-sync
               tag: v4.4.2@sha256:3089d9787b89bdc5af01d9f6e8d515aefb9672e8aea3972d7ff67478112bacb3
-            restartPolicy: Always
             resources:
               requests:
                 cpu: 10m
@@ -56,7 +54,7 @@ spec:
           app:
             image:
               repository: kometateam/kometa
-              tag: nightly@sha256:1f1f030f605a72a9fe274c4813863c13ed1c03cf03b4616287d432363ad5d4ba
+              tag: nightly@sha256:ec5c6cdce2bee403c2b33b4248385133a09bbbf7224ee7f3c641e96b57e07ef4
             command:
               - /bin/sh
               - -c
@@ -76,21 +74,30 @@ spec:
               KOMETA_SONARR_ROOT_FOLDER_PATH: "/safe/tv"
               KOMETA_SONARR_UHD_HOST: "http://sonarr-uhd.media"
               KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/safe/tv-4k"
+              KOMETA_DRY_RUN: True
+              KOMETA_LOG_LEVEL: DEBUG
             envFrom:
               - secretRef:
                   name: kometa-secret
             resources:
               requests:
-                cpu: 2000m
+                cpu: 4000m
                 memory: 4096M
               limits:
-                cpu: 2000m
+                cpu: 6000m
                 memory: 8192M
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
     defaultPodOptions:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: plex
+            topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

@@ -1,0 +1,89 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+set: [pipefail]
+
+vars:
+  APP: '{{.APP | default ""}}'
+  NAMESPACE: '{{.NAMESPACE | default "default"}}'
+  FILE_PATH: '{{.FILE_PATH | default ""}}'
+  OUTPUT_FILE: '{{.OUTPUT_FILE | default "./{{.APP}}-log.txt"}}'
+
+tasks:
+
+  download:
+    desc: Download file from Kubernetes pod
+    summary: |
+      Download a file from a running Kubernetes pod
+      
+      Usage:
+        task pod-logs:download APP=kometa NAMESPACE=media FILE_PATH=/config/logs/meta.log
+        task pod-logs:download APP=sonarr NAMESPACE=media FILE_PATH=/config/logs/sonarr.txt OUTPUT_FILE=./sonarr.log
+        task pod-logs:download APP=nginx NAMESPACE=default FILE_PATH=/var/log/nginx/access.log
+      
+      Required variables:
+        APP: Name of the application (used to find the pod via app.kubernetes.io/name label)
+        FILE_PATH: Path to the file inside the container
+      
+      Optional variables:
+        NAMESPACE: Kubernetes namespace (default: default)
+        OUTPUT_FILE: Local file path to save the downloaded file (default: ./{{.APP}}-log.txt)
+    cmd: |
+      if [ -z "{{.APP}}" ]; then
+        echo "❌ APP variable is required"
+        echo "Usage: task pod-logs:download APP=myapp FILE_PATH=/path/to/file"
+        exit 1
+      fi
+      
+      if [ -z "{{.FILE_PATH}}" ]; then
+        echo "❌ FILE_PATH variable is required"
+        echo "Usage: task pod-logs:download APP={{.APP}} FILE_PATH=/path/to/file"
+        exit 1
+      fi
+      
+      # Find the running pod for the app
+      POD=$(kubectl get pods -n {{.NAMESPACE}} -l app.kubernetes.io/name={{.APP}} -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+      
+      if [ -z "$POD" ]; then
+        echo "❌ No running pod found for app '{{.APP}}' in namespace '{{.NAMESPACE}}'"
+        echo "Available pods in namespace {{.NAMESPACE}}:"
+        kubectl get pods -n {{.NAMESPACE}}
+        exit 1
+      fi
+      
+      echo "📥 Downloading {{.FILE_PATH}} from pod $POD ({{.APP}}) in namespace {{.NAMESPACE}}"
+      echo "💾 Saving to {{.OUTPUT_FILE}}"
+      
+      # Download the file
+      kubectl cp {{.NAMESPACE}}/$POD:{{.FILE_PATH}} {{.OUTPUT_FILE}}
+      
+      if [ $? -eq 0 ]; then
+        echo "✅ File downloaded successfully to {{.OUTPUT_FILE}}"
+        echo "📊 File size: $(du -h {{.OUTPUT_FILE}} | cut -f1)"
+      else
+        echo "❌ Failed to download file"
+        exit 1
+      fi
+    preconditions:
+      - sh: kubectl version --client
+        msg: kubectl is not available
+      - sh: kubectl auth can-i get pods -n {{.NAMESPACE}}
+        msg: No permissions to access pods in namespace {{.NAMESPACE}}
+
+  # Convenience task for kometa meta.log
+  kometa-meta:
+    desc: Download kometa meta.log file
+    cmd: task pod-logs:download APP=kometa NAMESPACE=media FILE_PATH=/config/logs/meta.log OUTPUT_FILE=./kometa-meta.log
+
+  list-pods:
+    desc: List all pods in a namespace
+    summary: |
+      List all pods in a namespace to help identify available apps
+      
+      Usage:
+        task pod-logs:list-pods NAMESPACE=media
+        task pod-logs:list-pods NAMESPACE=default
+    cmd: |
+      echo "📋 Pods in namespace {{.NAMESPACE}}:"
+      kubectl get pods -n {{.NAMESPACE}} -o wide
