@@ -81,16 +81,23 @@ spec:
                   name: kometa-secret
             resources:
               requests:
-                cpu: 2000m
+                cpu: 4000m
                 memory: 4096M
               limits:
-                cpu: 2000m
+                cpu: 6000m
                 memory: 8192M
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
     defaultPodOptions:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: plex
+            topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
