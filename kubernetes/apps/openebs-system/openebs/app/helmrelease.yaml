@@ -53,8 +53,8 @@ spec:
       io-engine:
         resources:
           limits:
-            cpu: "2"
+            cpu: "4"
             memory: "4Gi"
           requests:
-            cpu: "500m"
+            cpu: "1"
             memory: "1Gi"
