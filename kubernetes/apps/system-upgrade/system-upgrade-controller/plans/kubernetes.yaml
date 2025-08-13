@@ -1,11 +1,11 @@
----
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/upgrade.cattle.io/plan_v1.json
 apiVersion: upgrade.cattle.io/v1
 kind: Plan
 metadata:
   name: kubernetes
 spec:
-  version: ${KUBERNETES_VERSION}
+  # renovate: datasource=github-releases depName=kubernetes/kubernetes
+  version: "v1.33.3"
   concurrency: 1
   exclusive: true
   serviceAccountName: system-upgrade-controller
