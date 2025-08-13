@@ -114,9 +114,9 @@ nodes:
         mtu: 1500
       - deviceSelector:
           hardwareAddr: "bc:24:11:83:e6:99"  # ens19 interface for 192.168.1.0/24
-        dhcp: true  # Using DHCP for the IoT network
-        dhcpOptions:
-          routeMetric: 2048  # Lower priority than main interface
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.202/24"  # Set static IP for IoT network
         mtu: 1500
     schematic:
       customization:
@@ -148,9 +148,9 @@ nodes:
         mtu: 1500
       - deviceSelector:
           hardwareAddr: "bc:24:11:6f:f5:98"  # ens19 interface for 192.168.1.0/24
-        dhcp: true  # Using DHCP for the IoT network
-        dhcpOptions:
-          routeMetric: 2048  # Lower priority than main interface
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.201/24"  # Set static IP for IoT network
         mtu: 1500
     schematic:
       customization:
@@ -179,9 +179,9 @@ nodes:
         mtu: 1500
       - deviceSelector:
           hardwareAddr: "bc:24:11:ae:97:e4"  # ens19 interface for 192.168.1.0/24
-        dhcp: true  # Using DHCP for the IoT network
-        dhcpOptions:
-          routeMetric: 2048  # Lower priority than main interface
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.203/24"  # Set static IP for IoT network
         mtu: 1500
     schematic:
       customization:
@@ -210,9 +210,9 @@ nodes:
         mtu: 1500
       - deviceSelector:
           hardwareAddr: "bc:24:11:aa:77:dc"  # ens19 interface for 192.168.1.0/24
-        dhcp: true  # Using DHCP for the IoT network
-        dhcpOptions:
-          routeMetric: 2048  # Lower priority than main interface
+        dhcp: false  # Disable DHCP to prevent gateway route
+        addresses:
+          - "192.168.1.204/24"  # Set static IP for IoT network
         mtu: 1500
     schematic:
       customization:
