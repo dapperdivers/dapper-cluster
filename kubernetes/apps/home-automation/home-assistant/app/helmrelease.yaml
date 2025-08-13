@@ -47,7 +47,7 @@ spec:
               readOnlyRootFilesystem: true
               capabilities: 
                 drop: ["ALL"]
-                add: ["NET_RAW", "NET_ADMIN"]
+                add: ["NET_RAW", "NET_ADMIN", "NET_BROADCAST"]
             resources:
               requests:
                 cpu: 500m
