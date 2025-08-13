@@ -26,9 +26,8 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
-          annotations:
-            k8s.v1.cni.cncf.io/networks: multus-iot
-          dnsPolicy: ClusterFirst
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
         containers:
           app:
             image:
