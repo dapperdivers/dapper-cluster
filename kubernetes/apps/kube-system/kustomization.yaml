@@ -11,8 +11,8 @@ resources:
   - ./metrics-server/ks.yaml
   - ./reloader/ks.yaml
   - ./spegel/ks.yaml
-  - ./gpu_plugins/nvidia-device-plugin/ks.yaml
-  - ./gpu_plugins/intel-device-plugin/ks.yaml
+  - ./gpu-plugins/nvidia-device-plugin/ks.yaml
+  - ./gpu-plugins/intel-device-plugin/ks.yaml
   - ./node-feature-discovery/ks.yaml
   - ./nut-upsd/ks.yaml
   - ./reflector/ks.yaml
