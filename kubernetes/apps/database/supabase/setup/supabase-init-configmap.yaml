@@ -82,5 +82,100 @@ data:
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+    -- Create auth schema enums and types
+    CREATE TYPE IF NOT EXISTS auth.factor_type AS ENUM ('totp', 'phone', 'webauthn');
+    CREATE TYPE IF NOT EXISTS auth.factor_status AS ENUM ('unverified', 'verified');
+    CREATE TYPE IF NOT EXISTS auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3');
+    CREATE TYPE IF NOT EXISTS auth.code_challenge_method AS ENUM ('s256', 'plain');
+
+    -- Create essential auth tables
+    CREATE TABLE IF NOT EXISTS auth.audit_log_entries (
+        instance_id uuid,
+        id uuid NOT NULL,
+        payload json,
+        created_at timestamp with time zone,
+        ip_address character varying(64) DEFAULT ''::character varying NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS auth.instances (
+        id uuid NOT NULL,
+        uuid uuid,
+        raw_base_config text,
+        created_at timestamp with time zone,
+        updated_at timestamp with time zone
+    );
+
+    CREATE TABLE IF NOT EXISTS auth.users (
+        instance_id uuid,
+        id uuid NOT NULL,
+        aud character varying(255),
+        role character varying(255),
+        email character varying(255),
+        encrypted_password character varying(255),
+        email_confirmed_at timestamp with time zone,
+        invited_at timestamp with time zone,
+        confirmation_token character varying(255),
+        confirmation_sent_at timestamp with time zone,
+        recovery_token character varying(255),
+        recovery_sent_at timestamp with time zone,
+        email_change_token_new character varying(255),
+        email_change character varying(255),
+        email_change_sent_at timestamp with time zone,
+        last_sign_in_at timestamp with time zone,
+        raw_app_meta_data jsonb,
+        raw_user_meta_data jsonb,
+        is_super_admin boolean,
+        created_at timestamp with time zone,
+        updated_at timestamp with time zone,
+        phone text,
+        phone_confirmed_at timestamp with time zone,
+        phone_change text DEFAULT ''::text,
+        phone_change_token character varying(255) DEFAULT ''::character varying,
+        phone_change_sent_at timestamp with time zone,
+        confirmed_at timestamp with time zone,
+        email_change_token_current character varying(255) DEFAULT ''::character varying,
+        email_change_confirm_status smallint DEFAULT 0,
+        banned_until timestamp with time zone,
+        reauthentication_token character varying(255) DEFAULT ''::character varying,
+        reauthentication_sent_at timestamp with time zone,
+        is_sso_user boolean DEFAULT false NOT NULL,
+        deleted_at timestamp with time zone,
+        is_anonymous boolean DEFAULT false NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS auth.mfa_factors (
+        id uuid NOT NULL,
+        user_id uuid NOT NULL,
+        friendly_name text,
+        factor_type auth.factor_type NOT NULL,
+        status auth.factor_status NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        updated_at timestamp with time zone NOT NULL,
+        secret text,
+        phone text,
+        last_challenged_at timestamp with time zone
+    );
+
+    CREATE TABLE IF NOT EXISTS auth.mfa_challenges (
+        id uuid NOT NULL,
+        factor_id uuid NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        verified_at timestamp with time zone,
+        ip_address inet NOT NULL,
+        otp_code text
+    );
+
+    -- Add primary keys
+    ALTER TABLE auth.audit_log_entries ADD PRIMARY KEY (id) IF NOT EXISTS;
+    ALTER TABLE auth.instances ADD PRIMARY KEY (id) IF NOT EXISTS;
+    ALTER TABLE auth.users ADD PRIMARY KEY (id) IF NOT EXISTS;
+    ALTER TABLE auth.mfa_factors ADD PRIMARY KEY (id) IF NOT EXISTS;
+    ALTER TABLE auth.mfa_challenges ADD PRIMARY KEY (id) IF NOT EXISTS;
+
+    -- Create essential indexes
+    CREATE UNIQUE INDEX IF NOT EXISTS users_email_partial_key ON auth.users USING btree (email) WHERE (deleted_at IS NULL);
+    CREATE INDEX IF NOT EXISTS users_instance_id_idx ON auth.users USING btree (instance_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS unique_verified_phone_factor ON auth.mfa_factors USING btree (user_id, phone) WHERE (status = 'verified'::auth.factor_status);
+
     -- Log completion
-    SELECT 'Supabase schemas and roles initialized successfully' AS status;
+    SELECT 'Supabase schemas and auth tables initialized successfully' AS status;
