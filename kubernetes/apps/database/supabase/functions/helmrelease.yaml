@@ -30,7 +30,7 @@ spec:
           functions:
             image:
               repository: supabase/edge-runtime
-              tag: v1.61.6
+              tag: v1.67.4
             env:
               FUNCTIONS_VERIFY_JWT: "false"
               FUNCTIONS_HTTP_HOST: "0.0.0.0"

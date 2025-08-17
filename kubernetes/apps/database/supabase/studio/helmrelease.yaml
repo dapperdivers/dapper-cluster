@@ -30,7 +30,7 @@ spec:
           studio:
             image:
               repository: supabase/studio
-              tag: 20241216-cd3cbdb
+              tag: 2025.06.30-sha-6f5982d
             env:
               STUDIO_PG_META_URL: "http://supabase.database.svc.cluster.local:8080"
               SUPABASE_URL: "https://supabase.${SECRET_DOMAIN}"
