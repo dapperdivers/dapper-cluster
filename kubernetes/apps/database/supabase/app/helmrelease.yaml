@@ -50,17 +50,13 @@ spec:
               - -c
               - |
                 echo "Waiting for database to be ready..."
-                until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER; do
+                until pg_isready -h $INIT_POSTGRES_HOST -p 5432 -U $INIT_POSTGRES_SUPER_USER; do
                   echo "Database not ready, waiting 5 seconds..."
                   sleep 5
                 done
-                echo "Database is ready, running Supabase initialization..."
-                psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB -f /init-sql/init-supabase.sql
+                echo "Database is ready, running Supabase initialization as superuser..."
+                PGPASSWORD=$INIT_POSTGRES_SUPER_PASS psql -h $INIT_POSTGRES_HOST -p 5432 -U $INIT_POSTGRES_SUPER_USER -d $INIT_POSTGRES_DBNAME -f /init-sql/init-supabase.sql
                 echo "Supabase initialization completed successfully"
-            env:
-              POSTGRES_HOST: "postgres16-rw.database.svc.cluster.local"
-              POSTGRES_PORT: "5432"
-              POSTGRES_DB: "archon"
             envFrom:
               - secretRef:
                   name: supabase-postgres-secret
