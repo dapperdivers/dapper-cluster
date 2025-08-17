@@ -125,6 +125,8 @@ spec:
               - secretRef:
                   name: archon-postgres-secret
               - secretRef:
+                  name: archon-supabase-secret
+              - secretRef:
                   name: *app
             securityContext:
               allowPrivilegeEscalation: false
@@ -191,6 +193,8 @@ spec:
             envFrom:
               - secretRef:
                   name: archon-postgres-secret
+              - secretRef:
+                  name: archon-supabase-secret
               - secretRef:
                   name: *app
             securityContext:
