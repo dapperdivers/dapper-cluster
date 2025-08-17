@@ -31,7 +31,7 @@ spec:
             image:
               repository: supabase/edge-runtime
               tag: v1.67.4
-            command:
+            args:
               - "start"
             env:
               FUNCTIONS_VERIFY_JWT: "false"
