@@ -83,7 +83,7 @@ spec:
               HOST: "0.0.0.0"
               PORT: &frontendPort 3737
               VITE_PORT: 3737
-              # ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
+              ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -110,6 +110,45 @@ spec:
               limits:
                 cpu: 500m
                 memory: 1Gi
+          
+          server:
+            image:
+              repository: ghcr.io/dapperdivers/archon-server
+              tag: latest
+            env:
+              HOST: "0.0.0.0"
+              PORT: &serverPort 8181
+            envFrom:
+              - secretRef:
+                  name: archon-postgres-secret
+              - secretRef:
+                  name: *app
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &serverProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *serverPort
+                  initialDelaySeconds: 30
+                  periodSeconds: 60
+                  timeoutSeconds: 10
+                  failureThreshold: 3
+              readiness: *serverProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
 
           mcp:
             image:
@@ -118,7 +157,7 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: &mcpPort 8051
-              # ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
+              ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
               AGENTS_URL: "http://archon.ai.svc.cluster.local:8052"
             securityContext:
               allowPrivilegeEscalation: false
@@ -145,6 +184,7 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: &agentsPort 8052
+              ARCHON_SERVER_PORT: *serverPort
             envFrom:
               - secretRef:
                   name: archon-postgres-secret
@@ -197,6 +237,8 @@ spec:
         ports:
           http:
             port: *frontendPort
+          server:
+            port: *serverPort
           mcp:
             port: *mcpPort
           agents:
@@ -214,6 +256,10 @@ spec:
                 service:
                   identifier: app
                   port: http
+              - path: /mcp
+                service:
+                  identifier: app
+                  port: mcp
         tls:
           - hosts:
               - *host
