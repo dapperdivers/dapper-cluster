@@ -1,0 +1,187 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app supabase-support
+  namespace: database
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+
+  values:
+    controllers:
+      supabase-support:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          imgproxy:
+            image:
+              repository: darthsim/imgproxy
+              tag: v3.25.0
+            env:
+              IMGPROXY_BIND: "0.0.0.0:5001"
+              IMGPROXY_LOCAL_FILESYSTEM_ROOT: "/var/lib/storage"
+              IMGPROXY_USE_ETAG: "true"
+              IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &imgproxyProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &imgproxyPort 5001
+                  initialDelaySeconds: 30
+                  periodSeconds: 5
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *imgproxyProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+          meta:
+            image:
+              repository: supabase/postgres-meta
+              tag: v0.91.0
+            env:
+              PG_META_PORT: &metaPort 8080
+              PG_META_DB_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_HOST
+              PG_META_DB_PORT: "5432"
+              PG_META_DB_NAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_DBNAME
+              PG_META_DB_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_USER
+              PG_META_DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_PASS
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &metaProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *metaPort
+                  initialDelaySeconds: 30
+                  periodSeconds: 5
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *metaProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+# Temporarily disabled analytics due to gcloud.json requirement
+          # analytics:
+          #   image:
+          #     repository: supabase/logflare
+          #     tag: 1.14.2
+
+          vector:
+            image:
+              repository: timberio/vector
+              tag: 0.41.1-alpine
+            env:
+              VECTOR_CONFIG: "/etc/vector/vector.yaml"
+              VECTOR_REQUIRE_HEALTHY: "true"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &vectorProbes
+                enabled: false
+              readiness: *vectorProbes
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+
+    persistence:
+      data:
+        existingClaim: ${APP}
+        globalMounts:
+          - path: /var/lib/storage
+            subPath: storage
+
+      vector-config:
+        type: configMap
+        name: supabase-vector-config
+        advancedMounts:
+          supabase-support:
+            vector:
+              - path: /etc/vector
+                readOnly: true
+
+    service:
+      app:
+        controller: *app
+        type: ClusterIP
+        ports:
+          imgproxy:
+            port: *imgproxyPort
+          meta:
+            port: *metaPort
+# analytics:
+          #   port: *analyticsPort
+          vector:
+            port: 9001
