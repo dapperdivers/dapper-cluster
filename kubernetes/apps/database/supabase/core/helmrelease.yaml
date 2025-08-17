@@ -1,0 +1,325 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app supabase
+  namespace: database
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+
+  values:
+    controllers:
+      supabase:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          kong:
+            image:
+              repository: kong
+              tag: 2.8.1
+            env:
+              KONG_DATABASE: "off"
+              KONG_DECLARATIVE_CONFIG: "/home/kong/kong.yml"
+              KONG_DNS_ORDER: "LAST,A,CNAME"
+              KONG_PLUGINS: "request-transformer,cors,key-auth,acl,basic-auth"
+              KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
+              KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
+              KONG_PREFIX: "/tmp/kong"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &kongProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /status
+                    port: &kongPort 8000
+                  initialDelaySeconds: 60
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *kongProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+
+          auth:
+            image:
+              repository: supabase/gotrue
+              tag: v2.177.0
+            env:
+              GOTRUE_API_HOST: "0.0.0.0"
+              GOTRUE_API_PORT: &authPort 9999
+              GOTRUE_DB_DRIVER: "postgres"
+              GOTRUE_SITE_URL: "https://supabase.${SECRET_DOMAIN}"
+              GOTRUE_URI_ALLOW_LIST: "https://archon.${SECRET_DOMAIN}"
+              GOTRUE_JWT_ADMIN_ROLES: "service_role"
+              GOTRUE_JWT_AUD: "authenticated"
+              GOTRUE_JWT_DEFAULT_GROUP_NAME: "authenticated"
+              GOTRUE_LOG_LEVEL: "info"
+              GOTRUE_OPERATOR_TOKEN: "some-operator-token"
+              GOTRUE_DISABLE_SIGNUP: "false"
+              GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+              GOTRUE_MAILER_AUTOCONFIRM: "false"
+              GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: "true"
+              GOTRUE_MAILER_OTP_EXP: "86400"
+              GOTRUE_MAILER_OTP_LENGTH: "6"
+              GOTRUE_PASSWORD_MIN_LENGTH: "6"
+              API_EXTERNAL_URL: "https://supabase.${SECRET_DOMAIN}"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+              - secretRef:
+                  name: supabase-postgres-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &authProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *authPort
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *authProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+          rest:
+            image:
+              repository: postgrest/postgrest
+              tag: v12.2.12
+            env:
+              PGRST_DB_SCHEMAS: "public,storage,graphql_public"
+              PGRST_DB_ANON_ROLE: "anon"
+              PGRST_DB_USE_LEGACY_GUCS: "false"
+              PGRST_APP_SETTINGS_JWT_SECRET: "@jwt_secret"
+              PGRST_APP_SETTINGS_JWT_EXP: "3600"
+              PGRST_API_HOST: "0.0.0.0"
+              PGRST_API_PORT: &restPort 3000
+              PGRST_LOG_LEVEL: "info"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+              - secretRef:
+                  name: supabase-postgres-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &restProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *restPort
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *restProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 750m
+                memory: 512Mi
+
+          realtime:
+            image:
+              repository: supabase/realtime
+              tag: v2.34.47
+            env:
+              PORT: &realtimePort 4000
+              DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+              FLY_ALLOC_ID: "fly123"
+              FLY_APP_NAME: "realtime"
+              SECRET_KEY_BASE: "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq"
+              ERL_AFLAGS: "-proto_dist inet_tcp"
+              ENABLE_TAILSCALE: "false"
+              DNS_NODES: "''"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+              - secretRef:
+                  name: supabase-postgres-secret
+            securityContext:
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: false
+              runAsNonRoot: false
+              capabilities:
+                add:
+                  - SETUID
+                  - SETGID
+                drop:
+                  - ALL
+            probes:
+              liveness: &realtimeProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *realtimePort
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *realtimeProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+          storage:
+            image:
+              repository: supabase/storage-api
+              tag: v1.25.7
+            env:
+              POSTGREST_URL: "http://localhost:3000"
+              PGOPTIONS: "-c search_path=storage,public"
+              FILE_SIZE_LIMIT: "52428800"
+              STORAGE_BACKEND: "file"
+              FILE_STORAGE_BACKEND_PATH: "/var/lib/storage"
+              TENANT_ID: "stub"
+              REGION: "stub"
+              GLOBAL_S3_BUCKET: "stub"
+              ENABLE_IMAGE_TRANSFORMATION: "true"
+              IMGPROXY_URL: "http://supabase-support.database.svc.cluster.local:5001"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+              - secretRef:
+                  name: supabase-postgres-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &storageProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /status
+                    port: &storagePort 5000
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *storageProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+
+    persistence:
+      data:
+        existingClaim: ${APP}
+        globalMounts:
+          - path: /var/lib/storage
+            subPath: storage
+          - path: /tmp
+            subPath: tmp
+
+      kong-config:
+        type: configMap
+        name: supabase-kong-config
+        globalMounts:
+          - path: /home/kong/kong.yml
+            subPath: kong.yml
+            readOnly: true
+
+
+    service:
+      app:
+        controller: *app
+        type: ClusterIP
+        ports:
+          http:
+            port: *kongPort
+          auth:
+            port: *authPort
+          rest:
+            port: *restPort
+          realtime:
+            port: *realtimePort
+          storage:
+            port: *storagePort
+
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &host "supabase.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: "${SECRET_DOMAIN/./-}-tls"

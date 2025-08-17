@@ -15,5 +15,7 @@
         "vs-kubernetes.knownKubeconfigs": [
           "./kubeconfig"
       ]
-    }
+    },
+    "git.useCommitInputAsStashMessage": true,
+    "git.allowNoVerifyCommit": true
 }
