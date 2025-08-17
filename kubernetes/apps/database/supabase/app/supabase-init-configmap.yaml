@@ -13,22 +13,11 @@ data:
     CREATE SCHEMA IF NOT EXISTS _realtime;
     CREATE SCHEMA IF NOT EXISTS graphql_public;
 
-    -- Create Supabase roles (using DO blocks for IF NOT EXISTS logic)
-    DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'anon') THEN
-            CREATE ROLE anon NOLOGIN;
-        END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'authenticated') THEN
-            CREATE ROLE authenticated NOLOGIN;
-        END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'service_role') THEN
-            CREATE ROLE service_role NOLOGIN;
-        END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'authenticator') THEN
-            CREATE ROLE authenticator LOGIN;
-        END IF;
-    END $$;
+    -- Create Supabase roles (ignoring errors if they exist)
+    CREATE ROLE anon NOLOGIN;
+    CREATE ROLE authenticated NOLOGIN;
+    CREATE ROLE service_role NOLOGIN;
+    CREATE ROLE authenticator LOGIN;
 
     -- Grant role memberships
     GRANT anon TO authenticator;

@@ -55,7 +55,7 @@ spec:
                   sleep 5
                 done
                 echo "Database is ready, running Supabase initialization..."
-                psql -v ON_ERROR_STOP=1 -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB -f /init-sql/init-supabase.sql
+                psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB -f /init-sql/init-supabase.sql
                 echo "Supabase initialization completed successfully"
             env:
               POSTGRES_HOST: "postgres16-rw.database.svc.cluster.local"
