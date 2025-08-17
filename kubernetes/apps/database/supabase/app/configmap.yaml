@@ -5,7 +5,7 @@ metadata:
   name: supabase-kong-config
 data:
   kong.yml: |
-    _format_version: "3.0"
+    _format_version: "2.1"
 
     services:
       - name: auth-v1-open
@@ -36,6 +36,9 @@ data:
           - name: acl
             config:
               hide_groups_header: true
+              allow:
+                - anon
+                - admin
 
       - name: rest-v1
         _comment: "PostgREST: /rest/v1/* -> http://localhost:3000/*"
@@ -53,6 +56,9 @@ data:
           - name: acl
             config:
               hide_groups_header: true
+              allow:
+                - anon
+                - admin
 
       - name: realtime-v1
         _comment: "Realtime: /realtime/v1/* -> ws://localhost:4000/socket/*"
@@ -70,6 +76,9 @@ data:
           - name: acl
             config:
               hide_groups_header: true
+              allow:
+                - anon
+                - admin
 
       - name: storage-v1
         _comment: "Storage: /storage/v1/* -> http://localhost:5000/*"
@@ -87,6 +96,9 @@ data:
           - name: acl
             config:
               hide_groups_header: true
+              allow:
+                - anon
+                - admin
 
     consumers:
       - username: anon

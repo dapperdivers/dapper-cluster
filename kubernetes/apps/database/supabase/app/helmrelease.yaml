@@ -53,6 +53,9 @@ spec:
               KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
               KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
               KONG_PREFIX: "/tmp/kong"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
