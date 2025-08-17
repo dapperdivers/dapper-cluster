@@ -78,11 +78,11 @@ spec:
               readiness: *kongProbes
             resources:
               requests:
-                cpu: 50m
-                memory: 256Mi
-              limits:
-                cpu: 500m
+                cpu: 100m
                 memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
 
           auth:
             image:
@@ -133,11 +133,11 @@ spec:
               readiness: *authProbes
             resources:
               requests:
-                cpu: 50m
-                memory: 128Mi
+                cpu: 100m
+                memory: 256Mi
               limits:
                 cpu: 500m
-                memory: 256Mi
+                memory: 512Mi
 
           rest:
             image:
@@ -178,11 +178,11 @@ spec:
               readiness: *restProbes
             resources:
               requests:
-                cpu: 50m
-                memory: 128Mi
-              limits:
-                cpu: 500m
+                cpu: 100m
                 memory: 256Mi
+              limits:
+                cpu: 750m
+                memory: 512Mi
 
           realtime:
             image:
@@ -223,11 +223,11 @@ spec:
               readiness: *realtimeProbes
             resources:
               requests:
-                cpu: 50m
-                memory: 128Mi
+                cpu: 100m
+                memory: 256Mi
               limits:
                 cpu: 500m
-                memory: 256Mi
+                memory: 512Mi
 
           storage:
             image:
@@ -270,8 +270,8 @@ spec:
               readiness: *storageProbes
             resources:
               requests:
-                cpu: 50m
-                memory: 128Mi
+                cpu: 100m
+                memory: 256Mi
               limits:
                 cpu: 500m
                 memory: 512Mi
