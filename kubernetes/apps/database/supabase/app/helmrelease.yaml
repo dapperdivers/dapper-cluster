@@ -83,7 +83,7 @@ spec:
           auth:
             image:
               repository: supabase/gotrue
-              tag: v2.164.2
+              tag: v2.177.0
             env:
               GOTRUE_API_HOST: "0.0.0.0"
               GOTRUE_API_PORT: &authPort 9999
@@ -137,7 +137,7 @@ spec:
           rest:
             image:
               repository: postgrest/postgrest
-              tag: v12.2.3
+              tag: v12.2.12
             env:
               PGRST_DB_SCHEMAS: "public,storage,graphql_public"
               PGRST_DB_ANON_ROLE: "anon"
@@ -182,7 +182,7 @@ spec:
           realtime:
             image:
               repository: supabase/realtime
-              tag: v2.30.23
+              tag: v2.34.47
             env:
               PORT: &realtimePort 4000
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
@@ -228,7 +228,7 @@ spec:
           storage:
             image:
               repository: supabase/storage-api
-              tag: v1.11.11
+              tag: v1.25.7
             env:
               ANON_KEY: ""
               SERVICE_KEY: ""
