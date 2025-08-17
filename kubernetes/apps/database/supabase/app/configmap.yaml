@@ -100,18 +100,6 @@ data:
                 - anon
                 - admin
 
-    consumers:
-      - username: anon
-        keyauth_credentials:
-          - key: "PLACEHOLDER_ANON_KEY"
-        acls:
-          - group: anon
-
-      - username: service_role
-        keyauth_credentials:
-          - key: "PLACEHOLDER_SERVICE_ROLE_KEY"
-        acls:
-          - group: admin
 
     plugins:
       - name: cors

@@ -41,35 +41,6 @@ spec:
               limits:
                 cpu: 100m
                 memory: 256Mi
-          kong-config:
-            image:
-              repository: busybox
-              tag: latest
-            command:
-              - sh
-              - -c
-              - |
-                # Simple variable substitution using sed
-                echo "ANON_KEY: $ANON_KEY"
-                echo "SERVICE_ROLE_KEY: $SERVICE_ROLE_KEY"
-                if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
-                  echo "ERROR: Missing required environment variables"
-                  exit 1
-                fi
-                sed "s/PLACEHOLDER_ANON_KEY/${ANON_KEY}/g; s/PLACEHOLDER_SERVICE_ROLE_KEY/${SERVICE_ROLE_KEY}/g" /config-template/kong.yml > /config/kong.yml
-                echo "Kong config processed successfully"
-                echo "=== Generated Kong Config ==="
-                cat /config/kong.yml
-            envFrom:
-              - secretRef:
-                  name: supabase-secret
-            resources:
-              requests:
-                cpu: 10m
-                memory: 32Mi
-              limits:
-                cpu: 100m
-                memory: 128Mi
         containers:
           kong:
             image:
@@ -77,15 +48,15 @@ spec:
               tag: 2.8.1
             env:
               KONG_DATABASE: "off"
-              KONG_DECLARATIVE_CONFIG: "/config/kong.yml"
+              KONG_DECLARATIVE_CONFIG: "/home/kong/kong.yml"
               KONG_DNS_ORDER: "LAST,A,CNAME"
               KONG_PLUGINS: "request-transformer,cors,key-auth,acl,basic-auth"
               KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
               KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
               KONG_PREFIX: "/tmp/kong"
-              # Pass through the JWT keys for runtime use
-              ANON_KEY: "${ANON_KEY}"
-              SERVICE_ROLE_KEY: "${SERVICE_ROLE_KEY}"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -327,24 +298,13 @@ spec:
           - path: /tmp
             subPath: tmp
 
-      kong-config-template:
+      kong-config:
         type: configMap
         name: supabase-kong-config
-        advancedMounts:
-          supabase:
-            kong-config:
-              - path: /config-template/kong.yml
-                subPath: kong.yml
-                readOnly: true
-
-      kong-config-processed:
-        type: emptyDir
-        advancedMounts:
-          supabase:
-            kong-config:
-              - path: /config
-            kong:
-              - path: /config
+        globalMounts:
+          - path: /home/kong/kong.yml
+            subPath: kong.yml
+            readOnly: true
 
     service:
       app:
