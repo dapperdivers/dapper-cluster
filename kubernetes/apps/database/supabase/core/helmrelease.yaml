@@ -208,13 +208,28 @@ spec:
                     name: supabase-postgres-secret
                     key: INIT_POSTGRES_DBNAME
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+              API_JWT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-secret
+                    key: API_JWT_SECRET
+              SECRET_KEY_BASE:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-secret
+                    key: SECRET_KEY_BASE
               FLY_ALLOC_ID: "fly123"
               FLY_APP_NAME: "realtime"
               APP_NAME: "realtime"
-              SECRET_KEY_BASE: "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq"
               ERL_AFLAGS: "-proto_dist inet_tcp"
               ENABLE_TAILSCALE: "false"
               DNS_NODES: "''"
+              SEED_SELF_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-secret
+                    key: SEED_SELF_HOST
+              RUN_JANITOR: "true"
             envFrom:
               - secretRef:
                   name: supabase-secret
