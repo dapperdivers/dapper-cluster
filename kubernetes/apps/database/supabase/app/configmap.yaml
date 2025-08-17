@@ -1,0 +1,133 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: supabase-kong-config
+data:
+  kong.yml: |
+    _format_version: "3.0"
+
+    services:
+      - name: auth-v1-open
+        url: http://localhost:9999
+        routes:
+          - name: auth-v1-open
+            strip_path: true
+            paths:
+              - /auth/v1/verify
+              - /auth/v1/callback
+              - /auth/v1/authorize
+        plugins:
+          - name: cors
+
+      - name: auth-v1
+        _comment: "GoTrue: /auth/v1/* -> http://localhost:9999/*"
+        url: http://localhost:9999
+        routes:
+          - name: auth-v1-all
+            strip_path: true
+            paths:
+              - /auth/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+
+      - name: rest-v1
+        _comment: "PostgREST: /rest/v1/* -> http://localhost:3000/*"
+        url: http://localhost:3000
+        routes:
+          - name: rest-v1-all
+            strip_path: true
+            paths:
+              - /rest/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+
+      - name: realtime-v1
+        _comment: "Realtime: /realtime/v1/* -> ws://localhost:4000/socket/*"
+        url: http://localhost:4000/socket
+        routes:
+          - name: realtime-v1-all
+            strip_path: true
+            paths:
+              - /realtime/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+
+      - name: storage-v1
+        _comment: "Storage: /storage/v1/* -> http://localhost:5000/*"
+        url: http://localhost:5000
+        routes:
+          - name: storage-v1-all
+            strip_path: true
+            paths:
+              - /storage/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+
+    consumers:
+      - username: anon
+        keyauth_credentials:
+          - key: "${ANON_KEY}"
+        acls:
+          - group: anon
+
+      - username: service_role
+        keyauth_credentials:
+          - key: "${SERVICE_ROLE_KEY}"
+        acls:
+          - group: admin
+
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - HEAD
+            - PUT
+            - PATCH
+            - POST
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - X-Auth-Token
+            - Authorization
+            - X-Authorization
+            - apikey
+            - prefer
+            - x-client-info
+          exposed_headers:
+            - X-Request-Id
+          credentials: true
+          max_age: 3600

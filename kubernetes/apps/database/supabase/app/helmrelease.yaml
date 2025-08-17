@@ -102,6 +102,7 @@ spec:
               GOTRUE_MAILER_OTP_EXP: "86400"
               GOTRUE_MAILER_OTP_LENGTH: "6"
               GOTRUE_PASSWORD_MIN_LENGTH: "6"
+              API_EXTERNAL_URL: "https://supabase.${SECRET_DOMAIN}"
             envFrom:
               - secretRef:
                   name: supabase-secret
@@ -292,8 +293,8 @@ spec:
             subPath: tmp
 
       kong-config:
-        type: secret
-        name: supabase-secret
+        type: configMap
+        name: supabase-kong-config
         globalMounts:
           - path: /home/kong/kong.yml
             subPath: kong.yml
