@@ -32,6 +32,10 @@ spec:
               tag:  latest@sha256:499e34da0fbfe1bc95b1ba5194cf4965a2883d20338705322c51802c0a7de434
             env:
               ALLOWED_DOMAINS: ${SECRET_DOMAIN_PERSONAL}
+              VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
+              VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
+              VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
+              VITE_SITE_NAVIGATOR_ENABLED: true
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
