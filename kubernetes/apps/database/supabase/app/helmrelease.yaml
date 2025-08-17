@@ -41,6 +41,44 @@ spec:
               limits:
                 cpu: 100m
                 memory: 256Mi
+          supabase-init:
+            image:
+              repository: postgres
+              tag: 16.8
+            command:
+              - /bin/bash
+              - -c
+              - |
+                echo "Waiting for database to be ready..."
+                until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER; do
+                  echo "Database not ready, waiting 5 seconds..."
+                  sleep 5
+                done
+                echo "Database is ready, running Supabase initialization..."
+                psql -v ON_ERROR_STOP=1 -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB -f /init-sql/init-supabase.sql
+                echo "Supabase initialization completed successfully"
+            env:
+              POSTGRES_HOST: "postgres16-rw.database.svc.cluster.local"
+              POSTGRES_PORT: "5432"
+              POSTGRES_DB: "archon"
+              POSTGRES_USER: "gutter"
+              PGPASSWORD: "$(POSTGRES_PASS)"
+            envFrom:
+              - secretRef:
+                  name: supabase-postgres-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                cpu: 100m
+                memory: 256Mi
         containers:
           kong:
             image:
@@ -304,6 +342,15 @@ spec:
           - path: /home/kong/kong.yml
             subPath: kong.yml
             readOnly: true
+
+      supabase-init-sql:
+        type: configMap
+        name: supabase-init-sql
+        advancedMounts:
+          supabase:
+            supabase-init:
+              - path: /init-sql
+                readOnly: true
 
     service:
       app:

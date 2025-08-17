@@ -4,5 +4,6 @@ kind: Kustomization
 namespace: database
 resources:
   - ./configmap.yaml
+  - ./supabase-init-configmap.yaml
   - ./externalsecret.yaml
   - ./helmrelease.yaml
