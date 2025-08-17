@@ -97,7 +97,6 @@ spec:
               GOTRUE_JWT_ADMIN_ROLES: "service_role"
               GOTRUE_JWT_AUD: "authenticated"
               GOTRUE_JWT_DEFAULT_GROUP_NAME: "authenticated"
-              GOTRUE_JWT_SECRET: "${JWT_SECRET}"
               GOTRUE_LOG_LEVEL: "info"
               GOTRUE_OPERATOR_TOKEN: "some-operator-token"
               GOTRUE_DISABLE_SIGNUP: "false"
@@ -192,7 +191,6 @@ spec:
             env:
               PORT: &realtimePort 4000
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
-              DB_ENC_KEY: "supabaserealtime"
               FLY_ALLOC_ID: "fly123"
               FLY_APP_NAME: "realtime"
               SECRET_KEY_BASE: "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq"
@@ -236,10 +234,7 @@ spec:
               repository: supabase/storage-api
               tag: v1.25.7
             env:
-              ANON_KEY: "${ANON_KEY}"
-              SERVICE_KEY: "${SERVICE_ROLE_KEY}"
               POSTGREST_URL: "http://localhost:3000"
-              PGRST_JWT_SECRET: "${JWT_SECRET}"
               PGOPTIONS: "-c search_path=storage,public"
               FILE_SIZE_LIMIT: "52428800"
               STORAGE_BACKEND: "file"
