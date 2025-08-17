@@ -107,7 +107,7 @@ spec:
           analytics:
             image:
               repository: supabase/logflare
-              tag: 1.14.2
+              tag: 1.19.0
             env:
               # Core Logflare configuration
               LOGFLARE_NODE_HOST: "127.0.0.1"
