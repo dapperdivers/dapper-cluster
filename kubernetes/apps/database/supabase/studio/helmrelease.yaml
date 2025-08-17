@@ -54,11 +54,11 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/profile
+                    path: /api/platform/profile
                     port: *studioPort
                   initialDelaySeconds: 30
-                  periodSeconds: 30
-                  timeoutSeconds: 5
+                  periodSeconds: 5
+                  timeoutSeconds: 10
                   failureThreshold: 3
               readiness: *studioProbes
             resources:

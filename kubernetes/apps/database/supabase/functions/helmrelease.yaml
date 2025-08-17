@@ -33,8 +33,6 @@ spec:
               tag: v1.67.4
             command:
               - "start"
-              - "--main-service"
-              - "/home/deno/functions/main"
             env:
               FUNCTIONS_VERIFY_JWT: "false"
               FUNCTIONS_HTTP_HOST: "0.0.0.0"
@@ -63,7 +61,7 @@ spec:
                     path: /
                     port: *functionsPort
                   initialDelaySeconds: 30
-                  periodSeconds: 30
+                  periodSeconds: 5
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *functionsProbes
@@ -83,12 +81,7 @@ spec:
         fsGroup: 65534
         seccompProfile: { type: RuntimeDefault }
 
-    persistence:
-      functions:
-        existingClaim: ${APP}
-        globalMounts:
-          - path: /home/deno/functions
-            readOnly: false
+    # No persistence needed - edge-runtime should start without specific functions
 
     service:
       app:

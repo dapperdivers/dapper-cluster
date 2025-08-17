@@ -56,8 +56,8 @@ spec:
                   httpGet:
                     path: /status
                     port: &kongPort 8000
-                  initialDelaySeconds: 60
-                  periodSeconds: 30
+                  initialDelaySeconds: 30
+                  periodSeconds: 5
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *kongProbes
@@ -112,7 +112,7 @@ spec:
                     path: /health
                     port: *authPort
                   initialDelaySeconds: 30
-                  periodSeconds: 30
+                  periodSeconds: 5
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *authProbes
@@ -157,7 +157,7 @@ spec:
                     path: /
                     port: *restPort
                   initialDelaySeconds: 30
-                  periodSeconds: 30
+                  periodSeconds: 5
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *restProbes
@@ -206,10 +206,13 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /
+                    path: /api/tenants/realtime-dev/health
                     port: *realtimePort
+                    httpHeaders:
+                      - name: Authorization
+                        value: "Bearer $(SUPABASE_ANON_KEY)"
                   initialDelaySeconds: 30
-                  periodSeconds: 30
+                  periodSeconds: 5
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *realtimeProbes
@@ -256,7 +259,7 @@ spec:
                     path: /status
                     port: &storagePort 5000
                   initialDelaySeconds: 30
-                  periodSeconds: 30
+                  periodSeconds: 5
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *storageProbes
