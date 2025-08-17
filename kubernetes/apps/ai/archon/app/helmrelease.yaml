@@ -119,6 +119,8 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: &serverPort 8181
+              SERVICE_DISCOVERY_MODE: "kubernetes"
+              LOG_LEVEL: "INFO"
             envFrom:
               - secretRef:
                   name: archon-postgres-secret
