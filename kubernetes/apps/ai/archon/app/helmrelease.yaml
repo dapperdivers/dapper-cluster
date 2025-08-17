@@ -258,6 +258,10 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /git
+      data:
+        existingClaim: ${APP}
+        globalMounts:
+          - path: /data
 
     service:
       app:

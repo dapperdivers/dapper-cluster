@@ -16,6 +16,8 @@ spec:
   dependsOn:
     - name: cloudnative-pg-cluster
       namespace: database
+    - name: volsync
+      namespace: storage
     - name: external-secrets-stores
       namespace: external-secrets
   path: ./kubernetes/apps/ai/archon/app

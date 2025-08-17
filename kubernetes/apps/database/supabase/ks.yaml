@@ -6,6 +6,8 @@ metadata:
   namespace: flux-system
 spec:
   targetNamespace: database
+  components:
+    - ../../../../flux/components/volsync
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
@@ -21,5 +23,11 @@ spec:
   timeout: 5m
   dependsOn:
     - name: cloudnative-pg
+    - name: volsync
+      namespace: storage
     - name: external-secrets-stores
       namespace: external-secrets
+  postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 5Gi

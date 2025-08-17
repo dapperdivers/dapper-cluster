@@ -59,3 +59,9 @@ spec:
         - hosts:
             - "supabase.${SECRET_DOMAIN}"
           secretName: "${SECRET_DOMAIN/./-}-tls"
+    
+    # Persistent Storage
+    persistence:
+      enabled: true
+      existingClaim: ${APP}
+      storageClass: ""  # Use existing claim
