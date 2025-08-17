@@ -162,7 +162,7 @@ spec:
           realtime:
             image:
               repository: supabase/realtime
-              tag: v2.30.23@sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2
+              tag: v2.30.23@sha256:9f67337022a57a93aad67c59c3b062acf030d584f2977351fd3b715082cfc546
             env:
               PORT: &realtimePort 4000
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
