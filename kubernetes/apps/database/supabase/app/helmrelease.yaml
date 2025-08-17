@@ -258,6 +258,7 @@ spec:
               ANON_KEY: "${ANON_KEY}"
               SERVICE_KEY: "${SERVICE_ROLE_KEY}"
               POSTGREST_URL: "http://localhost:3000"
+              PGRST_JWT_SECRET: "${JWT_SECRET}"
               PGOPTIONS: "-c search_path=storage,public"
               FILE_SIZE_LIMIT: "52428800"
               STORAGE_BACKEND: "file"
