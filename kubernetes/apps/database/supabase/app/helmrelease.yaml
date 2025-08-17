@@ -50,6 +50,7 @@ spec:
               - -c
               - |
                 echo "Waiting for database to be ready..."
+                echo "Connecting to: $INIT_POSTGRES_HOST:5432"
                 until pg_isready -h $INIT_POSTGRES_HOST -p 5432; do
                   echo "Database not ready, waiting 5 seconds..."
                   sleep 5
