@@ -20,5 +20,5 @@ spec:
   retryInterval: 1m
   timeout: 5m
   dependsOn:
-    - name: cloudnative-pg-operator
+    - name: cloudnative-pg
     - name: external-secrets-stores
