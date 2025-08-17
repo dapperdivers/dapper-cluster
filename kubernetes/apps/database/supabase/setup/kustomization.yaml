@@ -5,3 +5,4 @@ kind: Kustomization
 namespace: database
 resources:
   - ./job.yaml
+  - ./supabase-init-configmap.yaml
