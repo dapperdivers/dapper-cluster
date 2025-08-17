@@ -63,8 +63,8 @@ spec:
                 memory: 5Gi
           storybook:
             image:
-              repository: ghcr.io/dapperdivers/developer-portfolio
-              tag: storybook-latest
+              repository: ghcr.io/dapperdivers/developer-portfolio-storybook
+              tag: latest@sha256:e3fa6427846ce95674419ae62a08482db80d5748e896985caa2b51b83f9dd50c
             env:
               STORYBOOK_HOST: 0.0.0.0
               STORYBOOK_PORT: 6006
@@ -95,8 +95,8 @@ spec:
                 memory: 2Gi
           docs:
             image:
-              repository: ghcr.io/dapperdivers/developer-portfolio
-              tag: docs-latest
+              repository: ghcr.io/dapperdivers/developer-portfolio-docs
+              tag: latest@sha256:065303034da4c0414dc6e939f3048bf17928ea6c8f3c335acb87d46768ae9422
             env:
               DOCS_HOST: 0.0.0.0
               DOCS_PORT: 4000
