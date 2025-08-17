@@ -206,7 +206,7 @@ spec:
           storage:
             image:
               repository: supabase/storage-api
-              tag: v1.11.11@sha256:b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2
+              tag: v1.11.11@sha256:004bf7bab490cdfcb7dbc8d0ffc79b2b33908464d338f0220747d7da9894cec5
             env:
               ANON_KEY: ""
               SERVICE_KEY: ""
