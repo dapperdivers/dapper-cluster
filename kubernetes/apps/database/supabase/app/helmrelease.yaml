@@ -62,7 +62,6 @@ spec:
               POSTGRES_PORT: "5432"
               POSTGRES_DB: "archon"
               POSTGRES_USER: "gutter"
-              PGPASSWORD: "$(POSTGRES_PASS)"
             envFrom:
               - secretRef:
                   name: supabase-postgres-secret
