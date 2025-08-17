@@ -117,87 +117,11 @@ spec:
                 cpu: 500m
                 memory: 512Mi
 
-          analytics:
-            image:
-              repository: supabase/logflare
-              tag: 1.14.2
-            env:
-              # Core Logflare configuration
-              LOGFLARE_NODE_HOST: "127.0.0.1"
-              LOG_LEVEL: "info"
-              API_PORT: &analyticsPort 4000
-
-              # Single tenant and Supabase mode
-              LOGFLARE_SINGLE_TENANT: "true"
-              LOGFLARE_SUPABASE_MODE: "true"
-              LOGFLARE_MIN_CLUSTER_SIZE: "1"
-
-              # Database configuration - map from secret values
-              DB_USERNAME:
-                valueFrom:
-                  secretKeyRef:
-                    name: supabase-postgres-secret
-                    key: INIT_POSTGRES_USER
-              DB_DATABASE:
-                valueFrom:
-                  secretKeyRef:
-                    name: supabase-postgres-secret
-                    key: INIT_POSTGRES_DBNAME
-              DB_HOSTNAME:
-                valueFrom:
-                  secretKeyRef:
-                    name: supabase-postgres-secret
-                    key: INIT_POSTGRES_HOST
-              DB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: supabase-postgres-secret
-                    key: INIT_POSTGRES_PASS
-              DB_SCHEMA: "_analytics"
-              DB_PORT: "5432"
-
-              # Postgres backend configuration
-              POSTGRES_BACKEND_SCHEMA: "_analytics"
-              LOGFLARE_FEATURE_FLAG_OVERRIDE: "multibackend=true"
-
-              # Disable Google Cloud features completely
-              LOGFLARE_GOOGLE_CLOUD_PROJECT_ID: ""
-              LOGFLARE_GOOGLE_CLOUD_PROJECT_NUMBER: ""
-              GOOGLE_APPLICATION_CREDENTIALS: ""
-              # Postgres-only backend configuration
-              LOGFLARE_BACKEND: "postgres"
-              # Set required access tokens (using dummy values for now)
-              LOGFLARE_PUBLIC_ACCESS_TOKEN: "dummy-public-token"
-              LOGFLARE_PRIVATE_ACCESS_TOKEN: "dummy-private-token"
-            envFrom:
-              - secretRef:
-                  name: supabase-secret
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities:
-                drop:
-                  - ALL
-            probes:
-              liveness: &analyticsProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /health
-                    port: *analyticsPort
-                  initialDelaySeconds: 60
-                  periodSeconds: 30
-                  timeoutSeconds: 10
-                  failureThreshold: 3
-              readiness: *analyticsProbes
-            resources:
-              requests:
-                cpu: 100m
-                memory: 512Mi
-              limits:
-                cpu: 1000m
-                memory: 1Gi
+# Temporarily disabled analytics due to gcloud.json requirement
+          # analytics:
+          #   image:
+          #     repository: supabase/logflare
+          #     tag: 1.14.2
 
           vector:
             image:
@@ -266,7 +190,7 @@ spec:
             port: *imgproxyPort
           meta:
             port: *metaPort
-          analytics:
-            port: *analyticsPort
+# analytics:
+          #   port: *analyticsPort
           vector:
             port: *vectorPort
