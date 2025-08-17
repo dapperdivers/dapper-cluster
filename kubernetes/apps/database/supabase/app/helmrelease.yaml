@@ -50,7 +50,7 @@ spec:
               - -c
               - |
                 # Simple variable substitution using sed
-                sed "s/\${ANON_KEY}/$ANON_KEY/g; s/\${SERVICE_ROLE_KEY}/$SERVICE_ROLE_KEY/g" /config-template/kong.yml > /config/kong.yml
+                sed "s/\\\${ANON_KEY}/$ANON_KEY/g; s/\\\${SERVICE_ROLE_KEY}/$SERVICE_ROLE_KEY/g" /config-template/kong.yml > /config/kong.yml
                 echo "Kong config processed successfully"
                 cat /config/kong.yml
             envFrom:
@@ -116,6 +116,7 @@ spec:
               GOTRUE_JWT_ADMIN_ROLES: "service_role"
               GOTRUE_JWT_AUD: "authenticated"
               GOTRUE_JWT_DEFAULT_GROUP_NAME: "authenticated"
+              GOTRUE_JWT_SECRET: "${JWT_SECRET}"
               GOTRUE_LOG_LEVEL: "info"
               GOTRUE_OPERATOR_TOKEN: "some-operator-token"
               GOTRUE_DISABLE_SIGNUP: "false"
@@ -254,8 +255,8 @@ spec:
               repository: supabase/storage-api
               tag: v1.25.7
             env:
-              ANON_KEY: ""
-              SERVICE_KEY: ""
+              ANON_KEY: "${ANON_KEY}"
+              SERVICE_KEY: "${SERVICE_ROLE_KEY}"
               POSTGREST_URL: "http://localhost:3000"
               PGOPTIONS: "-c search_path=storage,public"
               FILE_SIZE_LIMIT: "52428800"
