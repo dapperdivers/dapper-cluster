@@ -69,14 +69,27 @@ spec:
               tag: v0.91.0
             env:
               PG_META_PORT: &metaPort 8080
-              PG_META_DB_HOST: "$(INIT_POSTGRES_HOST)"
+              PG_META_DB_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_HOST
               PG_META_DB_PORT: "5432"
-              PG_META_DB_NAME: "$(INIT_POSTGRES_DBNAME)"
-              PG_META_DB_USER: "$(INIT_POSTGRES_USER)"
-              PG_META_DB_PASSWORD: "$(INIT_POSTGRES_PASS)"
-            envFrom:
-              - secretRef:
-                  name: supabase-postgres-secret
+              PG_META_DB_NAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_DBNAME
+              PG_META_DB_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_USER
+              PG_META_DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_PASS
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -119,11 +132,27 @@ spec:
               LOGFLARE_SUPABASE_MODE: "true"
               LOGFLARE_MIN_CLUSTER_SIZE: "1"
 
-              # Database configuration - using available secret vars
-              DB_USERNAME: "$(INIT_POSTGRES_USER)"
-              DB_DATABASE: "$(INIT_POSTGRES_DBNAME)"
-              DB_HOSTNAME: "$(INIT_POSTGRES_HOST)"
-              DB_PASSWORD: "$(INIT_POSTGRES_PASS)"
+              # Database configuration - map from secret values
+              DB_USERNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_USER
+              DB_DATABASE:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_DBNAME
+              DB_HOSTNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_HOST
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_PASS
               DB_SCHEMA: "_analytics"
               DB_PORT: "5432"
 
@@ -131,12 +160,16 @@ spec:
               POSTGRES_BACKEND_SCHEMA: "_analytics"
               LOGFLARE_FEATURE_FLAG_OVERRIDE: "multibackend=true"
 
-              # Disable Google Cloud features
+              # Disable Google Cloud features completely
               LOGFLARE_GOOGLE_CLOUD_PROJECT_ID: ""
               LOGFLARE_GOOGLE_CLOUD_PROJECT_NUMBER: ""
+              GOOGLE_APPLICATION_CREDENTIALS: ""
+              # Postgres-only backend configuration
+              LOGFLARE_BACKEND: "postgres"
+              # Set required access tokens (using dummy values for now)
+              LOGFLARE_PUBLIC_ACCESS_TOKEN: "dummy-public-token"
+              LOGFLARE_PRIVATE_ACCESS_TOKEN: "dummy-private-token"
             envFrom:
-              - secretRef:
-                  name: supabase-postgres-secret
               - secretRef:
                   name: supabase-secret
             securityContext:
