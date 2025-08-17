@@ -1,0 +1,61 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: supabase
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: supabase
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: supabase
+        namespace: flux-system
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+
+  values:
+    # Global configuration
+    global:
+      # Use external secrets for all sensitive data
+      existingSecrets:
+        - name: "supabase-secret"
+        
+    # External Database Configuration  
+    database:
+      enabled: false  # Use external PostgreSQL
+      
+    # PostgreSQL connection via environment variables from secrets
+    config:
+      db:
+        host: "${POSTGRES_HOST}"
+        port: "${POSTGRES_PORT}"
+        database: "${POSTGRES_DB}"
+        username: "${POSTGRES_USER}"
+        schema: "${POSTGRES_SCHEMA}"
+        ssl: false
+      
+    # Ingress Configuration
+    ingress:
+      enabled: true
+      className: "internal"
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      hosts:
+        - host: "supabase.${SECRET_DOMAIN}"
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - "supabase.${SECRET_DOMAIN}"
+          secretName: "${SECRET_DOMAIN/./-}-tls"
