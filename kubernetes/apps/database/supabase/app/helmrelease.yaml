@@ -54,11 +54,6 @@ spec:
             envFrom:
               - secretRef:
                   name: supabase-secret
-            volumeMounts:
-              - name: kong-config-template
-                mountPath: /config-template
-              - name: kong-config-processed
-                mountPath: /config
             resources:
               requests:
                 cpu: 10m
@@ -79,9 +74,6 @@ spec:
               KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
               KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
               KONG_PREFIX: "/tmp/kong"
-            volumeMounts:
-              - name: kong-config-processed
-                mountPath: /config
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -333,6 +325,12 @@ spec:
 
       kong-config-processed:
         type: emptyDir
+        advancedMounts:
+          supabase:
+            kong-config:
+              - path: /config
+            kong:
+              - path: /config
 
     service:
       app:
