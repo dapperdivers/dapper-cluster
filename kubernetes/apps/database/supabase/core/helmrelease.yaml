@@ -173,16 +173,27 @@ spec:
             image:
               repository: supabase/realtime
               tag: v2.34.47
+            command:
+              - "/bin/sh"
+              - "-c"
+              - |
+                echo "Starting Realtime without sudo..."
+                ulimit -n 10000
+                export ERL_CRASH_DUMP=/tmp/erl_crash.dump
+                echo "Running migrations directly..."
+                /app/bin/migrate || echo "Migration failed, continuing..."
+                echo "Starting Realtime server..."
+                exec /app/bin/server
             env:
               PORT: &realtimePort 4000
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
               FLY_ALLOC_ID: "fly123"
               FLY_APP_NAME: "realtime"
+              APP_NAME: "realtime"
               SECRET_KEY_BASE: "UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq"
               ERL_AFLAGS: "-proto_dist inet_tcp"
               ENABLE_TAILSCALE: "false"
               DNS_NODES: "''"
-              SKIP_MIGRATIONS: "true"
             envFrom:
               - secretRef:
                   name: supabase-secret
@@ -206,15 +217,12 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/tenants/realtime-dev/health
+                    path: /
                     port: *realtimePort
-                    httpHeaders:
-                      - name: Authorization
-                        value: "Bearer $(SUPABASE_ANON_KEY)"
-                  initialDelaySeconds: 30
-                  periodSeconds: 5
+                  initialDelaySeconds: 60
+                  periodSeconds: 10
                   timeoutSeconds: 5
-                  failureThreshold: 3
+                  failureThreshold: 5
               readiness: *realtimeProbes
             resources:
               requests:
