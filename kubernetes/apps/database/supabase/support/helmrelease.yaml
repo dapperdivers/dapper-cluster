@@ -142,8 +142,8 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /health
-                    port: &vectorPort 9001
+                    path: /graphql
+                    port: 8686
                   initialDelaySeconds: 30
                   periodSeconds: 30
                   timeoutSeconds: 5
@@ -193,4 +193,4 @@ spec:
 # analytics:
           #   port: *analyticsPort
           vector:
-            port: *vectorPort
+            port: 9001
