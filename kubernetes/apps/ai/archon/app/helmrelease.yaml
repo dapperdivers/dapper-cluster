@@ -31,6 +31,7 @@ spec:
               GITSYNC_REPO: https://github.com/coleam00/Archon
               GITSYNC_REF: main
               GITSYNC_ROOT: /git
+              GITSYNC_DEST: archon
               GITSYNC_DEPTH: 1
               GITSYNC_ONE_TIME: "true"
             image:
@@ -63,16 +64,16 @@ spec:
                 /entrypoint.sh
                 
                 # Then run the Archon schema setup
-                if [ -f /git/migration/complete_setup.sql ]; then
+                if [ -f /git/archon/migration/complete_setup.sql ]; then
                   echo "Setting up Archon database schema..."
                   PGPASSWORD="$INIT_POSTGRES_SUPER_PASS" psql \
                     -h "$INIT_POSTGRES_HOST" \
                     -U "$INIT_POSTGRES_SUPER_USER" \
                     -d "$INIT_POSTGRES_DBNAME" \
-                    -f /git/migration/complete_setup.sql
+                    -f /git/archon/migration/complete_setup.sql
                   echo "Archon schema setup completed"
                 else
-                  echo "Warning: Archon SQL setup file not found at /git/migration/complete_setup.sql"
+                  echo "Warning: Archon SQL setup file not found at /git/archon/migration/complete_setup.sql"
                 fi
         containers:
           frontend:
@@ -166,16 +167,7 @@ spec:
                   - ALL
             probes:
               liveness: &mcpProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /health
-                    port: *mcpPort
-                  initialDelaySeconds: 30
-                  periodSeconds: 60
-                  timeoutSeconds: 10
-                  failureThreshold: 3
+                enabled: false
               readiness: *mcpProbes
             resources:
               requests:
@@ -226,10 +218,10 @@ spec:
 
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
         seccompProfile: { type: RuntimeDefault }
       
     persistence:
