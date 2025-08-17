@@ -42,18 +42,22 @@ spec:
                 memory: 256Mi
           kong-config:
             image:
-              repository: alpine
+              repository: busybox
               tag: latest
             command:
               - sh
               - -c
               - |
-                apk add --no-cache envsubst
-                envsubst < /config-template/kong.yml > /config/kong.yml
+                # Simple variable substitution using sed
+                sed "s/\${ANON_KEY}/$ANON_KEY/g; s/\${SERVICE_ROLE_KEY}/$SERVICE_ROLE_KEY/g" /config-template/kong.yml > /config/kong.yml
                 echo "Kong config processed successfully"
+                cat /config/kong.yml
             envFrom:
               - secretRef:
                   name: supabase-secret
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
             resources:
               requests:
                 cpu: 10m
