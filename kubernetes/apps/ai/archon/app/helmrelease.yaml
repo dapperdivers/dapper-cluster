@@ -41,6 +41,27 @@ spec:
                 cpu: 10m
               limits:
                 memory: 128Mi
+          wait-for-supabase:
+            image:
+              repository: busybox
+              tag: 1.36.1@sha256:650fd573e056b679a5110a70aabeb01e26b76e545ec4b9c70a9523f2dfaf18c6
+            command:
+              - sh
+              - -c
+              - |
+                echo "Waiting for Supabase to be ready..."
+                until wget --quiet --tries=1 --timeout=3 --spider https://supabase.${SECRET_DOMAIN}/health || [ $? -eq 4 ]; do
+                  echo "Supabase not ready, waiting 5 seconds..."
+                  sleep 5
+                done
+                echo "Supabase is ready!"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 50m
+                memory: 64Mi
           init-db:
             image:
               repository: ghcr.io/home-operations/postgres-init
