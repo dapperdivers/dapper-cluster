@@ -186,6 +186,27 @@ spec:
                 exec /app/bin/server
             env:
               PORT: &realtimePort 4000
+              DB_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_HOST
+              DB_PORT: "5432"
+              DB_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_USER
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_PASS
+              DB_NAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase-postgres-secret
+                    key: INIT_POSTGRES_DBNAME
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
               FLY_ALLOC_ID: "fly123"
               FLY_APP_NAME: "realtime"
