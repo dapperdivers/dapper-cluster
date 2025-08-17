@@ -103,13 +103,13 @@ data:
     consumers:
       - username: anon
         keyauth_credentials:
-          - key: "${ANON_KEY}"
+          - key: "PLACEHOLDER_ANON_KEY"
         acls:
           - group: anon
 
       - username: service_role
         keyauth_credentials:
-          - key: "${SERVICE_ROLE_KEY}"
+          - key: "PLACEHOLDER_SERVICE_ROLE_KEY"
         acls:
           - group: admin
 

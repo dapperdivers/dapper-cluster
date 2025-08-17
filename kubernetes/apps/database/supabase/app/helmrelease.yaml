@@ -52,7 +52,11 @@ spec:
                 # Simple variable substitution using sed
                 echo "ANON_KEY: $ANON_KEY"
                 echo "SERVICE_ROLE_KEY: $SERVICE_ROLE_KEY"
-                sed "s/\\\${ANON_KEY}/${ANON_KEY}/g; s/\\\${SERVICE_ROLE_KEY}/${SERVICE_ROLE_KEY}/g" /config-template/kong.yml > /config/kong.yml
+                if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
+                  echo "ERROR: Missing required environment variables"
+                  exit 1
+                fi
+                sed "s/PLACEHOLDER_ANON_KEY/${ANON_KEY}/g; s/PLACEHOLDER_SERVICE_ROLE_KEY/${SERVICE_ROLE_KEY}/g" /config-template/kong.yml > /config/kong.yml
                 echo "Kong config processed successfully"
                 echo "=== Generated Kong Config ==="
                 cat /config/kong.yml
@@ -79,6 +83,9 @@ spec:
               KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
               KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
               KONG_PREFIX: "/tmp/kong"
+              # Pass through the JWT keys for runtime use
+              ANON_KEY: "${ANON_KEY}"
+              SERVICE_ROLE_KEY: "${SERVICE_ROLE_KEY}"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
