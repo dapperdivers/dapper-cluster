@@ -83,6 +83,7 @@ spec:
               HOST: "0.0.0.0"
               PORT: &frontendPort 3737
               VITE_PORT: 3737
+              VITE_HOST: "0.0.0.0"
               ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
             securityContext:
               allowPrivilegeEscalation: false
