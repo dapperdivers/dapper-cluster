@@ -1,0 +1,93 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: supabase-setup
+  namespace: database
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: supabase-setup
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      initContainers:
+        - name: init-db
+          image: ghcr.io/home-operations/postgres-init:17.5@sha256:e0c87ce7df39d06b93f27cf2cc6a056611f13faaa88cc07ab4dc8bf7a85d0b11
+          envFrom:
+            - secretRef:
+                name: supabase-postgres-secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+      containers:
+        - name: supabase-init
+          image: postgres:16.8
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "=== Supabase Database Setup ==="
+              echo "Waiting for database to be ready..."
+              echo "Connecting to: $INIT_POSTGRES_HOST:5432"
+
+              # Wait for database to be ready
+              until pg_isready -h $INIT_POSTGRES_HOST -p 5432; do
+                echo "Database not ready, waiting 5 seconds..."
+                sleep 5
+              done
+
+              echo "Database is ready!"
+
+              # Run Supabase initialization as superuser
+              echo "Running Supabase schema initialization..."
+              PGPASSWORD=$INIT_POSTGRES_SUPER_PASS psql -h $INIT_POSTGRES_HOST -p 5432 -U $INIT_POSTGRES_SUPER_USER -d $INIT_POSTGRES_DBNAME -f /init-sql/init-supabase.sql
+
+              if [ $? -eq 0 ]; then
+                echo "✅ Supabase database setup completed successfully!"
+              else
+                echo "❌ Supabase database setup failed!"
+                exit 1
+              fi
+          envFrom:
+            - secretRef:
+                name: supabase-postgres-secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: init-sql
+              mountPath: /init-sql
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+      volumes:
+        - name: init-sql
+          configMap:
+            name: supabase-init-sql

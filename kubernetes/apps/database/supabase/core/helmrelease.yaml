@@ -26,54 +26,6 @@ spec:
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/home-operations/postgres-init
-              tag: 17.5@sha256:e0c87ce7df39d06b93f27cf2cc6a056611f13faaa88cc07ab4dc8bf7a85d0b11
-            envFrom:
-              - secretRef:
-                  name: supabase-postgres-secret
-            resources:
-              requests:
-                cpu: 10m
-                memory: 64Mi
-              limits:
-                cpu: 100m
-                memory: 256Mi
-          supabase-init:
-            image:
-              repository: postgres
-              tag: 16.8
-            command:
-              - /bin/bash
-              - -c
-              - |
-                echo "Waiting for database to be ready..."
-                echo "Connecting to: $INIT_POSTGRES_HOST:5432"
-                until pg_isready -h $INIT_POSTGRES_HOST -p 5432; do
-                  echo "Database not ready, waiting 5 seconds..."
-                  sleep 5
-                done
-                echo "Database is ready, running Supabase initialization as superuser..."
-                PGPASSWORD=$INIT_POSTGRES_SUPER_PASS psql -h $INIT_POSTGRES_HOST -p 5432 -U $INIT_POSTGRES_SUPER_USER -d $INIT_POSTGRES_DBNAME -f /init-sql/init-supabase.sql
-                echo "Supabase initialization completed successfully"
-            envFrom:
-              - secretRef:
-                  name: supabase-postgres-secret
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
-            resources:
-              requests:
-                cpu: 10m
-                memory: 64Mi
-              limits:
-                cpu: 100m
-                memory: 256Mi
         containers:
           kong:
             image:
@@ -280,7 +232,7 @@ spec:
               REGION: "stub"
               GLOBAL_S3_BUCKET: "stub"
               ENABLE_IMAGE_TRANSFORMATION: "true"
-              IMGPROXY_URL: "http://localhost:5001"
+              IMGPROXY_URL: "http://supabase-support.database.svc.cluster.local:5001"
             envFrom:
               - secretRef:
                   name: supabase-secret
@@ -338,14 +290,6 @@ spec:
             subPath: kong.yml
             readOnly: true
 
-      supabase-init-sql:
-        type: configMap
-        name: supabase-init-sql
-        advancedMounts:
-          supabase:
-            supabase-init:
-              - path: /init-sql
-                readOnly: true
 
     service:
       app:
