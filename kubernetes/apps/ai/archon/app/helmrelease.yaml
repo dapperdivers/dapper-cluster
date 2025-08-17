@@ -61,7 +61,7 @@ spec:
               - |
                 # First run the standard postgres-init
                 /entrypoint.sh
-                
+
                 # Then run the Archon schema setup
                 if [ -f /git/Archon/migration/complete_setup.sql ]; then
                   echo "Setting up Archon database schema..."
@@ -81,8 +81,8 @@ spec:
               tag: latest
             env:
               HOST: "0.0.0.0"
-              PORT: &frontendPort 3737
-              VITE_PORT: 3737
+              PORT: &frontendPort 5173
+              VITE_PORT: 5173
               VITE_HOST: "0.0.0.0"
               ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
             securityContext:
@@ -111,7 +111,7 @@ spec:
               limits:
                 cpu: 500m
                 memory: 1Gi
-          
+
           server:
             image:
               repository: ghcr.io/dapperdivers/archon-server
@@ -225,7 +225,7 @@ spec:
         runAsGroup: 0
         fsGroup: 0
         seccompProfile: { type: RuntimeDefault }
-      
+
     persistence:
       git-repo:
         type: emptyDir
