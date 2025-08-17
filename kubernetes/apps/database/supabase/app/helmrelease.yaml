@@ -40,6 +40,32 @@ spec:
               limits:
                 cpu: 100m
                 memory: 256Mi
+          kong-config:
+            image:
+              repository: alpine
+              tag: latest
+            command:
+              - sh
+              - -c
+              - |
+                apk add --no-cache envsubst
+                envsubst < /config-template/kong.yml > /config/kong.yml
+                echo "Kong config processed successfully"
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+            volumeMounts:
+              - name: kong-config-template
+                mountPath: /config-template
+              - name: kong-config-processed
+                mountPath: /config
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
         containers:
           kong:
             image:
@@ -47,15 +73,15 @@ spec:
               tag: 2.8.1
             env:
               KONG_DATABASE: "off"
-              KONG_DECLARATIVE_CONFIG: "/home/kong/kong.yml"
+              KONG_DECLARATIVE_CONFIG: "/config/kong.yml"
               KONG_DNS_ORDER: "LAST,A,CNAME"
               KONG_PLUGINS: "request-transformer,cors,key-auth,acl,basic-auth"
               KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
               KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
               KONG_PREFIX: "/tmp/kong"
-            envFrom:
-              - secretRef:
-                  name: supabase-secret
+            volumeMounts:
+              - name: kong-config-processed
+                mountPath: /config
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -295,13 +321,18 @@ spec:
           - path: /tmp
             subPath: tmp
 
-      kong-config:
+      kong-config-template:
         type: configMap
         name: supabase-kong-config
-        globalMounts:
-          - path: /home/kong/kong.yml
-            subPath: kong.yml
-            readOnly: true
+        advancedMounts:
+          supabase:
+            kong-config:
+              - path: /config-template/kong.yml
+                subPath: kong.yml
+                readOnly: true
+
+      kong-config-processed:
+        type: emptyDir
 
     service:
       app:
