@@ -61,7 +61,6 @@ spec:
               POSTGRES_HOST: "postgres16-rw.database.svc.cluster.local"
               POSTGRES_PORT: "5432"
               POSTGRES_DB: "archon"
-              POSTGRES_USER: "gutter"
             envFrom:
               - secretRef:
                   name: supabase-postgres-secret
