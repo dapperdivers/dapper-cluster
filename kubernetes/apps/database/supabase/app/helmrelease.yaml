@@ -25,6 +25,21 @@ spec:
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          init-db:
+            image:
+              repository: ghcr.io/home-operations/postgres-init
+              tag: 17.5@sha256:e0c87ce7df39d06b93f27cf2cc6a056611f13faaa88cc07ab4dc8bf7a85d0b11
+            envFrom:
+              - secretRef:
+                  name: supabase-secret
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                cpu: 100m
+                memory: 256Mi
         containers:
           kong:
             image:
@@ -37,9 +52,10 @@ spec:
               KONG_PLUGINS: "request-transformer,cors,key-auth,acl,basic-auth"
               KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "160k"
               KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
+              KONG_PREFIX: "/tmp/kong"
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
@@ -67,7 +83,7 @@ spec:
           auth:
             image:
               repository: supabase/gotrue
-              tag: v2.164.2@sha256:f4e1f3d3c2e1a7b8c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2
+              tag: v2.164.2
             env:
               GOTRUE_API_HOST: "0.0.0.0"
               GOTRUE_API_PORT: &authPort 9999
@@ -119,7 +135,7 @@ spec:
           rest:
             image:
               repository: postgrest/postgrest
-              tag: v12.2.3@sha256:f3a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1
+              tag: v12.2.3
             env:
               PGRST_DB_SCHEMAS: "public,storage,graphql_public"
               PGRST_DB_ANON_ROLE: "anon"
@@ -162,7 +178,7 @@ spec:
           realtime:
             image:
               repository: supabase/realtime
-              tag: v2.30.23@sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2
+              tag: v2.30.23
             env:
               PORT: &realtimePort 4000
               DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
@@ -206,7 +222,7 @@ spec:
           storage:
             image:
               repository: supabase/storage-api
-              tag: v1.11.11@sha256:b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2
+              tag: v1.11.11
             env:
               ANON_KEY: ""
               SERVICE_KEY: ""
