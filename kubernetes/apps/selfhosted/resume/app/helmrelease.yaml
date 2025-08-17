@@ -93,6 +93,38 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 2Gi
+          docs:
+            image:
+              repository: ghcr.io/dapperdivers/developer-portfolio
+              tag: docs-latest
+            env:
+              DOCS_HOST: 0.0.0.0
+              DOCS_PORT: 4000
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            probes:
+              liveness: &docsProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4000
+                  initialDelaySeconds: 0
+                  periodSeconds: 60
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *docsProbes
+            resources:
+              requests:
+                cpu: 25m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
     service:
       app:
         controller: *app
@@ -101,6 +133,8 @@ spec:
             port: 3001
           storybook:
             port: 6006
+          docs:
+            port: 4000
     ingress:
       app:
         annotations:
@@ -115,6 +149,10 @@ spec:
                   port: http
           - host: "www.${SECRET_DOMAIN_PERSONAL}"
             paths:
+              - path: /docs
+                service:
+                  identifier: app
+                  port: docs
               - path: /storybook
                 service:
                   identifier: app
@@ -125,6 +163,10 @@ spec:
                   port: http
           - host: "${SECRET_DOMAIN_PERSONAL}"
             paths:
+              - path: /docs
+                service:
+                  identifier: app
+                  port: docs
               - path: /storybook
                 service:
                   identifier: app
