@@ -203,9 +203,13 @@ spec:
               - secretRef:
                   name: supabase-postgres-secret
             securityContext:
-              allowPrivilegeEscalation: false
+              allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
+              runAsNonRoot: false
               capabilities:
+                add:
+                  - SETUID
+                  - SETGID
                 drop:
                   - ALL
             probes:
