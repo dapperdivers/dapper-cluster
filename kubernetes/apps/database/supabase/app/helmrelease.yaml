@@ -50,8 +50,11 @@ spec:
               - -c
               - |
                 # Simple variable substitution using sed
-                sed "s/\\\${ANON_KEY}/$ANON_KEY/g; s/\\\${SERVICE_ROLE_KEY}/$SERVICE_ROLE_KEY/g" /config-template/kong.yml > /config/kong.yml
+                echo "ANON_KEY: $ANON_KEY"
+                echo "SERVICE_ROLE_KEY: $SERVICE_ROLE_KEY"
+                sed "s/\\\${ANON_KEY}/${ANON_KEY}/g; s/\\\${SERVICE_ROLE_KEY}/${SERVICE_ROLE_KEY}/g" /config-template/kong.yml > /config/kong.yml
                 echo "Kong config processed successfully"
+                echo "=== Generated Kong Config ==="
                 cat /config/kong.yml
             envFrom:
               - secretRef:
