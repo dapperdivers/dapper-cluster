@@ -31,7 +31,6 @@ spec:
               GITSYNC_REPO: https://github.com/coleam00/Archon
               GITSYNC_REF: main
               GITSYNC_ROOT: /git
-              GITSYNC_DEST: archon
               GITSYNC_DEPTH: 1
               GITSYNC_ONE_TIME: "true"
             image:
@@ -64,16 +63,16 @@ spec:
                 /entrypoint.sh
                 
                 # Then run the Archon schema setup
-                if [ -f /git/archon/migration/complete_setup.sql ]; then
+                if [ -f /git/Archon/migration/complete_setup.sql ]; then
                   echo "Setting up Archon database schema..."
                   PGPASSWORD="$INIT_POSTGRES_SUPER_PASS" psql \
                     -h "$INIT_POSTGRES_HOST" \
                     -U "$INIT_POSTGRES_SUPER_USER" \
                     -d "$INIT_POSTGRES_DBNAME" \
-                    -f /git/archon/migration/complete_setup.sql
+                    -f /git/Archon/migration/complete_setup.sql
                   echo "Archon schema setup completed"
                 else
-                  echo "Warning: Archon SQL setup file not found at /git/archon/migration/complete_setup.sql"
+                  echo "Warning: Archon SQL setup file not found at /git/Archon/migration/complete_setup.sql"
                 fi
         containers:
           frontend:
@@ -83,7 +82,8 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: &frontendPort 3737
-              ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
+              VITE_PORT: 3737
+              # ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -110,45 +110,6 @@ spec:
               limits:
                 cpu: 500m
                 memory: 1Gi
-          
-          server:
-            image:
-              repository: ghcr.io/dapperdivers/archon-server
-              tag: latest
-            env:
-              HOST: "0.0.0.0"
-              PORT: &serverPort 8181
-            envFrom:
-              - secretRef:
-                  name: archon-postgres-secret
-              - secretRef:
-                  name: *app
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities:
-                drop:
-                  - ALL
-            probes:
-              liveness: &serverProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /health
-                    port: *serverPort
-                  initialDelaySeconds: 30
-                  periodSeconds: 60
-                  timeoutSeconds: 10
-                  failureThreshold: 3
-              readiness: *serverProbes
-            resources:
-              requests:
-                cpu: 100m
-                memory: 512Mi
-              limits:
-                cpu: 1000m
-                memory: 2Gi
 
           mcp:
             image:
@@ -157,7 +118,7 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: &mcpPort 8051
-              ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
+              # ARCHON_SERVER_URL: "http://archon.ai.svc.cluster.local:8181"
               AGENTS_URL: "http://archon.ai.svc.cluster.local:8052"
             securityContext:
               allowPrivilegeEscalation: false
@@ -236,8 +197,6 @@ spec:
         ports:
           http:
             port: *frontendPort
-          server:
-            port: *serverPort
           mcp:
             port: *mcpPort
           agents:
