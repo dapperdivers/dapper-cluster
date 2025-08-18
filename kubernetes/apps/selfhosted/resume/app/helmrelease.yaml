@@ -178,6 +178,7 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_PERSONAL}"
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
         className: external
         hosts:
           - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN_PERSONAL}"
@@ -188,15 +189,13 @@ spec:
                   port: http
           - host: "www.${SECRET_DOMAIN_PERSONAL}"
             paths:
-              - path: /files
-                service:
-                  identifier: app
-                  port: http
-              - path: /docs
+              - path: /docs(/|$)(.*)
+                pathType: Prefix
                 service:
                   identifier: app
                   port: docs
-              - path: /storybook
+              - path: /storybook(/|$)(.*)
+                pathType: Prefix
                 service:
                   identifier: app
                   port: storybook
@@ -206,15 +205,13 @@ spec:
                   port: http
           - host: "${SECRET_DOMAIN_PERSONAL}"
             paths:
-              - path: /files
-                service:
-                  identifier: app
-                  port: http
-              - path: /docs
+              - path: /docs(/|$)(.*)
+                pathType: Prefix
                 service:
                   identifier: app
                   port: docs
-              - path: /storybook
+              - path: /storybook(/|$)(.*)
+                pathType: Prefix
                 service:
                   identifier: app
                   port: storybook
