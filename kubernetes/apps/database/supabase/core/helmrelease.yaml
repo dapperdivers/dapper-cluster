@@ -129,7 +129,7 @@ spec:
           rest:
             image:
               repository: postgrest/postgrest
-              tag: v12.2.12
+              tag: v13.0.4
             env:
               PGRST_DB_SCHEMAS: "public,storage,graphql_public"
               PGRST_DB_ANON_ROLE: "anon"
