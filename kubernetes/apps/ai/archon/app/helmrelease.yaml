@@ -34,7 +34,7 @@ spec:
               HOST: "0.0.0.0"
               ARCHON_UI_PORT: &frontendPort 5173
               VITE_HOST: "0.0.0.0"
-              VITE_ALLOWED_HOSTS: "archon.${SECRET_DOMAIN}"
+              VITE_ALLOWED_HOSTS: "archon.chelonianlabs.com,localhost,127.0.0.1"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -47,7 +47,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /
+                    path: /health
                     port: *frontendPort
                   initialDelaySeconds: 30
                   periodSeconds: 60
