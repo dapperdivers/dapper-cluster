@@ -9,4 +9,3 @@ resources:
   - ./cloudnative-pg/ks.yaml
   - ./emqx/ks.yaml
   - ./dragonfly-redis/ks.yaml
-  - ./supabase/ks.yaml
