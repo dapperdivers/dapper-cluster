@@ -25,30 +25,16 @@ spec:
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          git-sync:
-            env:
-              GITSYNC_REPO: https://github.com/coleam00/Archon
-              GITSYNC_REF: main
-              GITSYNC_ROOT: /git
-              GITSYNC_DEPTH: 1
-              GITSYNC_ONE_TIME: "true"
-            image:
-              repository: registry.k8s.io/git-sync/git-sync
-              tag: v4.4.2@sha256:3089d9787b89bdc5af01d9f6e8d515aefb9672e8aea3972d7ff67478112bacb3
-            resources:
-              requests:
-                cpu: 10m
-              limits:
-                memory: 128Mi
         containers:
           frontend:
             image:
               repository: ghcr.io/dapperdivers/archon-frontend
               tag: latest
             env:
-              HOST: &host "${APP}.${SECRET_DOMAIN}"
-              ARCHON_UI_PORT: &frontendPort 3737
+              HOST: "0.0.0.0"
+              PORT: &frontendPort 3737
+              VITE_HOST: "0.0.0.0"
+              VITE_ALLOWED_HOSTS: "archon.${SECRET_DOMAIN}"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -81,7 +67,7 @@ spec:
               repository: ghcr.io/dapperdivers/archon-server
               tag: latest
             env:
-              HOST: &host "${APP}.${SECRET_DOMAIN}"
+              HOST: "0.0.0.0"
               ARCHON_SERVER_PORT: &serverPort 8181
               LOG_LEVEL: "INFO"
             envFrom:
@@ -121,7 +107,7 @@ spec:
               repository: ghcr.io/dapperdivers/archon-mcp
               tag: latest
             env:
-              HOST: &host "${APP}.${SECRET_DOMAIN}"
+              HOST: "0.0.0.0"
               ARCHON_MCP_PORT: &mcpPort 8051
             securityContext:
               allowPrivilegeEscalation: false
@@ -146,7 +132,7 @@ spec:
               repository: ghcr.io/dapperdivers/archon-agents
               tag: latest
             env:
-              HOST: &host "${APP}.${SECRET_DOMAIN}"
+              HOST: "0.0.0.0"
               ARCHON_AGENTS_PORT: &agentsPort 8052
             envFrom:
               - secretRef:
@@ -223,10 +209,6 @@ spec:
                 service:
                   identifier: app
                   port: http
-              - path: /mcp
-                service:
-                  identifier: app
-                  port: mcp
         tls:
           - hosts:
               - *host
