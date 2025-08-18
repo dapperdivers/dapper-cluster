@@ -31,10 +31,8 @@ spec:
               repository: ghcr.io/dapperdivers/archon-frontend
               tag: latest
             env:
-              HOST: "0.0.0.0"
+              HOST: "archon.${SECRET_DOMAIN}"
               ARCHON_UI_PORT: &frontendPort 5173
-              VITE_HOST: "0.0.0.0"
-              VITE_ALLOWED_HOSTS: "archon.chelonianlabs.com,localhost,127.0.0.1"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
