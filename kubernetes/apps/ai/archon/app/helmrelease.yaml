@@ -186,6 +186,13 @@ spec:
         existingClaim: ${APP}
         globalMounts:
           - path: /data
+      app-temp:
+        type: emptyDir
+        advancedMounts:
+          archon:
+            frontend:
+              - path: /app
+                readOnly: false
 
     service:
       app:
