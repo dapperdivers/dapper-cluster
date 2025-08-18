@@ -44,7 +44,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/posterizarr
-              tag: 1.0.15@sha256:16c4e28bc0ab18370daa24f0146772759a146bba4a5f14b2381a6b1f45cc44e7
+              tag: v1.9.77@sha256:3dee82f7719b60103344df94fefc9bc1ce61d9ccf791bf81239666f489f3add1
             env:
               TZ: ${TIME_ZONE}
             resources:
@@ -85,5 +85,3 @@ spec:
         existingClaim: plex-posters
         globalMounts:
         - path: /assets
-
-
