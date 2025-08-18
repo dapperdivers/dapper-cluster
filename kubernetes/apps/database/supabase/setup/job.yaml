@@ -40,7 +40,7 @@ spec:
               memory: 256Mi
       containers:
         - name: supabase-init
-          image: postgres:16.8
+          image: postgres:17.6
           command:
             - /bin/bash
             - -c
