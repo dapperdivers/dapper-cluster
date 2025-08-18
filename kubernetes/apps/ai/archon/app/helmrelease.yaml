@@ -22,24 +22,36 @@ spec:
   values:
     controllers:
       archon:
-        strategy: RollingUpdate
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           frontend:
-            image:
-              repository: ghcr.io/dapperdivers/archon-frontend
-              tag: latest@sha256:372a332dbbd84e8b161fdef975e6dd1f3542b50308716eb430488dc3d38fd4ce
+            image: # redeploy
+              repository: ghcr.io/dapperdivers/archon-dev-frontend
+              tag: latest
             env:
-              HOST: "archon.${SECRET_DOMAIN}"
+              ARCHON_UI_HOST: "archon.${SECRET_DOMAIN}"
               ARCHON_UI_PORT: &frontendPort 5173
+              ARCHON_SERVER_HOST: "archon"
+              ARCHON_SERVER_PORT: &serverPort 8181
+              ARCHON_MCP_HOST: "archon"
+              ARCHON_MCP_PORT: &mcpPort 8051
+              ARCHON_AGENTS_HOST: "archon"
+              ARCHON_AGENTS_PORT: &agentsPort 8052
               PORT: *frontendPort
+              SERVICE_DISCOVERY_MODE: "kubernetes"
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &frontendProbes
                 enabled: true
@@ -63,23 +75,35 @@ spec:
 
           server:
             image:
-              repository: ghcr.io/dapperdivers/archon-server
-              tag: latest@sha256:1c2a26b191eacdafc207278f0dddb6b64db14d71c5ecdf2883365ae25a5ac7c1
+              repository: ghcr.io/dapperdivers/archon-dev-server
+              tag: latest
             env:
-              HOST: "0.0.0.0"
-              ARCHON_SERVER_PORT: &serverPort 8181
+              ARCHON_SERVER_HOST: "0.0.0.0"
+              ARCHON_SERVER_PORT: *serverPort
+              ARCHON_UI_PORT: *frontendPort
+              ARCHON_MCP_HOST: "archon"
+              ARCHON_MCP_PORT: *mcpPort
+              ARCHON_AGENTS_HOST: "archon"
+              ARCHON_AGENTS_PORT: *agentsPort
               LOG_LEVEL: "INFO"
+              SERVICE_DISCOVERY_MODE: "kubernetes"
+              DOCKER_HOST: "tcp://localhost:2375"
             envFrom:
               - secretRef:
                   name: archon-supabase-secret
               - secretRef:
                   name: *app
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &serverProbes
                 enabled: true
@@ -103,18 +127,29 @@ spec:
 
           mcp:
             image:
-              repository: ghcr.io/dapperdivers/archon-mcp
-              tag: latest@sha256:7ea7021fe677a54f33d3c5ca724a6131f7fba4602856abf5bbc7b63dd80a1616
+              repository: ghcr.io/dapperdivers/archon-dev-mcp
+              tag: latest
             env:
-              HOST: "0.0.0.0"
+              ARCHON_MCP_HOST: "0.0.0.0"
               ARCHON_MCP_PORT: &mcpPort 8051
+              ARCHON_SERVER_HOST: "archon"
+              ARCHON_SERVER_PORT: *serverPort
+              ARCHON_AGENTS_HOST: "archon"
+              ARCHON_AGENTS_PORT: *agentsPort
               LOG_LEVEL: "INFO"
+              SERVICE_DISCOVERY_MODE: "kubernetes"
+              TRANSPORT: "sse"
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &mcpProbes
                 enabled: false
@@ -129,25 +164,33 @@ spec:
 
           agents:
             image:
-              repository: ghcr.io/dapperdivers/archon-agents
-              tag: latest@sha256:ff238592d60d02d1d8e72174295e57d9658d1fe7c1f7d6916d756de2f9b5eee9
+              repository: ghcr.io/dapperdivers/archon-dev-agents
+              tag: latest
             env:
-              HOST: "0.0.0.0"
+              ARCHON_AGENTS_HOST: "0.0.0.0"
               ARCHON_AGENTS_PORT: &agentsPort 8052
-              LOG_LEVEL: "INFO"
+              ARCHON_SERVER_HOST: "archon"
               ARCHON_SERVER_PORT: *serverPort
+              ARCHON_MCP_HOST: "archon"
               ARCHON_MCP_PORT: *mcpPort
+              LOG_LEVEL: "INFO"
+              SERVICE_DISCOVERY_MODE: "kubernetes"
             envFrom:
               - secretRef:
                   name: archon-supabase-secret
               - secretRef:
                   name: *app
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &agentsProbes
                 enabled: true
@@ -156,10 +199,10 @@ spec:
                   httpGet:
                     path: /health
                     port: *agentsPort
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 120
                   periodSeconds: 60
                   timeoutSeconds: 10
-                  failureThreshold: 3
+                  failureThreshold: 5
               readiness: *agentsProbes
             resources:
               requests:
@@ -169,12 +212,58 @@ spec:
                 cpu: 1000m
                 memory: 2Gi
 
+          docker-proxy:
+            image:
+              repository: tecnativa/docker-socket-proxy
+              tag: latest
+            env:
+              CONTAINERS: "1"
+              IMAGES: "1"
+              AUTH: "0"
+              SECRETS: "0"
+              POST: "1"
+              BUILD: "0"
+              COMMIT: "0"
+              CONFIGS: "0"
+              DISTRIBUTION: "0"
+              EXEC: "1"
+              GRPC: "0"
+              INFO: "1"
+              NETWORKS: "0"
+              NODES: "0"
+              PLUGINS: "0"
+              SERVICES: "0"
+              SESSION: "0"
+              SWARM: "0"
+              SYSTEM: "0"
+              TASKS: "0"
+              VOLUMES: "1"
+            securityContext:
+              runAsNonRoot: false
+              runAsUser: 0
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+                add:
+                  - CHOWN
+                  - SETGID
+                  - SETUID
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
         seccompProfile: { type: RuntimeDefault }
 
     persistence:
@@ -186,12 +275,19 @@ spec:
         existingClaim: ${APP}
         globalMounts:
           - path: /data
-      app-temp:
+      tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp
+            readOnly: false
+      docker-socket:
+        type: hostPath
+        hostPath: /var/run/docker.sock
+        hostPathType: Socket
         advancedMounts:
           archon:
-            frontend:
-              - path: /app
+            docker-proxy:
+              - path: /var/run/docker.sock
                 readOnly: false
 
     service:
@@ -219,6 +315,14 @@ spec:
                 service:
                   identifier: app
                   port: http
+              - path: /api
+                service:
+                  identifier: app
+                  port: server
+              - path: /socket.io
+                service:
+                  identifier: app
+                  port: server
         tls:
           - hosts:
               - *host
