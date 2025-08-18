@@ -104,7 +104,7 @@ spec:
           mcp:
             image:
               repository: ghcr.io/dapperdivers/archon-mcp
-              tag: latest@sha256:7ea7021fe677a54f33d3c5ca724a6131f7fba4602856abf5bbc7b63dd80a1616
+              tag: latest@sha256:da74725f1f6b1edc88a18077283267dc074f20b5f335822031694c1533827fe6
             env:
               HOST: "0.0.0.0"
               ARCHON_MCP_PORT: &mcpPort 8051
