@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio
-              tag:  latest@sha256:65a75f3c442ecf1eaaec659b63688ea98bf89730dfb6b16765084d2f889e93cb
+              tag:  latest@sha256:85b9ef8616bfb99ea0dc06454128f16651bd2613e5a4d842890ae5333b202b1a
             env:
               ALLOWED_DOMAINS: ${SECRET_DOMAIN_PERSONAL}
               VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
@@ -64,10 +64,14 @@ spec:
           storybook:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio-storybook
-              tag: latest@sha256:e3fa6427846ce95674419ae62a08482db80d5748e896985caa2b51b83f9dd50c
+              tag: latest@sha256:ff8b7de89b33435689ffbfda1a18a14ff5dc9c0fa270eb3784c5d2beaed6f439
             env:
               STORYBOOK_HOST: 0.0.0.0
               STORYBOOK_PORT: 6006
+              VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
+              VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
+              VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
+              VITE_SITE_NAVIGATOR_ENABLED: true
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -96,10 +100,14 @@ spec:
           docs:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio-docs
-              tag: latest@sha256:065303034da4c0414dc6e939f3048bf17928ea6c8f3c335acb87d46768ae9422
+              tag: latest@sha256:add556893668a3066daa4131973533d759863a57e34a937fa4364dd71050ca2a
             env:
               DOCS_HOST: 0.0.0.0
               DOCS_PORT: 4000
+              VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
+              VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
+              VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
+              VITE_SITE_NAVIGATOR_ENABLED: true
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -180,6 +188,10 @@ spec:
                   port: http
           - host: "www.${SECRET_DOMAIN_PERSONAL}"
             paths:
+              - path: /files
+                service:
+                  identifier: app
+                  port: http
               - path: /docs
                 service:
                   identifier: app
@@ -194,6 +206,10 @@ spec:
                   port: http
           - host: "${SECRET_DOMAIN_PERSONAL}"
             paths:
+              - path: /files
+                service:
+                  identifier: app
+                  port: http
               - path: /docs
                 service:
                   identifier: app
