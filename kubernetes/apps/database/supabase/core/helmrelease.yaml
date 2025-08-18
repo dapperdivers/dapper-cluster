@@ -74,7 +74,7 @@ spec:
           auth:
             image:
               repository: supabase/gotrue
-              tag: v2.177.0
+              tag: v2.178.0
             env:
               GOTRUE_API_HOST: "0.0.0.0"
               GOTRUE_API_PORT: &authPort 9999
