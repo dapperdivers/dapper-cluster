@@ -174,7 +174,7 @@ spec:
           realtime:
             image:
               repository: supabase/realtime
-              tag: v2.34.47
+              tag: v2.42.2
             command:
               - "/bin/sh"
               - "-c"
