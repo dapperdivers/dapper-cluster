@@ -57,111 +57,17 @@ spec:
               readiness: *probes
             resources:
               requests:
-                cpu: 50m
+                cpu: 100m
                 memory: 1Gi
               limits:
-                memory: 5Gi
-          storybook:
-            image:
-              repository: ghcr.io/dapperdivers/developer-portfolio-storybook
-              tag: latest@sha256:ff8b7de89b33435689ffbfda1a18a14ff5dc9c0fa270eb3784c5d2beaed6f439
-            env:
-              STORYBOOK_HOST: 0.0.0.0
-              STORYBOOK_PORT: 6006
-              VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
-              VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
-              VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
-              VITE_SITE_NAVIGATOR_ENABLED: true
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
-            probes:
-              liveness: &storybookProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /
-                    port: 6006
-                  initialDelaySeconds: 0
-                  periodSeconds: 60
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *storybookProbes
-            resources:
-              requests:
-                cpu: 25m
-                memory: 512Mi
-              limits:
-                memory: 2Gi
-          docs:
-            image:
-              repository: ghcr.io/dapperdivers/developer-portfolio-docs
-              tag: latest@sha256:add556893668a3066daa4131973533d759863a57e34a937fa4364dd71050ca2a
-            env:
-              DOCS_HOST: 0.0.0.0
-              DOCS_PORT: 4000
-              VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
-              VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
-              VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
-              VITE_SITE_NAVIGATOR_ENABLED: true
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
-            probes:
-              liveness: &docsProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /
-                    port: 4000
-                  initialDelaySeconds: 0
-                  periodSeconds: 60
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *docsProbes
-            resources:
-              requests:
-                cpu: 25m
-                memory: 512Mi
-              limits:
-                memory: 2Gi
+                cpu: 1000m
+                memory: 6Gi
     persistence:
-      nginx-cache:
-        type: emptyDir
-        advancedMounts:
-          resume:
-            storybook:
-              - path: /var/cache/nginx
-                readOnly: false
-            docs:
-              - path: /var/cache/nginx
-                readOnly: false
-      nginx-run:
-        type: emptyDir
-        advancedMounts:
-          resume:
-            storybook:
-              - path: /var/run
-                readOnly: false
-            docs:
-              - path: /var/run
-                readOnly: false
       tmp:
         type: emptyDir
         advancedMounts:
           resume:
-            storybook:
-              - path: /tmp
-                readOnly: false
-            docs:
+            app:
               - path: /tmp
                 readOnly: false
     service:
@@ -170,15 +76,10 @@ spec:
         ports:
           http:
             port: 3001
-          storybook:
-            port: 6006
-          docs:
-            port: 4000
     ingress:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_PERSONAL}"
-          nginx.ingress.kubernetes.io/rewrite-target: /$2
         className: external
         hosts:
           - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN_PERSONAL}"
@@ -189,32 +90,12 @@ spec:
                   port: http
           - host: "www.${SECRET_DOMAIN_PERSONAL}"
             paths:
-              - path: /docs(/|$)(.*)
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: docs
-              - path: /storybook(/|$)(.*)
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: storybook
               - path: /
                 service:
                   identifier: app
                   port: http
           - host: "${SECRET_DOMAIN_PERSONAL}"
             paths:
-              - path: /docs(/|$)(.*)
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: docs
-              - path: /storybook(/|$)(.*)
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: storybook
               - path: /
                 service:
                   identifier: app

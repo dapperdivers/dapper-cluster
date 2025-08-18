@@ -156,7 +156,7 @@ spec:
                   httpGet:
                     path: /health
                     port: *agentsPort
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 60
                   periodSeconds: 60
                   timeoutSeconds: 10
                   failureThreshold: 3
@@ -186,6 +186,18 @@ spec:
         existingClaim: ${APP}
         globalMounts:
           - path: /data
+      home-archon:
+        type: emptyDir
+        advancedMounts:
+          archon:
+            server:
+              - path: /home/archon
+                readOnly: false
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+            readOnly: false
 
     service:
       app:
