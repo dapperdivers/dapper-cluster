@@ -30,7 +30,7 @@ spec:
           imgproxy:
             image:
               repository: darthsim/imgproxy
-              tag: v3.25.0
+              tag: v3.29.1
             env:
               IMGPROXY_BIND: "0.0.0.0:5001"
               IMGPROXY_LOCAL_FILESYSTEM_ROOT: "/var/lib/storage"
