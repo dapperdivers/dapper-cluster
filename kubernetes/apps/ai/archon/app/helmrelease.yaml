@@ -145,7 +145,7 @@ spec:
           agents:
             image:
               repository: ghcr.io/dapperdivers/archon-agents
-              tag: latest@sha256:efb7d5af523ace0cfb81ed8a1fb2ede961c85478716c9ca3edc91165a2c7d1e9
+              tag: latest@sha256:05a30244578f0124dbe6ce8c3b9ce76373e2184c7e9d402d71c669ac3f1f24c7
             env:
               HOST: "0.0.0.0"
               ARCHON_AGENTS_PORT: &agentsPort 8052
