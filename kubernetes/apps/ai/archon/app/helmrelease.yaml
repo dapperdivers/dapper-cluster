@@ -29,17 +29,22 @@ spec:
           frontend:
             image:
               repository: ghcr.io/dapperdivers/archon-frontend
-              tag: latest@sha256:7b41443f4d814385056c3a53f945bfbef9b2a1e8e84abc33bfbc59c47bfda914
+              tag: latest@sha256:808a6e27c6de7a85330b3e10cda36d6e4d4770eafcf13935c17074838329e98b
             env:
               HOST: "archon.${SECRET_DOMAIN}"
               ARCHON_UI_PORT: &frontendPort 5173
               PORT: *frontendPort
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &frontendProbes
                 enabled: true
@@ -64,7 +69,7 @@ spec:
           server:
             image:
               repository: ghcr.io/dapperdivers/archon-server
-              tag: latest@sha256:2d8eede03e8cea2ad9084890e36127e4b97e65258e1ec4fb1a7648e469a4c0ac
+              tag: latest@sha256:04237b0daaaa0195719453ef95b1f6f1dfeab6a11dd628b51d44d5002602225a
             env:
               HOST: "0.0.0.0"
               ARCHON_SERVER_PORT: &serverPort 8181
@@ -75,11 +80,16 @@ spec:
               - secretRef:
                   name: *app
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &serverProbes
                 enabled: true
@@ -110,11 +120,16 @@ spec:
               ARCHON_MCP_PORT: &mcpPort 8051
               LOG_LEVEL: "INFO"
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &mcpProbes
                 enabled: false
@@ -130,7 +145,7 @@ spec:
           agents:
             image:
               repository: ghcr.io/dapperdivers/archon-agents
-              tag: latest@sha256:5cf0bf14222a7de6c1a0576982d98a75677595daa3e4d6b321abf1c2f153a6bf
+              tag: latest@sha256:efb7d5af523ace0cfb81ed8a1fb2ede961c85478716c9ca3edc91165a2c7d1e9
             env:
               HOST: "0.0.0.0"
               ARCHON_AGENTS_PORT: &agentsPort 8052
@@ -143,11 +158,16 @@ spec:
               - secretRef:
                   name: *app
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &agentsProbes
                 enabled: true
@@ -156,7 +176,7 @@ spec:
                   httpGet:
                     path: /health
                     port: *agentsPort
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 60
                   periodSeconds: 60
                   timeoutSeconds: 10
                   failureThreshold: 3
@@ -171,10 +191,10 @@ spec:
 
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
         seccompProfile: { type: RuntimeDefault }
 
     persistence:
@@ -186,6 +206,18 @@ spec:
         existingClaim: ${APP}
         globalMounts:
           - path: /data
+      home-archon:
+        type: emptyDir
+        advancedMounts:
+          archon:
+            server:
+              - path: /home/archon
+                readOnly: false
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+            readOnly: false
 
     service:
       app:
