@@ -30,7 +30,7 @@ spec:
           functions:
             image:
               repository: supabase/edge-runtime
-              tag: v1.67.4
+              tag: v1.68.3
             args:
               - "start"
             env:
