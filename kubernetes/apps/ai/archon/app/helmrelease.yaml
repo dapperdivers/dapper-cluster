@@ -35,11 +35,16 @@ spec:
               ARCHON_UI_PORT: &frontendPort 5173
               PORT: *frontendPort
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &frontendProbes
                 enabled: true
@@ -75,11 +80,16 @@ spec:
               - secretRef:
                   name: *app
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &serverProbes
                 enabled: true
@@ -110,11 +120,16 @@ spec:
               ARCHON_MCP_PORT: &mcpPort 8051
               LOG_LEVEL: "INFO"
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &mcpProbes
                 enabled: false
@@ -143,11 +158,16 @@ spec:
               - secretRef:
                   name: *app
             securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
             probes:
               liveness: &agentsProbes
                 enabled: true
@@ -171,10 +191,10 @@ spec:
 
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
         seccompProfile: { type: RuntimeDefault }
 
     persistence:
