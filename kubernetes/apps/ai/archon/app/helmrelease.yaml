@@ -32,7 +32,7 @@ spec:
               tag: latest
             env:
               HOST: "0.0.0.0"
-              PORT: &frontendPort 3737
+              PORT: &frontendPort 5173
               VITE_HOST: "0.0.0.0"
               VITE_ALLOWED_HOSTS: "archon.${SECRET_DOMAIN}"
             securityContext:
@@ -134,6 +134,8 @@ spec:
             env:
               HOST: "0.0.0.0"
               ARCHON_AGENTS_PORT: &agentsPort 8052
+              ARCHON_SERVER_PORT: *serverPort
+              ARCHON_MCP_PORT: *mcpPort
             envFrom:
               - secretRef:
                   name: archon-supabase-secret
