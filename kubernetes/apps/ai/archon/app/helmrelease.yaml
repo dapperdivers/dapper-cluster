@@ -29,7 +29,7 @@ spec:
           frontend:
             image:
               repository: ghcr.io/dapperdivers/archon-frontend
-              tag: latest@sha256:f7d513757bdb39bd93520fb13be118a81c4f2c5020d930fcf5b647e72099378b
+              tag: latest@sha256:a8f86d2577d4eef8cde182018749eff5cdc876e99545534aa9e69aa19c876c5c
             env:
               HOST: "archon.${SECRET_DOMAIN}"
               ARCHON_UI_PORT: &frontendPort 5173
@@ -69,7 +69,7 @@ spec:
           server:
             image:
               repository: ghcr.io/dapperdivers/archon-server
-              tag: latest@sha256:b2d2fbb964240968309adbc556e808680129aa6ef043617addb9c06d79751d4d
+              tag: latest@sha256:e66803f47af1f8a23c9895e13c4eda9e75ec656c779866374c575ccd2ad32bb0
             env:
               HOST: "0.0.0.0"
               ARCHON_SERVER_PORT: &serverPort 8181
@@ -114,7 +114,7 @@ spec:
           mcp:
             image:
               repository: ghcr.io/dapperdivers/archon-mcp
-              tag: latest@sha256:2591dabb876141f9c124a6e51d8d6802d21d094527c08252955e6e4f3ede49fb
+              tag: latest@sha256:923aed8e5d9ae7193600e76d27da195e97c4a6ce31145f23bb94a8ee8522ee69
             env:
               HOST: "0.0.0.0"
               ARCHON_MCP_PORT: &mcpPort 8051
