@@ -273,7 +273,7 @@ spec:
           storage:
             image:
               repository: supabase/storage-api
-              tag: v1.25.7
+              tag: v1.26.4
             env:
               POSTGREST_URL: "http://localhost:3000"
               PGOPTIONS: "-c search_path=storage,public"
