@@ -69,7 +69,7 @@ spec:
           server:
             image:
               repository: ghcr.io/dapperdivers/archon-server
-              tag: latest@sha256:04237b0daaaa0195719453ef95b1f6f1dfeab6a11dd628b51d44d5002602225a
+              tag: latest@sha256:b2d2fbb964240968309adbc556e808680129aa6ef043617addb9c06d79751d4d
             env:
               HOST: "0.0.0.0"
               ARCHON_SERVER_PORT: &serverPort 8181
