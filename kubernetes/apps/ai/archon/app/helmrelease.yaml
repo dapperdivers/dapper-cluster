@@ -29,7 +29,7 @@ spec:
           frontend:
             image:
               repository: ghcr.io/dapperdivers/archon-frontend
-              tag: latest@sha256:7b41443f4d814385056c3a53f945bfbef9b2a1e8e84abc33bfbc59c47bfda914
+              tag: latest@sha256:808a6e27c6de7a85330b3e10cda36d6e4d4770eafcf13935c17074838329e98b
             env:
               HOST: "archon.${SECRET_DOMAIN}"
               ARCHON_UI_PORT: &frontendPort 5173
