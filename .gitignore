@@ -25,3 +25,6 @@ Brewfile.lock.json
 cloudflared.json
 # Node
 /node_modules
+
+# AI
+/logs
