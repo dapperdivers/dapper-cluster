@@ -177,9 +177,17 @@ spec:
                 type: RuntimeDefault
             probes:
               liveness: &agentsProbes
-                enabled: false
-              readiness:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *agentsPort
+                  initialDelaySeconds: 120
+                  periodSeconds: 60
+                  timeoutSeconds: 10
+                  failureThreshold: 5
+              readiness: *agentsProbes
             resources:
               requests:
                 cpu: 100m
