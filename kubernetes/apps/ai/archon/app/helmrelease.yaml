@@ -211,6 +211,33 @@ spec:
                 cpu: 1000m
                 memory: 2Gi
 
+          containerd-dockerd:
+            image:
+              repository: ghcr.io/ktock/containerd-dockerd
+              tag: latest
+            args:
+              - "--containerd-socket=/run/containerd/containerd.sock"
+              - "--listen-address=0.0.0.0:2375"
+            securityContext:
+              runAsNonRoot: false
+              runAsUser: 0
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+                add:
+                  - DAC_OVERRIDE
+                  - FOWNER
+                  - SETGID
+                  - SETUID
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
 
     defaultPodOptions:
       securityContext:
@@ -234,6 +261,15 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
+      containerd-socket:
+        type: hostPath
+        hostPath: /run/containerd/containerd.sock
+        hostPathType: Socket
+        advancedMounts:
+          archon:
+            containerd-dockerd:
+              - path: /run/containerd/containerd.sock
+                readOnly: false
 
     service:
       app:
