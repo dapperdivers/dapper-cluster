@@ -33,6 +33,9 @@ spec:
             env:
               HOST: "archon.${SECRET_DOMAIN}"
               ARCHON_UI_PORT: &frontendPort 5173
+              ARCHON_SERVER_PORT: &serverPort 8181
+              ARCHON_MCP_PORT: &mcpPort 8051
+              ARCHON_AGENTS_PORT: &agentsPort 8052
               PORT: *frontendPort
             securityContext:
               runAsNonRoot: true
@@ -72,7 +75,10 @@ spec:
               tag: latest@sha256:ffdadd0e7dfe04835894ffa3649ce7585722e30389df807b122851893a9fbddf
             env:
               HOST: "0.0.0.0"
-              ARCHON_SERVER_PORT: &serverPort 8181
+              ARCHON_UI_PORT: *frontendPort
+              ARCHON_MCP_PORT: *mcpPort
+              ARCHON_AGENTS_PORT: *agentsPort
+              ARCHON_SERVER_PORT: *serverPort
               LOG_LEVEL: "INFO"
             envFrom:
               - secretRef:
@@ -118,6 +124,7 @@ spec:
             env:
               HOST: "0.0.0.0"
               ARCHON_MCP_PORT: &mcpPort 8051
+              ARCHON_SERVER_PORT: *serverPort
               LOG_LEVEL: "INFO"
             securityContext:
               runAsNonRoot: true
