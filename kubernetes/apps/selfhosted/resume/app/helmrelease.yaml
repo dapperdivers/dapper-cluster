@@ -38,7 +38,7 @@ spec:
               VITE_SITE_NAVIGATOR_ENABLED: true
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
