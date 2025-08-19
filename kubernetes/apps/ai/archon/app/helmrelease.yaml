@@ -211,13 +211,20 @@ spec:
                 cpu: 1000m
                 memory: 2Gi
 
-          containerd-dockerd:
+          docker-bridge:
             image:
-              repository: ghcr.io/ktock/containerd-dockerd
-              tag: latest
+              repository: docker
+              tag: "26-dind"
+            command:
+              - "/usr/local/bin/dockerd-entrypoint.sh"
             args:
-              - "--containerd-socket=/run/containerd/containerd.sock"
-              - "--listen-address=0.0.0.0:2375"
+              - "dockerd"
+              - "--host=tcp://0.0.0.0:2375"
+              - "--host=unix:///var/run/docker.sock"
+              - "--containerd=/run/containerd/containerd.sock"
+              - "--iptables=false"
+              - "--ip-forward=false"
+              - "--storage-driver=overlay2"
             securityContext:
               runAsNonRoot: false
               runAsUser: 0
@@ -227,17 +234,18 @@ spec:
                 drop:
                   - ALL
                 add:
+                  - SYS_ADMIN
                   - DAC_OVERRIDE
                   - FOWNER
                   - SETGID
                   - SETUID
             resources:
               requests:
-                cpu: 10m
-                memory: 64Mi
+                cpu: 50m
+                memory: 128Mi
               limits:
-                cpu: 200m
-                memory: 256Mi
+                cpu: 500m
+                memory: 512Mi
 
     defaultPodOptions:
       securityContext:
@@ -267,7 +275,7 @@ spec:
         hostPathType: Socket
         advancedMounts:
           archon:
-            containerd-dockerd:
+            docker-bridge:
               - path: /run/containerd/containerd.sock
                 readOnly: false
 
