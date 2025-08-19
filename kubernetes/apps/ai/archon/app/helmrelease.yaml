@@ -158,6 +158,7 @@ spec:
               ARCHON_AGENTS_PORT: &agentsPort 8052
               LOG_LEVEL: "INFO"
               ARCHON_SERVER_PORT: *serverPort
+              ARCHON_SERVER_HOST: "archon-server.${APP_NAMESPACE}.svc.cluster.local"
               ARCHON_MCP_PORT: *mcpPort
             envFrom:
               - secretRef:
