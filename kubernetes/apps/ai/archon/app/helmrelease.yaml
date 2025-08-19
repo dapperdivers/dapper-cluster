@@ -211,41 +211,6 @@ spec:
                 cpu: 1000m
                 memory: 2Gi
 
-          docker-bridge:
-            image:
-              repository: docker
-              tag: "26-dind"
-            command:
-              - "/usr/local/bin/dockerd-entrypoint.sh"
-            args:
-              - "dockerd"
-              - "--host=tcp://0.0.0.0:2375"
-              - "--host=unix:///var/run/docker.sock"
-              - "--containerd=/run/containerd/containerd.sock"
-              - "--iptables=false"
-              - "--ip-forward=false"
-              - "--storage-driver=overlay2"
-            securityContext:
-              runAsNonRoot: false
-              runAsUser: 0
-              allowPrivilegeEscalation: true
-              readOnlyRootFilesystem: false
-              capabilities:
-                drop:
-                  - ALL
-                add:
-                  - SYS_ADMIN
-                  - DAC_OVERRIDE
-                  - FOWNER
-                  - SETGID
-                  - SETUID
-            resources:
-              requests:
-                cpu: 50m
-                memory: 128Mi
-              limits:
-                cpu: 500m
-                memory: 512Mi
 
     defaultPodOptions:
       securityContext:
@@ -269,15 +234,6 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
-      containerd-socket:
-        type: hostPath
-        hostPath: /run/containerd/containerd.sock
-        hostPathType: Socket
-        advancedMounts:
-          archon:
-            docker-bridge:
-              - path: /run/containerd/containerd.sock
-                readOnly: false
 
     service:
       app:
