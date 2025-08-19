@@ -22,7 +22,7 @@ spec:
   values:
     controllers:
       archon:
-        strategy: RollingUpdate
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
