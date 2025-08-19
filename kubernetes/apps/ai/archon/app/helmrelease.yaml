@@ -31,7 +31,7 @@ spec:
               repository: ghcr.io/dapperdivers/archon-dev-frontend
               tag: latest
             env:
-              ARCHON_UI_HOST: "archon.${SECRET_DOMAIN}"
+              ARCHON_UI_HOST: "0.0.0.0"
               ARCHON_UI_PORT: &frontendPort 5173
               ARCHON_SERVER_HOST: "archon"
               ARCHON_SERVER_PORT: &serverPort 8181
