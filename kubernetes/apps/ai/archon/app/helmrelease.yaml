@@ -42,8 +42,6 @@ spec:
               PORT: *frontendPort
               SERVICE_DISCOVERY_MODE: "kubernetes"
               VITE_ALLOWED_HOSTS: "archon.chelonianlabs.com,localhost,0.0.0.0"
-              HOST: "0.0.0.0"
-              ALLOWED_HOSTS: "archon.chelonianlabs.com,localhost,0.0.0.0"
             securityContext:
               runAsNonRoot: true
               runAsUser: 1001
