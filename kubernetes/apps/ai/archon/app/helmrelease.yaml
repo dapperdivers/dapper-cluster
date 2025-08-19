@@ -72,7 +72,7 @@ spec:
           server:
             image:
               repository: ghcr.io/dapperdivers/archon-server
-              tag: latest@sha256:ffdadd0e7dfe04835894ffa3649ce7585722e30389df807b122851893a9fbddf
+              tag: latest@sha256:bf4701a39e55db2856ac125a6df74be43cb85dd4a1119cf3c91934b5389562b3
             env:
               HOST: "0.0.0.0"
               ARCHON_UI_PORT: *frontendPort
