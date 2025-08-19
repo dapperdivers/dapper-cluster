@@ -84,7 +84,7 @@ spec:
               runAsUser: 1001
               runAsGroup: 1001
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
@@ -206,13 +206,6 @@ spec:
         existingClaim: ${APP}
         globalMounts:
           - path: /data
-      home-archon:
-        type: emptyDir
-        advancedMounts:
-          archon:
-            server:
-              - path: /home/archon
-                readOnly: false
       tmp:
         type: emptyDir
         globalMounts:
