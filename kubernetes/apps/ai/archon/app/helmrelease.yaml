@@ -30,19 +30,19 @@ spec:
     image:
       server:
         repository: dapperdivers/archon-server
-        tag: main
+        tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
       mcp:
         repository: dapperdivers/archon-mcp
-        tag: main
+        tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
       agents:
         repository: dapperdivers/archon-agents
-        tag: main
+        tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
       ui:
         repository: dapperdivers/archon-frontend
-        tag: main
+        tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
 
     # Replica count
