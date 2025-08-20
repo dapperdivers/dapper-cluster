@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.1.0-ddb821d3
+    tag: 0.1.0-80a5eac6
   url: oci://ghcr.io/dapperdivers/charts/archon
 
 ---

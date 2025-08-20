@@ -70,6 +70,8 @@ spec:
       # Frontend configuration for Kubernetes
       frontend:
         dockerEnv: false           # Use localhost in Kubernetes pods
+        useIngressForApi: true     # Use ingress host for API calls
+        apiUrl: ""                 # Auto-detect from ingress
 
       sidecar:
         enabled: true
@@ -100,6 +102,12 @@ spec:
       className: internal
       annotations:
         external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        # Socket.IO WebSocket support
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+        nginx.ingress.kubernetes.io/enable-cors: "true"
+        nginx.ingress.kubernetes.io/cors-allow-methods: "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+        nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
       hosts:
         - host: &host "archon.${SECRET_DOMAIN}"
           paths:
