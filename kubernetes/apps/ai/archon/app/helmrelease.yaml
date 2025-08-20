@@ -30,23 +30,23 @@ spec:
     image:
       server:
         repository: dapperdivers/archon-dev-server
-        tag: 2025-08-20-3531f64
+        tag: 2025-08-20-8c97298
         pullPolicy: IfNotPresent
       mcp:
         repository: dapperdivers/archon-dev-mcp
-        tag: 2025-08-20-3531f64
+        tag: 2025-08-20-8c97298
         pullPolicy: IfNotPresent
       agents:
         repository: dapperdivers/archon-dev-agents
-        tag: 2025-08-20-3531f64
+        tag: 2025-08-20-8c97298
         pullPolicy: IfNotPresent
       ui:
         repository: dapperdivers/archon-dev-frontend
-        tag: 2025-08-20-3531f64
+        tag: 2025-08-20-8c97298
         pullPolicy: IfNotPresent
       sidecar:
         repository: dapperdivers/archon-dev-sidecar
-        tag: 2025-08-20-3531f64
+        tag: 2025-08-20-8c97298
         pullPolicy: IfNotPresent
 
     # Replica count
