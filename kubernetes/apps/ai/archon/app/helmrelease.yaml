@@ -1,0 +1,200 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app archon
+spec:
+  interval: 30m
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: archon
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: cloudnative-pg-cluster
+      namespace: database
+    - name: volsync
+      namespace: storage
+    - name: external-secrets-stores
+      namespace: external-secrets
+
+  values:
+    # Global configuration
+    global:
+      imageRegistry: "ghcr.io"
+      imagePullSecrets: []
+
+    # Container images
+    image:
+      server:
+        repository: dapperdivers/archon-server
+        tag: "f574d1c"
+        pullPolicy: IfNotPresent
+      mcp:
+        repository: dapperdivers/archon-mcp
+        tag: "f574d1c"
+        pullPolicy: IfNotPresent
+      agents:
+        repository: dapperdivers/archon-agents
+        tag: "31bca6f"
+        pullPolicy: IfNotPresent
+      ui:
+        repository: dapperdivers/archon-frontend
+        tag: "f574d1c"
+        pullPolicy: IfNotPresent
+
+    # Replica count
+    replicaCount: 1
+
+    # Application configuration
+    config:
+      deploymentMode: kubernetes
+      serviceDiscoveryMode: kubernetes
+      logLevel: INFO
+      transport: sse
+      sidecar:
+        enabled: false
+        port: 8053
+
+    # Service configuration
+    service:
+      type: ClusterIP
+      annotations: {}
+      server:
+        port: 8181
+      mcp:
+        port: 8051
+      agents:
+        port: 8052
+      ui:
+        port: 5173
+
+    # Ingress configuration
+    ingress:
+      enabled: true
+      className: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      hosts:
+        - host: &host "archon.${SECRET_DOMAIN}"
+          paths:
+            - path: /
+              pathType: Prefix
+              service: archon
+              port: ui
+            - path: /api
+              pathType: Prefix
+              service: archon
+              port: server
+            - path: /socket.io
+              pathType: Prefix
+              service: archon
+              port: server
+      tls:
+        - hosts:
+            - *host
+          secretName: "${SECRET_DOMAIN/./-}-tls"
+
+    # Resource configuration
+    resources:
+      server:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+      mcp:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      agents:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+      ui:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+
+    # Secrets configuration - use existing secrets
+    secrets:
+      create: false
+      existingSecret: "archon-secret"
+
+    # Service Account
+    serviceAccount:
+      create: true
+      annotations: {}
+      name: ""
+
+    # RBAC configuration
+    rbac:
+      create: true
+
+    # Security Context
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
+      seccompProfile:
+        type: RuntimeDefault
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1001
+
+    # Health checks
+    healthChecks:
+      livenessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 60
+        timeoutSeconds: 10
+        successThreshold: 1
+        failureThreshold: 3
+      readinessProbe:
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 10
+        successThreshold: 1
+        failureThreshold: 3
+
+    # Persistence (for future use)
+    persistence:
+      enabled: true
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+
+    # Pod annotations
+    podAnnotations:
+      reloader.stakater.com/auto: "true"
+
+    # Node selection
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
