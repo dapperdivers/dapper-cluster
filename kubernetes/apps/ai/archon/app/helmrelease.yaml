@@ -20,8 +20,6 @@ spec:
       strategy: rollback
       retries: 3
   dependsOn:
-    - name: cloudnative-pg-cluster
-      namespace: database
     - name: volsync
       namespace: storage
     - name: external-secrets-stores
