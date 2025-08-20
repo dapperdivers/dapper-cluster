@@ -30,19 +30,23 @@ spec:
     image:
       server:
         repository: dapperdivers/archon-dev-server
-        tag: 2025-08-20-7617f56
+        tag: 2025-08-20-20fec80
         pullPolicy: IfNotPresent
       mcp:
         repository: dapperdivers/archon-dev-mcp
-        tag: 2025-08-20-7617f56
+        tag: 2025-08-20-20fec80
         pullPolicy: IfNotPresent
       agents:
         repository: dapperdivers/archon-dev-agents
-        tag: 2025-08-20-7617f56
+        tag: 2025-08-20-20fec80
         pullPolicy: IfNotPresent
       ui:
         repository: dapperdivers/archon-dev-frontend
-        tag: 2025-08-20-7617f56
+        tag: 2025-08-20-20fec80
+        pullPolicy: IfNotPresent
+      sidecar:
+        repository: dapperdivers/archon-dev-sidecar
+        tag: 2025-08-20-20fec80
         pullPolicy: IfNotPresent
 
     # Replica count
@@ -68,8 +72,14 @@ spec:
         dockerEnv: false           # Use localhost in Kubernetes pods
 
       sidecar:
-        enabled: false
+        enabled: true
         port: 8053
+
+      # MCP Configuration (simplified for unified deployment)
+      mcp:
+        # Basic MCP server settings
+        serverPort: 8051
+        logLevel: "INFO"
 
     # Service configuration
     service:
@@ -119,6 +129,13 @@ spec:
         requests:
           cpu: 100m
           memory: 512Mi
+      sidecar:
+        limits:
+          cpu: 200m
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
       mcp:
         limits:
           cpu: 500m
