@@ -5,20 +5,20 @@ kind: HelmRelease
 metadata:
   name: &app archon
 spec:
-  interval: 30m
-  timeout: 15m
+  interval: 5m
+  timeout: 5m
   chartRef:
     kind: OCIRepository
     name: archon
   install:
     createNamespace: true
     remediation:
-      retries: 3
+      retries: 1
   upgrade:
     cleanupOnFail: true
     remediation:
       strategy: rollback
-      retries: 3
+      retries: 1
 
   values:
     # Global configuration
@@ -157,20 +157,20 @@ spec:
       runAsNonRoot: true
       runAsUser: 1001
 
-    # Health checks
+    # Health checks - faster failure detection for development
     healthChecks:
       livenessProbe:
-        initialDelaySeconds: 30
-        periodSeconds: 60
-        timeoutSeconds: 10
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        timeoutSeconds: 5
         successThreshold: 1
-        failureThreshold: 3
+        failureThreshold: 2
       readinessProbe:
         initialDelaySeconds: 5
         periodSeconds: 5
-        timeoutSeconds: 10
+        timeoutSeconds: 5
         successThreshold: 1
-        failureThreshold: 3
+        failureThreshold: 2
 
     # Persistence - disabled until chart supports it
     persistence:
