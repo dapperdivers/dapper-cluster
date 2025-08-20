@@ -1,14 +1,15 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app archon
 spec:
   interval: 30m
+  timeout: 15m
   chartRef:
     kind: OCIRepository
-    name: app-template
+    name: archon
   install:
     createNamespace: true
     remediation:
@@ -20,256 +21,173 @@ spec:
       retries: 3
 
   values:
-    controllers:
-      archon:
-        strategy: Recreate
-        annotations:
-          reloader.stakater.com/auto: "true"
-        containers:
-          frontend:
-            image: # redeploy
-              repository: ghcr.io/dapperdivers/archon-dev-frontend
-              tag: latest
-            env:
-              ARCHON_UI_HOST: "0.0.0.0"
-              ARCHON_UI_PORT: &frontendPort 5173
-              ARCHON_SERVER_HOST: "archon"
-              ARCHON_SERVER_PORT: &serverPort 8181
-              ARCHON_MCP_HOST: "archon"
-              ARCHON_MCP_PORT: &mcpPort 8051
-              ARCHON_AGENTS_HOST: "archon"
-              ARCHON_AGENTS_PORT: &agentsPort 8052
-              PORT: *frontendPort
-              SERVICE_DISCOVERY_MODE: "kubernetes"
-              VITE_ALLOWED_HOSTS: "archon.chelonianlabs.com,localhost,0.0.0.0"
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 1001
-              runAsGroup: 1001
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities:
-                drop:
-                  - ALL
-              seccompProfile:
-                type: RuntimeDefault
-            probes:
-              liveness: &frontendProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /health
-                    port: *frontendPort
-                  initialDelaySeconds: 30
-                  periodSeconds: 60
-                  timeoutSeconds: 10
-                  failureThreshold: 3
-              readiness: *frontendProbes
-            resources:
-              requests:
-                cpu: 50m
-                memory: 256Mi
-              limits:
-                cpu: 500m
-                memory: 1Gi
+    # Global configuration
+    global:
+      imageRegistry: "ghcr.io"
+      imagePullSecrets: []
 
-          server:
-            image:
-              repository: ghcr.io/dapperdivers/archon-dev-server
-              tag: latest
-            env:
-              ARCHON_SERVER_HOST: "0.0.0.0"
-              ARCHON_SERVER_PORT: *serverPort
-              ARCHON_UI_PORT: *frontendPort
-              ARCHON_MCP_HOST: "archon"
-              ARCHON_MCP_PORT: *mcpPort
-              ARCHON_AGENTS_HOST: "archon"
-              ARCHON_AGENTS_PORT: *agentsPort
-              LOG_LEVEL: "INFO"
-              SERVICE_DISCOVERY_MODE: "kubernetes"
-            envFrom:
-              - secretRef:
-                  name: archon-supabase-secret
-              - secretRef:
-                  name: *app
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 1001
-              runAsGroup: 1001
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities:
-                drop:
-                  - ALL
-              seccompProfile:
-                type: RuntimeDefault
-            probes:
-              liveness: &serverProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /health
-                    port: *serverPort
-                  initialDelaySeconds: 30
-                  periodSeconds: 60
-                  timeoutSeconds: 10
-                  failureThreshold: 3
-              readiness: *serverProbes
-            resources:
-              requests:
-                cpu: 100m
-                memory: 512Mi
-              limits:
-                cpu: 1000m
-                memory: 2Gi
+    # Container images
+    image:
+      server:
+        repository: dapperdivers/archon-server
+        tag: "f574d1c"
+        pullPolicy: IfNotPresent
+      mcp:
+        repository: dapperdivers/archon-mcp
+        tag: "f574d1c"
+        pullPolicy: IfNotPresent
+      agents:
+        repository: dapperdivers/archon-agents
+        tag: "31bca6f"
+        pullPolicy: IfNotPresent
+      ui:
+        repository: dapperdivers/archon-frontend
+        tag: "f574d1c"
+        pullPolicy: IfNotPresent
 
-          mcp:
-            image:
-              repository: ghcr.io/dapperdivers/archon-dev-mcp
-              tag: latest
-            env:
-              ARCHON_MCP_HOST: "0.0.0.0"
-              ARCHON_MCP_PORT: &mcpPort 8051
-              ARCHON_SERVER_HOST: "archon"
-              ARCHON_SERVER_PORT: *serverPort
-              ARCHON_AGENTS_HOST: "archon"
-              ARCHON_AGENTS_PORT: *agentsPort
-              LOG_LEVEL: "INFO"
-              SERVICE_DISCOVERY_MODE: "kubernetes"
-              TRANSPORT: "sse"
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 1001
-              runAsGroup: 1001
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
-              seccompProfile:
-                type: RuntimeDefault
-            probes:
-              liveness: &mcpProbes
-                enabled: false
-              readiness: *mcpProbes
-            resources:
-              requests:
-                cpu: 50m
-                memory: 256Mi
-              limits:
-                cpu: 500m
-                memory: 512Mi
+    # Replica count
+    replicaCount: 1
 
-          agents:
-            image:
-              repository: ghcr.io/dapperdivers/archon-dev-agents
-              tag: latest
-            env:
-              ARCHON_AGENTS_HOST: "0.0.0.0"
-              ARCHON_AGENTS_PORT: &agentsPort 8052
-              ARCHON_SERVER_HOST: "archon"
-              ARCHON_SERVER_PORT: *serverPort
-              ARCHON_MCP_HOST: "archon"
-              ARCHON_MCP_PORT: *mcpPort
-              LOG_LEVEL: "INFO"
-              SERVICE_DISCOVERY_MODE: "kubernetes"
-            envFrom:
-              - secretRef:
-                  name: archon-supabase-secret
-              - secretRef:
-                  name: *app
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 1001
-              runAsGroup: 1001
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
-              seccompProfile:
-                type: RuntimeDefault
-            probes:
-              liveness: &agentsProbes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /health
-                    port: *agentsPort
-                  initialDelaySeconds: 120
-                  periodSeconds: 60
-                  timeoutSeconds: 10
-                  failureThreshold: 5
-              readiness: *agentsProbes
-            resources:
-              requests:
-                cpu: 100m
-                memory: 512Mi
-              limits:
-                cpu: 1000m
-                memory: 2Gi
+    # Application configuration
+    config:
+      deploymentMode: kubernetes
+      serviceDiscoveryMode: kubernetes
+      logLevel: INFO
+      transport: sse
+      sidecar:
+        enabled: true
+        port: 8053
 
-
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
-        seccompProfile: { type: RuntimeDefault }
-
-    persistence:
-      git-repo:
-        type: emptyDir
-        globalMounts:
-          - path: /git
-      data:
-        existingClaim: ${APP}
-        globalMounts:
-          - path: /data
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
-            readOnly: false
-
+    # Service configuration
     service:
-      app:
-        controller: *app
-        ports:
-          http:
-            port: *frontendPort
-          server:
-            port: *serverPort
-          mcp:
-            port: *mcpPort
-          agents:
-            port: *agentsPort
+      type: ClusterIP
+      annotations: {}
+      server:
+        port: 8181
+      mcp:
+        port: 8051
+      agents:
+        port: 8052
+      ui:
+        port: 5173
 
+    # Ingress configuration
     ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &host "archon.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-              - path: /api
-                service:
-                  identifier: app
-                  port: server
-              - path: /socket.io
-                service:
-                  identifier: app
-                  port: server
-        tls:
-          - hosts:
-              - *host
-            secretName: "${SECRET_DOMAIN/./-}-tls"
+      enabled: true
+      className: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      hosts:
+        - host: &host "archon.${SECRET_DOMAIN}"
+          paths:
+            - path: /
+              pathType: Prefix
+              service: archon
+              port: ui
+            - path: /api
+              pathType: Prefix
+              service: archon
+              port: server
+            - path: /socket.io
+              pathType: Prefix
+              service: archon
+              port: server
+      tls:
+        - hosts:
+            - *host
+          secretName: "${SECRET_DOMAIN/./-}-tls"
+
+    # Resource configuration
+    resources:
+      server:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+      mcp:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      agents:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+      ui:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 50m
+          memory: 256Mi
+
+    # Secrets configuration - use existing secrets
+    secrets:
+      create: false
+      existingSecret: "archon-secret"
+
+    # Service Account
+    serviceAccount:
+      create: true
+      annotations: {}
+      name: ""
+
+    # RBAC configuration
+    rbac:
+      create: true
+
+    # Security Context
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
+      seccompProfile:
+        type: RuntimeDefault
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1001
+
+    # Health checks
+    healthChecks:
+      livenessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 60
+        timeoutSeconds: 10
+        successThreshold: 1
+        failureThreshold: 3
+      readinessProbe:
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 10
+        successThreshold: 1
+        failureThreshold: 3
+
+    # Persistence - disabled until chart supports it
+    persistence:
+      enabled: false
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+
+    # Pod annotations
+    podAnnotations:
+      reloader.stakater.com/auto: "true"
+
+    # Node selection
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
