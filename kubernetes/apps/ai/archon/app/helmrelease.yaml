@@ -125,6 +125,10 @@ spec:
               pathType: Prefix
               service: archon
               port: server
+            - path: /mcp
+              pathType: Prefix
+              service: archon
+              port: mcp
       tls:
         - hosts:
             - *host
