@@ -138,7 +138,7 @@ spec:
     resources:
       server:
         limits:
-          cpu: 4000m
+          cpu: 12000m
           memory: 16Gi  # Increased from 2Gi to 8Gi for crawl4ai requirements
         requests:
           cpu: 2000m
