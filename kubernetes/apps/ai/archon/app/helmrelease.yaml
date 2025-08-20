@@ -108,6 +108,8 @@ spec:
         nginx.ingress.kubernetes.io/enable-cors: "true"
         nginx.ingress.kubernetes.io/cors-allow-methods: "GET,PUT,POST,DELETE,PATCH,OPTIONS"
         nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+        # Remove rewrite-target to preserve API paths
+        # nginx.ingress.kubernetes.io/rewrite-target: /
       hosts:
         - host: &host "archon.${SECRET_DOMAIN}"
           paths:
