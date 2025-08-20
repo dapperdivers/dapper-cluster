@@ -183,9 +183,9 @@ spec:
         successThreshold: 1
         failureThreshold: 3
 
-    # Persistence (for future use)
+    # Persistence - disabled until chart supports it
     persistence:
-      enabled: true
+      enabled: false
       storageClass: ""
       accessMode: ReadWriteOnce
       size: 5Gi
