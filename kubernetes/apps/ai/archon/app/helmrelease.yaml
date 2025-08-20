@@ -29,19 +29,19 @@ spec:
     # Container images
     image:
       server:
-        repository: dapperdivers/archon-server
+        repository: dapperdivers/archon-dev-server
         tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
       mcp:
-        repository: dapperdivers/archon-mcp
+        repository: dapperdivers/archon-dev-mcp
         tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
       agents:
-        repository: dapperdivers/archon-agents
+        repository: dapperdivers/archon-dev-agents
         tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
       ui:
-        repository: dapperdivers/archon-frontend
+        repository: dapperdivers/archon-dev-frontend
         tag: 2025-08-20-7617f56
         pullPolicy: IfNotPresent
 
