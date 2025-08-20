@@ -50,6 +50,19 @@ spec:
       serviceDiscoveryMode: kubernetes
       logLevel: INFO
       transport: sse
+
+      # Enhanced crawler configuration for production stability
+      crawling:
+        pageTimeout: 90000         # 90 second page timeout
+        waitStrategy: "networkidle" # Wait for network to be idle
+        delayBeforeHtml: 3.0       # 3 second delay for JS rendering
+        maxRetries: 2              # Retry failed pages up to 2 times
+        retryDelay: 5000           # 5 second delay between retries
+
+      # Frontend configuration for Kubernetes
+      frontend:
+        dockerEnv: false           # Use localhost in Kubernetes pods
+
       sidecar:
         enabled: true
         port: 8053
@@ -157,20 +170,20 @@ spec:
       runAsNonRoot: true
       runAsUser: 1001
 
-    # Health checks - faster failure detection for development
+    # Production health checks (more conservative)
     healthChecks:
       livenessProbe:
-        initialDelaySeconds: 15
-        periodSeconds: 10
-        timeoutSeconds: 5
+        initialDelaySeconds: 120   # Allow startup time
+        periodSeconds: 30          # Check every 30 seconds
+        timeoutSeconds: 10         # 10 second timeout
         successThreshold: 1
-        failureThreshold: 2
+        failureThreshold: 3        # Allow 3 failures before restart
       readinessProbe:
-        initialDelaySeconds: 5
-        periodSeconds: 5
-        timeoutSeconds: 5
+        initialDelaySeconds: 30    # Ready check after 30s
+        periodSeconds: 15          # Check every 15 seconds
+        timeoutSeconds: 5          # 5 second timeout
         successThreshold: 1
-        failureThreshold: 2
+        failureThreshold: 2        # Allow 2 failures before marking unready
 
     # Persistence - disabled until chart supports it
     persistence:
@@ -182,6 +195,22 @@ spec:
     # Pod annotations
     podAnnotations:
       reloader.stakater.com/auto: "true"
+
+    # Production monitoring (enable if you have Prometheus)
+    monitoring:
+      enabled: false               # Set to true if you have Prometheus Operator
+      serviceMonitor:
+        enabled: false
+        interval: 30s
+        scrapeTimeout: 10s
+        labels: {}
+        endpoints:
+          - port: server
+            path: /metrics
+          - port: mcp
+            path: /metrics
+          - port: agents
+            path: /metrics
 
     # Node selection
     nodeSelector: {}
