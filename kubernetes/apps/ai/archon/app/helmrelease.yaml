@@ -60,7 +60,7 @@ spec:
       logLevel: INFO
       transport: sse
       sidecar:
-        enabled: false
+        enabled: true
         port: 8053
 
     # Service configuration
