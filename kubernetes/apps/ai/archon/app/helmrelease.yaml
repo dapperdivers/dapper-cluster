@@ -68,7 +68,7 @@ spec:
         dockerEnv: false           # Use localhost in Kubernetes pods
 
       sidecar:
-        enabled: true
+        enabled: false
         port: 8053
 
     # Service configuration
