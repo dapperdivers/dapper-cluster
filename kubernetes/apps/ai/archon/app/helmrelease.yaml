@@ -30,23 +30,23 @@ spec:
     image:
       server:
         repository: dapperdivers/archon-dev-server
-        tag: 2025-08-20-810d2d7
+        tag: 2025-08-20-87de3b5
         pullPolicy: IfNotPresent
       mcp:
         repository: dapperdivers/archon-dev-mcp
-        tag: 2025-08-20-810d2d7
+        tag: 2025-08-20-87de3b5
         pullPolicy: IfNotPresent
       agents:
         repository: dapperdivers/archon-dev-agents
-        tag: 2025-08-20-810d2d7
+        tag: 2025-08-20-87de3b5
         pullPolicy: IfNotPresent
       ui:
         repository: dapperdivers/archon-dev-frontend
-        tag: 2025-08-20-810d2d7
+        tag: 2025-08-20-87de3b5
         pullPolicy: IfNotPresent
       sidecar:
         repository: dapperdivers/archon-dev-sidecar
-        tag: 2025-08-20-810d2d7
+        tag: 2025-08-20-87de3b5
         pullPolicy: IfNotPresent
 
     # Replica count
@@ -138,10 +138,10 @@ spec:
     resources:
       server:
         limits:
-          cpu: 1000m
+          cpu: 4000m
           memory: 2Gi
         requests:
-          cpu: 100m
+          cpu: 2000m
           memory: 512Mi
       sidecar:
         limits:
