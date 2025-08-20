@@ -19,11 +19,6 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-  dependsOn:
-    - name: volsync
-      namespace: storage
-    - name: external-secrets-stores
-      namespace: external-secrets
 
   values:
     # Global configuration
