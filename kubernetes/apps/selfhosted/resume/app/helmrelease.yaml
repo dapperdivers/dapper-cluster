@@ -29,9 +29,9 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio
-              tag:  latest@sha256:3d559205ab72dcba0a327a5bf22bee4a5540c9d6f65509b996184f2ebc762e58
+              tag:  latest@sha256:9a15ede1d942619fda59ec61477e3b83cc29384744d6c80f3590c6774d32c855
             env:
-              ALLOWED_DOMAINS: ${SECRET_DOMAIN_PERSONAL}
+              ALLOWED_DOMAINS: "https://${SECRET_DOMAIN_PERSONAL},https://www.${SECRET_DOMAIN_PERSONAL}"
               VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
               VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
               VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
@@ -43,25 +43,46 @@ spec:
                 drop:
                   - ALL
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /healthz
+                    path: /live
                     port: 3001
-                  initialDelaySeconds: 0
-                  periodSeconds: 60
-                  timeoutSeconds: 1
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+                  timeoutSeconds: 5
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: 3001
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 3
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/comprehensive
+                    port: 3001
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 10
+                  failureThreshold: 6
             resources:
               requests:
                 cpu: 100m
                 memory: 1Gi
               limits:
                 cpu: 1000m
-                memory: 6Gi
+                memory: 2Gi
     persistence:
       tmp:
         type: emptyDir
