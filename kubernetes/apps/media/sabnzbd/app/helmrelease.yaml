@@ -158,4 +158,5 @@ spec:
         server: tower-2.manor
         path: /mnt/user/Media
         globalMounts:
-          - path: /tower-2
+          - path: /tower-2/downloads/usenet
+            subPath: downloads/usenet
