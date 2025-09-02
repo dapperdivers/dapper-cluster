@@ -29,13 +29,9 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio
-              tag:  latest@sha256:df87289c4aca40b5274ba92a3c83c507356a2384d70ab921c3804abd84694062
+              tag: latest@sha256:b530e7fc0e48bcec0d5dcdd1e2af0a6a5134fb560534c979f04d47174b44af29
             env:
-              ALLOWED_DOMAINS: "https://${SECRET_DOMAIN_PERSONAL},https://www.${SECRET_DOMAIN_PERSONAL}"
-              VITE_SITE_MAIN_URL: https://www.${SECRET_DOMAIN_PERSONAL}
-              VITE_SITE_STORYBOOK_URL: https://${SECRET_DOMAIN_PERSONAL}/storybook
-              VITE_SITE_DOCS_URL: https://${SECRET_DOMAIN_PERSONAL}/docs
-              VITE_SITE_NAVIGATOR_ENABLED: true
+              ALLOWED_DOMAINS: "https://www.${SECRET_DOMAIN_PERSONAL},https://${SECRET_DOMAIN_PERSONAL}"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -48,10 +44,10 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /live
-                    port: 3001
-                  initialDelaySeconds: 10
-                  periodSeconds: 30
+                    path: /health/comprehensive
+                    port: 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 60
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness:
@@ -59,10 +55,10 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /ready
-                    port: 3001
-                  initialDelaySeconds: 5
-                  periodSeconds: 10
+                    path: /health/comprehensive
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
                   timeoutSeconds: 3
                   failureThreshold: 3
               startup:
@@ -71,11 +67,11 @@ spec:
                 spec:
                   httpGet:
                     path: /health/comprehensive
-                    port: 3001
-                  initialDelaySeconds: 30
-                  periodSeconds: 10
+                    port: 8080
+                  initialDelaySeconds: 45
+                  periodSeconds: 30
                   timeoutSeconds: 10
-                  failureThreshold: 6
+                  failureThreshold: 4
             resources:
               requests:
                 cpu: 100m
@@ -96,7 +92,7 @@ spec:
         controller: *app
         ports:
           http:
-            port: 3001
+            port: 8080
     ingress:
       app:
         annotations:
