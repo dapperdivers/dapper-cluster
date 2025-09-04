@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/nzbget
-              tag: 25.3.0@sha256:8ba14beb7e344f87eb16e55bb9c594d4549daecae2dc72f71b6d9ae682cac4ba
+              tag: 25.3.0@sha256:53308c998335121a9032df586beebf05a808c875aa64a1e2491d724447c2022d
             env:
               TZ: ${TIME_ZONE}
             resources:
