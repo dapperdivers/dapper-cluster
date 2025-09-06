@@ -74,6 +74,7 @@ spec:
               KOMETA_SONARR_ROOT_FOLDER_PATH: "/safe/tv"
               KOMETA_SONARR_UHD_HOST: "http://sonarr-uhd.media"
               KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/safe/tv-4k"
+              KOMETA_TRAKT_PIN: "aff4813e"
             envFrom:
               - secretRef:
                   name: kometa-secret
