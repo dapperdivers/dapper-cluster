@@ -30,10 +30,10 @@ spec:
   values:
     resources:
       requests:
-        cpu: 15m
+        cpu: 50m
         memory: 365Mi
       limits:
-        cpu: 100m
+        cpu: 500m
         memory: 512Mi
     image:
       repository: nvcr.io/nvidia/k8s/dcgm-exporter
