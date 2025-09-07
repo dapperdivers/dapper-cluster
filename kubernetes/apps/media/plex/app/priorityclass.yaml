@@ -1,0 +1,9 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/scheduling.k8s.io/v1/priorityclass.json
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: media-critical
+value: 500  # Higher than Tdarr (100) but lower than system (1000+)
+globalDefault: false
+description: "Priority class for critical media services like Plex"

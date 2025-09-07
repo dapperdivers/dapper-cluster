@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node-cpu
-  minReplicas: 1  # Limited to 1 due to PVC (needs StatefulSet for multiple)
-  maxReplicas: 1  # TODO: Convert to StatefulSet to allow multiple replicas
+  minReplicas: 2  # Start with 2 CPU nodes for parallel processing
+  maxReplicas: 6  # Scale up to 6 CPU nodes when cluster has capacity
   metrics:
     # Scale based on CPU utilization
     - type: Resource
@@ -18,14 +18,14 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 40  # Scale up aggressively when CPU > 40%
+          averageUtilization: 30  # Scale up very aggressively when CPU > 30%
     # Scale based on memory utilization
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: 50  # Scale up aggressively when memory > 50%
+          averageUtilization: 40  # Scale up very aggressively when memory > 40%
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 600  # Wait 10 minutes before scaling down

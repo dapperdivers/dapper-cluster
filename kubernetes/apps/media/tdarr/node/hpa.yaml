@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node
-  minReplicas: 1  # Start with 1 GPU node
-  maxReplicas: 2  # Maximum 2 GPU nodes (8 slices, leaving 4 for Plex/Ollama)
+  minReplicas: 2  # Start with 2 GPU nodes for faster processing
+  maxReplicas: 3  # Can use all 3 GPUs when Plex/Ollama idle (priority class allows preemption)
   metrics:
     # Scale based on CPU utilization
     - type: Resource
@@ -18,14 +18,14 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 40  # Scale up aggressively when CPU > 40%
+          averageUtilization: 30  # Scale up very aggressively when CPU > 30%
     # Scale based on memory utilization
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: 50  # Scale up aggressively when memory > 50%
+          averageUtilization: 40  # Scale up very aggressively when memory > 40%
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300  # Wait 5 minutes before scaling down
