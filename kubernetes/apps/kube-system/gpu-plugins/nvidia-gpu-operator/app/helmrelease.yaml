@@ -35,7 +35,9 @@ spec:
 
     # Driver configuration for Talos
     driver:
-      enabled: false  # Talos already has the driver via system extensions
+      enabled: true  # Required for validation to pass
+      usePrecompiled: true  # Use pre-installed driver from Talos
+      version: "535.230.02"  # Match Talos extension version
 
     # Toolkit configuration
     toolkit:
