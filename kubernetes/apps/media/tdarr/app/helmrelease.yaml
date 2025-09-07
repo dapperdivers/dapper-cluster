@@ -30,19 +30,27 @@ spec:
             image:
               repository: ghcr.io/haveagitgat/tdarr
               tag: 2.46.01@sha256:1376fc2c1bcbd8c3eabc210d1531cd4287334facfbf3a78e4b10387be0a4d223
-            command: ["/bin/sh"]
-            args:
-              - -c
-              - |
-                echo "Patching Tdarr server to remove 5 node limit..."
-                sed -i 's/>=0x5&&y/>=0x3e7&&y/g' /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js
-                if grep -q "0x3e7" /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js; then
-                  echo "✅ Patch applied successfully - node limit increased to 999"
-                else
-                  echo "❌ Patch failed"
-                fi
-                echo "Starting Tdarr server..."
-                exec node /app/Tdarr_Server/Tdarr_Server.js
+            lifecycle:
+              postStart:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - |
+                      echo "Waiting for Tdarr server files to be ready..."
+                      sleep 5
+                      echo "Patching Tdarr server to remove 5 node limit..."
+                      if [ -f /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js ]; then
+                        cp /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js.backup
+                        sed -i 's/>=0x5&&y/>=0x3e7&&y/g' /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js
+                        if grep -q "0x3e7" /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js; then
+                          echo "✅ Patch applied successfully - node limit increased to 999"
+                        else
+                          echo "❌ Patch failed"
+                        fi
+                      else
+                        echo "❌ nodeRelay.js not found - patch skipped"
+                      fi
             env:
               TZ: ${TIME_ZONE}
               PGID: 140
