@@ -71,6 +71,15 @@ spec:
               nodeIP: "0.0.0.0"
               nodePort: "8267"
 
+              # Worker configuration for CPU-only nodes
+              transcodegpuWorkers: "0"  # No GPU workers on CPU nodes
+              transcodecpuWorkers: "2"  # Use 2 CPU workers for transcoding
+              healthcheckgpuWorkers: "0"  # No GPU health checks
+              healthcheckcpuWorkers: "1"  # Use 1 CPU worker for health checks
+              pollInterval: "2000"  # Poll every 2 seconds
+              startPaused: "false"  # Start processing immediately
+              maxLogSizeMB: "10"  # Log size limit
+
               POD_NAME:
                 valueFrom:
                   fieldRef:

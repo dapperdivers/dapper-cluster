@@ -27,3 +27,18 @@ data:
 
   # Container preferences
   PREFERRED_CONTAINER: "mkv"  # Default output container
+
+  # Worker Configuration - GPU Nodes
+  GPU_TRANSCODE_WORKERS: "1"  # GPU transcode workers per node
+  GPU_HEALTHCHECK_WORKERS: "1"  # GPU health check workers per node
+  GPU_CPU_TRANSCODE_WORKERS: "0"  # CPU workers on GPU nodes (set to 0)
+  GPU_CPU_HEALTHCHECK_WORKERS: "0"  # CPU health check on GPU nodes (set to 0)
+
+  # Worker Configuration - CPU Nodes
+  CPU_TRANSCODE_WORKERS: "2"  # CPU transcode workers per node
+  CPU_HEALTHCHECK_WORKERS: "1"  # CPU health check workers per node
+
+  # Node Performance Settings
+  NODE_POLL_INTERVAL: "2000"  # How often nodes poll for work (ms)
+  NODE_START_PAUSED: "false"  # Whether nodes start paused
+  NODE_MAX_LOG_SIZE: "10"  # Max log size in MB per node
