@@ -5,7 +5,7 @@ Migrate all media services from inline NFS mounts to shared PersistentVolumeClai
 
 ## Benefits
 - **Centralized Management**: Single source of truth for NFS mount options
-- **Performance**: Optimized mount options with FS-Cache, 4MB buffers for large media files
+- **Performance**: Optimized mount options with 4MB buffers for large media files
 - **Consistency**: All services use the same optimized settings
 - **Node Affinity**: Can schedule pods to NFS-optimized worker nodes
 - **Reduced Duplication**: No need to repeat mount configurations
@@ -23,22 +23,20 @@ PersistentVolumes (Optimized NFS) → PersistentVolumeClaims → Media Services
 
 ## Phase 1: Infrastructure Setup ✅
 
-### 1.1 Talos Worker Node Configuration ✅
-**File**: `kubernetes/bootstrap/talos/patches/worker/nfs-fscache.yaml`
-- [x] Created NFS optimization patch for worker nodes
-- [x] Enabled FS-Cache kernel modules
-- [x] Optimized sysctls for large media files
-- [x] 4GB tmpfs cache for FS-Cache
-- [x] Applied to all worker nodes in talconfig.yaml
+### 1.1 Talos Node Configuration ✅
+**Note**: NFS optimizations are handled at the PVC mount options level
+- [x] nfsrahead extension already configured on all nodes
+- [x] Mount options optimized in PV definitions (4MB buffers, caching)
+- [x] No Talos patches required (fs-cache not supported)
 
-### 1.2 Create PersistentVolumes and PVCs ⏳
-**File**: `kubernetes/apps/storage/media-nfs-pvs.yaml`
-- [x] Created PV/PVC for vault.manor
-- [x] Created PV/PVC for tower.manor
-- [x] Created PV/PVC for tower-2.manor
-- [ ] Apply to cluster: `kubectl apply -f kubernetes/apps/storage/media-nfs-pvs.yaml`
-- [ ] Verify PVs are bound: `kubectl get pv -l storage.type=nfs-media`
-- [ ] Verify PVCs are bound: `kubectl get pvc -n media`
+### 1.2 Create PersistentVolumes and PVCs ✅
+**File**: `kubernetes/apps/media/media-nfs-storage/app/pvcs.yaml`
+- [x] Created PV/PVC for vault.manor (NFS v4.1)
+- [x] Created PV/PVC for tower.manor (NFS v4.2)
+- [x] Created PV/PVC for tower-2.manor (NFS v4.2, fs-cache removed)
+- [x] Applied to cluster via Flux
+- [x] PVs are bound: `media-vault-pv`, `media-tower-pv`, `media-tower-2-pv`
+- [x] PVCs are bound in media namespace
 
 ## Phase 2: Service Migration
 
@@ -119,7 +117,7 @@ PersistentVolumes (Optimized NFS) → PersistentVolumeClaims → Media Services
 - [ ] No inline NFS mounts remaining
 - [ ] All services functional
 - [ ] Performance metrics improved
-- [ ] FS-Cache working (check cache hit rates)
+- [ ] NFS read-ahead optimizations working
 
 ### 3.2 Documentation
 - [ ] Update service documentation
@@ -171,8 +169,8 @@ kubectl rollout status -n media deployment/<service-name>
 # Check logs for NFS issues
 kubectl logs -n media deployment/<service-name> | grep -i "nfs\|stale\|mount"
 
-# Check NFS cache statistics (on worker nodes)
-cat /proc/fs/fscache/stats
+# Check NFS statistics (on worker nodes)
+nfsstat -c
 
 # Monitor NFS performance
 nfsstat -c
