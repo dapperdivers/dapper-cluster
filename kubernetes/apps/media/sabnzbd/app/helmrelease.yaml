@@ -64,17 +64,9 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  exec:
-                    command:
-                      - /bin/sh
-                      - -c
-                      - |
-                        # Check HTTP endpoint
-                        wget -q --spider --timeout=10 http://localhost:80/api?mode=version || exit 1
-                        # Check NFS mounts are accessible
-                        stat /tower/downloads/usenet > /dev/null 2>&1 || exit 1
-                        stat /safe/downloads/usenet > /dev/null 2>&1 || exit 1
-                        stat /tower-2/downloads/usenet > /dev/null 2>&1 || exit 1
+                  httpGet:
+                    path: /api?mode=version
+                    port: *port
                   initialDelaySeconds: 0
                   periodSeconds: 300
                   timeoutSeconds: 60
@@ -99,37 +91,7 @@ spec:
                 cpu: 8000m
               limits:
                 memory: 80Gi
-          nfs-monitor:
-            image:
-              repository: alpine
-              tag: 3.220
-            command:
-              - /bin/sh
-              - -c
-              - |
-                while true; do
-                  echo "$(date): Checking NFS mounts..."
 
-                  # Check each mount point
-                  for mount in /tower/downloads/usenet /safe/downloads/usenet /tower-2/downloads/usenet; do
-                    if ! stat "$mount" > /dev/null 2>&1; then
-                      echo "ERROR: $mount is not accessible (possible stale handle)"
-                      # Log to stdout for container logs
-                      echo "ALERT: NFS mount $mount has stale file handle - restart required"
-                    else
-                      echo "OK: $mount is accessible"
-                    fi
-                  done
-
-                  sleep 300  # Check every 5 minutes
-                done
-            resources:
-              requests:
-                cpu: 10m
-                memory: 16Mi
-              limits:
-                cpu: 50m
-                memory: 32Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -190,23 +152,17 @@ spec:
         globalMounts:
           - readOnly: true
       safe:
-        type: nfs
-        server: vault.manor
-        path: /mnt/Tank/Media
+        existingClaim: media-vault-pvc
         globalMounts:
           - path: /safe/downloads/usenet
             subPath: downloads/usenet
       tower:
-        type: nfs
-        server: tower.manor
-        path: /mnt/user/Media
+        existingClaim: media-tower-pvc
         globalMounts:
           - path: /tower/downloads/usenet
             subPath: downloads/usenet
       tower-2:
-        type: nfs
-        server: tower-2.manor
-        path: /mnt/user/Media
+        existingClaim: media-tower-2-pvc
         globalMounts:
           - path: /tower-2/downloads/usenet
             subPath: downloads/usenet
