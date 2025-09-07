@@ -78,10 +78,21 @@ spec:
           - path: /qbittorrent/qBittorrent/BT_backup
             subPath: qBittorrent/BT_backup
             readOnly: true
-      media:
-        type: nfs
-        server: expanse.internal
-        path: /eros/Media
+      # Mount all three media servers for complete access to downloads
+      vault-media:
+        existingClaim: media-vault-pvc
         globalMounts:
-          - path: /media/Downloads
-            subPath: Downloads
+          - path: /media/vault
+            readOnly: true
+
+      tower-media:
+        existingClaim: media-tower-pvc
+        globalMounts:
+          - path: /media/tower
+            readOnly: true
+
+      tower-2-media:
+        existingClaim: media-tower-2-pvc
+        globalMounts:
+          - path: /media/tower-2
+            readOnly: true

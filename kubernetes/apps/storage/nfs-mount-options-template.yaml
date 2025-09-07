@@ -1,0 +1,165 @@
+# NFS Mount Options Template for Media Services
+# Optimized for large media files (movies, TV shows, etc.)
+# This template shows how to convert inline NFS mounts to PersistentVolumes
+# or optimize existing inline mounts in HelmReleases
+
+---
+# Example 1: PersistentVolume for vault.manor (NFS v4.1)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-vault-pv
+  labels:
+    storage: nfs-media
+    server: vault
+spec:
+  capacity:
+    storage: 1Ti  # Adjust to your needs
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-media-vault
+  nfs:
+    server: vault.manor
+    path: /mnt/Tank/Media
+  mountOptions: &media-mount-options-v41
+    # Core NFS options
+    - rw                      # Read/write access
+    - hard                    # Retry indefinitely (important for media streaming)
+    - tcp                     # Use TCP protocol
+    - vers=4.1                # NFS version 4.1 for vault.manor
+    - fsc                     # Enable FS-Cache for local caching
+
+    # Large file optimizations (media files are typically large)
+    - rsize=4194304           # 4MB read buffer for large sequential reads
+    - wsize=4194304           # 4MB write buffer for large file uploads
+    - timeo=600               # 60 second timeout (allows for network hiccups)
+    - retrans=2               # Retry twice before major timeout
+
+    # Media-specific caching (read-heavy workload)
+    - actimeo=3600            # Cache attributes for 1 hour (media files rarely change)
+    - ac                      # Enable attribute caching
+    - lookupcache=all         # Cache all lookups (directory structures rarely change)
+
+    # Performance optimizations for media
+    - async                   # Async writes (media downloads can use this)
+    - noatime                 # Don't update access times (reduce writes)
+    - nodiratime              # Don't update directory access times
+    - nocto                   # No close-to-open consistency (files rarely change)
+
+    # Additional media optimizations
+    - nolock                  # No file locking needed for media files
+    - noacl                   # No ACLs needed
+    - nordirplus              # Disable READDIRPLUS (can be slow with large dirs)
+
+---
+# Example 2: PersistentVolume for tower servers (NFS v4.2)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-tower-pv
+  labels:
+    storage: nfs-media
+    server: tower
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-media-tower
+  nfs:
+    server: tower.manor  # or tower-2.manor
+    path: /mnt/user/Media
+  mountOptions: &media-mount-options-v42
+    # Same as above but with NFS v4.2
+    - rw
+    - hard
+    - tcp
+    - vers=4.2                # NFS version 4.2 for tower servers
+    - fsc
+    - rsize=4194304
+    - wsize=4194304
+    - timeo=600
+    - retrans=2
+    - actimeo=3600
+    - ac
+    - lookupcache=all
+    - async
+    - noatime
+    - nodiratime
+    - nocto
+    - nolock
+    - noacl
+    - nordirplus
+
+---
+# Example 3: Modified HelmRelease persistence section with optimized options
+# Add these mountOptions to your existing inline NFS mounts:
+#
+# persistence:
+#   safe:
+#     type: nfs
+#     server: vault.manor
+#     path: /mnt/Tank/Media
+#     mountOptions:
+#       - hard
+#       - tcp
+#       - vers=4.1
+#       - fsc
+#       - rsize=4194304
+#       - wsize=4194304
+#       - timeo=600
+#       - retrans=2
+#       - actimeo=3600
+#       - async
+#       - noatime
+#       - nodiratime
+#       - nocto
+#       - nolock
+#     globalMounts:
+#       - path: /safe
+
+---
+# StorageClass for dynamic provisioning (if using NFS provisioner)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-media
+provisioner: YOUR_NFS_PROVISIONER  # e.g., nfs.csi.k8s.io
+parameters:
+  server: vault.manor
+  share: /mnt/Tank/Media
+mountOptions:
+  - hard
+  - tcp
+  - vers=4.1
+  - fsc
+  - rsize=4194304
+  - wsize=4194304
+  - timeo=600
+  - retrans=2
+  - actimeo=3600
+  - async
+  - noatime
+  - nodiratime
+  - nocto
+  - nolock
+
+---
+# Node Affinity Example - Schedule media pods to NFS-optimized nodes
+# Add this to your HelmRelease values:
+#
+# defaultPodOptions:
+#   affinity:
+#     nodeAffinity:
+#       preferredDuringSchedulingIgnoredDuringExecution:
+#         - weight: 100
+#           preference:
+#             matchExpressions:
+#               - key: storage.nfs/fscache
+#                 operator: In
+#                 values: ["enabled"]
+#               - key: storage.nfs/optimized
+#                 operator: In
+#                 values: ["true"]
