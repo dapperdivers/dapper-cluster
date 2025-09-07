@@ -103,7 +103,6 @@ spec:
             port: 8266
 
     persistence:
-      # Configuration directory for node config files
       configs:
         type: configMap
         name: tdarr-node-configs
