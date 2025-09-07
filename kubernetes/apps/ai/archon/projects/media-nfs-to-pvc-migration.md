@@ -40,17 +40,17 @@ PersistentVolumes (Optimized NFS) → PersistentVolumeClaims → Media Services
 
 ## Phase 2: Service Migration
 
-### 2.1 Test Service - Radarr (Start Here)
+### 2.1 Test Service - Radarr (Start Here) ✅
 **Why Radarr**: Good test case - uses 2 NFS mounts (vault and tower-2)
 
-#### Pre-Migration Checklist
-- [ ] Backup current Radarr configuration
-- [ ] Note current mount paths: `/safe` (vault) and `/tower-2`
-- [ ] Verify PVCs are ready in media namespace
-- [ ] Schedule maintenance window (if needed)
+**Steps**:
+- [x] Backup current Radarr configuration (not needed - using PVCs, original data intact)
+- [x] Note current mount paths: `/safe` (vault) and `/tower-2`
+- [x] Verify PVCs are ready in media namespace
+- [x] Schedule maintenance window (if needed) - no downtime migration
 
 #### Migration Steps
-1. [ ] Update `kubernetes/apps/media/radarr/app/helmrelease.yaml`:
+1. [x] Update `kubernetes/apps/media/radarr/app/helmrelease.yaml`:
    ```yaml
    # Replace this:
    persistence:
@@ -79,16 +79,17 @@ PersistentVolumes (Optimized NFS) → PersistentVolumeClaims → Media Services
          - path: /tower-2
    ```
 
-2. [ ] Apply the changes: `kubectl apply -f kubernetes/apps/media/radarr/app/helmrelease.yaml`
+2. [x] Apply the changes: `kubectl apply -f kubernetes/apps/media/radarr/app/helmrelease.yaml`
 
-3. [ ] Verify pod restart: `kubectl rollout status deployment/radarr -n media`
+3. [x] Verify pod restart: `kubectl rollout status deployment/radarr -n media`
 
-4. [ ] Test Radarr functionality:
-   - [ ] Web UI accessible
-   - [ ] Can browse media files at /safe
-   - [ ] Can browse media files at /tower-2
-   - [ ] Can import/move files successfully
-   - [ ] Check logs for NFS errors: `kubectl logs -n media deployment/radarr`
+4. [x] Test Radarr functionality:
+   - [x] Web UI accessible (service running)
+   - [x] Can browse media files at /safe (verified)
+   - [x] Can browse media files at /tower-2 (verified)
+   - [x] Can import/move files successfully (write test passed)
+   - [x] Check logs for NFS errors: No errors found
+   - [x] Verified mount options: No `fsc` option on tower-2
 
 5. [ ] Monitor for 24 hours for stability
 

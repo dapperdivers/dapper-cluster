@@ -162,20 +162,14 @@ spec:
         globalMounts:
           - path: /transcode
       safe:
-        type: nfs
-        server: vault.manor
-        path: /mnt/Tank/Media
+        existingClaim: media-vault-pvc
         globalMounts:
           - path: /safe
       tower:
-        type: nfs
-        server: tower.manor
-        path: /mnt/user/Media
+        existingClaim: media-tower-pvc
         globalMounts:
           - path: /tower
       tower-2:
-        type: nfs
-        server: tower-2.manor
-        path: /mnt/user/Media
+        existingClaim: media-tower-2-pvc
         globalMounts:
           - path: /tower-2
