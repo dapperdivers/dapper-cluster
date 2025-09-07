@@ -26,39 +26,6 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
-          patcher:
-            image:
-              repository: busybox
-              tag: latest
-            command:
-              - /bin/sh
-              - -c
-              - |
-                echo "Node limit patcher starting..."
-                while true; do
-                  if [ -f /tdarr-server/srcug/api/nodeRelay/nodeRelay.js ]; then
-                    if ! grep -q "0x3e7" /tdarr-server/srcug/api/nodeRelay/nodeRelay.js; then
-                      echo "Patching node limit from 5 to 999..."
-                      sed -i 's/>=0x5&&y/>=0x3e7&&y/g' /tdarr-server/srcug/api/nodeRelay/nodeRelay.js
-                      if grep -q "0x3e7" /tdarr-server/srcug/api/nodeRelay/nodeRelay.js; then
-                        echo "✅ Patch applied successfully!"
-                      else
-                        echo "❌ Patch failed"
-                      fi
-                    fi
-                  fi
-                  sleep 60
-                done
-            volumeMounts:
-              - name: config
-                mountPath: /tdarr-server
-                subPath: Tdarr
-            resources:
-              requests:
-                cpu: 10m
-                memory: 32Mi
-              limits:
-                memory: 64Mi
           app:
             image:
               repository: ghcr.io/haveagitgat/tdarr

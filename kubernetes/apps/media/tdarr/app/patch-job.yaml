@@ -1,0 +1,90 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tdarr-node-limit-patcher
+  namespace: media
+spec:
+  schedule: "*/5 * * * *"  # Run every 5 minutes
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: tdarr-patcher
+          containers:
+          - name: patcher
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Starting Tdarr node limit patcher..."
+
+              # Get the Tdarr server pod
+              POD=$(kubectl get pods -n media -l app.kubernetes.io/name=tdarr -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+
+              if [ -z "$POD" ]; then
+                echo "No Tdarr server pod found, skipping..."
+                exit 0
+              fi
+
+              echo "Found Tdarr server pod: $POD"
+
+              # Check if already patched
+              if kubectl exec -n media $POD -- grep -q "0x3e7" /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js 2>/dev/null; then
+                echo "✅ Already patched, skipping..."
+                exit 0
+              fi
+
+              echo "Applying patch to increase node limit from 5 to 999..."
+
+              # Apply the patch
+              kubectl exec -n media $POD -- sed -i 's/>=0x5&&y/>=0x3e7&&y/g' /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js
+
+              # Verify patch was applied
+              if kubectl exec -n media $POD -- grep -q "0x3e7" /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js 2>/dev/null; then
+                echo "✅ Patch applied successfully!"
+                echo "Restarting Tdarr server pod to apply changes..."
+                kubectl delete pod -n media $POD
+                echo "Pod deletion triggered, new pod will have the patch applied"
+              else
+                echo "❌ Patch failed!"
+                exit 1
+              fi
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tdarr-patcher
+  namespace: media
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tdarr-patcher
+  namespace: media
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tdarr-patcher
+  namespace: media
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tdarr-patcher
+subjects:
+- kind: ServiceAccount
+  name: tdarr-patcher
+  namespace: media
