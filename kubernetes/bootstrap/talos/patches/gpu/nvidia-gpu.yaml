@@ -9,3 +9,8 @@ machine:
     net.core.bpf_jit_harden: 1
   nodeLabels:
     node-role.kubernetes.io/gpu: "p100"
+    # NFD kernel labels required by NVIDIA GPU Operator
+    feature.node.kubernetes.io/kernel-version.full: "6.12.43-talos"
+    feature.node.kubernetes.io/kernel-version.major: "6"
+    feature.node.kubernetes.io/kernel-version.minor: "12"
+    feature.node.kubernetes.io/kernel-version.revision: "43"
