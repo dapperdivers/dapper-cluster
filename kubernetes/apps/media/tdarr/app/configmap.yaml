@@ -9,9 +9,9 @@ data:
   FFMPEG_PATH: "/usr/local/bin/ffmpeg"
   HANDBRAKE_PATH: "/usr/local/bin/HandBrakeCLI"
 
-  # Performance tuning
-  NODE_WORKER_LIMIT: "1"  # Workers per node
-  NODE_CONCURRENT_LIMIT: "1"  # Concurrent jobs per worker
+  # Performance tuning - Default values (can be overridden per node type)
+  NODE_WORKER_LIMIT: "2"  # Default workers per node
+  NODE_CONCURRENT_LIMIT: "1"  # Concurrent jobs per worker (keep at 1 for stability)
 
   # File handling
   SKIP_TRANSCODE_AFTER_ATTEMPTS: "3"  # Skip files after N failed attempts

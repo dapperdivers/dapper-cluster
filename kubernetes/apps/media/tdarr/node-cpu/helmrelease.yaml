@@ -70,6 +70,12 @@ spec:
               # Performance settings
               nodeIP: "0.0.0.0"
               nodePort: "8267"
+              # Worker configuration for CPU nodes
+              # CPU nodes: More CPU workers since no GPU overhead
+              workerLimitCpu: "4"  # 4 CPU transcode workers
+              workerLimitHealthCheckCpu: "1"  # 1 health check worker
+              # No GPU workers for CPU-only nodes
+              workerLimitGpu: "0"
               POD_NAME:
                 valueFrom:
                   fieldRef:
