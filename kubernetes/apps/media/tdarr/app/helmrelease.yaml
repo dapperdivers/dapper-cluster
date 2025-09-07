@@ -26,31 +26,43 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
+          patcher:
+            image:
+              repository: busybox
+              tag: latest
+            command:
+              - /bin/sh
+              - -c
+              - |
+                echo "Node limit patcher starting..."
+                while true; do
+                  if [ -f /tdarr-server/srcug/api/nodeRelay/nodeRelay.js ]; then
+                    if ! grep -q "0x3e7" /tdarr-server/srcug/api/nodeRelay/nodeRelay.js; then
+                      echo "Patching node limit from 5 to 999..."
+                      sed -i 's/>=0x5&&y/>=0x3e7&&y/g' /tdarr-server/srcug/api/nodeRelay/nodeRelay.js
+                      if grep -q "0x3e7" /tdarr-server/srcug/api/nodeRelay/nodeRelay.js; then
+                        echo "✅ Patch applied successfully!"
+                      else
+                        echo "❌ Patch failed"
+                      fi
+                    fi
+                  fi
+                  sleep 60
+                done
+            volumeMounts:
+              - name: config
+                mountPath: /tdarr-server
+                subPath: Tdarr
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
           app:
             image:
               repository: ghcr.io/haveagitgat/tdarr
               tag: 2.46.01@sha256:1376fc2c1bcbd8c3eabc210d1531cd4287334facfbf3a78e4b10387be0a4d223
-            lifecycle:
-              postStart:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - |
-                      echo "Waiting for Tdarr server files to be ready..."
-                      sleep 5
-                      echo "Patching Tdarr server to remove 5 node limit..."
-                      if [ -f /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js ]; then
-                        cp /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js.backup
-                        sed -i 's/>=0x5&&y/>=0x3e7&&y/g' /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js
-                        if grep -q "0x3e7" /app/Tdarr_Server/srcug/api/nodeRelay/nodeRelay.js; then
-                          echo "✅ Patch applied successfully - node limit increased to 999"
-                        else
-                          echo "❌ Patch failed"
-                        fi
-                      else
-                        echo "❌ nodeRelay.js not found - patch skipped"
-                      fi
             env:
               TZ: ${TIME_ZONE}
               PGID: 140
