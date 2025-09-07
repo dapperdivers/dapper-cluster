@@ -3,21 +3,21 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app nvidia-device-plugin
-  namespace: &namespace kube-system
+  name: &app nvidia-gpu-operator
+  namespace: flux-system
 spec:
-  suspend: true  # Suspended in favor of nvidia-gpu-operator
-  targetNamespace: *namespace
+  targetNamespace: kube-system
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  path: ./kubernetes/apps/kube-system/gpu-plugins/nvidia-device-plugin/app
+  dependsOn:
+    - name: node-feature-discovery
+  path: ./kubernetes/apps/kube-system/gpu-plugins/nvidia-gpu-operator/app
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
-    namespace: flux-system
   wait: false
   interval: 30m
   retryInterval: 1m
-  timeout: 5m
+  timeout: 15m

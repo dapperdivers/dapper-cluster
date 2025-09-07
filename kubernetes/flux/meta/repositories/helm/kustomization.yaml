@@ -29,6 +29,7 @@ resources:
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
   - ./nvidia.yaml
+  - ./nvidia-gpu-operator.yaml
   - ./ollama.yaml
   - ./open-webui.yaml
   - ./openebs.yaml
