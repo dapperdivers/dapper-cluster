@@ -1,0 +1,42 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/autoscaling/v2/horizontalpodautoscaler.json
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tdarr-node-cpu
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tdarr-node-cpu
+  minReplicas: 1  # Minimum 1 CPU node
+  maxReplicas: 4  # Maximum 4 CPU nodes
+  metrics:
+    # Scale based on CPU utilization
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60  # Scale up when CPU > 60%
+    # Scale based on memory utilization
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70  # Scale up when memory > 70%
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600  # Wait 10 minutes before scaling down
+      policies:
+        - type: Pods
+          value: 1  # Scale down 1 pod at a time
+          periodSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 120  # Wait 2 minutes before scaling up
+      policies:
+        - type: Pods
+          value: 2  # Add up to 2 pods at a time
+          periodSeconds: 120
+      selectPolicy: Max

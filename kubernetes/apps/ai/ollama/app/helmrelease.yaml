@@ -53,8 +53,10 @@ spec:
       requests:
         cpu: 200m
         memory: 30Gi
+        nvidia.com/gpu: 2  # Request 2 GPU slices (8GB VRAM) for AI models
       limits:
         memory: 80Gi
+        nvidia.com/gpu: 2  # Limit to 2 GPU slices
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:

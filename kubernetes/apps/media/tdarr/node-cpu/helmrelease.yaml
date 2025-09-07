@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app tdarr-node
+  name: &app tdarr-node-cpu
 spec:
   interval: 30m
   chartRef:
@@ -20,20 +20,31 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
-    - name: nvidia-device-plugin
-      namespace: kube-system
   values:
     controllers:
-      tdarr-node:
+      tdarr-node-cpu:
         annotations:
           reloader.stakater.com/auto: "true"
         # Replicas managed by HPA - don't set here
         strategy: RollingUpdate
         pod:
+          # Run on large nodes with available CPU/RAM
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values:
+                            - tdarr-node-cpu
+                    topologyKey: kubernetes.io/hostname
           nodeSelector:
-            nvidia.feature.node.kubernetes.io/gpu: "true"
+            node-role.kubernetes.io/worker: "true"
         containers:
-          app: &node
+          app:
             image:
               repository: ghcr.io/haveagitgat/tdarr_node
               tag: 2.46.01@sha256:1ecdd628d424a98773e61a6fd85ec1533da0259baa1aa8c806960cfe2b56aa1b
@@ -42,34 +53,22 @@ spec:
               PGID: 140
               PUID: 1000
               serverIP: tdarr.media
-              NVIDIA_DRIVER_CAPABILITIES: all
-              NVIDIA_VISIBLE_DEVICES: all
               # Use pod hostname for unique node names
-              nodeName: "$(HOSTNAME)"
+              nodeName: "CPU-$(HOSTNAME)"
               inContainer: true
               ffmpegVersion: 7
+              # CPU-only processing
+              nodeHardwareType: cpu
             resources:
               requests:
-                cpu: 1000m
-                memory: 10Gi
-                nvidia.com/gpu: 4  # Request 1 full GPU (4 slices)
+                cpu: 2000m  # 2 CPU cores
+                memory: 8Gi
               limits:
-                memory: 20Gi
-                nvidia.com/gpu: 4  # Limit to 1 full GPU
-    defaultPodOptions:
-      runtimeClassName: nvidia
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: nvidia.feature.node.kubernetes.io/gpu
-                  operator: In
-                  values:
-                    - "true"
+                cpu: 4000m  # Allow bursting to 4 cores
+                memory: 16Gi
     service:
       app:
-        controller: tdarr-node
+        controller: tdarr-node-cpu
         ports:
           server:
             enabled: true
@@ -86,6 +85,6 @@ spec:
       transcode:
         type: emptyDir
         medium: Memory
-        sizeLimit: 40Gi
+        sizeLimit: 30Gi  # 30GB RAM disk for CPU nodes
         globalMounts:
           - path: /temp
