@@ -90,3 +90,5 @@ spec:
         env:
           - name: DISABLE_VGPU_VERSION_CHECK
             value: "true"
+          - name: DRIVER_TYPE
+            value: "pre-installed"
