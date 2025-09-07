@@ -38,16 +38,29 @@ spec:
             image:
               repository: ghcr.io/haveagitgat/tdarr_node
               tag: 2.46.01@sha256:1ecdd628d424a98773e61a6fd85ec1533da0259baa1aa8c806960cfe2b56aa1b
+            envFrom:
+              - configMapRef:
+                  name: tdarr-config
+                  optional: true
             env:
               TZ: ${TIME_ZONE}
               PGID: 140
               PUID: 1000
+              # Tdarr Server connection
               serverIP: tdarr.media
+              serverPort: "8266"
+              # GPU configuration
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
-              nodeName: GPU-$(POD_NAME)
-              inContainer: true
-              ffmpegVersion: 7
+              # Node identification
+              nodeName: "GPU-$(POD_NAME)"
+              nodeID: "GPU-$(POD_NAME)"
+              # Node configuration
+              inContainer: "true"
+              ffmpegVersion: "7"
+              # Performance settings
+              nodeIP: "0.0.0.0"
+              nodePort: "8267"
               POD_NAME:
                 valueFrom:
                   fieldRef:

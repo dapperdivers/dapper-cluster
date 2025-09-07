@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/configmap.json
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tdarr-config
+data:
+  # FFmpeg settings
+  FFMPEG_PATH: "/usr/local/bin/ffmpeg"
+  HANDBRAKE_PATH: "/usr/local/bin/HandBrakeCLI"
+
+  # Performance tuning
+  NODE_WORKER_LIMIT: "1"  # Workers per node
+  NODE_CONCURRENT_LIMIT: "1"  # Concurrent jobs per worker
+
+  # File handling
+  SKIP_TRANSCODE_AFTER_ATTEMPTS: "3"  # Skip files after N failed attempts
+  FILE_SIZE_LIMIT_GB: "100"  # Skip files larger than this
+
+  # Quality settings
+  DEFAULT_QUALITY_CRF: "22"  # CRF for H.265 encoding
+  DEFAULT_PRESET: "medium"  # Encoding preset (ultrafast, fast, medium, slow, slower)
+
+  # Language preferences
+  PREFERRED_AUDIO_LANG: "eng"
+  PREFERRED_SUB_LANG: "eng"
+
+  # Container preferences
+  PREFERRED_CONTAINER: "mkv"  # Default output container
