@@ -3,3 +3,9 @@ machine:
     nodeIP:
       validSubnets:
         - 10.100.0.0/24
+    extraArgs:
+      # Conservative but safe kubelet settings
+      max-pods: "250"
+      # Standard image GC settings
+      image-gc-high-threshold: "85"
+      image-gc-low-threshold: "80"

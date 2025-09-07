@@ -1,7 +1,0 @@
-machine:
-  sysctls:
-    # Enable broadcast forwarding ONLY on IoT interface (ens19)
-    # This allows HomeAssistant to discover TP-Link devices via UDP broadcast
-    net.ipv4.conf.ens19.bc_forwarding: "1"
-    # Explicitly ensure control plane interface doesn't forward broadcasts  
-    net.ipv4.conf.ens18.bc_forwarding: "0"
