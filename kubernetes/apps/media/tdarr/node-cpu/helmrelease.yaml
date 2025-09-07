@@ -79,8 +79,7 @@ spec:
             port: 8266
 
     persistence:
-      config:
-        existingClaim: *app
+      # Nodes don't need config PVC - server handles that
       safe:
         existingClaim: media-vault-pvc
         globalMounts:

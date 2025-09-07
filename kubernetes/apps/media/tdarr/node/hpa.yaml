@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node
-  minReplicas: 1  # Minimum 1 node always running
-  maxReplicas: 3  # Maximum 3 nodes (uses 3 GPUs fully)
+  minReplicas: 2  # Start with 2 nodes for faster processing
+  maxReplicas: 3  # Maximum 3 nodes (uses all 3 GPUs fully)
   metrics:
     # Scale based on CPU utilization
     - type: Resource
@@ -18,14 +18,14 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 70  # Scale up when CPU > 70%
+          averageUtilization: 40  # Scale up aggressively when CPU > 40%
     # Scale based on memory utilization
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: 80  # Scale up when memory > 80%
+          averageUtilization: 50  # Scale up aggressively when memory > 50%
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300  # Wait 5 minutes before scaling down
@@ -34,7 +34,7 @@ spec:
           value: 50  # Scale down by 50% at a time
           periodSeconds: 300
     scaleUp:
-      stabilizationWindowSeconds: 60  # Wait 1 minute before scaling up
+      stabilizationWindowSeconds: 30  # Wait only 30 seconds before scaling up
       policies:
         - type: Percent
           value: 100  # Double the pods when scaling up
