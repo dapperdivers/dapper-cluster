@@ -61,13 +61,7 @@ spec:
               # Performance settings
               nodeIP: "0.0.0.0"
               nodePort: "8267"
-              # Worker configuration for GPU nodes
-              # GPU nodes: 2 GPU workers + 1 CPU worker (when GPU idle)
-              workerLimitGpu: "2"  # 2 GPU transcode workers
-              workerLimitCpu: "1"  # 1 CPU transcode worker (for non-GPU tasks)
-              workerLimitHealthCheckCpu: "1"  # 1 health check worker
-              # Allow GPU workers to do CPU tasks when idle
-              allowGpuWorkersCpuTasks: "true"
+
               POD_NAME:
                 valueFrom:
                   fieldRef:
