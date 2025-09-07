@@ -1,5 +1,8 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# NOTE: GPU nodes are DISABLED via HPA (min/max replicas = 0)
+# Tesla P100 GPUs lack NVENC hardware encoding support
+# All transcoding is done by CPU nodes instead
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -81,10 +84,10 @@ spec:
               requests:
                 cpu: 1000m
                 memory: 10Gi
-                nvidia.com/gpu: 4  # Request full GPU (4 slices) for transcoding
+                nvidia.com/gpu: 1  # Minimal GPU - P100 lacks NVENC, only for CUDA filters
               limits:
                 memory: 20Gi
-                nvidia.com/gpu: 4  # Limit to full GPU (4 slices)
+                nvidia.com/gpu: 1  # Tesla P100 can't do hardware encoding anyway
     defaultPodOptions:
       runtimeClassName: nvidia
       priorityClassName: tdarr-priority  # Use lower priority for batch processing

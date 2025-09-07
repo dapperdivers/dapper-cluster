@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node
-  minReplicas: 1  # Keep at 1 GPU node to prevent resource contention with Plex/Ollama
-  maxReplicas: 1  # Max 1 GPU node to prevent crashes and stay within limits
+  minReplicas: 0  # Disable GPU nodes - Tesla P100 doesn't support NVENC
+  maxReplicas: 0  # Tesla P100 lacks hardware encoding, use CPU nodes instead
   metrics:
     # Scale based on CPU utilization
     - type: Resource
