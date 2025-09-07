@@ -27,7 +27,6 @@ spec:
     - hard                    # Retry indefinitely (critical for media streaming)
     - tcp                     # Use TCP protocol
     - vers=4.1                # NFS version 4.1 for vault.manor
-    - fsc                     # Enable FS-Cache for local caching
 
     # Large file optimizations (4MB buffers for media files)
     - rsize=4194304           # 4MB read buffer
@@ -79,7 +78,6 @@ spec:
     - hard
     - tcp
     - vers=4.2                # NFS version 4.2 for tower servers
-    - fsc
     - rsize=4194304
     - wsize=4194304
     - timeo=600
@@ -120,7 +118,6 @@ spec:
     - hard
     - tcp
     - vers=4.2
-    - fsc
     - rsize=4194304
     - wsize=4194304
     - timeo=600
