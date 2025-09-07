@@ -41,8 +41,7 @@ spec:
                           values:
                             - tdarr-node-cpu
                     topologyKey: kubernetes.io/hostname
-          nodeSelector:
-            node-role.kubernetes.io/worker: "true"
+
         containers:
           app:
             image:
