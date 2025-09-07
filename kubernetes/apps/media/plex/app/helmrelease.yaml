@@ -70,9 +70,11 @@ spec:
               requests:
                 cpu: 4000m
                 memory: 12Gi
+                nvidia.com/gpu: 2  # Request 2 GPU slices (8GB VRAM) for hardware transcoding
               limits:
                 cpu: 8000m
                 memory: 32Gi
+                nvidia.com/gpu: 2  # Limit to 2 GPU slices
     defaultPodOptions:
       runtimeClassName: nvidia
       securityContext:
