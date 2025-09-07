@@ -81,10 +81,10 @@ spec:
               requests:
                 cpu: 1000m
                 memory: 10Gi
-                nvidia.com/gpu: 4  # Request 1 full GPU (4 slices)
+                nvidia.com/gpu: 1  # Request 1 GPU slice for transcoding
               limits:
                 memory: 20Gi
-                nvidia.com/gpu: 4  # Limit to 1 full GPU
+                nvidia.com/gpu: 1  # Limit to 1 GPU slice
     defaultPodOptions:
       runtimeClassName: nvidia
       priorityClassName: tdarr-priority  # Use lower priority for batch processing
