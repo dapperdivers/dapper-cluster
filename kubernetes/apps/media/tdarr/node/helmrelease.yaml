@@ -49,9 +49,6 @@ spec:
               requests:
                 cpu: 1000m
                 memory: 10Gi
-                nvidia.com/gpu: "1"
-              limits:
-                nvidia.com/gpu: "1"
     defaultPodOptions:
       runtimeClassName: nvidia
     affinity:

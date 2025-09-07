@@ -6,7 +6,6 @@ metadata:
   name: &app nvidia-device-plugin
   namespace: &namespace kube-system
 spec:
-  suspend: true  # Suspended in favor of nvidia-gpu-operator
   targetNamespace: *namespace
   commonMetadata:
     labels:
