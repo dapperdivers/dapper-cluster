@@ -7,7 +7,7 @@ components:
   - ../../flux/components/common
 resources:
   - ./blackbox-exporter/ks.yaml
-  - ./exporters/dcgm-exporter/ks.yaml
+  # - ./exporters/dcgm-exporter/ks.yaml  # Removed - GPU Operator provides its own
   - ./exporters/snmp-exporter/ks.yaml
   - ./exporters/nut-exporter/ks.yaml
   - ./gatus/ks.yaml
