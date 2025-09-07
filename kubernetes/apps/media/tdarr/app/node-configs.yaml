@@ -8,23 +8,6 @@ metadata:
   name: tdarr-node-configs
   namespace: media
 data:
-  # Shared Server Configuration
-  Tdarr_Server_Config.json: |
-    {
-      "serverIP": "0.0.0.0",
-      "serverPort": "8266",
-      "webUIPort": "8265",
-      "handbrakePath": "",
-      "ffmpegPath": "",
-      "mkvpropeditPath": "",
-      "pathTranslators": [],
-      "logLevel": "INFO",
-      "maxLogSizeMB": "50",
-      "authType": "none",
-      "nodesPaused": false
-    }
-
-  # GPU Node Configuration Template
   # Note: nodeName and nodeID are overridden by environment variables
   Tdarr_Node_Config.json: |
     {

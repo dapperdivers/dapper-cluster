@@ -75,12 +75,6 @@ spec:
         existingClaim: *app
         globalMounts:
           - path: /app/server
-      configs:
-        type: configMap
-        name: tdarr-node-configs
-        globalMounts:
-          - path: /app/configs
-            readOnly: false
       safe:
         existingClaim: media-vault-pvc
         globalMounts:
