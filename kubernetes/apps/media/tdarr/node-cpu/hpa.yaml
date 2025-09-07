@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node-cpu
-  minReplicas: 2  # Conservative setting to ensure stability
-  maxReplicas: 3  # Max 3 CPU nodes to stay well within 5-node limit
+  minReplicas: 0  # Can scale to 0 when hybrid nodes handle the load
+  maxReplicas: 2  # Reduced max since hybrid GPU nodes are more capable
   metrics:
     # Scale based on CPU utilization
     - type: Resource
