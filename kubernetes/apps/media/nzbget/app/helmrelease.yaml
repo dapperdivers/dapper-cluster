@@ -87,8 +87,6 @@ spec:
         globalMounts:
           - path: /tmp
       safe:
-        type: nfs
-        server: vault.manor
-        path: /mnt/Tank/Media
+        existingClaim: media-vault-pvc
         globalMounts:
           - path: /safe

@@ -107,14 +107,10 @@ spec:
       tmp:
         type: emptyDir
       safe:
-        type: nfs
-        server: vault.manor
-        path: /mnt/Tank/Media
+        existingClaim: media-vault-pvc
         globalMounts:
           - path: /safe
       tower:
-        type: nfs
-        server: tower.manor
-        path: /mnt/user/Media
+        existingClaim: media-tower-pvc
         globalMounts:
           - path: /tower
