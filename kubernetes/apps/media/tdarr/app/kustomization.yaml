@@ -5,4 +5,3 @@ resources:
   - helmrelease.yaml
   - priorityclass.yaml
   - configmap.yaml
-  - node-limit-patcher.yaml

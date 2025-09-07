@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node
-  minReplicas: 2  # Start with 2 GPU nodes for faster processing
-  maxReplicas: 3  # Can use all 3 GPUs when Plex/Ollama idle (priority class allows preemption)
+  minReplicas: 1  # Reduced to stay within 5-node Tdarr limit
+  maxReplicas: 2  # Max 2 GPU nodes to stay within 5-node limit (2 GPU + 3 CPU = 5 total)
   metrics:
     # Scale based on CPU utilization
     - type: Resource
