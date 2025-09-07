@@ -107,12 +107,6 @@ spec:
             port: 8266
 
     persistence:
-      configs:
-        type: configMap
-        name: tdarr-node-configs
-        globalMounts:
-          - path: /app/configs
-            readOnly: false
       safe:
         existingClaim: media-vault-pvc
         globalMounts:
