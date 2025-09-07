@@ -28,6 +28,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         # Replicas managed by HPA - don't set here
+        # Replicas managed by HPA - don't set here
         strategy: RollingUpdate
         pod:
           nodeSelector:
@@ -61,6 +62,7 @@ spec:
                 nvidia.com/gpu: 4  # Limit to 1 full GPU
     defaultPodOptions:
       runtimeClassName: nvidia
+      priorityClassName: tdarr-priority  # Use lower priority for batch processing
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:

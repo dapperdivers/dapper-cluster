@@ -28,6 +28,7 @@ spec:
         # Replicas managed by HPA - don't set here
         strategy: RollingUpdate
         pod:
+          priorityClassName: tdarr-priority  # Use lower priority for batch processing
           # Run on large nodes with available CPU/RAM
           affinity:
             podAntiAffinity:

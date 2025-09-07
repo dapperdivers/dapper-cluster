@@ -1,0 +1,9 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/scheduling.k8s.io/v1/priorityclass.json
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: tdarr-priority
+value: 100  # Lower priority than system pods (1000+) but higher than default (0)
+globalDefault: false
+description: "Priority class for Tdarr media processing workloads"
