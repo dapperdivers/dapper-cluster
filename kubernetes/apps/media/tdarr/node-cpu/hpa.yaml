@@ -10,7 +10,7 @@ spec:
     kind: Deployment
     name: tdarr-node-cpu
   minReplicas: 2  # Start with 2 CPU nodes for parallel processing
-  maxReplicas: 3  # Max 3 CPU nodes to stay within 5-node limit (2 GPU + 3 CPU = 5 total)
+  maxReplicas: 2  # Max 2 CPU nodes (1 GPU + 2 CPU = 3 total, well within 5-node limit)
   metrics:
     # Scale based on CPU utilization
     - type: Resource

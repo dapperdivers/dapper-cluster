@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node
-  minReplicas: 1  # Reduced to stay within 5-node Tdarr limit
-  maxReplicas: 2  # Max 2 GPU nodes to stay within 5-node limit (2 GPU + 3 CPU = 5 total)
+  minReplicas: 1  # Keep at 1 GPU node to prevent resource contention with Plex/Ollama
+  maxReplicas: 1  # Max 1 GPU node to prevent crashes and stay within limits
   metrics:
     # Scale based on CPU utilization
     - type: Resource
