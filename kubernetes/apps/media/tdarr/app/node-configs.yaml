@@ -1,0 +1,49 @@
+---
+# Optional: Advanced node configuration via ConfigMap
+# This creates JSON config files that can be mounted as volumes
+# for more complex node configuration scenarios
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tdarr-node-configs
+  namespace: media
+data:
+  # Shared Server Configuration
+  Tdarr_Server_Config.json: |
+    {
+      "serverIP": "0.0.0.0",
+      "serverPort": "8266",
+      "webUIPort": "8265",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [],
+      "logLevel": "INFO",
+      "maxLogSizeMB": "50",
+      "authType": "none",
+      "nodesPaused": false
+    }
+
+  # GPU Node Configuration Template
+  # Note: nodeName and nodeID are overridden by environment variables
+  Tdarr_Node_Config.json: |
+    {
+      "nodeName": "NODE-PLACEHOLDER",
+      "serverURL": "http://tdarr.media:8266",
+      "serverIP": "tdarr.media",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/app/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": -1,
+      "platform_arch_isdocker": "linux_x64_docker_true",
+      "apiKey": "",
+      "maxLogSizeMB": "10",
+      "pollInterval": 2000,
+      "startPaused": false,
+      "nodeID": "NODE-ID-PLACEHOLDER"
+    }

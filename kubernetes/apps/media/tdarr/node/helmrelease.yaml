@@ -70,6 +70,8 @@ spec:
               pollInterval: "2000"  # Poll every 2 seconds
               startPaused: "false"  # Start processing immediately
               maxLogSizeMB: "10"  # Log size limit
+              logLevel: "INFO"
+              priority: "-1"
 
               POD_NAME:
                 valueFrom:
@@ -105,7 +107,13 @@ spec:
             port: 8266
 
     persistence:
-      # Nodes don't need config PVC - server handles that
+      # Configuration directory for node config files
+      configs:
+        type: configMap
+        name: tdarr-node-configs
+        globalMounts:
+          - path: /app/configs
+            readOnly: false
       safe:
         existingClaim: media-vault-pvc
         globalMounts:

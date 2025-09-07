@@ -42,3 +42,12 @@ data:
   NODE_POLL_INTERVAL: "2000"  # How often nodes poll for work (ms)
   NODE_START_PAUSED: "false"  # Whether nodes start paused
   NODE_MAX_LOG_SIZE: "10"  # Max log size in MB per node
+
+  # Path Configuration
+  # Both server and nodes mount media at /safe and transcode at /temp
+  # No path translation needed in our setup
+  PATH_TRANSLATORS: "[]"
+
+  # Priority and logging
+  NODE_PRIORITY: "-1"  # Default priority (-10 to 10)
+  LOG_LEVEL: "INFO"  # Log verbosity (DEBUG, INFO, WARN, ERROR)
