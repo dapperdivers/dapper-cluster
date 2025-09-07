@@ -61,6 +61,9 @@ spec:
               # Performance settings
               nodeIP: "0.0.0.0"
               nodePort: "8267"
+              # GPU node can handle more concurrent jobs
+              NODE_WORKER_LIMIT: "2"  # Override configmap for GPU nodes
+              NODE_CONCURRENT_LIMIT: "1"  # One job per worker
               POD_NAME:
                 valueFrom:
                   fieldRef:
