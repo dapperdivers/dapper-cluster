@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node-cpu
-  minReplicas: 2  # Start with 2 CPU nodes for parallel processing
-  maxReplicas: 6  # Maximum 6 CPU nodes (plenty of CPU available)
+  minReplicas: 1  # Limited to 1 due to PVC (needs StatefulSet for multiple)
+  maxReplicas: 1  # TODO: Convert to StatefulSet to allow multiple replicas
   metrics:
     # Scale based on CPU utilization
     - type: Resource

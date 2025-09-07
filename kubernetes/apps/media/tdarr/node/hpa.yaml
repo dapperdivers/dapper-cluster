@@ -9,8 +9,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: tdarr-node
-  minReplicas: 2  # Start with 2 nodes for faster processing
-  maxReplicas: 3  # Maximum 3 nodes (uses all 3 GPUs fully)
+  minReplicas: 1  # Start with 1 GPU node
+  maxReplicas: 2  # Maximum 2 GPU nodes (8 slices, leaving 4 for Plex/Ollama)
   metrics:
     # Scale based on CPU utilization
     - type: Resource
