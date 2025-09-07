@@ -44,8 +44,7 @@ spec:
               serverIP: tdarr.media
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
-              # Use pod hostname for unique node names
-              nodeName: "$(HOSTNAME)"
+              nodeName: GPU-Node
               inContainer: true
               ffmpegVersion: 7
             resources:
