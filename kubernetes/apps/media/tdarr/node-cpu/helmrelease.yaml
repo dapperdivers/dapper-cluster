@@ -52,12 +52,15 @@ spec:
               PGID: 140
               PUID: 1000
               serverIP: tdarr.media
-              # Use static prefix, pods will be numbered
-              nodeName: CPU-Node
+              nodeName: CPU-$(POD_NAME)
               inContainer: true
               ffmpegVersion: 7
               # CPU-only processing
               nodeHardwareType: cpu
+              POD_NAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
             resources:
               requests:
                 cpu: 2000m  # 2 CPU cores

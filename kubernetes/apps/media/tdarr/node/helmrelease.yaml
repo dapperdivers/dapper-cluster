@@ -44,9 +44,13 @@ spec:
               serverIP: tdarr.media
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
-              nodeName: GPU-Node
+              nodeName: GPU-$(POD_NAME)
               inContainer: true
               ffmpegVersion: 7
+              POD_NAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
             resources:
               requests:
                 cpu: 1000m
