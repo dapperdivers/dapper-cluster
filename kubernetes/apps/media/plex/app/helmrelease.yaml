@@ -49,12 +49,19 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /identity
-                    port: 32400
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
+                  exec:
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        # Check application health
+                        curl -sf --max-time 5 "http://localhost:32400/identity" >/dev/null 2>&1 || exit 1
+                        # Check if NFS mounts are healthy
+                        df /tower >/dev/null 2>&1 || exit 1
+                        df /tower-2 >/dev/null 2>&1 || exit 1
+                  initialDelaySeconds: 30
+                  periodSeconds: 60
+                  timeoutSeconds: 15
                   failureThreshold: 3
               readiness: *probes
               startup:

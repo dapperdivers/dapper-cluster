@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nfs-monitor
+  namespace: media
+  labels:
+    app.kubernetes.io/name: nfs-monitor
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nfs-monitor
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nfs-monitor
+      annotations:
+        configmap.reloader.stakater.com/reload: "nfs-monitor-script"
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+        - name: monitor
+          image: alpine:3.19
+          imagePullPolicy: IfNotPresent
+          command: ["/scripts/monitor.sh"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+            - name: host-mounts
+              mountPath: /host-mounts
+              mountPropagation: HostToContainer
+              readOnly: true
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            privileged: true  # Required to access host mounts
+            readOnlyRootFilesystem: false
+      volumes:
+        - name: script
+          configMap:
+            name: nfs-monitor-script
+            defaultMode: 0755
+        - name: host-mounts
+          hostPath:
+            path: /
+            type: Directory
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      nodeSelector:
+        kubernetes.io/os: linux

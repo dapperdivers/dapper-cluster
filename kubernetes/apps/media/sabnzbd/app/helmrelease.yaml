@@ -64,12 +64,20 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /api?mode=version
-                    port: *port
-                  initialDelaySeconds: 0
-                  periodSeconds: 300
-                  timeoutSeconds: 60
+                  exec:
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        # Check application health via API
+                        wget -qO- --timeout=5 "http://localhost:80/api?mode=version" >/dev/null 2>&1 || exit 1
+                        # Check if NFS mounts are healthy
+                        df /tower/downloads/usenet >/dev/null 2>&1 || exit 1
+                        df /tower-2/downloads/usenet >/dev/null 2>&1 || exit 1
+                        df /safe/downloads/usenet >/dev/null 2>&1 || exit 1
+                  initialDelaySeconds: 30
+                  periodSeconds: 60
+                  timeoutSeconds: 15
                   failureThreshold: 3
               readiness:
                 enabled: true

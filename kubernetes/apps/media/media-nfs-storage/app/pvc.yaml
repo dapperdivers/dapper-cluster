@@ -74,23 +74,36 @@ spec:
     server: tower.manor
     path: /mnt/user/Media
   mountOptions:
-    # Same optimizations but with NFS v4.2
-    - hard
-    - tcp
-    - vers=4.2                # NFS version 4.2 for tower servers
-    - rsize=4194304
-    - wsize=4194304
-    - timeo=600
-    - retrans=2
-    - actimeo=3600
-    - lookupcache=all
-    - async
-    - noatime
-    - nodiratime
-    - nocto
-    - nolock
-    - noacl
-    - nordirplus
+    # Core NFS options - optimized for resilience
+    - soft                    # Fail operations instead of hanging indefinitely
+    - tcp                     # Use TCP protocol
+    - vers=4.1                # NFS version 4.1 (more stable with Unraid)
+
+    # Buffer sizes - reduced for better error detection
+    - rsize=4194304           # 4MB read buffer
+    - wsize=4194304           # 4MB write buffer
+
+    # Timeout and retry settings - tuned for faster recovery
+    - timeo=100               # 10 second timeout (quick failure detection)
+    - retrans=3               # Retry 3 times before failing
+    - retry=1                 # Retry mount for 1 minute on failure
+
+    # Cache settings - reduced for stale handle detection
+    - actimeo=60              # Cache attributes for 1 minute
+    - lookupcache=positive    # Only cache positive lookups
+
+    # Performance optimizations
+    - async                   # Asynchronous writes
+    - noatime                 # Don't update access times
+    - nodiratime              # Don't update directory access times
+
+    # Recovery optimizations
+    - noresvport              # Don't use reserved ports (helps with reconnects)
+    - bg                      # Background mount retries
+
+    # Media-specific optimizations
+    - nolock                  # No file locking needed
+    - noacl                   # No ACLs needed
 
 ---
 apiVersion: v1
@@ -115,22 +128,36 @@ spec:
     server: tower-2.manor
     path: /mnt/user/Media
   mountOptions:
-    - hard
-    - tcp
-    - vers=4.2
-    - rsize=4194304
-    - wsize=4194304
-    - timeo=600
-    - retrans=2
-    - actimeo=3600
-    - lookupcache=all
-    - async
-    - noatime
-    - nodiratime
-    - nocto
-    - nolock
-    - noacl
-    - nordirplus
+    # Core NFS options - optimized for resilience
+    - soft                    # Fail operations instead of hanging indefinitely
+    - tcp                     # Use TCP protocol
+    - vers=4.1                # NFS version 4.1 (more stable with Unraid)
+
+    # Buffer sizes - reduced for better error detection
+    - rsize=4194304           # 1MB read buffer
+    - wsize=4194304           # 1MB write buffer
+
+    # Timeout and retry settings - tuned for faster recovery
+    - timeo=100               # 10 second timeout (quick failure detection)
+    - retrans=3               # Retry 3 times before failing
+    - retry=1                 # Retry mount for 1 minute on failure
+
+    # Cache settings - reduced for stale handle detection
+    - actimeo=60              # Cache attributes for 1 minute
+    - lookupcache=positive    # Only cache positive lookups
+
+    # Performance optimizations
+    - async                   # Asynchronous writes
+    - noatime                 # Don't update access times
+    - nodiratime              # Don't update directory access times
+
+    # Recovery optimizations
+    - noresvport              # Don't use reserved ports (helps with reconnects)
+    - bg                      # Background mount retries
+
+    # Media-specific optimizations
+    - nolock                  # No file locking needed
+    - noacl                   # No ACLs needed
 
 ---
 # PersistentVolumeClaims for the above PVs
