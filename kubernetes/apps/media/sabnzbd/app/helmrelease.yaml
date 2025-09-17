@@ -71,15 +71,13 @@ spec:
                       - |
                         # Check application health via API
                         wget -qO- --timeout=10 "http://localhost:80/api?mode=version" >/dev/null 2>&1 || exit 1
-                        # Check if critical NFS mounts are healthy (skip vault as it's less critical)
+                        # Check Unraid NFS mounts (these are the problematic ones)
                         timeout 5 df /tower/downloads/usenet >/dev/null 2>&1 || exit 1
                         timeout 5 df /tower-2/downloads/usenet >/dev/null 2>&1 || exit 1
-                        # Optional: check vault mount but don't fail if slow
-                        timeout 5 df /safe/downloads/usenet >/dev/null 2>&1 || true
                   initialDelaySeconds: 60
-                  periodSeconds: 120
+                  periodSeconds: 600      # Check every 10 minutes
                   timeoutSeconds: 30
-                  failureThreshold: 3
+                  failureThreshold: 3     # Restart after 30 minutes of failures
               readiness:
                 enabled: true
                 custom: true
