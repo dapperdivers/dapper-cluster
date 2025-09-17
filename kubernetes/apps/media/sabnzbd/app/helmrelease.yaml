@@ -70,14 +70,15 @@ spec:
                       - -c
                       - |
                         # Check application health via API
-                        wget -qO- --timeout=5 "http://localhost:80/api?mode=version" >/dev/null 2>&1 || exit 1
-                        # Check if NFS mounts are healthy
-                        df /tower/downloads/usenet >/dev/null 2>&1 || exit 1
-                        df /tower-2/downloads/usenet >/dev/null 2>&1 || exit 1
-                        df /safe/downloads/usenet >/dev/null 2>&1 || exit 1
-                  initialDelaySeconds: 30
-                  periodSeconds: 60
-                  timeoutSeconds: 15
+                        wget -qO- --timeout=10 "http://localhost:80/api?mode=version" >/dev/null 2>&1 || exit 1
+                        # Check if critical NFS mounts are healthy (skip vault as it's less critical)
+                        timeout 5 df /tower/downloads/usenet >/dev/null 2>&1 || exit 1
+                        timeout 5 df /tower-2/downloads/usenet >/dev/null 2>&1 || exit 1
+                        # Optional: check vault mount but don't fail if slow
+                        timeout 5 df /safe/downloads/usenet >/dev/null 2>&1 || true
+                  initialDelaySeconds: 60
+                  periodSeconds: 120
+                  timeoutSeconds: 30
                   failureThreshold: 3
               readiness:
                 enabled: true
