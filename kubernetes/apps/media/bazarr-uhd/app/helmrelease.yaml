@@ -98,7 +98,7 @@ spec:
         controller: bazarr-uhd
         ports:
           http:
-            port: *port
+            port: &port 6767
     ingress:
       app:
         annotations:
