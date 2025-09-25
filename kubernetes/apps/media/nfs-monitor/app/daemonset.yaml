@@ -22,7 +22,7 @@ spec:
       hostPID: true
       containers:
         - name: monitor
-          image: alpine:3.19
+          image: alpine:3.22
           imagePullPolicy: IfNotPresent
           command: ["/scripts/monitor.sh"]
           volumeMounts:
