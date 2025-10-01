@@ -44,31 +44,6 @@ spec:
               PLEX_NO_AUTH_NETWORKS: 192.168.1.0/24,10.69.0.0/16
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - sh
-                      - -c
-                      - |
-                        # Check application health
-                        curl -sf --max-time 5 "http://localhost:32400/identity" >/dev/null 2>&1 || exit 1
-                        # Check if NFS mounts are healthy
-                        df /tower >/dev/null 2>&1 || exit 1
-                        df /tower-2 >/dev/null 2>&1 || exit 1
-                  initialDelaySeconds: 60
-                  periodSeconds: 600      # Check every 10 minutes
-                  timeoutSeconds: 30
-                  failureThreshold: 3     # Restart after 30 minutes of failures
-              readiness: *probes
-              startup:
-                enabled: true
-                spec:
-                  failureThreshold: 30
-                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true

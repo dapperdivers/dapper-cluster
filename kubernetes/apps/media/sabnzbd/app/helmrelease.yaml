@@ -48,47 +48,6 @@ spec:
             envFrom:
               - secretRef:
                   name: sabnzbd-secret
-            probes:
-              startup:
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /api?mode=version
-                    port: *port
-                  initialDelaySeconds: 30
-                  periodSeconds: 30
-                  timeoutSeconds: 10
-                  failureThreshold: 20
-              liveness:
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - sh
-                      - -c
-                      - |
-                        # Check application health via API
-                        wget -qO- --timeout=10 "http://localhost:80/api?mode=version" >/dev/null 2>&1 || exit 1
-                        # Check Unraid NFS mounts (these are the problematic ones)
-                        timeout 5 df /tower/downloads/usenet >/dev/null 2>&1 || exit 1
-                        timeout 5 df /tower-2/downloads/usenet >/dev/null 2>&1 || exit 1
-                  initialDelaySeconds: 60
-                  periodSeconds: 600      # Check every 10 minutes
-                  timeoutSeconds: 30
-                  failureThreshold: 3     # Restart after 30 minutes of failures
-              readiness:
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /api?mode=version
-                    port: *port
-                  initialDelaySeconds: 10
-                  periodSeconds: 30
-                  timeoutSeconds: 30
-                  failureThreshold: 5
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true

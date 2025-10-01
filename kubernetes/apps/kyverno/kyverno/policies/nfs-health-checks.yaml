@@ -1,0 +1,114 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: nfs-health-checks
+  annotations:
+    policies.kyverno.io/title: Universal NFS Mount Health Monitor - Single Source of Truth
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      This policy serves as the single source of truth for health monitoring in the media namespace.
+      It adds a liveness probe to ALL containers in pods that use NFS PVCs (media-vault-pvc,
+      media-tower-pvc, media-tower-2-pvc), regardless of any existing probes defined in helm releases.
+      The probe dynamically detects which NFS mounts are actually used by each pod and only checks
+      those mounts, preventing false failures. When NFS mounts become stale or inaccessible, the pod
+      is automatically restarted, providing self-healing for storage layer issues. This centralized
+      approach ensures consistent NFS monitoring across all media applications.
+spec:
+  rules:
+    # Add NFS health monitoring liveness probe to ALL containers
+    # This is the single source of truth for health checks in media namespace
+    - name: add-nfs-liveness-probe-to-all
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+              namespaces: ["media"]
+      # Only apply to pods that mount at least one NFS PVC
+      preconditions:
+        any:
+          - key: "{{ request.object.spec.volumes[?persistentVolumeClaim.claimName == 'media-vault-pvc'] | length(@) }}"
+            operator: GreaterThan
+            value: 0
+          - key: "{{ request.object.spec.volumes[?persistentVolumeClaim.claimName == 'media-tower-pvc'] | length(@) }}"
+            operator: GreaterThan
+            value: 0
+          - key: "{{ request.object.spec.volumes[?persistentVolumeClaim.claimName == 'media-tower-2-pvc'] | length(@) }}"
+            operator: GreaterThan
+            value: 0
+      mutate:
+        foreach:
+          - list: "request.object.spec.containers[]"
+            # Add liveness probe to ALL containers for NFS health monitoring
+            # This is now the single source of truth for all health checks
+            patchStrategicMerge:
+              spec:
+                containers:
+                  - name: "{{ element.name }}"
+                    livenessProbe:
+                      exec:
+                        command:
+                          - sh
+                          - -c
+                          - |
+                            # Dynamically detect and check only mounted NFS paths
+                            # This prevents false failures for unmounted volumes
+                            ERROR=0
+                            CHECKED=0
+
+                            # Get NFS mount points from /proc/mounts for exact matching
+                            # Using /proc/mounts is more reliable than mount command
+                            MOUNTS=""
+                            for target in /safe /tower /tower-2; do
+                              if grep -q " ${target} " /proc/mounts 2>/dev/null; then
+                                MOUNTS="${MOUNTS} ${target}"
+                              fi
+                            done
+
+                            # If no mounts detected via /proc/mounts, check if directories exist
+                            # This handles cases where mounts might be bind mounts or other types
+                            if [ -z "$MOUNTS" ]; then
+                              for mount in /safe /tower /tower-2; do
+                                # Check if directory exists and is a mount point
+                                if [ -d "$mount" ] && mountpoint -q "$mount" 2>/dev/null; then
+                                  MOUNTS="${MOUNTS} ${mount}"
+                                elif [ -d "$mount" ]; then
+                                  # Directory exists but might not be a mount, check if accessible
+                                  if timeout 2 stat "$mount" >/dev/null 2>&1; then
+                                    # Directory is accessible, consider it for checking
+                                    MOUNTS="${MOUNTS} ${mount}"
+                                  fi
+                                fi
+                              done
+                            fi
+
+                            # Check each detected mount point
+                            if [ -n "$MOUNTS" ]; then
+                              for mount in $MOUNTS; do
+                                CHECKED=1
+                                echo "Checking NFS mount: $mount"
+                                # Use df with timeout to detect stale mounts
+                                if ! timeout 5 df "$mount" > /dev/null 2>&1; then
+                                  echo "ERROR: NFS mount $mount is stale or inaccessible"
+                                  ERROR=1
+                                elif ! timeout 5 ls "$mount" > /dev/null 2>&1; then
+                                  echo "ERROR: NFS mount $mount exists but cannot list contents"
+                                  ERROR=1
+                                else
+                                  echo "OK: NFS mount $mount is healthy"
+                                fi
+                              done
+                            fi
+
+                            # If we didn't check any mounts, that's OK - pod might not use NFS
+                            if [ $CHECKED -eq 0 ]; then
+                              echo "INFO: No NFS mounts to check in this pod"
+                              exit 0
+                            fi
+
+                            exit $ERROR
+                      initialDelaySeconds: 60
+                      periodSeconds: 600      # Check every 10 minutes
+                      timeoutSeconds: 30      # Allow 30 seconds for check
+                      failureThreshold: 3     # Restart after 30 minutes of failures (3 * 10min)

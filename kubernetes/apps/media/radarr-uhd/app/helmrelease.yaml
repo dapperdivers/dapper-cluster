@@ -46,25 +46,6 @@ spec:
             envFrom:
               - secretRef:
                   name: radarr-uhd-secret
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - sh
-                      - -c
-                      - |
-                        # Check application health
-                        wget -qO- --timeout=5 "http://localhost:80/ping" >/dev/null 2>&1 || exit 1
-                        # Check if NFS mount is healthy (radarr-uhd uses tower, not tower-2)
-                        timeout 5 df /tower >/dev/null 2>&1 || exit 1
-                  initialDelaySeconds: 60
-                  periodSeconds: 600      # Check every 10 minutes
-                  timeoutSeconds: 30
-                  failureThreshold: 3     # Restart after 30 minutes of failures
-              readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
