@@ -49,6 +49,16 @@ spec:
     serviceMonitor:
       interval: 15s
       honorLabels: true
+    livenessProbe:
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
     securityContext:
       privileged: true
       allowPrivilegeEscalation: true
