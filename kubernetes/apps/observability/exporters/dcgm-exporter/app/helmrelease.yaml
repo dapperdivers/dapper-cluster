@@ -39,8 +39,10 @@ spec:
       repository: nvcr.io/nvidia/k8s/dcgm-exporter
       tag: 3.1.7-3.1.4-ubuntu20.04
     extraEnv:
-      NVIDIA_DRIVER_CAPABILITIES: all
-      NVIDIA_VISIBLE_DEVICES: all
+      - name: NVIDIA_DRIVER_CAPABILITIES
+        value: all
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: all
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
     runtimeClassName: nvidia
