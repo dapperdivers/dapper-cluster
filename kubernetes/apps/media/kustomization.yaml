@@ -6,7 +6,6 @@ components:
   - ../../flux/components/common
 resources:
   - ./media-nfs-storage/ks.yaml  # NFS PVCs for all media services
-  - ./nfs-monitor/ks.yaml        # NFS health monitoring
   #- ./autobrr/ks.yaml
   - ./bazarr/ks.yaml
   - ./bazarr-uhd/ks.yaml

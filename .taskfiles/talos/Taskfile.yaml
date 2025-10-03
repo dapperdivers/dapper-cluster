@@ -61,7 +61,7 @@ tasks:
   upgrade-talos:
     desc: Upgrade Talos on all nodes
     dir: '{{.TALHELPER_DIR}}'
-    cmd: talhelper gencommand upgrade | bash
+    cmd: talhelper gencommand upgrade --extra-flags "--preserve --wait --timeout=30m" | bash
     preconditions:
       - talosctl config info
       - test -f {{.TALOSCONFIG}}
