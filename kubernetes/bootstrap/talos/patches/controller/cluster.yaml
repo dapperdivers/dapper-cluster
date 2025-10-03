@@ -22,6 +22,7 @@ cluster:
   etcd:
     extraArgs:
       listen-metrics-urls: http://0.0.0.0:2381
+      quota-backend-bytes: "1073741824"  # 1 GiB (double peak usage of ~350MB)
     advertisedSubnets:
       - 10.100.0.0/24
   proxy:
