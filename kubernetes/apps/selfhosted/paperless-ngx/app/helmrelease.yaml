@@ -129,16 +129,13 @@ spec:
           main:
             app:
               - path: /data/local
+      safe:
+        existingClaim: paperless-cephfs-pvc
+        globalMounts:
+          - path: /safe
       tmp:
         type: emptyDir
         medium: Memory
         sizeLimit: 5Gi
         globalMounts:
           - path: /tmp
-      safe:
-        type: nfs
-        server: vault.manor
-        path: /mnt/Tank/Paperless-ngx
-        globalMounts:
-          - path: /safe
-

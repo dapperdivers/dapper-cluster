@@ -72,7 +72,7 @@ spec:
       config:
         existingClaim: *app
       posterizarr-watcher:
-        existingClaim: posterizarr-watcher
+        existingClaim: posterizarr-watcher-cephfs
         globalMounts:
           - path: /config/watcher
       config-file:
@@ -82,6 +82,6 @@ spec:
         globalMounts:
           - path: /app/config-file
       assets:
-        existingClaim: plex-posters
+        existingClaim: plex-posters-cephfs
         globalMounts:
         - path: /assets

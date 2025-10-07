@@ -1,0 +1,45 @@
+---
+# Static PV for existing CephFS media library
+# Points to /truenas/Media on external Ceph cluster
+#
+# External Access: This path (/truenas/Media) can be mounted directly from
+# Proxmox hosts using standard CephFS mount, allowing access outside K8s
+#
+# NOTE: tower and tower-2 remain on NFS (not migrated yet)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-cephfs-pv
+spec:
+  capacity:
+    storage: 100Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: cephfs-static
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    volumeHandle: media-static
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      staticVolume: "true"
+      rootPath: /truenas/Media
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-static
+      namespace: rook-ceph
+---
+# PVC bound to static PV
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-cephfs-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-static
+  resources:
+    requests:
+      storage: 100Ti
+  volumeName: media-cephfs-pv

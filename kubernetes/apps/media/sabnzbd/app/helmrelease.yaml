@@ -118,7 +118,7 @@ spec:
         globalMounts:
           - readOnly: true
       safe:
-        existingClaim: media-vault-pvc
+        existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /safe/downloads/usenet
             subPath: downloads/usenet

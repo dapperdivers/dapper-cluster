@@ -80,7 +80,7 @@ spec:
             readOnly: true
       # Mount all three media servers for complete access to downloads
       vault-media:
-        existingClaim: media-vault-pvc
+        existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /media/vault
             readOnly: true
