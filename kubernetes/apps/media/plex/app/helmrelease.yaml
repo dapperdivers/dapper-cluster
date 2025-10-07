@@ -146,7 +146,7 @@ spec:
         globalMounts:
           - path: /transcode
       safe:
-        existingClaim: media-vault-pvc
+        existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /safe
       tower:

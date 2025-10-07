@@ -1,0 +1,42 @@
+---
+# Static PV for existing CephFS Paperless data
+# Points to /truenas/Paperless-ngx on external Ceph cluster
+#
+# External Access: This path can be mounted directly from Proxmox hosts
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: paperless-cephfs-pv
+spec:
+  capacity:
+    storage: 5Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: cephfs-static
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    volumeHandle: paperless-static
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      staticVolume: "true"
+      rootPath: /truenas/Paperless-ngx
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-static
+      namespace: rook-ceph
+---
+# PVC bound to static PV
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-cephfs-pvc
+  namespace: selfhosted
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-static
+  resources:
+    requests:
+      storage: 5Ti
+  volumeName: paperless-cephfs-pv
