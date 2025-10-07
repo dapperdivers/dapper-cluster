@@ -1,0 +1,42 @@
+---
+# Temporary migration job to copy data from safe-nfs to CephFS
+# kubectl apply -f kubernetes/_migrations/authentik-media-migration.yaml
+# kubectl logs -n security job/migrate-authentik-media -f
+# kubectl delete -f kubernetes/_migrations/authentik-media-migration.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-authentik-media
+  namespace: security
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: rsync
+          image: instrumentisto/rsync-ssh:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Starting migration: authentik-media → authentik-media-cephfs"
+              echo "Source size:"
+              du -sh /source
+              echo ""
+              echo "Starting rsync..."
+              rsync -avHP --info=progress2 /source/ /dest/
+              echo ""
+              echo "Migration complete!"
+              echo "Destination size:"
+              du -sh /dest
+          volumeMounts:
+            - name: source
+              mountPath: /source
+            - name: dest
+              mountPath: /dest
+      volumes:
+        - name: source
+          persistentVolumeClaim:
+            claimName: authentik-media  # Old safe-nfs PVC
+        - name: dest
+          persistentVolumeClaim:
+            claimName: authentik-media-cephfs  # New CephFS PVC

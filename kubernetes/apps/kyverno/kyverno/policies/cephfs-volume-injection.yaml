@@ -1,0 +1,118 @@
+---
+# Kyverno ClusterPolicy to automatically inject CephFS mounts into pods
+# Pods with label "cephfs.rook.io/inject: media" get the media library mounted
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: inject-cephfs-volumes
+  annotations:
+    policies.kyverno.io/title: Inject CephFS Volumes
+    policies.kyverno.io/category: Storage
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: |
+      Automatically injects CephFS volume mounts into pods based on labels.
+      Centralizes CephFS configuration in one place.
+
+      Usage:
+        Add label to pod: cephfs.rook.io/inject: "media"
+        Mount path can be customized: cephfs.rook.io/mount-path: "/custom/path"
+spec:
+  rules:
+    # =========================================================================
+    # Media Library Mount (100Ti shared)
+    # =========================================================================
+    - name: inject-media-cephfs
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              selector:
+                matchLabels:
+                  cephfs.rook.io/inject: "media"
+      mutate:
+        patchStrategicMerge:
+          spec:
+            volumes:
+              - name: cephfs-media
+                cephfs:
+                  monitors:
+                    - "10.150.0.2:6789"
+                    - "10.150.0.4:6789"
+                  path: /truenas/Media
+                  user: csi-cephfs-node
+                  secretRef:
+                    name: rook-csi-cephfs-node
+                    namespace: rook-ceph
+            containers:
+              - (name): "*"
+                volumeMounts:
+                  - name: cephfs-media
+                    mountPath: "{{ request.object.metadata.labels.\"cephfs.rook.io/mount-path\" || '/media' }}"
+                    readOnly: false
+
+    # =========================================================================
+    # Paperless-ngx Mount
+    # =========================================================================
+    - name: inject-paperless-cephfs
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              selector:
+                matchLabels:
+                  cephfs.rook.io/inject: "paperless"
+      mutate:
+        patchStrategicMerge:
+          spec:
+            volumes:
+              - name: cephfs-paperless
+                cephfs:
+                  monitors:
+                    - "10.150.0.2:6789"
+                    - "10.150.0.4:6789"
+                  path: /truenas/Paperless-ngx
+                  user: csi-cephfs-node
+                  secretRef:
+                    name: rook-csi-cephfs-node
+                    namespace: rook-ceph
+            containers:
+              - (name): "*"
+                volumeMounts:
+                  - name: cephfs-paperless
+                    mountPath: "{{ request.object.metadata.labels.\"cephfs.rook.io/mount-path\" || '/safe' }}"
+                    readOnly: false
+
+    # =========================================================================
+    # MinIO Mount (if using direct mount instead of PVC)
+    # =========================================================================
+    - name: inject-minio-cephfs
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              selector:
+                matchLabels:
+                  cephfs.rook.io/inject: "minio"
+      mutate:
+        patchStrategicMerge:
+          spec:
+            volumes:
+              - name: cephfs-minio
+                cephfs:
+                  monitors:
+                    - "10.150.0.2:6789"
+                    - "10.150.0.4:6789"
+                  path: /truenas/Minio
+                  user: csi-cephfs-node
+                  secretRef:
+                    name: rook-csi-cephfs-node
+                    namespace: rook-ceph
+            containers:
+              - (name): "*"
+                volumeMounts:
+                  - name: cephfs-minio
+                    mountPath: "{{ request.object.metadata.labels.\"cephfs.rook.io/mount-path\" || '/data' }}"
+                    readOnly: false
