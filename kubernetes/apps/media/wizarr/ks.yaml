@@ -30,3 +30,6 @@ spec:
     substitute:
       APP: *app
       VOLSYNC_CAPACITY: 1Gi
+      VOLSYNC_STORAGECLASS: cephfs-shared
+      VOLSYNC_SNAPSHOTCLASS: cephfs-snapshot
+      VOLSYNC_CACHE_STORAGECLASS: cephfs-shared

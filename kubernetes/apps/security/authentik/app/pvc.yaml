@@ -2,10 +2,11 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: authentik-media
+  name: authentik-media-cephfs
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: cephfs-shared
   resources:
     requests:
-      storage: 1Gi
-  storageClassName: safe-nfs
+      storage: 5Gi  # Room to grow from 1Gi

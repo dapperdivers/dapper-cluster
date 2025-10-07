@@ -106,7 +106,7 @@ spec:
         globalMounts:
           - path: /config/log
       safe:
-        existingClaim: media-vault-pvc
+        existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /safe
       tower:

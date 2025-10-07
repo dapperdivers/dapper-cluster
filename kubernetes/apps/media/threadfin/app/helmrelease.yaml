@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &name threadfin # redeploy
+  name: &name threadfin
 spec:
   interval: 30m
   chartRef:

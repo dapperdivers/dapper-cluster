@@ -4,8 +4,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: posterizarr-watcher
 spec:
-  accessModes: ["ReadWriteMany"]
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-shared
   resources:
     requests:
-      storage: 1Gi
-  storageClassName: safe-nfs
+      storage: 5Gi  # Room to grow from 1Gi

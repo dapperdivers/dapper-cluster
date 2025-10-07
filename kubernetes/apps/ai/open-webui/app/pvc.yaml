@@ -4,8 +4,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: open-webui-pipelines
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes: ["ReadWriteMany"]
   resources:
     requests:
       storage: 10Gi
-  storageClassName: mayastor-single-replica
+  storageClassName: cephfs-shared
