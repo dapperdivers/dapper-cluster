@@ -42,6 +42,12 @@ nodes:
         mtu: 1500
         vip:
           ip: "10.100.0.40"
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:0a:70:8d"
+        dhcp: false
+        addresses:
+          - "10.150.0.10/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
@@ -67,6 +73,12 @@ nodes:
         mtu: 1500
         vip:
           ip: "10.100.0.40"
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:a2:a3:f3"
+        dhcp: false
+        addresses:
+          - "10.150.0.11/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
@@ -92,6 +104,12 @@ nodes:
         mtu: 1500
         vip:
           ip: "10.100.0.40"
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:b1:07:13"
+        dhcp: false
+        addresses:
+          - "10.150.0.12/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
@@ -115,6 +133,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:0e:35:a1"
+        dhcp: false
+        addresses:
+          - "10.150.0.13/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
@@ -143,6 +167,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:b5:70:e8"
+        dhcp: false
+        addresses:
+          - "10.150.0.14/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
@@ -168,6 +198,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:d9:1c:2e"
+        dhcp: false
+        addresses:
+          - "10.150.0.15/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
@@ -193,6 +229,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:58:53:8e"
+        dhcp: false
+        addresses:
+          - "10.150.0.16/24"
+        mtu: 9000
     schematic:
       customization:
         systemExtensions:
