@@ -20,7 +20,7 @@ spec:
       strategy: rollback
       retries: 1
 
-  values: # redeploy
+  values:
     # Global configuration
     global:
       imageRegistry: "ghcr.io"

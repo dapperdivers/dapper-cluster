@@ -27,7 +27,7 @@ spec:
           reloader.stakater.com/auto: "true"
         containers:
           frontend:
-            image: # redeploy
+            image:
               repository: ghcr.io/dapperdivers/archon-dev-frontend
               tag: latest
             env:

@@ -28,7 +28,7 @@ spec:
       volumes:
         - name: authentik-media
           persistentVolumeClaim:
-            claimName: authentik-media
+            claimName: authentik-media-cephfs
     geoip:
       enabled: true
       existingSecret:

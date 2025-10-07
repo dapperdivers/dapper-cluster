@@ -104,7 +104,7 @@ spec:
 
     persistence:
       safe:
-        existingClaim: media-vault-pvc
+        existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /safe
       transcode:

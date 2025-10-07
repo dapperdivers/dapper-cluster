@@ -87,6 +87,6 @@ spec:
         globalMounts:
           - path: /tmp
       safe:
-        existingClaim: media-vault-pvc
+        existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /safe
