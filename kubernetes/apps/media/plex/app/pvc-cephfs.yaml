@@ -8,16 +8,17 @@ spec:
   resources:
     requests:
       storage: 100Gi
-  storageClassName: mayastor-single-replica
+  storageClassName: cephfs-shared
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: plex-posters
+  name: plex-posters-cephfs
 spec:
-  accessModes: ["ReadWriteMany"]
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-shared
   resources:
     requests:
-      storage: 75Gi
-  storageClassName: safe-nfs
+      storage: 100Gi  # Room to grow from 75Gi

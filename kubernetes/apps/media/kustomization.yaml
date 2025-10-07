@@ -6,11 +6,12 @@ components:
   - ../../flux/components/common
 resources:
   - ./media-nfs-storage/ks.yaml  # NFS PVCs for all media services
+  - ./storage/ks.yaml  # CephFS static PVs
   #- ./autobrr/ks.yaml
   - ./bazarr/ks.yaml
   - ./bazarr-uhd/ks.yaml
   - ./tautulli/ks.yaml
-  - ./recyclarr/ks.yaml
+  # - ./recyclarr/ks.yaml
   - ./sonarr/ks.yaml
   - ./sonarr-uhd/ks.yaml
   - ./huntarr/ks.yaml
@@ -18,7 +19,7 @@ resources:
   - ./radarr-uhd/ks.yaml
   - ./kometa/ks.yaml
   - ./posterizarr/ks.yaml
-  - ./nzbget/ks.yaml
+  # - ./nzbget/ks.yaml
   - ./tdarr/ks.yaml
   - ./threadfin/ks.yaml
   - ./sabnzbd/ks.yaml

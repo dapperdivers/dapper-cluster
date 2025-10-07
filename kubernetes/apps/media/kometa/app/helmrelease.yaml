@@ -109,10 +109,10 @@ spec:
       config:
         existingClaim: *app
       assets:
-        existingClaim: plex-posters
+        existingClaim: plex-posters-cephfs
         globalMounts:
         - path: /assets
       git:
-        type: emptyDir # redeploy
+        type: emptyDir
         globalMounts:
           - path: /git

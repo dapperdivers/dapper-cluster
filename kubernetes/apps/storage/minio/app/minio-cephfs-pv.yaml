@@ -1,0 +1,42 @@
+---
+# Static PV for existing CephFS MinIO data
+# Points to /truenas/Minio on external Ceph cluster
+#
+# External Access: This path can be mounted directly from Proxmox hosts
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: minio-cephfs-pv
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: cephfs-static
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    volumeHandle: minio-static
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      staticVolume: "true"
+      rootPath: /truenas/Minio
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-static
+      namespace: rook-ceph
+---
+# PVC bound to static PV
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-cephfs-pvc
+  namespace: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-static
+  resources:
+    requests:
+      storage: 10Ti
+  volumeName: minio-cephfs-pv
