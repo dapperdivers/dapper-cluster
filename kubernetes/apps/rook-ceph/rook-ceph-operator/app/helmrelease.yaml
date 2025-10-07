@@ -11,7 +11,7 @@ spec:
       chart: rook-ceph
       # Using v1.14.9 (bundles Ceph 18 Reef) to match Proxmox Ceph 18.2.7
       # Upgrade to v1.15+ when Proxmox Ceph is upgraded to Squid
-      version: v1.14.9
+      version: v1.18.3
       sourceRef:
         kind: HelmRepository
         name: rook
