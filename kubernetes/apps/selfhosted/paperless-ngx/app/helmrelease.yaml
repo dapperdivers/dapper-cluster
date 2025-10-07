@@ -90,6 +90,8 @@ spec:
             ports:
               - containerPort: 9998
     defaultPodOptions:
+      labels:
+        cephfs.rook.io/inject: "paperless"
       securityContext:
         runAsUser: 1000
         runAsGroup: 150
@@ -135,10 +137,4 @@ spec:
         sizeLimit: 5Gi
         globalMounts:
           - path: /tmp
-      safe:
-        type: nfs
-        server: vault.manor
-        path: /mnt/Tank/Paperless-ngx
-        globalMounts:
-          - path: /safe
-
+      # safe mount now injected via Kyverno policy (cephfs.rook.io/inject: "paperless")
