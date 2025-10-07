@@ -115,6 +115,8 @@ spec:
 
     persistence:
       config:
-        existingClaim: minio-ceph-pvc
+        type: nfs
+        server: vault.manor
+        path: /mnt/Tank/Minio
         globalMounts:
           - path: /data
