@@ -35,7 +35,6 @@ spec:
     controller:
       annotations:
           reloader.stakater.com/auto: "true"
-      runOnControlPlane: true
       replicas: 2
       strategyType: Recreate
       resources:
