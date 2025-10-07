@@ -1,0 +1,73 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  external:
+    enable: true
+
+  # CephCluster settings for external mode
+  dataDirHostPath: /var/lib/rook
+
+  # Optional: Monitor external cluster health
+  # Uncomment and set your Ceph manager IPs from the 10.150.0.0/24 network
+  monitoring:
+    enabled: true
+    # externalMgrEndpoints:
+    #   - ip: "10.150.0.11"
+    #   - ip: "10.150.0.12"
+    #   - ip: "10.150.0.13"
+
+  # Network configuration
+  network:
+    # If your Ceph cluster uses a specific public network
+    # provider: host
+    # connections:
+    #   encryption:
+    #     enabled: false
+    #   compression:
+    #     enabled: false
+
+  # Crash collector - disabled for external clusters
+  crashCollector:
+    disable: true
+
+  # Log collection - disabled for external clusters
+  logCollector:
+    enabled: false
+
+  # Health checks
+  healthCheck:
+    daemonHealth:
+      mon:
+        disabled: false
+        interval: 45s
+      osd:
+        disabled: true
+      status:
+        disabled: false
+        interval: 60s
+
+  # Disable cleanup on deletion (don't touch external cluster)
+  cleanupPolicy:
+    confirmation: ""
+    sanitizeDisks:
+      method: complete
+      dataSource: zero
+      iteration: 1
+    allowUninstallWithVolumes: false
+
+  # Disable automatic updates
+  removeOSDsIfOutAndSafeToRemove: false
+  skipUpgradeChecks: false
+  continueUpgradeAfterChecksEvenIfNotHealthy: false
+
+  # Annotations and labels
+  annotations:
+    all:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+  labels:
+    all:
+      app.kubernetes.io/name: rook-ceph

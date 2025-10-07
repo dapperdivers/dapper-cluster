@@ -1,0 +1,122 @@
+---
+# PHASE 2: RBD Storage Classes (Commented out until pools are created)
+# Uncomment these after creating the RBD pools and enabling RBD driver in operator
+
+# # Storage Class for critical workloads on SSD pool (ssd-db)
+# # Use for: Databases, etcd, high-performance applications
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: ceph-ssd-critical
+# provisioner: rook-ceph.rbd.csi.ceph.com
+# parameters:
+#   clusterID: rook-ceph
+#   pool: ssd-db
+#   imageFormat: "2"
+#   imageFeatures: layering
+#   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+#   csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/fstype: ext4
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+
+# ---
+# # Storage Class for general application storage (rook-pvc-pool)
+# # Use for: General applications, standard workloads
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: ceph-rbd
+# provisioner: rook-ceph.rbd.csi.ceph.com
+# parameters:
+#   clusterID: rook-ceph
+#   pool: rook-pvc-pool
+#   imageFormat: "2"
+#   imageFeatures: layering
+#   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+#   csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/fstype: ext4
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+
+# ---
+# # Storage Class for bulk/media storage on EC pool (media-bulk)
+# # Use for: Media files, backups, large files, cost-effective storage
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: ceph-bulk
+# provisioner: rook-ceph.rbd.csi.ceph.com
+# parameters:
+#   clusterID: rook-ceph
+#   pool: media-bulk
+#   imageFormat: "2"
+#   imageFeatures: layering
+#   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+#   csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+#   csi.storage.k8s.io/fstype: xfs
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# volumeBindingMode: WaitForFirstConsumer
+
+---
+# PHASE 1: CephFS Storage Class (Active)
+# This is the primary storage class for migrating from OpenEBS Mayastor
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cephfs-shared
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: cephfs
+  pool: cephfs_data
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+---
+# PHASE 2: VolumeSnapshotClass for RBD snapshots (Commented out until RBD is enabled)
+# apiVersion: snapshot.storage.k8s.io/v1
+# kind: VolumeSnapshotClass
+# metadata:
+#   name: ceph-rbd-snapshot
+# driver: rook-ceph.rbd.csi.ceph.com
+# parameters:
+#   clusterID: rook-ceph
+#   csi.storage.k8s.io/snapshotter-secret-name: rook-csi-rbd-provisioner
+#   csi.storage.k8s.io/snapshotter-secret-namespace: rook-ceph
+# deletionPolicy: Delete
+
+---
+# PHASE 1: VolumeSnapshotClass for CephFS snapshots
+# VolumeSnapshotClass for CephFS snapshots
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: cephfs-snapshot
+driver: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  csi.storage.k8s.io/snapshotter-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/snapshotter-secret-namespace: rook-ceph
+deletionPolicy: Delete
