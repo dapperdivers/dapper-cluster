@@ -1,0 +1,112 @@
+---
+# Centralized CephFS Static PVs and PVCs
+# All vault.manor (192.168.1.11) data migrated to Ceph is managed here
+# Data location: /truenas/* on cephfs filesystem (mounted at /mnt/ceph/truenas/* on Proxmox)
+
+# =============================================================================
+# Media Library - 100Ti (namespace: media)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-ceph-pv
+  labels:
+    storage.type: cephfs-media
+    storage.tier: primary
+spec:
+  capacity:
+    storage: 100Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""  # Empty string for static binding
+  claimRef:
+    namespace: media
+    name: media-ceph-pvc
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-node
+      namespace: rook-ceph
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      staticVolume: "true"
+      rootPath: /truenas/Media
+    volumeHandle: media-ceph-static-pv
+  mountOptions:
+    # Performance optimizations for media
+    - noatime
+    - nodiratime
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-ceph-pvc
+  namespace: media
+  labels:
+    app.kubernetes.io/name: media-storage
+    storage.type: cephfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""  # Empty string for static binding
+  volumeName: media-ceph-pv
+  resources:
+    requests:
+      storage: 100Ti
+
+# =============================================================================
+# MinIO Storage - 10Ti (namespace: storage)
+# =============================================================================
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: minio-ceph-pv
+  labels:
+    storage.type: cephfs-minio
+    storage.tier: primary
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: storage
+    name: minio-ceph-pvc
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-node
+      namespace: rook-ceph
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      staticVolume: "true"
+      rootPath: /truenas/Minio
+    volumeHandle: minio-ceph-static-pv
+  mountOptions:
+    - noatime
+    - nodiratime
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-ceph-pvc
+  namespace: storage
+  labels:
+    app.kubernetes.io/name: minio-storage
+    storage.type: cephfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: minio-ceph-pv
+  resources:
+    requests:
+      storage: 10Ti
