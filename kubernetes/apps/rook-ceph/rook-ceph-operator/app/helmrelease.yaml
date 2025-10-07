@@ -30,7 +30,7 @@ spec:
     # Pinned to v18.x - must match Proxmox Ceph cluster version
     # renovate: datasource=docker depName=quay.io/ceph/ceph versioning=semver extractVersion=^v(?<version>.*)$ constraints=18.x
     cephVersion:
-      image: quay.io/ceph/ceph:v18.2.7
+      image: quay.io/ceph/ceph:v20.1.0
 
     csi:
       # Phase 1: Only CephFS is available
