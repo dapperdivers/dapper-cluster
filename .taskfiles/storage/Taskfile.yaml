@@ -120,21 +120,25 @@ tasks:
         echo ""
 
   migrate-pvc:
-    desc: Migrate a single app's PVC to a new storage class [APP=required] [NS=required] [STORAGE_CLASS=cephfs-shared]
+    desc: Migrate a single app's PVC to a new storage class [APP=required] [NS=required] [STORAGE_CLASS=cephfs-shared] [COMMIT=false]
     summary: |
       Migrates an app's PVC to a new storage class by:
       1. Validating prerequisites (app exists, has volsync backup, etc.)
       2. Adding storage class override to app's ks.yaml
-      3. Scaling down the app
-      4. Waiting for PVC deletion and recreation with volsync restore
-      5. Scaling app back up
-      6. Verifying migration succeeded
+      3. Optionally committing and pushing changes (set COMMIT=true)
+      4. Scaling down the app
+      5. Waiting for PVC deletion and recreation with volsync restore
+      6. Scaling app back up
+      7. Verifying migration succeeded
 
-      Example: task storage:migrate-pvc APP=bazarr NS=media STORAGE_CLASS=cephfs-shared
+      Examples:
+        Manual commit: task storage:migrate-pvc APP=bazarr NS=media STORAGE_CLASS=cephfs-shared
+        Auto commit:   task storage:migrate-pvc APP=bazarr NS=media STORAGE_CLASS=cephfs-shared COMMIT=true
     vars:
       NS: '{{.NS | default "default"}}'
       STORAGE_CLASS: '{{.STORAGE_CLASS | default "cephfs-shared"}}'
       SNAPSHOT_CLASS: '{{.STORAGE_CLASS}}-snapshot'
+      COMMIT: '{{.COMMIT | default "false"}}'
       KS_FILE: '{{.ROOT_DIR}}/kubernetes/apps/{{.NS}}/{{.APP}}/ks.yaml'
       CONTROLLER:
         sh: '{{.KUBECTL}} --namespace {{.NS}} get deployment {{.APP}} &>/dev/null && echo deployment || echo statefulset'
@@ -154,10 +158,8 @@ tasks:
     cmds:
       - task: _validate-backup
         vars: {APP: '{{.APP}}', NS: '{{.NS}}'}
-      - task: _show-storage-override
-        vars: {APP: '{{.APP}}', NS: '{{.NS}}', STORAGE_CLASS: '{{.STORAGE_CLASS}}', SNAPSHOT_CLASS: '{{.SNAPSHOT_CLASS}}', KS_FILE: '{{.KS_FILE}}'}
-      - task: _wait-for-user-commit
-        vars: {APP: '{{.APP}}', NS: '{{.NS}}'}
+      - task: _commit-or-wait
+        vars: {APP: '{{.APP}}', NS: '{{.NS}}', STORAGE_CLASS: '{{.STORAGE_CLASS}}', SNAPSHOT_CLASS: '{{.SNAPSHOT_CLASS}}', KS_FILE: '{{.KS_FILE}}', COMMIT: '{{.COMMIT}}'}
       - task: _scale-down
         vars: {APP: '{{.APP}}', NS: '{{.NS}}', CONTROLLER: '{{.CONTROLLER}}'}
       - task: _wait-for-pvc-recreation
@@ -183,52 +185,104 @@ tasks:
         fi
         echo "✅ Recent backup found: {{.LAST_SYNC}}"
 
-  # Internal task: Show user what to add to kustomization (manual step)
-  _show-storage-override:
+  # Internal task: Add storage overrides and optionally commit
+  _commit-or-wait:
     internal: true
     cmds:
       - |
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "📝 MANUAL STEP REQUIRED - GitOps Workflow"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-        echo "Add the following to: {{.KS_FILE}}"
-        echo ""
-        echo "Under spec.postBuild.substitute, add these lines:"
-        echo ""
-        echo "  postBuild:"
-        echo "    substitute:"
-        echo "      VOLSYNC_STORAGECLASS: {{.STORAGE_CLASS}}"
-        echo "      VOLSYNC_SNAPSHOTCLASS: {{.SNAPSHOT_CLASS}}"
-        echo "      VOLSYNC_CACHE_STORAGECLASS: {{.STORAGE_CLASS}}"
-        echo ""
-        echo "Then commit and push your changes."
-        echo ""
+        echo "📝 Updating Kustomization with storage class overrides"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo ""
 
-  # Internal task: Wait for user to commit and Flux to reconcile
-  _wait-for-user-commit:
-    internal: true
-    cmds:
-      - |
-        echo "⏳ Waiting for you to commit and push the changes..."
+        # Check if yq is available
+        if ! command -v yq &>/dev/null; then
+          echo "❌ yq not found. Please install yq to use this task."
+          echo "   Or manually edit {{.KS_FILE}} and add:"
+          echo ""
+          echo "  spec:"
+          echo "    postBuild:"
+          echo "      substitute:"
+          echo "        VOLSYNC_STORAGECLASS: {{.STORAGE_CLASS}}"
+          echo "        VOLSYNC_SNAPSHOTCLASS: {{.SNAPSHOT_CLASS}}"
+          echo "        VOLSYNC_CACHE_STORAGECLASS: {{.STORAGE_CLASS}}"
+          exit 1
+        fi
+
+        # Add storage class overrides using yq
+        echo "   Adding VOLSYNC_STORAGECLASS: {{.STORAGE_CLASS}}"
+        yq eval '.spec.postBuild.substitute.VOLSYNC_STORAGECLASS = "{{.STORAGE_CLASS}}"' -i {{.KS_FILE}}
+
+        echo "   Adding VOLSYNC_SNAPSHOTCLASS: {{.SNAPSHOT_CLASS}}"
+        yq eval '.spec.postBuild.substitute.VOLSYNC_SNAPSHOTCLASS = "{{.SNAPSHOT_CLASS}}"' -i {{.KS_FILE}}
+
+        echo "   Adding VOLSYNC_CACHE_STORAGECLASS: {{.STORAGE_CLASS}}"
+        yq eval '.spec.postBuild.substitute.VOLSYNC_CACHE_STORAGECLASS = "{{.STORAGE_CLASS}}"' -i {{.KS_FILE}}
+
+        echo "✅ Updated {{.KS_FILE}}"
         echo ""
-        read -p "Press ENTER once you've committed and pushed the changes, or Ctrl+C to abort: "
+
+        if [ "{{.COMMIT}}" = "true" ]; then
+          echo "🚀 Auto-commit enabled - committing and pushing changes..."
+          echo ""
+
+          # Stage the file
+          git add {{.KS_FILE}}
+
+          # Create commit message
+          COMMIT_MSG="chore({{.NS}}): migrate {{.APP}} PVC to {{.STORAGE_CLASS}}
+
+Storage class migration for {{.APP}}:
+- VOLSYNC_STORAGECLASS: {{.STORAGE_CLASS}}
+- VOLSYNC_SNAPSHOTCLASS: {{.SNAPSHOT_CLASS}}
+- VOLSYNC_CACHE_STORAGECLASS: {{.STORAGE_CLASS}}
+
+Part of mayastor to ceph migration."
+
+          # Commit
+          git commit -m "$COMMIT_MSG"
+
+          # Push
+          git push
+
+          echo "✅ Changes committed and pushed"
+          echo ""
+
+          # Give Flux time to detect changes
+          echo "🔄 Waiting for Flux to detect changes..."
+          sleep 10
+
+          # Trigger immediate reconciliation
+          echo "   Triggering immediate Flux reconciliation..."
+          flux reconcile source git flux-system --timeout 2m || true
+          flux reconcile kustomization {{.APP}} --timeout 2m || true
+
+          echo "✅ Flux reconciliation triggered"
+        else
+          echo "📋 Manual commit mode - changes have been made to {{.KS_FILE}}"
+          echo ""
+          echo "   Review the changes with: git diff {{.KS_FILE}}"
+          echo ""
+          echo "   When ready, commit and push:"
+          echo "   git add {{.KS_FILE}}"
+          echo "   git commit -m 'chore({{.NS}}): migrate {{.APP}} PVC to {{.STORAGE_CLASS}}'"
+          echo "   git push"
+          echo ""
+
+          read -p "Press ENTER once you've committed and pushed, or Ctrl+C to abort: "
+          echo ""
+
+          echo "🔄 Waiting for Flux to reconcile the changes..."
+          sleep 10
+
+          echo "   Triggering immediate Flux reconciliation..."
+          flux reconcile source git flux-system --timeout 2m || true
+          flux reconcile kustomization {{.APP}} --timeout 2m || true
+
+          echo "✅ Ready to proceed with migration"
+        fi
         echo ""
-        echo "🔄 Waiting for Flux to reconcile the changes..."
-        echo "   This may take up to 5 minutes for Flux to detect and apply changes..."
-
-        # Give Flux time to pick up the changes
-        sleep 10
-
-        # Try to reconcile immediately
-        echo "   Triggering immediate Flux reconciliation..."
-        flux reconcile source git flux-system --timeout 2m || true
-        flux reconcile kustomization {{.APP}} --timeout 2m || true
-
-        echo "✅ Ready to proceed with migration"
 
   # Internal task: Scale down app
   _scale-down:
@@ -246,12 +300,46 @@ tasks:
     internal: true
     cmds:
       - |
-        echo "🔄 Deleting old PVC (required - PVC spec is immutable)..."
+        echo "🔄 Triggering volsync restore with new storage class..."
+        # Patch ReplicationDestination to trigger new restore with updated config
+        {{.KUBECTL}} patch replicationdestination {{.APP}}-dst -n {{.NS}} --type merge -p "{\"spec\":{\"trigger\":{\"manual\":\"$(date +%s)\"}}}"
+
+        echo "   Waiting for volsync restore job to start..."
+        until {{.KUBECTL}} get job -n {{.NS}} 2>/dev/null | grep "volsync-dst-{{.APP}}-dst" &>/dev/null; do
+          sleep 3
+        done
+        echo "   ✅ Restore job started"
+
+        echo "   Waiting for restore job to complete..."
+        # Wait for job with timeout, ignore if it completes quickly
+        sleep 10
+
+        echo "   Waiting for new snapshot to be created..."
+        # Get the new snapshot name from ReplicationDestination status
+        for i in {1..60}; do
+          NEW_SNAPSHOT=$({{.KUBECTL}} get replicationdestination {{.APP}}-dst -n {{.NS}} -o jsonpath='{.status.latestImage.name}' 2>/dev/null)
+          if [ -n "$NEW_SNAPSHOT" ]; then
+            # Check if snapshot is ready
+            SNAPSHOT_READY=$({{.KUBECTL}} get volumesnapshot "$NEW_SNAPSHOT" -n {{.NS}} -o jsonpath='{.status.readyToUse}' 2>/dev/null)
+            if [ "$SNAPSHOT_READY" = "true" ]; then
+              echo "   ✅ New snapshot ready: $NEW_SNAPSHOT"
+              break
+            fi
+          fi
+          sleep 5
+        done
+
+        echo "🗑️  Deleting volume snapshots that block PVC deletion..."
+        # Delete snapshots that reference the PVC (they have finalizers preventing deletion)
+        {{.KUBECTL}} get volumesnapshot -n {{.NS}} -o json | \
+          jq -r ".items[] | select(.spec.source.persistentVolumeClaimName==\"{{.APP}}\") | .metadata.name" | \
+          xargs -r {{.KUBECTL}} delete volumesnapshot -n {{.NS}} || true
+
+        echo "🔄 Deleting old PVC (spec is immutable)..."
         {{.KUBECTL}} --namespace {{.NS}} delete pvc {{.APP}} --wait=false
 
         echo "   Waiting for old PVC to be fully deleted..."
-        # Wait up to 2 minutes for PVC to be deleted
-        for i in {1..24}; do
+        for i in {1..30}; do
           if ! {{.KUBECTL}} --namespace {{.NS}} get pvc {{.APP}} &>/dev/null; then
             echo "   ✅ Old PVC deleted"
             break
@@ -264,10 +352,10 @@ tasks:
 
         echo "   Waiting for new PVC to be created..."
         until {{.KUBECTL}} --namespace {{.NS}} get pvc {{.APP}} &>/dev/null; do
-          sleep 5
+          sleep 3
         done
 
-        echo "   Waiting for PVC to be Bound..."
+        echo "   Waiting for PVC to be Bound (volsync restoring from backup)..."
         {{.KUBECTL}} --namespace {{.NS}} wait pvc/{{.APP}} --for=jsonpath='{.status.phase}'=Bound --timeout=10m
 
         # Verify storage class
