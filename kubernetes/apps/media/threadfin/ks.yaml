@@ -32,5 +32,5 @@ spec:
       APP: *app
       VOLSYNC_CAPACITY: 5Gi
       VOLSYNC_STORAGECLASS: cephfs-shared
-      VOLSYNC_SNAPSHOTCLASS: cephfs-shared-snapshot
+      VOLSYNC_SNAPSHOTCLASS: cephfs-snapshot
       VOLSYNC_CACHE_STORAGECLASS: cephfs-shared

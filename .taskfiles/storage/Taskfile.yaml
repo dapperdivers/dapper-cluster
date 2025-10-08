@@ -120,7 +120,7 @@ tasks:
         echo ""
 
   migrate-pvc:
-    desc: Migrate a single app's PVC to a new storage class [APP=required] [NS=required] [STORAGE_CLASS=cephfs-shared] [COMMIT=false]
+    desc: Migrate a single app's PVC to a new storage class [APP=required] [NS=required] [STORAGE_CLASS=cephfs-shared] [SNAPSHOT_CLASS=cephfs-snapshot] [COMMIT=false]
     summary: |
       Migrates an app's PVC to a new storage class by:
       1. Validating prerequisites (app exists, has volsync backup, etc.)
@@ -137,7 +137,7 @@ tasks:
     vars:
       NS: '{{.NS | default "default"}}'
       STORAGE_CLASS: '{{.STORAGE_CLASS | default "cephfs-shared"}}'
-      SNAPSHOT_CLASS: '{{.STORAGE_CLASS}}-snapshot'
+      SNAPSHOT_CLASS: '{{.SNAPSHOT_CLASS | default "cephfs-snapshot"}}'
       COMMIT: '{{.COMMIT | default "false"}}'
       KS_FILE: '{{.ROOT_DIR}}/kubernetes/apps/{{.NS}}/{{.APP}}/ks.yaml'
       CONTROLLER:
@@ -230,18 +230,11 @@ tasks:
           # Stage the file
           git add {{.KS_FILE}}
 
-          # Create commit message
-          COMMIT_MSG="chore({{.NS}}): migrate {{.APP}} PVC to {{.STORAGE_CLASS}}
-
-Storage class migration for {{.APP}}:
-- VOLSYNC_STORAGECLASS: {{.STORAGE_CLASS}}
-- VOLSYNC_SNAPSHOTCLASS: {{.SNAPSHOT_CLASS}}
-- VOLSYNC_CACHE_STORAGECLASS: {{.STORAGE_CLASS}}
-
-Part of mayastor to ceph migration."
-
           # Commit
-          git commit -m "$COMMIT_MSG"
+          git commit -m "chore({{.NS}}): migrate {{.APP}} PVC to {{.STORAGE_CLASS}}" \
+            -m "Migrating {{.APP}} storage from mayastor to {{.STORAGE_CLASS}}." \
+            -m "This updates volsync configuration to use the new storage class and snapshot class for backups and restores." \
+            -m "Part of the mayastor to ceph migration project."
 
           # Push
           git push
@@ -332,7 +325,7 @@ Part of mayastor to ceph migration."
         echo "🗑️  Deleting volume snapshots that block PVC deletion..."
         # Delete snapshots that reference the PVC (they have finalizers preventing deletion)
         {{.KUBECTL}} get volumesnapshot -n {{.NS}} -o json | \
-          jq -r ".items[] | select(.spec.source.persistentVolumeClaimName==\"{{.APP}}\") | .metadata.name" | \
+          jq -r --arg app "{{.APP}}" '.items[] | select(.spec.source.persistentVolumeClaimName==$app) | .metadata.name' | \
           xargs -r {{.KUBECTL}} delete volumesnapshot -n {{.NS}} || true
 
         echo "🔄 Deleting old PVC (spec is immutable)..."
