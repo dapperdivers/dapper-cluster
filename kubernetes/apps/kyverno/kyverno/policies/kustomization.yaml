@@ -5,4 +5,3 @@ kind: Kustomization
 resources:
   - ./ingress-authentik-annotation.yaml
   - ./nfs-health-checks.yaml
-  #- ./volsync-movers.yaml

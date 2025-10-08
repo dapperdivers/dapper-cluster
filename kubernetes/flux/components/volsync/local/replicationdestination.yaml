@@ -10,12 +10,12 @@ spec:
   restic:
     repository: "${APP}-volsync-secret"
     copyMethod: Snapshot
-    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:-csi-mayastor-snapclass}"
-    cacheStorageClassName: "${VOLSYNC_CACHE_STORAGECLASS:-mayastor-single-replica}"
-    cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:-ReadWriteOnce}"]
+    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:-cephfs-snapshot}"
+    cacheStorageClassName: "${VOLSYNC_CACHE_STORAGECLASS:-cephfs-shared}"
+    cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:-ReadWriteMany}"]
     cacheCapacity: "${VOLSYNC_CACHE_CAPACITY:-10Gi}"
-    storageClassName: "${VOLSYNC_STORAGECLASS:-mayastor-single-replica}"
-    accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteOnce}"]
+    storageClassName: "${VOLSYNC_STORAGECLASS:-cephfs-shared}"
+    accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteMany}"]
     capacity: "${VOLSYNC_CAPACITY:-5Gi}"
     moverSecurityContext:
       runAsUser: ${VOLSYNC_PUID:-1000}
