@@ -246,10 +246,10 @@ tasks:
     internal: true
     cmds:
       - |
-        echo "🔄 Triggering Flux reconciliation..."
-        flux --namespace {{.NS}} reconcile kustomization {{.APP}} --with-source
+        echo "🔄 Deleting old PVC (required - PVC spec is immutable)..."
+        {{.KUBECTL}} --namespace {{.NS}} delete pvc {{.APP}} --wait=false
 
-        echo "   Waiting for old PVC to be deleted..."
+        echo "   Waiting for old PVC to be fully deleted..."
         # Wait up to 2 minutes for PVC to be deleted
         for i in {1..24}; do
           if ! {{.KUBECTL}} --namespace {{.NS}} get pvc {{.APP}} &>/dev/null; then
@@ -258,6 +258,9 @@ tasks:
           fi
           sleep 5
         done
+
+        echo "🔄 Triggering Flux reconciliation to recreate PVC..."
+        flux --namespace {{.NS}} reconcile kustomization {{.APP}} --with-source
 
         echo "   Waiting for new PVC to be created..."
         until {{.KUBECTL}} --namespace {{.NS}} get pvc {{.APP}} &>/dev/null; do
