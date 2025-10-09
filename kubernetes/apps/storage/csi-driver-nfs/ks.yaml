@@ -11,8 +11,8 @@ spec:
       app.kubernetes.io/name: *app
   path: ./kubernetes/apps/storage/csi-driver-nfs/app
   dependsOn:
-    - name: openebs
-      namespace: openebs-system
+    - name: rook-ceph-operator
+      namespace: rook-ceph
   prune: true
   sourceRef:
     kind: GitRepository

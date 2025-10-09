@@ -15,8 +15,8 @@ spec:
         name: csi-driver-nfs
         namespace: flux-system
   dependsOn:
-    - name: openebs
-      namespace: openebs-system
+    - name: rook-ceph-operator
+      namespace: rook-ceph
   maxHistory: 3
   install:
     createNamespace: true

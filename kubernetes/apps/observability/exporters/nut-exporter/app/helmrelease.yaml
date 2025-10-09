@@ -20,8 +20,6 @@ spec:
   values:
     controllers:
       nut-exporter:
-        annotations:
-          reloader.stakater.com/auto: "true"
         strategy: Recreate
         containers:
           app:

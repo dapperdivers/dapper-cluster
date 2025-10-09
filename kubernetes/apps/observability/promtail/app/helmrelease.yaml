@@ -22,8 +22,8 @@ spec:
     remediation:
       retries: 3
   dependsOn:
-    - name: openebs
-      namespace: openebs-system
+    - name: rook-ceph-operator
+      namespace: rook-ceph
     - name: loki
       namespace: observability
   values:
