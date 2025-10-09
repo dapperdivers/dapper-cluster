@@ -30,7 +30,7 @@ spec:
           persistentVolumeClaim:
             claimName: authentik-media-cephfs
     geoip:
-      enabled: true
+      enabled: false
       existingSecret:
         secretName: geoip-secret
         accountId: maxmindAccountId
