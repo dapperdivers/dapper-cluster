@@ -34,8 +34,8 @@ spec:
   dependsOn:
     - name: actions-runner-controller
       namespace: actions-runner-system
-    - name: openebs
-      namespace: openebs-system
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   valuesFrom:
     - targetPath: githubConfigSecret.github_app_id
       kind: Secret
@@ -57,7 +57,7 @@ spec:
       type: kubernetes
       kubernetesModeWorkVolumeClaim:
         accessModes: ["ReadWriteOnce"]
-        storageClassName: openebs-single-replica
+        storageClassName: cephfs-shared
         resources:
           requests:
             storage: 25Gi

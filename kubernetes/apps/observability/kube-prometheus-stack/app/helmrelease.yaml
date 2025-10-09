@@ -50,7 +50,7 @@ spec:
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: mayastor-single-replica
+              storageClassName: cephfs-shared
               resources:
                 requests:
                   storage: 2Gi
@@ -101,7 +101,7 @@ spec:
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: mayastor-single-replica
+              storageClassName: cephfs-shared
               resources:
                 requests:
                   storage: 100Gi

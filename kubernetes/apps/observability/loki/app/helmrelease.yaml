@@ -87,7 +87,7 @@ spec:
           memory: 600Mi
       persistence:
         enabled: true
-        storageClass: mayastor-single-replica
+        storageClass: cephfs-shared
         size: 30Gi
     gateway:
       replicas: 0

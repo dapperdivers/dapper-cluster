@@ -77,10 +77,11 @@ spec:
       replicas: 1
       resources:
         requests:
-          cpu: 5m
-          memory: 200Mi
+          cpu: 100m
+          memory: 512Mi
         limits:
-          memory: 600Mi
+          cpu: 200m
+          memory: 1Gi
     postgresql:
       enabled: false
     redis:

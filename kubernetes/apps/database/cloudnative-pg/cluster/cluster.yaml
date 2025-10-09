@@ -5,19 +5,14 @@ metadata:
   name: postgres
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17.5-11@sha256:6d41466de5d43a80544cc5768038b2de964ae5b1d725683c03c5d9f81fdc2e43
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.6@sha256:8d39f0643fef1dacbbc50bf0b26a0b6e8f3bb354e8ac3bfaefb99e2f96027ad8
   primaryUpdateStrategy: unsupervised
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      isWALArchiver: true
-      parameters:
-        barmanObjectStore: minio-store
   storage:
     size: 20Gi
-    storageClass: mayastor-single-replica
+    storageClass: cephfs-shared
   walStorage:
     size: 5Gi
-    storageClass: mayastor-single-replica
+    storageClass: cephfs-shared
   superuserSecret:
     name: cloudnative-pg-secret
   enableSuperuserAccess: true
@@ -32,12 +27,20 @@ spec:
       memory: 4Gi
   monitoring:
     enablePodMonitor: true
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: minio-store
+        serverName: postgres-v1
+  bootstrap:
+    recovery:
+      source: postgres16-v9
   # NOTE: externalClusters is needed when recovering from an existing cnpg cluster
   externalClusters:
-  - name: postgres16-v8
+  - name: postgres16-v9
     plugin:
       name: barman-cloud.cloudnative-pg.io
       parameters:
-        # Recovery Object Store (pull, read-only)
         barmanObjectName: minio-store
-        serverName: cluster16
+        serverName: postgres16-v9

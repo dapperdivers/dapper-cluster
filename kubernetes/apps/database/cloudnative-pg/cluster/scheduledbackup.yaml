@@ -1,6 +1,6 @@
 ---
 apiVersion: postgresql.cnpg.io/v1
-kind: ScheduledBackup
+kind: ScheduledBackup # ScheduledBackup is the schema for the scheduledbackups API
 metadata:
   name: postgres-backup
 spec:
