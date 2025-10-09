@@ -6,3 +6,4 @@ resources:
   - ./helmrelease.yaml
   - ./prometheusrule.yaml
   - ./mutations
+# Note: Repository PV+PVC created per-app via flux/components/volsync/repository-p*.yaml

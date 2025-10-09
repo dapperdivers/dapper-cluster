@@ -1,0 +1,25 @@
+---
+# Repository PV for VolSync Restic backups
+# Points to /truenas/k8s/volsync/${APP} for per-app isolation
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "volsync-${APP}-repo-pv"
+spec:
+  capacity:
+    storage: 5Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: cephfs-static
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    volumeHandle: "volsync-${APP}-repo"
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      staticVolume: "true"
+      rootPath: "/truenas/k8s/volsync/${APP}"
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-static
+      namespace: rook-ceph

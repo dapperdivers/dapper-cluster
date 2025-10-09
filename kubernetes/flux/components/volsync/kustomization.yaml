@@ -6,3 +6,5 @@ resources:
   - ./local
   - ./remote
   - ./pvc.yaml
+  - ./repository-pv.yaml
+  - ./repository-pvc.yaml

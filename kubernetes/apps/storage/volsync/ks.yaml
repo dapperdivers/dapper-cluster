@@ -11,8 +11,8 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: csi-driver-nfs-classes
-      namespace: storage
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   path: ./kubernetes/apps/storage/volsync/app
   prune: true
   sourceRef:

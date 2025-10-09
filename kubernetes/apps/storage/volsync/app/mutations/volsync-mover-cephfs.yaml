@@ -1,0 +1,65 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.32.0/mutatingadmissionpolicybinding-admissionregistration-v1alpha1.json
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: volsync-mover-cephfs
+spec:
+  policyName: volsync-mover-cephfs
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.32.0/mutatingadmissionpolicy-admissionregistration-v1alpha1.json
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: volsync-mover-cephfs
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs"]
+  matchConditions:
+    - name: has-volsync-job-name-prefix
+      expression: >
+        object.metadata.name.startsWith("volsync-")
+    - name: has-volsync-created-by-labels
+      expression: >
+        object.metadata.labels["app.kubernetes.io/created-by"] == "volsync"
+    - name: repository-volume-does-not-exist
+      expression: >
+        !object.spec.template.spec.volumes.exists(item, item.name == "repository")
+    - name: not-r2-backup
+      expression: >
+        !object.metadata.name.contains("-r2")
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  variables:
+    - name: appName
+      expression: >
+        object.metadata.name.replace("volsync-src-", "").replace("volsync-dst-", "")
+    - name: pvcName
+      expression: >
+        "volsync-" + variables.appName + "-repo"
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >
+          [
+            JSONPatch{
+              op: "add", path: "/spec/template/spec/containers/0/volumeMounts/-",
+              value: Object.spec.template.spec.containers.volumeMounts{
+                name: "repository",
+                mountPath: "/repository"
+              }
+            },
+            JSONPatch{
+              op: "add", path: "/spec/template/spec/volumes/-",
+              value: Object.spec.template.spec.volumes{
+                name: "repository",
+                persistentVolumeClaim: Object.spec.template.spec.volumes.persistentVolumeClaim{
+                  claimName: variables.pvcName
+                }
+              }
+            }
+          ]

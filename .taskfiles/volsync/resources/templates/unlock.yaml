@@ -11,7 +11,7 @@ spec:
       automountServiceAccountToken: false
       restartPolicy: OnFailure
       containers:
-        - name: nfs
+        - name: repository
           image: docker.io/restic/restic:latest
           args: ["unlock", "--remove-all"]
           envFrom:
@@ -23,6 +23,5 @@ spec:
           resources: {}
       volumes:
         - name: repository
-          nfs:
-            server: vault.manor
-            path: /mnt/Tank/k8s/volsync
+          persistentVolumeClaim:
+            claimName: volsync-{{ .Values.app }}-repo
