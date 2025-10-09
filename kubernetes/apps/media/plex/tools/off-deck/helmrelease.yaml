@@ -23,6 +23,8 @@ spec:
   values:
     controllers:
       plex-off-deck:
+        annotations:
+          reloader.stakater.com/auto: "true"
         type: cronjob
         cronjob:
           schedule: "@daily"

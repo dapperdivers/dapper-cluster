@@ -19,6 +19,8 @@ spec:
   values:
     controllers:
       system-upgrade-controller:
+        annotations:
+          reloader.stakater.com/auto: "true"
         strategy: RollingUpdate
         containers:
           app:

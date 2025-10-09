@@ -17,12 +17,12 @@ spec:
   values:
     global:
       podAnnotations:
-        secret.reloader.stakater.com/reload: &secret authentik-secret
+        reloader.stakater.com/auto: "true"
       deploymentStrategy:
         type: RollingUpdate
       envFrom:
         - secretRef:
-            name: *secret
+            name: &secret authentik-secret
         - secretRef:
             name: &secret-postgres authentik-postgres-secret
       volumes:
