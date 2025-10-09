@@ -75,6 +75,10 @@ spec:
               - *host
     worker:
       replicas: 1
+      # Disable healthchecks - worker doesn't create PID file properly
+      livenessProbe: {}
+      readinessProbe: {}
+      startupProbe: {}
       resources:
         requests:
           cpu: 100m
