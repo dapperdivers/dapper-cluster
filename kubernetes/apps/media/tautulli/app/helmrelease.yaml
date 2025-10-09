@@ -113,7 +113,7 @@ spec:
         globalMounts:
           - path: /config/cache
       posterizarr-watcher:
-        existingClaim: posterizarr-watcher-cephfs
+        existingClaim: posterizarr-watcher
         globalMounts:
           - path: /posterizarr/watcher
       posterizarr-watcher-script:

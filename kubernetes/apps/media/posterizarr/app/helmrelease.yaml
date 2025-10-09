@@ -72,7 +72,7 @@ spec:
       config:
         existingClaim: *app
       posterizarr-watcher:
-        existingClaim: posterizarr-watcher-cephfs
+        existingClaim: posterizarr-watcher
         globalMounts:
           - path: /config/watcher
       config-file:
