@@ -149,7 +149,6 @@ nodes:
             - siderolabs/nfsrahead
     patches:
       - "@./patches/gpu/nvidia-gpu.yaml"
-      - "@./patches/storage/mayastor.yaml"
   - hostname: "talos-node-large-1"
     ipAddress: "10.100.0.54"
     installDisk: "/dev/vda"
@@ -179,8 +178,6 @@ nodes:
           officialExtensions:
             - siderolabs/qemu-guest-agent
             - siderolabs/nfsrahead
-    patches:
-      - "@./patches/storage/mayastor.yaml"
   - hostname: "talos-node-large-2"
     ipAddress: "10.100.0.55"
     installDisk: "/dev/vda"
@@ -210,8 +207,6 @@ nodes:
           officialExtensions:
             - siderolabs/qemu-guest-agent
             - siderolabs/nfsrahead
-    patches:
-      - "@./patches/storage/mayastor.yaml"
   - hostname: "talos-node-large-3"
     ipAddress: "10.100.0.56"
     installDisk: "/dev/vda"
@@ -241,8 +236,6 @@ nodes:
           officialExtensions:
             - siderolabs/qemu-guest-agent
             - siderolabs/nfsrahead
-    patches:
-      - "@./patches/storage/mayastor.yaml"
 # Global patches
 patches:
   - "@./patches/global/cluster-discovery.yaml"
@@ -251,7 +244,6 @@ patches:
   - "@./patches/global/machine-network.yaml"
   - "@./patches/global/machine-sysctls.yaml"
   - "@./patches/global/machine-time.yaml"
-  - "@./patches/global/openebs-local.yaml"
 
 # Controller patches
 controlPlane:

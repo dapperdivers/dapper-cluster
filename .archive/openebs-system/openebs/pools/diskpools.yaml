@@ -37,4 +37,3 @@ metadata:
 spec:
   node: talos-node-large-3
   disks: ["/dev/sda"]
-
