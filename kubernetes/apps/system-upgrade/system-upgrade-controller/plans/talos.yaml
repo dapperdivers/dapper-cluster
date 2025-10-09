@@ -6,8 +6,9 @@ metadata:
   name: talos
 spec:
   # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-  version: "v1.10.6"
+  version: "v1.11.2"
   concurrency: 1
+  jobActiveDeadlineSecs: 1800
   postCompleteDelay: 2m
   exclusive: true
   serviceAccountName: system-upgrade-controller
