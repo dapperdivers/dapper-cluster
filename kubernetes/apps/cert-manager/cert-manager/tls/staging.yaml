@@ -12,8 +12,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN}"
     - "*.${SECRET_DOMAIN}"
-  secretTemplate:
-    type: kubernetes.io/tls
 
 ---
 apiVersion: cert-manager.io/v1
@@ -29,8 +27,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_MEDIA}"
     - "*.${SECRET_DOMAIN_MEDIA}"
-  secretTemplate:
-    type: kubernetes.io/tls
 
 ---
 apiVersion: cert-manager.io/v1
@@ -46,8 +42,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_PERSONAL}"
     - "*.${SECRET_DOMAIN_PERSONAL}"
-  secretTemplate:
-    type: kubernetes.io/tls
 
 ---
 apiVersion: cert-manager.io/v1
@@ -63,8 +57,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_DIVING}"
     - "*.${SECRET_DOMAIN_DIVING}"
-  secretTemplate:
-    type: kubernetes.io/tls
 
 ---
 apiVersion: cert-manager.io/v1
@@ -80,5 +72,3 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_WIFE}"
     - "*.${SECRET_DOMAIN_WIFE}"
-  secretTemplate:
-    type: kubernetes.io/tls
