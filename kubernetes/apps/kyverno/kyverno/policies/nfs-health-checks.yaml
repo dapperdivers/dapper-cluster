@@ -54,16 +54,19 @@ spec:
                             ERROR=0
                             CHECKED=0
 
-                            # Get NFS mount points from /proc/mounts for exact matching
-                            # Using /proc/mounts is more reliable than mount command
+                            # Get ACTUAL NFS mount points from /proc/mounts (not just parent directories)
+                            # Extract the exact mount path (2nd column) for NFS mounts under /tower or /tower-2
                             MOUNTS=""
                             for target in /tower /tower-2; do
-                              if grep -q " ${target} " /proc/mounts 2>/dev/null; then
-                                MOUNTS="${MOUNTS} ${target}"
+                              # Find any NFS mounts under this target path
+                              # Use awk to extract the actual mount point (2nd field)
+                              target_mounts=$(grep -E " ${target}(/| )" /proc/mounts 2>/dev/null | awk '{print $2}')
+                              if [ -n "$target_mounts" ]; then
+                                MOUNTS="${MOUNTS} ${target_mounts}"
                               fi
                             done
 
-                            # If no mounts detected via /proc/mounts, check if directories exist
+                            # If no mounts detected via /proc/mounts, check if directories exist as fallback
                             # This handles cases where mounts might be bind mounts or other types
                             if [ -z "$MOUNTS" ]; then
                               for mount in /tower /tower-2; do
@@ -80,7 +83,7 @@ spec:
                               done
                             fi
 
-                            # Check each detected mount point
+                            # Check each detected mount point (now these are ACTUAL mount paths)
                             if [ -n "$MOUNTS" ]; then
                               for mount in $MOUNTS; do
                                 CHECKED=1
