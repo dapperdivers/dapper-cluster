@@ -9,6 +9,7 @@
 
 # Applications
 - [Media](apps/media.md)
+- [Storage](apps/storage.md)
 - [Observability](apps/observability.md)
 
 # Operations

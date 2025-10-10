@@ -27,19 +27,22 @@ rook-ceph/
 
 ## Project Phases
 
-### Phase 1: Initial Connection & Mayastor Migration (Current)
+### Phase 1: Initial Connection & Mayastor Migration ✅ COMPLETED
 **Goal**: Connect to external Ceph, migrate workloads from OpenEBS Mayastor to CephFS
 
-**Status**:
+**Status**: ✅ PRODUCTION - Migration Complete
 - ✅ ConfigMap configured (mon endpoints, FSID)
-- ✅ CephFS storage class configured
-- ✅ Rook operator configured (CephFS driver only)
-- ⚠️ Secret needs Ceph credentials
+- ✅ CephFS storage class configured (default storage class)
+- ✅ Rook operator configured (CephFS driver enabled)
+- ✅ Ceph credentials configured and working
+- ✅ Static PVs deployed (media, minio, paperless)
+- ✅ VolSync migrated to CephFS backend
+- ✅ Workloads migrated from Mayastor to CephFS
 
 **Current Setup**:
-- Only CephFS filesystem available
-- RBD driver disabled (Phase 2)
-- RBD storage classes commented out
+- CephFS is the primary storage solution
+- RBD driver disabled (Phase 2 future work)
+- RBD storage classes commented out (Phase 2)
 
 ### Phase 2: Optimized Pool Creation (Future)
 After hardware migration from Mayastor:
@@ -78,30 +81,40 @@ After hardware migration from Mayastor:
 ### Phase 2 (Future)
 - **🚀 Migration Guide**: `docs/rook-phase2-migration.md` - Pool optimization and RBD migration
 
-## Next Steps - Phase 1
+## Operations - Phase 1 (Production)
 
-### On Proxmox Ceph Cluster:
-1. Create `client.kubernetes` user with CephFS permissions:
-   ```bash
-   ceph auth get-or-create client.kubernetes \
-     mon 'allow r' \
-     osd 'allow rw pool=cephfs_data, allow rw pool=cephfs_metadata' \
-     mds 'allow rw' \
-     -o /etc/ceph/ceph.client.kubernetes.keyring
-   ```
-2. Get the key: `ceph auth get-key client.kubernetes`
-   - Save this key! You'll use it for ALL secret fields
+### Verify Cluster Health
+```bash
+# Check CephCluster resource
+kubectl -n rook-ceph get cephcluster
 
-### In This Repository:
-1. Fill in **4 instances** of the same key in `rook-ceph-cluster/app/secret.sops.yaml`:
-   - `admin-secret`: your-key-here
-   - `mon-secret`: your-key-here (same key)
-   - `adminKey` in rook-csi-cephfs-provisioner: your-key-here
-   - `adminKey` in rook-csi-cephfs-node: your-key-here
-2. Encrypt: `sops -e -i kubernetes/apps/rook-ceph/rook-ceph-cluster/app/secret.sops.yaml`
-3. Commit and push to deploy via Flux
-4. Verify connection: `kubectl -n rook-ceph get cephcluster`
-5. Test with CephFS PVC
+# Check Ceph health via toolbox
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
 
-### Migration from Mayastor:
-After Rook is deployed, migrate workloads to `cephfs-shared` storage class to free up Mayastor hardware.
+# Check CephFS status
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status
+
+# List storage classes
+kubectl get sc
+```
+
+### Monitor Storage
+```bash
+# Check Ceph capacity
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph df
+
+# Check OSD status
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph osd tree
+
+# Check MDS performance
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status cephfs
+```
+
+### Common Operations
+```bash
+# Expand a PVC
+kubectl patch pvc <pvc-name> -n <namespace> -p '{"spec":{"resources":{"requests":{"storage":"20Gi"}}}}'
+
+# Check all PVCs using CephFS
+kubectl get pvc -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,STORAGECLASS:.spec.storageClassName | grep cephfs
+```

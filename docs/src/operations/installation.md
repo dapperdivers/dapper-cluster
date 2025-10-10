@@ -89,9 +89,10 @@ network:
   cidr: 10.0.0.0/16
 
 storage:
-  nfs:
-    server: nfs.example.com
-    path: /export/nfs
+  ceph:
+    # External Ceph cluster connection
+    # Configured via Rook operator after bootstrap
+    monitors: []  # Set during Rook deployment
 ```
 
 ### 3. Secrets Management
@@ -129,7 +130,8 @@ nvidia-smi # on GPU node
 - Check control plane health
 - Verify worker node status
 - Test GPU functionality
-- Check storage provisioners
+- Check Rook Ceph connection
+- Verify storage classes
 - Verify network connectivity
 
 ### 2. Deploy Applications
@@ -164,9 +166,11 @@ Common installation issues and solutions:
    - Validate GPU visibility in cluster
 
 4. **Storage Issues**
-   - Verify NFS connectivity
-   - Check storage class configuration
-   - Review PV/PVC status
+   - Verify Ceph cluster connectivity
+   - Check Rook operator status
+   - Verify storage class configuration
+   - Review CephCluster resource health
+   - Check PV/PVC status
 
 5. **Network Problems**
    - Check DNS resolution

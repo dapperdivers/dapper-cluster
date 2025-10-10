@@ -49,7 +49,7 @@ This is a mono repository for my home infrastructure and Kubernetes cluster. I t
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f331/512.gif" alt="🌱" width="20" height="20"> Kubernetes
 
-My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). This is a semi-hyper-converged cluster using OpenEBS Mayastor for high-performance block storage, while a separate server with ZFS provides NFS/SMB shares for bulk file storage and backups.
+My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). Storage is provided by Rook Ceph, connecting to an external Ceph cluster running on Proxmox hosts. This provides unified, high-performance storage with CephFS for shared filesystem access and planned RBD support for block storage.
 
 There is a template over at [onedr0p/cluster-template](https://github.com/onedr0p/cluster-template) if you want to try and follow along with some of the practices used here.
 
@@ -62,7 +62,7 @@ There is a template over at [onedr0p/cluster-template](https://github.com/onedr0
 - [external-dns](https://github.com/kubernetes-sigs/external-dns): Automatically syncs ingress DNS records to a DNS provider.
 - [external-secrets](https://github.com/external-secrets/external-secrets): Managed Kubernetes secrets using [Infisical](https://infisical.com/).
 - [ingress-nginx](https://github.com/kubernetes/ingress-nginx): Kubernetes ingress controller using NGINX as a reverse proxy and load balancer.
-- [openebs-mayastor](https://github.com/openebs/mayastor): High-performance block storage for persistent storage.
+- [rook-ceph](https://github.com/rook/rook): Cloud-native storage orchestrator providing unified file and block storage via Ceph.
 - [sops](https://github.com/getsops/sops): Managed secrets for Kubernetes and Terraform which are commited to Git.
 - [spegel](https://github.com/spegel-org/spegel): Stateless cluster local OCI registry mirror.
 - [volsync](https://github.com/backube/volsync): Backup and recovery of persistent volume claims.
@@ -89,7 +89,7 @@ This Git repository contains the following directories under [Kubernetes](./kube
 
 ### Flux Workflow
 
-This is a high-level look how Flux deploys my applications with dependencies. In most cases a `HelmRelease` will depend on other `HelmRelease`'s, in other cases a `Kustomization` will depend on other `Kustomization`'s, and in rare situations an app can depend on a `HelmRelease` and a `Kustomization`. The example below shows that `atuin` won't be deployed or upgrade until the `mayastor` Helm release is installed or in a healthy state.
+This is a high-level look how Flux deploys my applications with dependencies. In most cases a `HelmRelease` will depend on other `HelmRelease`'s, in other cases a `Kustomization` will depend on other `Kustomization`'s, and in rare situations an app can depend on a `HelmRelease` and a `Kustomization`. The example below shows that `plex` won't be deployed or upgrade until the `rook-ceph-cluster` is installed and in a healthy state.
 
 ```mermaid
 graph TD
@@ -98,11 +98,11 @@ graph TD
     classDef helmRelease fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
 
     %% Nodes
-    A>Kustomization: openebs]:::kustomization
-    B[HelmRelease: openebs]:::helmRelease
-    C[HelmRelease: mayastor]:::helmRelease
-    D>Kustomization: atuin]:::kustomization
-    E[HelmRelease: atuin]:::helmRelease
+    A>Kustomization: rook-ceph]:::kustomization
+    B[HelmRelease: rook-ceph-operator]:::helmRelease
+    C[Kustomization: rook-ceph-cluster]:::kustomization
+    D>Kustomization: plex]:::kustomization
+    E[HelmRelease: plex]:::helmRelease
 
     %% Relationships with styled edges
     A -->|Creates| B

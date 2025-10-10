@@ -140,10 +140,12 @@ graph TD
    - Check connectivity
 
 2. **Storage Issues**
-   - Verify mount points
-   - Check permissions
-   - Monitor capacity
-   - Review I/O performance
+   - Check Ceph cluster health
+   - Verify CephFS status
+   - Monitor storage capacity
+   - Review OSD performance
+   - Check MDS responsiveness
+   - Verify PVC mount status
 
 3. **Network Problems**
    - Check DNS resolution
@@ -170,14 +172,24 @@ kubectl uncordon node-name
 
 2. Storage Recovery
 ```bash
+# Check Ceph cluster health
+kubectl -n rook-ceph get cephcluster
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
+
 # Check PV status
 kubectl get pv
 
 # Check PVC status
-kubectl get pvc
+kubectl get pvc -A
 
 # Verify storage class
 kubectl get sc
+
+# Check CephFS status
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status
+
+# Check OSD status
+kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph osd tree
 ```
 
 ## Documentation

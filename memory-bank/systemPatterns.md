@@ -33,9 +33,9 @@ graph TD
     classDef helmRelease fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
 
     %% Nodes
-    A>Kustomization: openebs]:::kustomization
-    B[HelmRelease: openebs]:::helmRelease
-    C[HelmRelease: mayastor]:::helmRelease
+    A>Kustomization: rook-ceph]:::kustomization
+    B[HelmRelease: rook-ceph-operator]:::helmRelease
+    C[Kustomization: rook-ceph-cluster]:::kustomization
     D>Kustomization: application]:::kustomization
     E[HelmRelease: application]:::helmRelease
 
@@ -61,11 +61,13 @@ Security is implemented in multiple layers:
 
 #### Storage Architecture
 
-The storage architecture is hybrid:
+The storage architecture uses Rook Ceph with an external cluster:
 
-1. **High-Performance Block Storage**: OpenEBS Mayastor for database and stateful workloads
-2. **Network Attached Storage**: Separate ZFS-based NAS for bulk storage, media, and backups
-3. **Backup Strategy**: VolSync for PVC backups, external solutions for critical data
+1. **Unified Storage**: Rook Ceph connecting to external Proxmox Ceph cluster
+2. **CephFS Filesystem**: Shared filesystem storage with ReadWriteMany support for all workloads
+3. **Static PVs**: Pre-existing data mounted via static PVs (media, minio, paperless)
+4. **Backup Strategy**: VolSync with CephFS backend for PVC backups
+5. **Future**: RBD block storage planned for performance-critical workloads (Phase 2)
 
 #### Observability Stack
 
