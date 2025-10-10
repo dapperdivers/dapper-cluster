@@ -16,6 +16,8 @@ jobs:
   filter:
     name: Image Pull - Filter
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       changed-files: ${{ steps.changed-files.outputs.changed_files }}
     steps:
@@ -30,6 +32,8 @@ jobs:
     needs: filter
     name: Image Pull - Extract Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         branch: ["default", "pull"]
@@ -71,6 +75,8 @@ jobs:
     needs: extract
     name: Image Pull - Diff Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       images: ${{ steps.diff.outputs.images }}
     steps:
@@ -94,6 +100,8 @@ jobs:
     needs: diff
     name: Image Pull - Pull Images
     runs-on: dapper-cluster-runner
+    permissions:
+      contents: read
     strategy:
       matrix:
         image: ${{ fromJSON(needs.diff.outputs.images) }}
@@ -103,7 +111,14 @@ jobs:
       MATRIX_IMAGE: ${{ matrix.image }}
     steps:
       - name: Install talosctl
-        run: curl -fsSL https://talos.dev/install | sh
+        run: |
+          curl -fsSL https://talos.dev/install | sh -s -- --local
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verify talosctl installation
+        run: |
+          which talosctl
+          talosctl version --client
 
       - name: Pull Image
         run: talosctl --nodes $NODE image pull "${MATRIX_IMAGE}"
@@ -113,6 +128,8 @@ jobs:
     needs: pull
     name: Image Pull - Success
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Any jobs failed?
         if: ${{ contains(needs.*.result, 'failure') }}
