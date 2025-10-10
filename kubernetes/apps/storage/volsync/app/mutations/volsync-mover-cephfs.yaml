@@ -34,13 +34,6 @@ spec:
         !object.metadata.name.contains("-r2")
   failurePolicy: Fail
   reinvocationPolicy: IfNeeded
-  variables:
-    - name: appName
-      expression: >
-        object.metadata.name.replace("volsync-src-", "").replace("volsync-dst-", "")
-    - name: pvcName
-      expression: >
-        "volsync-" + variables.appName + "-repo"
   mutations:
     - patchType: JSONPatch
       jsonPatch:
@@ -58,7 +51,7 @@ spec:
               value: Object.spec.template.spec.volumes{
                 name: "repository",
                 persistentVolumeClaim: Object.spec.template.spec.volumes.persistentVolumeClaim{
-                  claimName: variables.pvcName
+                  claimName: "volsync-" + object.metadata.name.replace("volsync-src-", "").replace("volsync-dst-", "") + "-repo"
                 }
               }
             }
