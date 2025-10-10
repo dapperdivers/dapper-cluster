@@ -4,57 +4,6 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: media-vault-pv
-  labels:
-    storage.type: nfs-media
-    storage.server: vault
-    storage.tier: primary
-spec:
-  capacity:
-    storage: 100Ti  # Adjust based on actual storage
-  accessModes:
-    - ReadWriteMany  # Multiple pods can mount simultaneously
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""  # Empty string for static provisioning
-  claimRef:
-    namespace: media
-    name: media-vault-pvc
-  nfs:
-    server: vault.manor
-    path: /mnt/Tank/Media
-  mountOptions:
-    # Core NFS options
-    - hard                    # Retry indefinitely (critical for media streaming)
-    - tcp                     # Use TCP protocol
-    - vers=4.1                # NFS version 4.1 for vault.manor
-
-    # Large file optimizations (4MB buffers for media files)
-    - rsize=4194304           # 4MB read buffer
-    - wsize=4194304           # 4MB write buffer
-
-    # Timeout and retry settings
-    - timeo=600               # 60 second timeout
-    - retrans=2               # Retry 2 times
-
-    # Caching optimizations for media (rarely changes)
-    - actimeo=3600            # Cache attributes for 1 hour
-    - lookupcache=all         # Cache all lookups
-
-    # Performance optimizations
-    - async                   # Asynchronous writes
-    - noatime                 # Don't update access times
-    - nodiratime              # Don't update directory access times
-    - nocto                   # No close-to-open consistency
-
-    # Media-specific optimizations
-    - nolock                  # No file locking needed
-    - noacl                   # No ACLs needed
-    - nordirplus              # Disable READDIRPLUS
-
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
   name: media-tower-pv
   labels:
     storage.type: nfs-media
@@ -161,23 +110,6 @@ spec:
 
 ---
 # PersistentVolumeClaims for the above PVs
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: media-vault-pvc
-  namespace: media
-  labels:
-    app.kubernetes.io/name: media-storage
-    storage.server: vault
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: ""  # Empty string for static binding
-  volumeName: media-vault-pv
-  resources:
-    requests:
-      storage: 100Ti
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

@@ -4,5 +4,4 @@ kind: Kustomization
 resources:
   - ./firewall-proxy.yaml
   - ./proxmox-proxy.yaml
-  - ./vault-proxy.yaml
   - ./other-proxy.yaml

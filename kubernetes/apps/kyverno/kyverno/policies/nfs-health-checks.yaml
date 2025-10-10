@@ -9,8 +9,8 @@ metadata:
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
       This policy serves as the single source of truth for health monitoring in the media namespace.
-      It adds a liveness probe to ALL containers in pods that use NFS PVCs (media-vault-pvc,
-      media-tower-pvc, media-tower-2-pvc), regardless of any existing probes defined in helm releases.
+      It adds a liveness probe to ALL containers in pods that use NFS PVCs (media-tower-pvc,
+      media-tower-2-pvc), regardless of any existing probes defined in helm releases.
       The probe dynamically detects which NFS mounts are actually used by each pod and only checks
       those mounts, preventing false failures. When NFS mounts become stale or inaccessible, the pod
       is automatically restarted, providing self-healing for storage layer issues. This centralized
@@ -28,9 +28,6 @@ spec:
       # Only apply to pods that mount at least one NFS PVC
       preconditions:
         any:
-          - key: "{{ request.object.spec.volumes[?persistentVolumeClaim.claimName == 'media-vault-pvc'] | length(@) }}"
-            operator: GreaterThan
-            value: 0
           - key: "{{ request.object.spec.volumes[?persistentVolumeClaim.claimName == 'media-tower-pvc'] | length(@) }}"
             operator: GreaterThan
             value: 0
@@ -60,7 +57,7 @@ spec:
                             # Get NFS mount points from /proc/mounts for exact matching
                             # Using /proc/mounts is more reliable than mount command
                             MOUNTS=""
-                            for target in /safe /tower /tower-2; do
+                            for target in /tower /tower-2; do
                               if grep -q " ${target} " /proc/mounts 2>/dev/null; then
                                 MOUNTS="${MOUNTS} ${target}"
                               fi
@@ -69,7 +66,7 @@ spec:
                             # If no mounts detected via /proc/mounts, check if directories exist
                             # This handles cases where mounts might be bind mounts or other types
                             if [ -z "$MOUNTS" ]; then
-                              for mount in /safe /tower /tower-2; do
+                              for mount in /tower /tower-2; do
                                 # Check if directory exists and is a mount point
                                 if [ -d "$mount" ] && mountpoint -q "$mount" 2>/dev/null; then
                                   MOUNTS="${MOUNTS} ${mount}"

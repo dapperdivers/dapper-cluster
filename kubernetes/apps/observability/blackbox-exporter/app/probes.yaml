@@ -12,7 +12,6 @@ spec:
     staticConfig:
       static:
         - openmediavault-used.manor
-        - vault.manor
         - tower.manor
         - tower-2.manor
         - proxmox-01.manor

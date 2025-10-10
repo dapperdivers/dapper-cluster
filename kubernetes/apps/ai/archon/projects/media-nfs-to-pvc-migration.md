@@ -1,5 +1,8 @@
 # Media Services NFS to PVC Migration Project
 
+**Status:** ✅ COMPLETED (vault.manor migrated to CephFS)
+**Note:** Media services now use CephFS for /safe mount. Tower and tower-2 NFS servers still in use.
+
 ## Overview
 Migrate all media services from inline NFS mounts to shared PersistentVolumeClaims (PVCs) for centralized storage management and optimized mount options.
 
@@ -10,11 +13,11 @@ Migrate all media services from inline NFS mounts to shared PersistentVolumeClai
 - **Node Affinity**: Can schedule pods to NFS-optimized worker nodes
 - **Reduced Duplication**: No need to repeat mount configurations
 
-## Current State
-- **10 services** use vault.manor
-- **7 services** use tower.manor
-- **5 services** use tower-2.manor
-- All using inline NFS mounts with default/varied mount options
+## Current State (Updated 2025-10-10)
+- ✅ **vault.manor** - Migrated to CephFS (media-cephfs-pvc)
+- **7 services** use tower.manor (media-tower-pvc)
+- **5 services** use tower-2.manor (media-tower-2-pvc)
+- Tower and tower-2 using static NFS PVCs with optimized mount options
 
 ## Target Architecture
 ```
