@@ -13,6 +13,7 @@ spec:
     - "${SECRET_DOMAIN}"
     - "*.${SECRET_DOMAIN}"
   secretTemplate:
+    type: kubernetes.io/tls
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "ai,media,database,home-automation,security,default,storage,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
@@ -34,6 +35,7 @@ spec:
     - "${SECRET_DOMAIN_MEDIA}"
     - "*.${SECRET_DOMAIN_MEDIA}"
   secretTemplate:
+    type: kubernetes.io/tls
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "ai,media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
@@ -55,6 +57,7 @@ spec:
     - "${SECRET_DOMAIN_PERSONAL}"
     - "*.${SECRET_DOMAIN_PERSONAL}"
   secretTemplate:
+    type: kubernetes.io/tls
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
@@ -78,6 +81,7 @@ spec:
     - "${SECRET_DOMAIN_DIVING}"
     - "*.${SECRET_DOMAIN_DIVING}"
   secretTemplate:
+    type: kubernetes.io/tls
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
@@ -99,12 +103,9 @@ spec:
     - "${SECRET_DOMAIN_WIFE}"
     - "*.${SECRET_DOMAIN_WIFE}"
   secretTemplate:
+    type: kubernetes.io/tls
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
       reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
-
-
-
-
