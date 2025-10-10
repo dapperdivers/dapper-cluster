@@ -35,6 +35,7 @@ spec:
       GATUS_DOMAIN: ${SECRET_DOMAIN_MEDIA}
       VOLSYNC_CAPACITY: 120Gi
       VOLSYNC_CACHE_CAPACITY: 60Gi
+      VOLSYNC_SCHEDULE: "0 */6 * * *"
 
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
