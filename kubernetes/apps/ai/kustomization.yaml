@@ -8,9 +8,7 @@ components:
 resources:
   - ./archon/ks.yaml
   - ./open-webui/ks.yaml
-  - ./n8n/ks.yaml
+  #- ./n8n/ks.yaml removed for now, need to understand the breaking changes
   - ./ollama/ks.yaml
   - ./litellm/ks.yaml
   #- ./wyoming-whisper/ks.yaml
-
-
