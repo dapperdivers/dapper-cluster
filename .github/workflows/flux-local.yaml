@@ -9,13 +9,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   filter:
     name: Flux Local - Filter
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       changed-files: ${{ steps.changed-files.outputs.changed_files }}
     steps:
@@ -30,6 +29,8 @@ jobs:
     needs: filter
     name: Flux Local - Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -117,6 +118,8 @@ jobs:
     needs: ["test", "diff"]
     name: Flux Local - Success
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Any jobs failed?
         if: ${{ contains(needs.*.result, 'failure') }}

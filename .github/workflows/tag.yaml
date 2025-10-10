@@ -7,13 +7,12 @@ on:
   schedule:
     - cron: "0 0 1 * *"
 
-permissions:
-  contents: read
-
 jobs:
   main:
     name: Tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Generate Token
         uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
