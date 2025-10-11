@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: gotenberg/gotenberg
-              tag: 8.21@sha256:91486863744f7420ca985ee6cef7c216910e40faffd378f3da7c0fad724d01ba
+              tag: 8.24@sha256:b116a40a1c24917e2bf3e153692da5acd2e78e7cd67e1b2d243b47c178f31c90
             command:
               - "gotenberg"
               - "--chromium-disable-javascript=true"
