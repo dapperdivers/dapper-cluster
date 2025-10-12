@@ -32,7 +32,7 @@ spec:
           app:
             image:
               repository: jacobalberty/unifi
-              tag: v9.3.43@sha256:d08af7bf1b8d2fd343770236333bf37fc26d9b51bb70dd79cc07e70857c73da1
+              tag: v9.4.19@sha256:ef032346e2ebdcadaadeb27e38be55f97e6b5ed6cea333d5d82ae9b58ae4068b
             env:
               TZ: ${TIME_ZONE}
               RUNAS_UID0: "false"
