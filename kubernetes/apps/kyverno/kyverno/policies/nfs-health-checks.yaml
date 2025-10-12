@@ -60,9 +60,9 @@ spec:
                             for target in /tower /tower-2; do
                               # Find any NFS mounts under this target path
                               # Use awk to extract the actual mount point (2nd field)
-                              target_mounts=$(grep -E " ${target}(/| )" /proc/mounts 2>/dev/null | awk '{print $2}')
+                              target_mounts=$(grep -E " $${target}(/| )" /proc/mounts 2>/dev/null | awk '{print $2}')
                               if [ -n "$target_mounts" ]; then
-                                MOUNTS="${MOUNTS} ${target_mounts}"
+                                MOUNTS="$${MOUNTS} $${target_mounts}"
                               fi
                             done
 
@@ -72,12 +72,12 @@ spec:
                               for mount in /tower /tower-2; do
                                 # Check if directory exists and is a mount point
                                 if [ -d "$mount" ] && mountpoint -q "$mount" 2>/dev/null; then
-                                  MOUNTS="${MOUNTS} ${mount}"
+                                  MOUNTS="$${MOUNTS} $${mount}"
                                 elif [ -d "$mount" ]; then
                                   # Directory exists but might not be a mount, check if accessible
                                   if timeout 2 stat "$mount" >/dev/null 2>&1; then
                                     # Directory is accessible, consider it for checking
-                                    MOUNTS="${MOUNTS} ${mount}"
+                                    MOUNTS="$${MOUNTS} $${mount}"
                                   fi
                                 fi
                               done
