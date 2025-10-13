@@ -29,9 +29,8 @@ spec:
       enabled: true
 
     csi:
-      # Phase 1: Only CephFS is available
-      # Enable RBD driver for block storage (Phase 2 - after pool creation)
-      enableRbdDriver: false
+      # RBD driver enabled for block storage (rook-pvc-pool)
+      enableRbdDriver: true
       # Enable CephFS driver for shared filesystem storage
       enableCephfsDriver: true
 
