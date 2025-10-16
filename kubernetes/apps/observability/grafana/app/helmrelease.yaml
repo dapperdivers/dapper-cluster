@@ -261,7 +261,7 @@ spec:
         ceph-cluster:
           # renovate: depName="Ceph Cluster"
           gnetId: 2842
-          revision: 5
+          revision: 18
           datasource: Prometheus
         ceph-pools:
           # renovate: depName="Ceph - Pools"
