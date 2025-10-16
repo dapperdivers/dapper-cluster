@@ -16,9 +16,15 @@ spec:
   monitoring:
     enabled: true
     # externalMgrEndpoints:
-    #   - ip: "10.150.0.11"
-    #   - ip: "10.150.0.12"
-    #   - ip: "10.150.0.13"
+    #  - ip: "10.150.0.2"
+    #  - ip: "10.150.0.4"
+
+  # CSI driver configuration for improved resilience
+  csi:
+    cephfs:
+      # Kernel mount options for better session recovery and performance
+      # recover_session=clean: Auto-reconnect when blocklisted, dropping dirty data (kernel 5.4+)
+      kernelMountOptions: "recover_session=clean"
 
   # Network configuration
   network:

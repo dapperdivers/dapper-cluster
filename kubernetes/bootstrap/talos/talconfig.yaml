@@ -26,9 +26,6 @@ nodes:
   - hostname: "talos-control-1"
     ipAddress: "10.100.0.50"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -39,7 +36,7 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
         vip:
           ip: "10.100.0.40"
       - deviceSelector:
@@ -48,18 +45,9 @@ nodes:
         addresses:
           - "10.150.0.10/24"
         mtu: 9000
-    schematic:
-      customization:
-        systemExtensions:
-          officialExtensions:
-            - siderolabs/qemu-guest-agent
-            - siderolabs/nfsrahead
   - hostname: "talos-control-2"
     ipAddress: "10.100.0.51"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -70,7 +58,7 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
         vip:
           ip: "10.100.0.40"
       - deviceSelector:
@@ -79,18 +67,9 @@ nodes:
         addresses:
           - "10.150.0.11/24"
         mtu: 9000
-    schematic:
-      customization:
-        systemExtensions:
-          officialExtensions:
-            - siderolabs/qemu-guest-agent
-            - siderolabs/nfsrahead
   - hostname: "talos-control-3"
     ipAddress: "10.100.0.52"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -101,7 +80,7 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
         vip:
           ip: "10.100.0.40"
       - deviceSelector:
@@ -110,19 +89,14 @@ nodes:
         addresses:
           - "10.150.0.12/24"
         mtu: 9000
-    schematic:
-      customization:
-        systemExtensions:
-          officialExtensions:
-            - siderolabs/qemu-guest-agent
-            - siderolabs/nfsrahead
   - hostname: "talos-node-gpu-1"
     ipAddress: "10.100.0.53"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
     talosImageURL: factory.talos.dev/installer/1f6caf935b35f840ea19acb12d2dcc6d8f9c7d47fc621b1fcebb4a04c5e3130d
     controlPlane: false
+    nodeLabels:
+      hardware.cluster.io/gpu: "p100"
+      nvidia.com/gpu.present: "true"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "bc:24:11:d3:ff:c2"
@@ -132,7 +106,7 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
       - deviceSelector:
           hardwareAddr: "bc:24:11:0e:35:a1"
         dhcp: false
@@ -152,9 +126,6 @@ nodes:
   - hostname: "talos-node-large-1"
     ipAddress: "10.100.0.54"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -165,25 +136,16 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
       - deviceSelector:
           hardwareAddr: "bc:24:11:b5:70:e8"
         dhcp: false
         addresses:
           - "10.150.0.14/24"
         mtu: 9000
-    schematic:
-      customization:
-        systemExtensions:
-          officialExtensions:
-            - siderolabs/qemu-guest-agent
-            - siderolabs/nfsrahead
   - hostname: "talos-node-large-2"
     ipAddress: "10.100.0.55"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -194,25 +156,16 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
       - deviceSelector:
           hardwareAddr: "bc:24:11:d9:1c:2e"
         dhcp: false
         addresses:
           - "10.150.0.15/24"
         mtu: 9000
-    schematic:
-      customization:
-        systemExtensions:
-          officialExtensions:
-            - siderolabs/qemu-guest-agent
-            - siderolabs/nfsrahead
   - hostname: "talos-node-large-3"
     ipAddress: "10.100.0.56"
     installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -223,19 +176,93 @@ nodes:
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.100.0.1"
-        mtu: 1500
+        mtu: 9000
       - deviceSelector:
           hardwareAddr: "bc:24:11:58:53:8e"
         dhcp: false
         addresses:
           - "10.150.0.16/24"
         mtu: 9000
-    schematic:
-      customization:
-        systemExtensions:
-          officialExtensions:
-            - siderolabs/qemu-guest-agent
-            - siderolabs/nfsrahead
+  - hostname: "talos-node-small-1"
+    ipAddress: "10.100.0.60"
+    installDisk: "/dev/sda"
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:9d:6b:25"
+        dhcp: false
+        addresses:
+          - "10.100.0.60/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.100.0.1"
+        mtu: 9000
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:15:2d:2e"
+        dhcp: false
+        addresses:
+          - "10.150.0.60/24"
+        mtu: 9000
+  - hostname: "talos-node-small-2"
+    ipAddress: "10.100.0.61"
+    installDisk: "/dev/sda"
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:61:36:30"
+        dhcp: false
+        addresses:
+          - "10.100.0.61/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.100.0.1"
+        mtu: 9000
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:6a:ee:d5"
+        dhcp: false
+        addresses:
+          - "10.150.0.61/24"
+        mtu: 9000
+  - hostname: "talos-node-small-3"
+    ipAddress: "10.100.0.62"
+    installDisk: "/dev/sda"
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:21:cd:fa"
+        dhcp: false
+        addresses:
+          - "10.100.0.62/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.100.0.1"
+        mtu: 9000
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:77:cd:6b"
+        dhcp: false
+        addresses:
+          - "10.150.0.62/24"
+        mtu: 9000
+  - hostname: "talos-node-small-4"
+    ipAddress: "10.100.0.63"
+    installDisk: "/dev/sda"
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:9d:e7:cc"
+        dhcp: false
+        addresses:
+          - "10.100.0.63/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.100.0.1"
+        mtu: 9000
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:02:b1:a9"
+        dhcp: false
+        addresses:
+          - "10.150.0.63/24"
+        mtu: 9000
 # Global patches
 patches:
   - "@./patches/global/cluster-discovery.yaml"
@@ -247,8 +274,29 @@ patches:
 
 # Controller patches
 controlPlane:
+  machineSpec:
+    secureboot: false
+  talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
+  schematic:
+    customization:
+      systemExtensions:
+        officialExtensions:
+          - siderolabs/qemu-guest-agent
+          - siderolabs/nfsrahead
   patches:
     - "@./patches/controller/admission-controller-patch.yaml"
     - "@./patches/controller/cluster.yaml"
     - "@./patches/controller/machine-gh-actions.yaml"
     - "@./patches/global/machine-talos-api.yaml"
+
+# Worker defaults (inherited by all worker nodes unless overridden)
+worker:
+  machineSpec:
+    secureboot: false
+  talosImageURL: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3
+  schematic:
+    customization:
+      systemExtensions:
+        officialExtensions:
+          - siderolabs/qemu-guest-agent
+          - siderolabs/nfsrahead
