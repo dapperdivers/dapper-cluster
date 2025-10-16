@@ -129,6 +129,13 @@ spec:
         - pods=[*]
         - deployments=[*]
         - persistentvolumeclaims=[*]
+      resources:
+        requests:
+          cpu: 25m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 512Mi
       prometheus:
         monitor:
           enabled: true

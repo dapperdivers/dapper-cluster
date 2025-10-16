@@ -44,6 +44,13 @@ spec:
       allowPrivilegeEscalation: false
       capabilities:
         add: ["NET_RAW"]
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
     config:
       modules:
         http_2xx:
