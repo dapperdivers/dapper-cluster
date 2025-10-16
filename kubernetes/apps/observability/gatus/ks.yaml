@@ -6,24 +6,27 @@ metadata:
   name: &app gatus
   namespace: &namespace observability
 spec:
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
+  targetNamespace: *namespace
+  components:
+    - ../../../../flux/components/volsync
   dependsOn:
     - name: external-secrets-stores
       namespace: external-secrets
-  interval: 30m
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   path: ./kubernetes/apps/observability/gatus/app
-  postBuild:
-    substitute:
-      APP: *app
-      VOLSYNC_CAPACITY: 5Gi
-      GATUS_SUBDOMAIN: status
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: *namespace
-  timeout: 5m
   wait: false
+  interval: 30m
+  retryInterval: 1m
+  timeout: 5m
+  postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 5Gi
+      GATUS_SUBDOMAIN: status
