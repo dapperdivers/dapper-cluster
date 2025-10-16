@@ -257,6 +257,33 @@ spec:
         postgres-cluster:
           url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/main/charts/cluster/grafana-dashboard.json
           token: ''
+        # Ceph Dashboards for External Cluster Monitoring
+        ceph-cluster:
+          # renovate: depName="Ceph Cluster"
+          gnetId: 2842
+          revision: 5
+          datasource: Prometheus
+        ceph-pools:
+          # renovate: depName="Ceph - Pools"
+          gnetId: 5342
+          revision: 4
+          datasource: Prometheus
+        ceph-osd:
+          # renovate: depName="Ceph - OSD (Single)"
+          gnetId: 5336
+          revision: 5
+          datasource: Prometheus
+        # Alternative modern Ceph dashboards
+        ceph-cluster-overview:
+          # renovate: depName="Ceph - Cluster"
+          gnetId: 7056
+          revision: 1
+          datasource: Prometheus
+        ceph-multicluster:
+          # renovate: depName="Ceph - MultiCluster"
+          gnetId: 9966
+          revision: 1
+          datasource: Prometheus
 
     sidecar:
       dashboards:
