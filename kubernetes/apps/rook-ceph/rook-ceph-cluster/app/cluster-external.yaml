@@ -15,9 +15,9 @@ spec:
   # Uncomment and set your Ceph manager IPs from the 10.150.0.0/24 network
   monitoring:
     enabled: true
-    # externalMgrEndpoints:
-    #  - ip: "10.150.0.2"
-    #  - ip: "10.150.0.4"
+    externalMgrEndpoints:
+      - ip: "10.150.0.2"
+      - ip: "10.150.0.4"
 
   # CSI driver configuration for improved resilience
   csi:
