@@ -20,6 +20,14 @@ spec:
     #   - ip: "10.150.0.12"
     #   - ip: "10.150.0.13"
 
+  # CSI driver configuration for improved resilience
+  csi:
+    cephfs:
+      # Kernel mount options for better session recovery and performance
+      # recover_session=clean: Auto-reconnect when blocklisted, dropping dirty data (kernel 5.4+)
+      # ms_mode=prefer-crc: Use Ceph messenger v2 with CRC checksums (better than v1)
+      kernelMountOptions: "recover_session=clean,ms_mode=prefer-crc"
+
   # Network configuration
   network:
     # If your Ceph cluster uses a specific public network

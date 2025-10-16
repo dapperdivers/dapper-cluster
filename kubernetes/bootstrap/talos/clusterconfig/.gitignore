@@ -6,3 +6,7 @@ kubernetes-talos-node-large-1.yaml
 kubernetes-talos-node-large-2.yaml
 kubernetes-talos-node-large-3.yaml
 talosconfig
+kubernetes-talos-node-small-1.yaml
+kubernetes-talos-node-small-2.yaml
+kubernetes-talos-node-small-3.yaml
+kubernetes-talos-node-small-4.yaml
