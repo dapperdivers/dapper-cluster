@@ -271,7 +271,7 @@ spec:
         ceph-osd:
           # renovate: depName="Ceph - OSD (Single)"
           gnetId: 5336
-          revision: 5
+          revision: 9
           datasource: Prometheus
         # Alternative modern Ceph dashboards
         ceph-cluster-overview:
