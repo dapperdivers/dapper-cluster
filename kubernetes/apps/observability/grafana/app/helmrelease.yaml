@@ -277,7 +277,7 @@ spec:
         ceph-cluster-overview:
           # renovate: depName="Ceph - Cluster"
           gnetId: 7056
-          revision: 1
+          revision: 2
           datasource: Prometheus
         ceph-multicluster:
           # renovate: depName="Ceph - MultiCluster"
