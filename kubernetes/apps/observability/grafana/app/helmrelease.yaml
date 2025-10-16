@@ -266,7 +266,7 @@ spec:
         ceph-pools:
           # renovate: depName="Ceph - Pools"
           gnetId: 5342
-          revision: 4
+          revision: 9
           datasource: Prometheus
         ceph-osd:
           # renovate: depName="Ceph - OSD (Single)"
