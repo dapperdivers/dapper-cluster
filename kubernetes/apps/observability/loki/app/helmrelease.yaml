@@ -68,6 +68,7 @@ spec:
         retention_period: 14d
         allow_structured_metadata: true
         volume_enabled: true
+        max_line_size: 1048576  # 1MB - increased from default 256KB to handle large log entries
       pattern_ingester:
         enabled: false  # Disable if not needed, can reduce resource usage
       ruler:
