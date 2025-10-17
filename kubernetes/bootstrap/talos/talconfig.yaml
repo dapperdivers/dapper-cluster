@@ -145,7 +145,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-node-large-2"
     ipAddress: "10.100.0.55"
-    installDisk: "/dev/vda"
+    installDisk: "/dev/sda"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -165,7 +165,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-node-large-3"
     ipAddress: "10.100.0.56"
-    installDisk: "/dev/vda"
+    installDisk: "/dev/sda"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
