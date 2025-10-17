@@ -9,10 +9,10 @@ spec:
   primaryUpdateStrategy: unsupervised
   storage:
     size: 20Gi
-    storageClass: rook-pvc-pool
+    storageClass: ceph-rbd
   walStorage:
     size: 5Gi
-    storageClass: rook-pvc-pool
+    storageClass: ceph-rbd
   superuserSecret:
     name: cloudnative-pg-secret
   enableSuperuserAccess: true
