@@ -50,7 +50,7 @@ spec:
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: cephfs-shared
+              storageClassName: ceph-rbd
               resources:
                 requests:
                   storage: 2Gi
