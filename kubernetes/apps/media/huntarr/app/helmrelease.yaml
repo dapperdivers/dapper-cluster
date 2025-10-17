@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: huntarr
+  name: huntarr # redeploy
 
 spec:
   interval: 30m
@@ -99,4 +99,3 @@ spec:
         existingClaim: huntarr
       tmp:
         type: emptyDir
-
