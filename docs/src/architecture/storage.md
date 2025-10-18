@@ -48,9 +48,9 @@ The cluster migrated from OpenEBS Mayastor and various NFS backends to Rook Ceph
 
 ### Migration History
 
-- **Previous**: OpenEBS Mayastor (block storage) + Multiple NFS backends (shared storage)
-- **Current**: Rook Ceph with CephFS (unified storage)
-- **Future**: RBD storage classes for optimized block storage (Phase 2)
+- **Previous**: OpenEBS Mayastor (block storage) + Unraid NFS backends (shared storage)
+- **Current**: Rook Ceph with CephFS and RBD (unified storage platform)
+- **In Progress**: Decommissioning Unraid servers (tower/tower-2) in favor of Ceph
 
 ## Current Storage Classes
 
@@ -129,24 +129,44 @@ spec:
       rootPath: /truenas/media
 ```
 
-### Legacy NFS Storage
+### RBD Block Storage
+
+**Storage Classes**: `ceph-rbd`, `ceph-bulk`
+
+High-performance block storage using Ceph RADOS Block Devices.
+
+**Characteristics**:
+- **Access Mode**: ReadWriteOnce (RWO) - Single pod exclusive access
+- **Performance**: Superior to CephFS for block workloads (databases, etc.)
+- **Thin Provisioning**: Efficient storage allocation
+- **Features**: Snapshots, clones, fast resizing
+
+**Use Cases**:
+- PostgreSQL and other databases
+- Stateful applications requiring block storage
+- Applications needing high IOPS
+- Workloads migrating from OpenEBS Mayastor
+
+**Storage Classes**:
+- `ceph-rbd`: General-purpose RBD storage
+- `ceph-bulk`: Erasure-coded pool for large, less-critical data
+
+### Legacy Unraid NFS Storage (Being Decommissioned)
 
 **Storage Class**: `used-nfs` (no storage class for static tower/tower-2 PVs)
 
-Legacy NFS storage for remaining Unraid server mounts.
+Legacy NFS storage from Unraid servers, currently being migrated to Ceph.
 
 **Servers**:
-- `tower.manor` - Primary Unraid server (100Ti NFS)
-- `tower-2.manor` - Secondary Unraid server (100Ti NFS)
+- `tower.manor` - Primary Unraid server (100Ti NFS) - **Decommissioning**
+- `tower-2.manor` - Secondary Unraid server (100Ti NFS) - **Decommissioning**
 
-**Current Usage**:
-- Media applications use hybrid approach (CephFS + tower + tower-2)
-- SABnzbd downloads to all three storage backends
-- Plex reads media from all three backends
-- Active in gradual migration to CephFS
+**Current Status**:
+- Some media applications still use hybrid approach during migration
+- Active data migration to CephFS in progress
+- Will be fully retired once migration complete
 
-**Status**: Legacy - hybrid approach during transition
-**Future**: Complete migration to CephFS when Unraid servers are decommissioned
+**Migration Plan**: All workloads being moved to Ceph (CephFS or RBD as appropriate)
 
 ## Storage Provisioning Patterns
 
@@ -224,13 +244,15 @@ spec:
 
 | Workload Type | Storage Class | Access Mode | Rationale |
 |---------------|---------------|-------------|-----------|
-| Databases | `cephfs-shared` | RWO | Dynamic provisioning, good performance |
-| Media Libraries | `cephfs-static` + NFS | RWX | Hybrid: CephFS + Unraid (tower/tower-2) during migration |
-| Media Downloads | Multiple backends | RWX | SABnzbd uses CephFS + tower + tower-2 |
-| Application Data | `cephfs-shared` | RWO/RWX | Default choice, flexible access |
+| Databases (PostgreSQL, etc.) | `ceph-rbd` | RWO | Best performance for block storage workloads |
+| Media Libraries | `cephfs-static` or `cephfs-shared` | RWX | Shared access for media servers |
+| Media Downloads | `cephfs-shared` | RWX | Multi-pod write access |
+| Application Data (single pod) | `ceph-rbd` | RWO | High performance block storage |
+| Application Data (multi-pod) | `cephfs-shared` | RWX | Concurrent access required |
 | Backup Repositories | `cephfs-shared` | RWX | VolSync requires RWX |
 | Shared Config | `cephfs-shared` | RWX | Multiple pods need access |
-| Bulk Storage | `cephfs-static` | RWX | Large pre-existing directories |
+| Bulk Storage | `ceph-bulk` or `cephfs-static` | RWO/RWX | Large datasets, erasure coding |
+| Legacy Apps (during migration) | `used-nfs` | RWX | Temporary until Unraid decom complete |
 
 ## Backup Strategy
 
@@ -340,33 +362,35 @@ kubectl -n rook-ceph logs -l app=csi-cephfsplugin
 kubectl -n rook-ceph get configmap rook-ceph-mon-endpoints -o yaml
 ```
 
-## Future Roadmap (Phase 2)
+## Current Migration Status
 
-### Planned: RBD Storage Classes
+### Completed
+- ✅ RBD storage classes implemented and available
+- ✅ CephFS as default storage class
+- ✅ VolSync migrated to CephFS backend
+- ✅ Static PV pattern established for existing data
+- ✅ Migrated from OpenEBS Mayastor to Ceph RBD
 
-After completing the Mayastor hardware migration, RBD block storage will be added:
+### In Progress
+- 🔄 Decommissioning Unraid NFS servers (tower/tower-2)
+- 🔄 Migrating remaining media workloads from NFS to CephFS
+- 🔄 Consolidating all storage onto Ceph platform
 
-**Planned Storage Classes**:
-1. `ceph-ssd-critical` - SSD pool for databases, etcd, critical apps
-2. `ceph-rbd` - General purpose block storage
-3. `ceph-bulk` - Erasure-coded pool for media and bulk storage
-
-**Benefits**:
-- Better performance for block storage workloads
-- More efficient use of storage (thin provisioning)
-- Snapshot and clone capabilities
-- Per-workload storage optimization
-
-**Current Status**: RBD driver disabled, storage classes commented out in manifests
+### Future Enhancements
+- 📋 Additional RBD pool with SSD backing for critical workloads
+- 📋 Erasure coding optimization for bulk media storage
+- 📋 Advanced snapshot scheduling and retention policies
+- 📋 Ceph performance tuning and optimization
 
 ## Best Practices
 
 ### Storage Selection
 
-1. **Default to cephfs-shared**: Unless you have specific requirements
-2. **Use static PVs for existing data**: Don't duplicate large datasets
-3. **Specify requests accurately**: Helps with capacity planning
-4. **Use appropriate access modes**: RWO when sharing not needed
+1. **Databases and single-pod apps**: Use `ceph-rbd` for best performance
+2. **Shared storage needs**: Use `cephfs-shared` for RWX access
+3. **Use static PVs for existing data**: Don't duplicate large datasets
+4. **Specify requests accurately**: Helps with capacity planning
+5. **Choose appropriate access modes**: RWO for RBD, RWX for CephFS
 
 ### Capacity Planning
 

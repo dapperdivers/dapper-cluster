@@ -49,23 +49,52 @@ This is a mono repository for my home infrastructure and Kubernetes cluster. I t
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f331/512.gif" alt="🌱" width="20" height="20"> Kubernetes
 
-My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). Storage is provided by Rook Ceph, connecting to an external Ceph cluster running on Proxmox hosts. This provides unified, high-performance storage with CephFS for shared filesystem access and planned RBD support for block storage.
+My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). Storage is provided by Rook Ceph, connecting to an external Ceph cluster running on Proxmox hosts.
+
+**Storage Architecture:**
+- **CephFS**: Shared filesystem access for multi-node workloads (RWX)
+- **RBD**: High-performance block storage for databases and stateful applications (RWO)
+- **Network**: Dedicated 40Gb network for Ceph cluster traffic (VLAN 200)
+- **Public Network**: 2x10Gb bonded links for client connections (VLAN 150)
+- **Migration Status**: Decommissioning legacy Unraid servers in favor of Ceph storage
 
 There is a template over at [onedr0p/cluster-template](https://github.com/onedr0p/cluster-template) if you want to try and follow along with some of the practices used here.
 
 ### Core Components
 
-- [actions-runner-controller](https://github.com/actions/actions-runner-controller): Self-hosted Github runners.
-- [cert-manager](https://github.com/cert-manager/cert-manager): Creates SSL certificates for services in my cluster.
-- [cilium](https://github.com/cilium/cilium): Internal Kubernetes container networking interface.
-- [cloudflared](https://github.com/cloudflare/cloudflared): Enables Cloudflare secure access to certain ingresses.
-- [external-dns](https://github.com/kubernetes-sigs/external-dns): Automatically syncs ingress DNS records to a DNS provider.
-- [external-secrets](https://github.com/external-secrets/external-secrets): Managed Kubernetes secrets using [Infisical](https://infisical.com/).
-- [ingress-nginx](https://github.com/kubernetes/ingress-nginx): Kubernetes ingress controller using NGINX as a reverse proxy and load balancer.
-- [rook-ceph](https://github.com/rook/rook): Cloud-native storage orchestrator providing unified file and block storage via Ceph.
-- [sops](https://github.com/getsops/sops): Managed secrets for Kubernetes and Terraform which are commited to Git.
-- [spegel](https://github.com/spegel-org/spegel): Stateless cluster local OCI registry mirror.
-- [volsync](https://github.com/backube/volsync): Backup and recovery of persistent volume claims.
+**Networking:**
+- [cilium](https://github.com/cilium/cilium): eBPF-based CNI with kube-proxy replacement, L2 announcements, and advanced networking features.
+- [multus-cni](https://github.com/k8snetworkplumbingwg/multus-cni): Multiple network interfaces per pod for IoT and legacy network integration.
+- [ingress-nginx](https://github.com/kubernetes/ingress-nginx): Dual ingress controllers (internal + external) for service routing.
+- [external-dns](https://github.com/kubernetes-sigs/external-dns): Automatic DNS management (internal via UniFi, external via Cloudflare).
+- [k8s-gateway](https://github.com/ori-edge/k8s_gateway): Internal DNS server for cluster services.
+- [cloudflared](https://github.com/cloudflare/cloudflared): Secure Cloudflare tunnels for external access.
+
+**Storage:**
+- [rook-ceph](https://github.com/rook/rook): External Ceph cluster integration with CephFS and RBD storage classes.
+- [democratic-csi](https://github.com/democratic-csi/democratic-csi): NFS storage provisioner.
+- [volsync](https://github.com/backube/volsync): PVC backup and recovery using CephFS backend.
+
+**Security & Secrets:**
+- [cert-manager](https://github.com/cert-manager/cert-manager): Automated SSL/TLS certificate management.
+- [external-secrets](https://github.com/external-secrets/external-secrets): Secrets management using [Infisical](https://infisical.com/).
+- [sops](https://github.com/getsops/sops): Encrypted secrets in Git.
+
+**Observability:**
+- [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus-stack): Prometheus, Grafana, and Alertmanager.
+- [loki](https://github.com/grafana/loki): Log aggregation and query.
+- [promtail](https://github.com/grafana/promtail): Log shipper for Loki.
+- [gatus](https://github.com/TwiN/gatus): Service health monitoring and status page.
+
+**GPU & Hardware:**
+- [nvidia-device-plugin](https://github.com/NVIDIA/k8s-device-plugin): GPU support for 4x Tesla P100 GPUs.
+- [intel-device-plugin](https://github.com/intel/intel-device-plugins-for-kubernetes): Intel hardware acceleration.
+- [node-feature-discovery](https://github.com/kubernetes-sigs/node-feature-discovery): Automatic hardware capability detection.
+
+**GitOps & Automation:**
+- [actions-runner-controller](https://github.com/actions/actions-runner-controller): Self-hosted GitHub runners.
+- [spegel](https://github.com/spegel-org/spegel): Stateless cluster-local OCI registry mirror.
+- [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller): Automated Talos system upgrades.
 
 ### GitOps
 

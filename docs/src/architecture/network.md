@@ -1,48 +1,76 @@
 # Network Architecture
 
-## Network Overview
+This document covers the Kubernetes application-level networking. For physical network topology and VLAN configuration, see [Network Topology](network-topology.md).
 
-```mermaid
-graph TD
-    subgraph External
-        Internet((Internet))
-        DNS((DNS))
-    end
+## Container Networking (CNI)
 
-    subgraph Network Edge
-        FW[Firewall]
-        LB[Load Balancer]
-        Internet --> FW
-        DNS --> FW
-        FW --> LB
-    end
+### Cilium CNI
+The cluster uses **Cilium** as the primary Container Network Interface (CNI):
 
-    subgraph Kubernetes Network
-        subgraph Ingress
-            LB --> Traefik[Traefik]
-            Traefik --> Services[Internal Services]
-        end
+- **Pod CIDR**: 10.69.0.0/16 (native routing mode)
+- **Service CIDR**: 10.96.0.0/16
+- **Mode**: Non-exclusive (paired with Multus for multi-network support)
+- **Kube-Proxy Replacement**: Enabled (eBPF-based service load balancing)
+- **Load Balancing Algorithm**: Maglev with DSR (Direct Server Return)
+- **Network Policy**: Endpoint routes enabled
+- **BPF Masquerading**: Enabled for outbound traffic
 
-        subgraph Network Policies
-            Services --> Apps[Applications]
-            Services --> DBs[Databases]
-        end
+**Key Features**:
+- High-performance eBPF data plane
+- Native Kubernetes network policy support
+- L2 announcements for external load balancer IPs
+- Advanced observability and monitoring
 
-        subgraph CNI[Container Network]
-            Apps --> Pod1[Pod Network]
-            DBs --> Pod1
-        end
-    end
+### Multus CNI (Multiple Networks)
+**Multus** provides additional network interfaces to pods beyond the primary Cilium network:
+
+- **Primary Use**: IoT network attachment (VLAN-based isolation)
+- **Network Attachment**: macvlan on ens19 interface
+- **Mode**: Bridge mode with DHCP IPAM
+- **Purpose**: Enable pods to connect to additional networks (e.g., IoT devices, legacy systems)
+
+Pods can request additional networks via annotations:
+```yaml
+metadata:
+  annotations:
+    k8s.v1.cni.cncf.io/networks: macvlan-conf
 ```
 
-## Components
+## Ingress Controllers
 
-### Ingress Controller
-- **Traefik**: Main ingress controller
-  - SSL/TLS termination
-  - Automatic certificate management
-  - Route configuration
-  - Load balancing
+The cluster uses **dual ingress-nginx controllers** for traffic routing:
+
+### Internal Ingress
+- **Class**: `internal` (default)
+- **Purpose**: Internal services, private DNS
+- **Version**: v4.13.3
+- **Load Balancer**: Cilium L2 announcement
+- **DNS**: Synced to internal DNS via k8s-gateway and External-DNS (UniFi webhook)
+
+### External Ingress
+- **Class**: `external`
+- **Purpose**: Public-facing services
+- **Version**: v4.13.3
+- **Load Balancer**: Cilium L2 announcement
+- **DNS**: Synced to Cloudflare via External-DNS
+- **Tunnel**: Cloudflared for secure access
+
+## Load Balancer IP Management
+
+### Cilium L2 Announcements
+Cilium's L2 announcement feature provides load balancer IPs for services:
+
+- **How it works**: Cilium announces load balancer IPs via L2 (ARP/NDP)
+- **Policy-based**: L2AnnouncementPolicy defines which services get announced
+- **Benefits**:
+  - No external load balancer required
+  - Native Kubernetes LoadBalancer service type support
+  - High availability through leader election
+  - Automatic failover
+
+**Configuration**: See `kubernetes/apps/kube-system/cilium/config/l2.yaml`
+
+This enables both ingress controllers to receive external IPs that are accessible from the broader network.
 
 ### Network Policies
 ```mermaid
@@ -63,10 +91,31 @@ graph LR
     Default --> DB
 ```
 
-### DNS Configuration
-- External DNS for automatic DNS management
-- Internal DNS resolution
-- Split DNS configuration
+## DNS Configuration
+
+### Internal DNS (k8s-gateway)
+- **Purpose**: DNS server for internal ingresses
+- **Domain**: Internal cluster services
+- **Integration**: Works with External-DNS for automatic record creation
+
+### External-DNS (Dual Instances)
+
+**Instance 1: Internal DNS**
+- **Provider**: UniFi (via webhook provider)
+- **Target**: UDM Pro Max
+- **Ingress Class**: `internal`
+- **Purpose**: Sync private DNS records for internal services
+
+**Instance 2: External DNS**
+- **Provider**: Cloudflare
+- **Ingress Class**: `external`
+- **Purpose**: Sync public DNS records for externally accessible services
+
+### How DNS Works
+1. Create an Ingress with class `internal` or `external`
+2. External-DNS watches for new/updated ingresses
+3. Appropriate External-DNS instance syncs DNS records to target provider
+4. Services become accessible via their configured hostnames
 
 ## Security
 
