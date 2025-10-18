@@ -150,50 +150,102 @@ graph TD
   <summary>Click here to see my high-level network diagram</summary>
 
 ```mermaid
-graph TD
+graph TB
     %% Styling
-    classDef network fill:#2f73d8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef hardware fill:#d83933,stroke:#fff,stroke-width:2px,color:#fff
-    classDef vm fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
+    classDef router fill:#d83933,stroke:#fff,stroke-width:2px,color:#fff
+    classDef coreswitch fill:#2f73d8,stroke:#fff,stroke-width:2px,color:#fff
+    classDef distswitch fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
+    classDef accessswitch fill:#f39c12,stroke:#fff,stroke-width:2px,color:#fff
+    classDef server fill:#8e44ad,stroke:#fff,stroke-width:2px,color:#fff
+    classDef vm fill:#16a085,stroke:#fff,stroke-width:2px,color:#fff
+    classDef wireless fill:#e74c3c,stroke:#fff,stroke-width:2px,color:#fff
 
-    subgraph LAN [LAN - 192.168.1.1/24]
-        OPN[OPNsense Router]:::hardware
-        SW[Aruba S2500-48p Switch]:::hardware
-        PH1[Proxmox Host - Kubernetes]:::hardware
-        PH2[Proxmox Host - NAS]:::hardware
+    subgraph House["🏠 House Location"]
+        OPN["OPNsense Router<br/>192.168.1.1<br/>Gateway: VLAN 1, 100"]:::router
+        ARUBA["Aruba S2500-48p<br/>Access Switch<br/>192.168.1.26"]:::accessswitch
+        CLIENTS["Client Devices<br/>Workstations, IoT"]
+        WHOUSE["Mikrotik 60GHz Radio<br/>192.168.1.7<br/>1Gbps Bridge"]:::wireless
+
+        OPN --- ARUBA
+        ARUBA --- CLIENTS
+        ARUBA --- WHOUSE
     end
 
-    subgraph VLAN100 [SERVERS - 10.100.0.1/24]
-        K8S1[Talos VM 1]:::vm
-        K8S2[Talos VM 2]:::vm
-        K8S3[Talos VM 3]:::vm
-        K8S4[Talos VM 4]:::vm
-        K8S5[Talos VM 5]:::vm
-        K8S6[Talos VM 6]:::vm
-        K8S7[Talos VM 7]:::vm
+    subgraph Bridge["⚡ 60GHz Wireless Bridge"]
+        WHOUSE -.1Gbps Wireless Link.-> WSHOP
     end
 
-    %% Network connections with styled edges
-    OPN --- SW
-    SW --- PH1
-    SW --- PH2
+    subgraph Garage["🏭 Garage/Shop (Server Room)"]
+        WSHOP["Mikrotik 60GHz Radio<br/>192.168.1.8<br/>1Gbps Bridge"]:::wireless
+        BROCADE["Brocade ICX6610<br/>Core L3 Switch<br/>192.168.1.20<br/>Routes: VLAN 150/200"]:::coreswitch
+        ARISTA["Arista 7050<br/>Distribution Switch<br/>192.168.1.21<br/>40Gb Storage Network"]:::distswitch
 
-    %% VM connections with styled edges
-    PH1 --> K8S1
-    PH1 --> K8S2
-    PH1 --> K8S3
-    PH1 --> K8S4
-    PH1 --> K8S5
-    PH1 --> K8S6
-    PH1 --> K8S7
+        WSHOP --- BROCADE
+        BROCADE <-->|2x 40Gb QSFP+<br/>LAG| ARISTA
+
+        subgraph Compute["Compute Infrastructure"]
+            PX1["Proxmox-01<br/>192.168.1.62<br/>64C/512GB"]:::server
+            PX2["Proxmox-02<br/>192.168.1.63<br/>64C/512GB"]:::server
+            PX3["Proxmox-03<br/>192.168.1.64<br/>64C/512GB"]:::server
+            PX4["Proxmox-04<br/>192.168.1.66<br/>64C/512GB"]:::server
+        end
+
+        PX1 -->|3x 1Gb + 2x 10Gb| BROCADE
+        PX2 -->|3x 1Gb + 2x 10Gb| BROCADE
+        PX3 -->|3x 1Gb + 2x 10Gb| BROCADE
+        PX4 -->|3x 1Gb + 2x 10Gb| BROCADE
+
+        PX1 -.40Gb Ceph.-> ARISTA
+        PX2 -.40Gb Ceph.-> ARISTA
+        PX3 -.40Gb Ceph.-> ARISTA
+        PX4 -.40Gb Ceph.-> ARISTA
+    end
+
+    subgraph K8S["☸️ Kubernetes Cluster (Talos VMs on VLAN 100)"]
+        direction LR
+        CP1["Control-1<br/>10.100.0.50"]:::vm
+        CP2["Control-2<br/>10.100.0.51"]:::vm
+        CP3["Control-3<br/>10.100.0.52"]:::vm
+        GPU["GPU Node<br/>10.100.0.53<br/>4x P100"]:::vm
+        W1["Worker-1<br/>10.100.0.54"]:::vm
+        W2["Worker-2<br/>10.100.0.55"]:::vm
+        W3["Worker-3<br/>10.100.0.56"]:::vm
+    end
+
+    subgraph VLANs["📡 VLANs & Networks"]
+        direction TB
+        V1["VLAN 1: Management<br/>192.168.1.0/24"]
+        V100["VLAN 100: Servers<br/>10.100.0.0/24<br/>Kubernetes VMs"]
+        V150["VLAN 150: Ceph Public<br/>10.150.0.0/24<br/>Client I/O - MTU 9000"]
+        V200["VLAN 200: Ceph Cluster<br/>10.200.0.0/24<br/>OSD Replication - MTU 9000"]
+        CPOD["Pod Network (Cilium)<br/>10.69.0.0/16"]
+        CSVC["Service Network<br/>10.96.0.0/16"]
+    end
+
+    Compute -.Hosts VMs.-> K8S
 
     %% Subgraph styling
-    style LAN fill:#f5f5f5,stroke:#666,stroke-width:2px
-    style VLAN100 fill:#f5f5f5,stroke:#666,stroke-width:2px
+    style House fill:#ecf0f1,stroke:#34495e,stroke-width:3px
+    style Garage fill:#ecf0f1,stroke:#34495e,stroke-width:3px
+    style K8S fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    style VLANs fill:#fff3e0,stroke:#e65100,stroke-width:3px
+    style Compute fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Bridge fill:#ffebee,stroke:#c62828,stroke-width:2px
 
     %% Link styling
     linkStyle default stroke:#666,stroke-width:2px
 ```
+
+**Network Highlights:**
+- **Dual Physical Locations**: House and garage connected via 60GHz wireless bridge (1Gbps)
+- **Core Switching**: Brocade ICX6610 provides L3 routing for Ceph networks (VLAN 150/200)
+- **High-Speed Storage**: Arista 7050 with 40Gb links per host for dedicated Ceph traffic
+- **Kubernetes**: 7 Talos VMs (3 control plane, 4 workers) on VLAN 100
+- **Ceph Networks**: Separate public (client) and cluster (replication) networks with jumbo frames
+- **CNI**: Cilium with eBPF for pod networking (10.69.0.0/16)
+
+For detailed network topology, see [Network Architecture Documentation](./docs/src/architecture/network-topology.md).
+
 </details>
 
 ---
