@@ -36,7 +36,7 @@ spec:
             args:
               - --archive
               - --stats
-              - --info=progress2
+              - --verbose
               - --human-readable
               - --whole-file
               - --no-inc-recursive

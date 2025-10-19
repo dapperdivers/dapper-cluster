@@ -5,9 +5,9 @@ kind: Kustomization
 namespace: media
 resources:
   - ./migrate-audiobooks.yaml     # 16.1GB - ~12 min
-  # - ./migrate-pmm-test.yaml        # 21.2GB - ~16 min
-  # - ./migrate-pictures.yaml        # 24.2GB - ~18 min
-  # - ./migrate-downloads.yaml       # 101.9GB - ~1.2 hours
-  # - ./migrate-homework.yaml        # 120.1GB - ~1.5 hours
+  - ./migrate-pmm-test.yaml        # 21.2GB - ~16 min
+  - ./migrate-pictures.yaml        # 24.2GB - ~18 min
+  - ./migrate-downloads.yaml       # 101.9GB - ~1.2 hours
+  - ./migrate-homework.yaml        # 120.1GB - ~1.5 hours
 
   # For massive folders (80TB movies, 59TB tv), create separate dedicated jobs
