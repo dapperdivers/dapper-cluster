@@ -35,7 +35,9 @@ The job deploys a container with:
 
 **Note**: Each PVC mounts the **full** `/mnt/user/Media` directory from NFS servers, and the full `/truenas/Media` from CephFS.
 
-**Important**: Jobs are immutable in Kubernetes. To update the configuration, you must delete the existing Job first: `kubectl delete job -n media migrate-test-dryrun`
+**Important Notes**:
+- **Jobs are immutable**: To update the configuration, you must delete the existing Job first: `kubectl delete job -n media migrate-test-dryrun`
+- **Flux health checks disabled**: The Kustomization has `wait: false` because the Job runs for 1 hour. Flux won't wait for completion.
 
 ### Mount Structure
 
