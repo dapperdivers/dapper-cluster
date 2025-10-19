@@ -284,6 +284,28 @@ spec:
           gnetId: 9966
           revision: 1
           datasource: Prometheus
+        # CephFS-specific monitoring (perfect for media migration)
+        ceph-cephfs:
+          # renovate: depName="Ceph - CephFS"
+          gnetId: 9340
+          revision: 2
+          datasource: Prometheus
+        # Detailed PVC monitoring across cluster
+        k8s-persistent-volumes:
+          # renovate: depName="Kubernetes Persistent Volumes"
+          gnetId: 13646
+          revision: 3
+          datasource: Prometheus
+        # Namespace-level storage view (useful for media namespace)
+        k8s-storage-volumes-namespace:
+          # renovate: depName="K8s / Storage / Volumes / Namespace"
+          gnetId: 11455
+          revision: 6
+          datasource: Prometheus
+        # Custom media storage dashboard
+        media-storage:
+          file: dashboards/media-storage.json
+          datasource: Prometheus
 
     sidecar:
       dashboards:
