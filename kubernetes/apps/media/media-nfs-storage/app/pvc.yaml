@@ -109,6 +109,60 @@ spec:
     - noacl                   # No ACLs needed
 
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-tower-direct-pv
+  labels:
+    storage.type: nfs-media
+    storage.server: tower-direct
+    storage.tier: secondary
+spec:
+  capacity:
+    storage: 100Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: media
+    name: media-tower-direct-pvc
+  nfs:
+    server: 10.150.0.85  # Tower direct IP for better performance
+    path: /mnt/user/Media
+  mountOptions:
+    # Core NFS options - optimized for resilience
+    - soft                    # Fail operations instead of hanging indefinitely
+    - tcp                     # Use TCP protocol
+    - vers=4.1                # NFS version 4.1 (more stable with Unraid)
+
+    # Buffer sizes - reduced for better error detection
+    - rsize=4194304           # 4MB read buffer
+    - wsize=4194304           # 4MB write buffer
+
+    # Timeout and retry settings - tuned for faster recovery
+    - timeo=100               # 10 second timeout (quick failure detection)
+    - retrans=3               # Retry 3 times before failing
+    - retry=1                 # Retry mount for 1 minute on failure
+
+    # Cache settings - reduced for stale handle detection
+    - actimeo=60              # Cache attributes for 1 minute
+    - lookupcache=positive    # Only cache positive lookups
+
+    # Performance optimizations
+    - async                   # Asynchronous writes
+    - noatime                 # Don't update access times
+    - nodiratime              # Don't update directory access times
+
+    # Recovery optimizations
+    - noresvport              # Don't use reserved ports (helps with reconnects)
+    - bg                      # Background mount retries
+
+    # Media-specific optimizations
+    - nolock                  # No file locking needed
+    - noacl                   # No ACLs needed
+
+---
 # PersistentVolumeClaims for the above PVs
 ---
 apiVersion: v1
@@ -142,6 +196,24 @@ spec:
     - ReadWriteMany
   storageClassName: ""
   volumeName: media-tower-2-pv
+  resources:
+    requests:
+      storage: 100Ti
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-tower-direct-pvc
+  namespace: media
+  labels:
+    app.kubernetes.io/name: media-storage
+    storage.server: tower-direct
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-tower-direct-pv
   resources:
     requests:
       storage: 100Ti
