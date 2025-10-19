@@ -55,8 +55,8 @@ spec:
             #   # - --dry-run                  # Uncomment for safe testing
             #   # - --verbose                  # Uncomment for debugging (noisy with many files)
             #   # - --checksum                 # SLOW: only use if you suspect data corruption
-            #   - /source/                     # Source path (trailing slash = contents)
-            #   - /destination/test/           # Destination path
+            #   - /source/tower/movies/        # Source: tower.manor:/mnt/user/Media/movies/
+            #   - /destination/movies/         # Dest: CephFS /truenas/Media/movies/
             env:
               TZ: ${TIME_ZONE}
             resources:
@@ -81,10 +81,15 @@ spec:
         seccompProfile: { type: RuntimeDefault }
 
     persistence:
-      nfs-source:
+      nfs-tower:
         existingClaim: media-tower-pvc
         globalMounts:
-          - path: /source
+          - path: /source/tower
+            readOnly: false  # Need write for source deletion
+      nfs-tower-2:
+        existingClaim: media-tower-2-pvc
+        globalMounts:
+          - path: /source/tower-2
             readOnly: false  # Need write for source deletion
       ceph-dest:
         existingClaim: media-cephfs-pvc

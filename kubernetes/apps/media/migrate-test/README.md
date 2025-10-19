@@ -18,18 +18,43 @@ export MPOD=$(kubectl get pods -n media -l app.kubernetes.io/name=migrate-test-d
 kubectl exec -it -n media $MPOD -- /bin/sh
 
 # 4. Inside container - explore and migrate!
-ls -lh /source/
-du -sh /source/*
-rsync -av --dry-run --stats /source/YOUR_FOLDER/ /destination/YOUR_FOLDER/
+ls -lh /source/tower/
+ls -lh /source/tower-2/
+du -sh /source/tower/*
+rsync -av --dry-run --stats /source/tower/movies/ /destination/movies/
 ```
 
 ## How It Works
 
 The job deploys a container with:
-- **Source**: NFS mount at `/source/` (media-tower-pvc from tower.manor)
-- **Destination**: CephFS mount at `/destination/` (media-cephfs-pvc)
+- **Source NFS #1**: `/source/tower/` → tower.manor:/mnt/user/Media (media-tower-pvc)
+- **Source NFS #2**: `/source/tower-2/` → tower-2.manor:/mnt/user/Media (media-tower-2-pvc)
+- **Destination CephFS**: `/destination/` → CephFS /truenas/Media (media-cephfs-pvc)
 - **Container**: `instrumentisto/rsync-ssh:latest` with rsync, sh, common tools (Alpine-based)
 - **Mode**: Sleeps for 1 hour, allowing interactive `kubectl exec` sessions
+
+**Note**: Each PVC mounts the **full** `/mnt/user/Media` directory from NFS servers, and the full `/truenas/Media` from CephFS.
+
+### Mount Structure
+
+```
+Container filesystem:
+/source/
+  ├── tower/           # tower.manor:/mnt/user/Media
+  │   ├── movies/
+  │   ├── tv/
+  │   ├── music/
+  │   └── ...
+  └── tower-2/         # tower-2.manor:/mnt/user/Media
+      ├── movies/
+      ├── tv/
+      └── ...
+
+/destination/          # CephFS /truenas/Media
+  ├── movies/          # Migrated content goes here
+  ├── tv/
+  └── ...
+```
 
 ## Interactive Migration
 
@@ -38,16 +63,19 @@ Once exec'd into the container, you have full control:
 ```bash
 # Explore what's available
 ls -lh /source/
-du -sh /source/*
+ls -lh /source/tower/
+ls -lh /source/tower-2/
+du -sh /source/tower/*
+du -sh /source/tower-2/*
 
 # Test with dry-run (shows what would happen, safe)
-rsync -av --dry-run --stats /source/movies/ /destination/movies/
+rsync -av --dry-run --stats /source/tower/movies/ /destination/movies/
 
 # Copy files (keeps source intact)
-rsync -av --stats /source/movies/ /destination/movies/
+rsync -av --stats /source/tower/movies/ /destination/movies/
 
 # Move files (deletes source after successful copy)
-rsync -avc --remove-source-files --stats /source/movies/ /destination/movies/
+rsync -avc --remove-source-files --stats /source/tower/movies/ /destination/movies/
 
 # Check progress
 du -sh /destination/movies/
@@ -240,9 +268,16 @@ flux reconcile helmrelease -n media migrate-test-dryrun
 
 ## Storage Details
 
-- **Source**: `media-tower-pvc` - 100Ti NFS from tower.manor:/mnt/user/Media
-- **Destination**: `media-cephfs-pvc` - 100Ti CephFS (cephfs-shared storage class)
-- **Container**: Runs as UID/GID 568 with read/write access to both mounts
+**NFS Sources** (both mount the full `/mnt/user/Media` directory):
+- **`media-tower-pvc`** → `/source/tower/` - 100Ti NFS from tower.manor:/mnt/user/Media
+- **`media-tower-2-pvc`** → `/source/tower-2/` - 100Ti NFS from tower-2.manor:/mnt/user/Media
+
+**CephFS Destination** (mounts the full `/truenas/Media` directory):
+- **`media-cephfs-pvc`** → `/destination/` - 100Ti CephFS at /truenas/Media
+
+**Permissions**:
+- Runs as UID 1000, GID 140, fsGroup 150 (matches other media apps)
+- Read/write access to all mounts
 
 ## Running Multiple Jobs in Parallel
 
