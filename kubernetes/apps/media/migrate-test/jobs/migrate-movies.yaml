@@ -71,7 +71,7 @@ spec:
 
     persistence:
       nfs-tower:
-        existingClaim: media-tower-direct-pvc  # Tower on ceph public
+        existingClaim: media-tower-2-direct-pvc  # Tower on ceph public
         globalMounts:
           - path: /tower-2
             readOnly: false
