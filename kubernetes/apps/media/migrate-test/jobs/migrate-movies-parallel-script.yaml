@@ -42,9 +42,10 @@ data:
     total_batches=$$(( (TOTAL_DIRS + BATCH_SIZE - 1) / BATCH_SIZE ))
     echo "[$$(date)] Will process in $$total_batches batches of up to $${BATCH_SIZE} folders each"
 
-    # Process in batches
+    # Process in batches - using single rsync call per batch with --files-from
     batch_num=1
     counter=0
+    batch_count=0
 
     while IFS= read -r dir_name; do
         # Skip empty lines
@@ -56,18 +57,19 @@ data:
             if [ $$counter -gt 0 ]; then
                 echo "[$$(date)] Running rsync for batch $$batch_num ($$batch_count folders)..."
 
+                # Use --files-from with --relative to sync only listed dirs (no full scan!)
+                # The -R flag makes rsync use relative paths from the source
                 rsync \
                     --recursive \
+                    --relative \
                     --links \
                     --times \
                     --stats \
                     --verbose \
                     --human-readable \
                     --whole-file \
-                    --no-inc-recursive \
                     --remove-source-files \
-                    --include-from="$${TMPFILE}.batch" \
-                    --exclude='*' \
+                    --files-from="$${TMPFILE}.batch" \
                     --log-file="$${LOG_FILE}" \
                     "$${SOURCE}/" \
                     "$${DEST}/"
@@ -96,9 +98,8 @@ data:
             batch_count=0
         fi
 
-        # Add directory to batch include file
-        echo "$$dir_name/" >> "$${TMPFILE}.batch"
-        echo "$$dir_name/**" >> "$${TMPFILE}.batch"
+        # Add directory to batch file (relative path from SOURCE)
+        echo "./$$dir_name" >> "$${TMPFILE}.batch"
         batch_count=$$(( batch_count + 1 ))
         counter=$$(( counter + 1 ))
 
@@ -110,16 +111,15 @@ data:
 
         rsync \
             --recursive \
+            --relative \
             --links \
             --times \
             --stats \
             --verbose \
             --human-readable \
             --whole-file \
-            --no-inc-recursive \
             --remove-source-files \
-            --include-from="$${TMPFILE}.batch" \
-            --exclude='*' \
+            --files-from="$${TMPFILE}.batch" \
             --log-file="$${LOG_FILE}" \
             "$${SOURCE}/" \
             "$${DEST}/"
