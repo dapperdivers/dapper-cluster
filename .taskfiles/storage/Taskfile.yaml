@@ -140,14 +140,13 @@ tasks:
       - App should be single-pod or use ReadWriteOnce access
 
       Process:
-      1. Verify volsync backup exists
-      2. Scale down app
-      3. Delete old PVC (handles immutability)
-      4. Update ks.yaml with RBD config (3 lines)
-      5. Commit and push (interactive or auto with NONINTERACTIVE=true)
-      6. Flux auto-reconciles via webhook
-      7. Volsync restores from backup to new RBD PVC
-      8. Verify app is healthy
+      1. Verify volsync backup exists (off-cluster)
+      2. Delete Kustomization (removes ALL resources cleanly)
+      3. Update ks.yaml with RBD config (3 lines)
+      4. Commit and push (interactive or auto with NONINTERACTIVE=true)
+      5. Flux recreates Kustomization with new config
+      6. Volsync restores from off-cluster backup to new RBD PVC
+      7. Verify app is healthy
 
       Examples:
         # Interactive mode (default - asks before commit)
@@ -199,23 +198,17 @@ tasks:
         echo "   Size: $SIZE"
         echo ""
 
-        # Step 3: Scale down
-        echo "3. Scaling down {{.APP}}..."
-        {{.KUBECTL}} --namespace {{.NS}} scale {{.CONTROLLER}}/{{.APP}} --replicas=0
-        echo "   Waiting for pods to terminate..."
-        {{.KUBECTL}} --namespace {{.NS}} wait pod --for=delete --selector="app.kubernetes.io/name={{.APP}}" --timeout=5m 2>/dev/null || true
-        echo "   ✅ App scaled down"
+        # Step 3: Delete Kustomization (removes all resources cleanly)
+        echo "3. Deleting Kustomization..."
+        echo "   This removes PVC, ReplicationSource, and ReplicationDestination"
+        flux delete kustomization {{.APP}} -n {{.NS}} --silent
+        echo "   Waiting for resources to be removed..."
+        sleep 5
+        echo "   ✅ Kustomization deleted"
         echo ""
 
-        # Step 4: Delete PVC
-        echo "4. Deleting old PVC..."
-        {{.KUBECTL}} delete pvc {{.APP}} -n {{.NS}}
-        sleep 3
-        echo "   ✅ PVC deleted"
-        echo ""
-
-        # Step 5: Update ks.yaml
-        echo "5. Updating ks.yaml with RBD configuration..."
+        # Step 4: Update ks.yaml
+        echo "4. Updating ks.yaml with RBD configuration..."
 
         # Check if postBuild.substitute exists
         if ! grep -q "postBuild:" {{.KS_FILE}}; then
@@ -237,8 +230,8 @@ tasks:
         fi
         echo ""
 
-        # Step 6: Show diff and commit
-        echo "6. Changes to commit:"
+        # Step 5: Show diff and commit
+        echo "5. Changes to commit:"
         git diff {{.KS_FILE}} | grep "^[+-]" | grep -v "^[+-][+-][+-]"
         echo ""
 
@@ -267,15 +260,15 @@ tasks:
         fi
         echo ""
 
-        # Step 7: Wait for webhook reconciliation
-        echo "7. Waiting for Flux to reconcile (webhook trigger)..."
-        echo "   Flux will auto-reconcile via webhook..."
-        sleep 5
-        echo "   ✅ Webhook triggered"
+        # Step 6: Wait for webhook reconciliation
+        echo "6. Waiting for Flux to reconcile (webhook trigger)..."
+        echo "   Flux will recreate Kustomization with new RBD config..."
+        sleep 10
+        echo "   ✅ Webhook triggered, Kustomization recreated"
         echo ""
 
-        # Step 8: Wait for restoration
-        echo "8. Waiting for volsync restoration..."
+        # Step 7: Wait for restoration
+        echo "7. Waiting for volsync restoration..."
         echo "   This may take 30-60 seconds..."
         sleep 10
 
@@ -292,14 +285,14 @@ tasks:
         done
         echo ""
 
-        # Step 9: Wait for pod
-        echo "9. Waiting for pod to be ready..."
+        # Step 8: Wait for pod
+        echo "8. Waiting for pod to be ready..."
         {{.KUBECTL}} --namespace {{.NS}} wait pod --for=condition=ready --selector="app.kubernetes.io/name={{.APP}}" --timeout=10m
         echo "   ✅ Pod is running"
         echo ""
 
-        # Step 10: Verify
-        echo "10. Verification:"
+        # Step 9: Verify
+        echo "9. Verification:"
         NEW_SC=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.storageClassName}')
         NEW_AM=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.accessModes[0]}')
         echo "   Storage Class: $NEW_SC ✅"
