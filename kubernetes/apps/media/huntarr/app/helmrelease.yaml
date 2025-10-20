@@ -2,8 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: huntarr # redeploy
-
+  name: huntarr
 spec:
   interval: 30m
   chartRef:

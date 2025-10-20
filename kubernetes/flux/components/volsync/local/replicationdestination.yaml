@@ -11,8 +11,8 @@ spec:
     repository: "${APP}-volsync-secret"
     copyMethod: Snapshot
     volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:-cephfs-snapshot}"
-    cacheStorageClassName: "${VOLSYNC_CACHE_STORAGECLASS:-cephfs-shared}"
-    cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:-ReadWriteMany}"]
+    cacheStorageClassName: "${VOLSYNC_CACHE_STORAGECLASS:-ceph-rbd}"
+    cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:-ReadWriteOnce}"]
     cacheCapacity: "${VOLSYNC_CACHE_CAPACITY:-10Gi}"
     storageClassName: "${VOLSYNC_STORAGECLASS:-cephfs-shared}"
     accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteMany}"]
