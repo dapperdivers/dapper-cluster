@@ -3,7 +3,7 @@
 version: '3'
 
 # Taskfile for managing storage class migrations
-# Primary use case: Migrating PVCs from mayastor-single-replica to cephfs-shared (and later to ceph-rbd)
+# Current focus: Migrating apps from CephFS to RBD for better performance
 
 vars:
   KUBECTL: kubectl
@@ -11,29 +11,27 @@ vars:
 tasks:
 
   list-mayastor:
-    desc: List all PVCs still using mayastor-single-replica storage class
+    desc: List all PVCs still using mayastor storage classes
     summary: |
-      Shows which PVCs are still on mayastor storage to help track migration progress.
-      Groups by namespace for easier planning.
+      Shows which PVCs are still on mayastor/openebs storage.
+      Used to track progress of Mayastor decommission.
     cmds:
       - |
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "PVCs using mayastor-single-replica storage class:"
+        echo "PVCs using Mayastor/OpenEBS storage classes:"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo ""
 
-        PVCS=$({{.KUBECTL}} get pvc -A -o json | jq -r '.items[] | select(.spec.storageClassName=="mayastor-single-replica") | "\(.metadata.namespace)/\(.metadata.name)"' | sort)
+        PVCS=$({{.KUBECTL}} get pvc -A -o json | jq -r '.items[] | select(.spec.storageClassName | test("mayastor|openebs")) | "\(.metadata.namespace)/\(.metadata.name) (\(.spec.storageClassName))"' | sort)
 
         if [ -z "$PVCS" ]; then
-          echo "✅ No PVCs found using mayastor-single-replica!"
-          echo "   All PVCs have been migrated off Mayastor."
+          echo "✅ No PVCs found using Mayastor/OpenEBS storage!"
+          echo "   All PVCs have been migrated."
         else
           COUNT=$(echo "$PVCS" | wc -l)
-          echo "$PVCS" | awk -F/ '{print "  " $1 "/" $2}'
+          echo "$PVCS" | awk '{print "  " $0}'
           echo ""
-          echo "Total: $COUNT PVCs still on mayastor-single-replica"
-          echo ""
-          echo "Run: task storage:migrate-pvc APP=<app> NS=<namespace> STORAGE_CLASS=cephfs-shared"
+          echo "Total: $COUNT PVCs remaining"
         fi
         echo ""
 
@@ -59,50 +57,62 @@ tasks:
         echo ""
 
   show-progress:
-    desc: Show migration progress - apps migrated vs remaining
+    desc: Show migration progress - apps by storage class
     summary: |
-      Displays which apps have been migrated to cephfs-shared (have overrides in ks.yaml)
-      and which are still using default (mayastor).
+      Displays which apps are on which storage classes.
+      Helps track CephFS → RBD migration progress.
     cmds:
       - |
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "Storage Migration Progress:"
+        echo "Storage Class Migration Progress:"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo ""
 
-        MIGRATED=0
-        PENDING=0
+        RBD=0
+        CEPHFS=0
+        DEFAULT=0
 
-        echo "Apps with storage class override (migrated to cephfs-shared):"
+        echo "Apps using ceph-rbd (migrated):"
         echo "────────────────────────────────────────────────────────────────"
 
-        # Find all ks.yaml files with VOLSYNC_STORAGECLASS override
         for ks_file in kubernetes/apps/*/*/ks.yaml; do
           if [ -f "$ks_file" ]; then
-            if grep -q "VOLSYNC_STORAGECLASS.*cephfs-shared" "$ks_file" 2>/dev/null; then
+            if grep -q "VOLSYNC_STORAGECLASS.*ceph-rbd" "$ks_file" 2>/dev/null; then
               app=$(basename $(dirname "$ks_file"))
               ns=$(basename $(dirname $(dirname "$ks_file")))
               echo "  ✅ $ns/$app"
-              MIGRATED=$((MIGRATED + 1))
+              RBD=$((RBD + 1))
             fi
           fi
         done
 
         echo ""
-        echo "Apps still using default storage class (pending migration):"
+        echo "Apps using cephfs-shared:"
         echo "────────────────────────────────────────────────────────────────"
 
-        # Find apps with volsync component but no override
         for ks_file in kubernetes/apps/*/*/ks.yaml; do
           if [ -f "$ks_file" ]; then
-            # Check if uses volsync component and has VOLSYNC_CAPACITY
+            if grep -q "VOLSYNC_STORAGECLASS.*cephfs-shared" "$ks_file" 2>/dev/null; then
+              app=$(basename $(dirname "$ks_file"))
+              ns=$(basename $(dirname $(dirname "$ks_file")))
+              echo "  📁 $ns/$app"
+              CEPHFS=$((CEPHFS + 1))
+            fi
+          fi
+        done
+
+        echo ""
+        echo "Apps using default storage class (cephfs-shared):"
+        echo "────────────────────────────────────────────────────────────────"
+
+        for ks_file in kubernetes/apps/*/*/ks.yaml; do
+          if [ -f "$ks_file" ]; then
             if grep -q "VOLSYNC_CAPACITY" "$ks_file" 2>/dev/null; then
-              # Check if doesn't have cephfs override
-              if ! grep -q "VOLSYNC_STORAGECLASS.*cephfs-shared" "$ks_file" 2>/dev/null; then
+              if ! grep -q "VOLSYNC_STORAGECLASS" "$ks_file" 2>/dev/null; then
                 app=$(basename $(dirname "$ks_file"))
                 ns=$(basename $(dirname $(dirname "$ks_file")))
                 echo "  ⏳ $ns/$app"
-                PENDING=$((PENDING + 1))
+                DEFAULT=$((DEFAULT + 1))
               fi
             fi
           fi
@@ -110,157 +120,257 @@ tasks:
 
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        TOTAL=$((MIGRATED + PENDING))
-        PERCENT=0
-        if [ $TOTAL -gt 0 ]; then
-          PERCENT=$((MIGRATED * 100 / TOTAL))
-        fi
-        echo "Progress: $MIGRATED/$TOTAL apps migrated ($PERCENT%)"
+        TOTAL=$((RBD + CEPHFS + DEFAULT))
+        echo "Summary:"
+        echo "  RBD: $RBD apps"
+        echo "  CephFS (explicit): $CEPHFS apps"
+        echo "  CephFS (default): $DEFAULT apps"
+        echo "  Total: $TOTAL apps with volsync"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo ""
 
-  migrate-with-korb:
-    desc: Migrate a PVC to new storage class using korb [PVC=required] [NS=namespace] [NEW_SC=cephfs-shared]
+  migrate-to-rbd:
+    desc: Migrate an app from CephFS to RBD using volsync backup/restore [APP=required] [NS=required] [NONINTERACTIVE=false]
     summary: |
-      Uses korb to migrate a PVC to a new storage class.
-      This tool handles the data migration automatically.
+      Migrates an app to ceph-rbd storage class using volsync backup/restore.
+      This is the recommended approach for apps with volsync configured.
+
+      Prerequisites:
+      - App must have volsync configured and recent backup
+      - App should be single-pod or use ReadWriteOnce access
+
+      Process:
+      1. Verify volsync backup exists
+      2. Scale down app
+      3. Delete old PVC
+      4. Update ks.yaml with RBD config (3 lines)
+      5. Commit changes (interactive or auto with NONINTERACTIVE=true)
+      6. Reconcile Flux (volsync auto-restores)
+      7. Verify app is healthy
 
       Examples:
-        task storage:migrate-with-korb PVC=bazarr NS=media NEW_SC=cephfs-shared
-        task storage:migrate-with-korb PVC=n8n-files NS=ai
+        # Interactive mode (default - asks before commit)
+        task storage:migrate-to-rbd APP=actual NS=selfhosted
+
+        # Non-interactive mode (auto-commits)
+        task storage:migrate-to-rbd APP=searxng NS=selfhosted NONINTERACTIVE=true
+        task storage:migrate-to-rbd APP=esphome NS=home-automation NONINTERACTIVE=true
     vars:
-      NS: '{{.NS | default "default"}}'
-      NEW_SC: '{{.NEW_SC | default "cephfs-shared"}}'
-    requires:
-      vars: [PVC, NS]
-    preconditions:
-      - sh: '{{.KUBECTL}} --namespace {{.NS}} get pvc {{.PVC}} &>/dev/null'
-        msg: 'PVC {{.PVC}} not found in namespace {{.NS}}'
-      - sh: '{{.KUBECTL}} get storageclass {{.NEW_SC}} &>/dev/null'
-        msg: 'Storage class {{.NEW_SC}} does not exist'
-    cmds:
-      - |
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "Migrating PVC: {{.PVC}} ({{.NS}})"
-        echo "Target Storage Class: {{.NEW_SC}}"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-
-        # Show current PVC details
-        echo "Current PVC details:"
-        CURRENT_SC=$({{.KUBECTL}} get pvc {{.PVC}} -n {{.NS}} -o jsonpath='{.spec.storageClassName}')
-        SIZE=$({{.KUBECTL}} get pvc {{.PVC}} -n {{.NS}} -o jsonpath='{.spec.resources.requests.storage}')
-        echo "  Storage Class: $CURRENT_SC"
-        echo "  Size: $SIZE"
-        echo ""
-
-        # Run korb
-        echo "Running korb migration..."
-        mise exec -- korb {{.PVC}} \
-          --source-namespace {{.NS}} \
-          --new-pvc-storage-class {{.NEW_SC}} \
-          --strategy copy-twice-name \
-          --kube-config {{.ROOT_DIR}}/kubeconfig \
-          --debug
-
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "✅ Migration complete for {{.PVC}}"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-
-  migrate-static-pvc-with-korb:
-    desc: Migrate a static PVC and update manifest [APP=required] [NS=required] [PVC=required] [NEW_SC=cephfs-shared]
-    summary: |
-      Migrates a static PVC using korb and updates the pvc.yaml manifest.
-      Use this for static PVCs that have hardcoded storage classes.
-
-      Examples:
-        task storage:migrate-static-pvc-with-korb APP=plex NS=media PVC=plex-cache
-        task storage:migrate-static-pvc-with-korb APP=n8n NS=ai PVC=n8n-files
-    vars:
-      NS: '{{.NS | default "default"}}'
-      NEW_SC: '{{.NEW_SC | default "cephfs-shared"}}'
-      PVC_FILE: '{{.ROOT_DIR}}/kubernetes/apps/{{.NS}}/{{.APP}}/app/pvc.yaml'
+      KS_FILE: '{{.ROOT_DIR}}/kubernetes/apps/{{.NS}}/{{.APP}}/ks.yaml'
+      NONINTERACTIVE: '{{.NONINTERACTIVE | default "false"}}'
       CONTROLLER:
-        sh: '{{.KUBECTL}} --namespace {{.NS}} get deployment {{.APP}} &>/dev/null && echo deployment || ({{.KUBECTL}} --namespace {{.NS}} get statefulset {{.APP}} &>/dev/null && echo statefulset || echo cronjob)'
-      ORIGINAL_REPLICAS:
-        sh: '{{.KUBECTL}} --namespace {{.NS}} get {{.CONTROLLER}}/{{.APP}} -o jsonpath="{.spec.replicas}" 2>/dev/null || echo "1"'
+        sh: '{{.KUBECTL}} --namespace {{.NS}} get deployment {{.APP}} &>/dev/null && echo deployment || ({{.KUBECTL}} --namespace {{.NS}} get statefulset {{.APP}} &>/dev/null && echo statefulset || echo unknown)'
     requires:
-      vars: [APP, NS, PVC]
+      vars: [APP, NS]
     preconditions:
-      - sh: '[ -f "{{.PVC_FILE}}" ]'
-        msg: 'PVC file not found at {{.PVC_FILE}}'
-      - sh: '{{.KUBECTL}} --namespace {{.NS}} get pvc {{.PVC}} &>/dev/null'
-        msg: 'PVC {{.PVC}} not found in namespace {{.NS}}'
+      - sh: '[ -f "{{.KS_FILE}}" ]'
+        msg: 'Kustomization file not found at {{.KS_FILE}}'
+      - sh: '{{.KUBECTL}} --namespace {{.NS}} get {{.CONTROLLER}}/{{.APP}} &>/dev/null'
+        msg: 'App {{.APP}} not found in namespace {{.NS}}'
+      - sh: '{{.KUBECTL}} --namespace {{.NS}} get pvc {{.APP}} &>/dev/null'
+        msg: 'PVC {{.APP}} not found in namespace {{.NS}}'
+      - sh: '{{.KUBECTL}} --namespace {{.NS}} get replicationsource {{.APP}} &>/dev/null'
+        msg: 'No volsync backup found for {{.APP}}. App must have volsync configured.'
     cmds:
       - |
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "Migrating Static PVC: {{.PVC}} ({{.NS}}/{{.APP}})"
+        echo "Migrating {{.NS}}/{{.APP}} to ceph-rbd storage"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo ""
 
-        # Step 1: Scale down app
-        echo "1. Scaling down {{.APP}}..."
-        if [ "{{.CONTROLLER}}" = "cronjob" ]; then
-          {{.KUBECTL}} patch cronjob {{.APP}} -n {{.NS}} -p '{"spec":{"suspend":true}}'
-        else
-          {{.KUBECTL}} --namespace {{.NS}} scale {{.CONTROLLER}}/{{.APP}} --replicas=0
-          echo "   Waiting for pods to terminate..."
-          {{.KUBECTL}} --namespace {{.NS}} wait pod --for=delete --selector="app.kubernetes.io/name={{.APP}}" --timeout=5m || true
+        # Step 1: Verify backup
+        echo "1. Verifying volsync backup..."
+        LAST_SYNC=$({{.KUBECTL}} get replicationsource {{.APP}} -n {{.NS}} -o jsonpath='{.status.lastSyncTime}')
+        if [ -z "$LAST_SYNC" ]; then
+          echo "   ❌ No recent backup found!"
+          exit 1
         fi
+        echo "   ✅ Last backup: $LAST_SYNC"
+        echo ""
+
+        # Step 2: Show current state
+        echo "2. Current PVC state:"
+        CURRENT_SC=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.storageClassName}')
+        CURRENT_AM=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.accessModes[0]}')
+        SIZE=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.resources.requests.storage}')
+        echo "   Storage Class: $CURRENT_SC → ceph-rbd"
+        echo "   Access Mode: $CURRENT_AM → ReadWriteOnce"
+        echo "   Size: $SIZE"
+        echo ""
+
+        # Step 3: Scale down
+        echo "3. Scaling down {{.APP}}..."
+        {{.KUBECTL}} --namespace {{.NS}} scale {{.CONTROLLER}}/{{.APP}} --replicas=0
+        echo "   Waiting for pods to terminate..."
+        {{.KUBECTL}} --namespace {{.NS}} wait pod --for=delete --selector="app.kubernetes.io/name={{.APP}}" --timeout=5m 2>/dev/null || true
         echo "   ✅ App scaled down"
         echo ""
 
-        # Step 2: Run korb migration
-        echo "2. Running korb migration..."
-        mise exec -- korb {{.PVC}} \
-          --source-namespace {{.NS}} \
-          --new-pvc-storage-class {{.NEW_SC}} \
-          --strategy copy-twice-name \
-          --kube-config {{.ROOT_DIR}}/kubeconfig \
-          --debug
-
-        echo ""
-        echo "✅ Data migration complete"
+        # Step 4: Delete PVC
+        echo "4. Deleting old PVC..."
+        {{.KUBECTL}} delete pvc {{.APP}} -n {{.NS}}
+        sleep 3
+        echo "   ✅ PVC deleted"
         echo ""
 
-        # Step 3: Update manifest
-        echo "3. Updating PVC manifest..."
-        sed -i 's/storageClassName: mayastor-single-replica/storageClassName: {{.NEW_SC}}/g' {{.PVC_FILE}}
-        sed -i 's/ReadWriteOnce/ReadWriteMany/g' {{.PVC_FILE}}
-        echo "   Updated {{.PVC_FILE}}"
-        echo ""
+        # Step 5: Update ks.yaml
+        echo "5. Updating ks.yaml with RBD configuration..."
 
-        # Step 4: Scale up app
-        echo "4. Scaling up {{.APP}}..."
-        if [ "{{.CONTROLLER}}" = "cronjob" ]; then
-          {{.KUBECTL}} patch cronjob {{.APP}} -n {{.NS}} -p '{"spec":{"suspend":false}}'
-          echo "   ✅ CronJob resumed"
+        # Check if postBuild.substitute exists
+        if ! grep -q "postBuild:" {{.KS_FILE}}; then
+          echo "   ❌ No postBuild section found in ks.yaml"
+          exit 1
+        fi
+
+        # Add RBD config if not already present
+        if ! grep -q "VOLSYNC_STORAGECLASS" {{.KS_FILE}}; then
+          # Add after the last substitute line
+          sed -i '/substitute:/a\      VOLSYNC_STORAGECLASS: ceph-rbd\n      VOLSYNC_SNAPSHOTCLASS: ceph-rbd-snapshot\n      VOLSYNC_ACCESSMODES: ReadWriteOnce' {{.KS_FILE}}
+          echo "   ✅ Added RBD configuration"
         else
-          {{.KUBECTL}} --namespace {{.NS}} scale {{.CONTROLLER}}/{{.APP}} --replicas={{.ORIGINAL_REPLICAS}}
-          echo "   Waiting for pods to be ready..."
-          {{.KUBECTL}} --namespace {{.NS}} wait pod --for=condition=ready --selector="app.kubernetes.io/name={{.APP}}" --timeout=10m
-          echo "   ✅ App scaled up and running"
+          # Update existing config
+          sed -i 's/VOLSYNC_STORAGECLASS:.*/VOLSYNC_STORAGECLASS: ceph-rbd/' {{.KS_FILE}}
+          sed -i 's/VOLSYNC_SNAPSHOTCLASS:.*/VOLSYNC_SNAPSHOTCLASS: ceph-rbd-snapshot/' {{.KS_FILE}}
+          sed -i 's/VOLSYNC_ACCESSMODES:.*/VOLSYNC_ACCESSMODES: ReadWriteOnce/' {{.KS_FILE}}
+          echo "   ✅ Updated RBD configuration"
         fi
         echo ""
 
-        # Step 5: Commit changes
-        git add {{.PVC_FILE}}
-        echo "5. Commit changes..."
-        read -p "Commit and push changes? (y/N): " REPLY
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-          git commit -m "chore({{.NS}}): migrate {{.PVC}} to {{.NEW_SC}}" \
-            -m "Migrated static PVC using korb from mayastor to {{.NEW_SC}}." \
-            -m "Data was preserved during migration."
+        # Step 6: Show diff and commit
+        echo "6. Changes to commit:"
+        git diff {{.KS_FILE}} | grep "^[+-]" | grep -v "^[+-][+-][+-]"
+        echo ""
+
+        if [ "{{.NONINTERACTIVE}}" = "true" ]; then
+          echo "Auto-committing (non-interactive mode)..."
+          git add {{.KS_FILE}}
+          git commit -m "feat({{.NS}}/{{.APP}}): migrate to ceph-rbd storage" \
+            -m "Migrated from $CURRENT_SC to ceph-rbd for better performance." \
+            -m "Volsync will auto-restore data from latest backup." \
+            -m "🤖 Generated with Claude Code"
           git push
           echo "   ✅ Changes committed and pushed"
         else
-          echo "   ⚠️  Changes staged but not committed"
+          read -p "Commit these changes? (Y/n): " REPLY
+          if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            git add {{.KS_FILE}}
+            git commit -m "feat({{.NS}}/{{.APP}}): migrate to ceph-rbd storage" \
+              -m "Migrated from $CURRENT_SC to ceph-rbd for better performance." \
+              -m "Volsync will auto-restore data from latest backup." \
+              -m "🤖 Generated with Claude Code"
+            git push
+            echo "   ✅ Changes committed and pushed"
+          else
+            echo "   ⚠️  Skipping commit - you'll need to commit manually"
+          fi
         fi
         echo ""
 
+        # Step 7: Reconcile Flux
+        echo "7. Reconciling Flux..."
+        flux reconcile kustomization {{.APP}} -n {{.NS}} --with-source
+        echo "   ✅ Flux reconciled"
+        echo ""
+
+        # Step 8: Wait for restoration
+        echo "8. Waiting for volsync restoration..."
+        echo "   This may take 30-60 seconds..."
+        sleep 10
+
+        for i in {1..12}; do
+          if {{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} &>/dev/null; then
+            STATUS=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.status.phase}')
+            if [ "$STATUS" = "Bound" ]; then
+              echo "   ✅ PVC restored and bound"
+              break
+            fi
+          fi
+          echo "   ⏳ Waiting for PVC... ($i/12)"
+          sleep 5
+        done
+        echo ""
+
+        # Step 9: Wait for pod
+        echo "9. Waiting for pod to be ready..."
+        {{.KUBECTL}} --namespace {{.NS}} wait pod --for=condition=ready --selector="app.kubernetes.io/name={{.APP}}" --timeout=10m
+        echo "   ✅ Pod is running"
+        echo ""
+
+        # Step 10: Verify
+        echo "10. Verification:"
+        NEW_SC=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.storageClassName}')
+        NEW_AM=$({{.KUBECTL}} get pvc {{.APP}} -n {{.NS}} -o jsonpath='{.spec.accessModes[0]}')
+        echo "   Storage Class: $NEW_SC ✅"
+        echo "   Access Mode: $NEW_AM ✅"
+
+        POD_STATUS=$({{.KUBECTL}} get pods -n {{.NS}} -l app.kubernetes.io/name={{.APP}} -o jsonpath='{.items[0].status.phase}')
+        echo "   Pod Status: $POD_STATUS ✅"
+        echo ""
+
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "✅ Migration complete for {{.PVC}}"
+        echo "✅ Migration complete for {{.NS}}/{{.APP}}"
+        echo ""
+        echo "Next steps:"
+        echo "  - Check app logs: kubectl logs -n {{.NS}} -l app.kubernetes.io/name={{.APP}}"
+        echo "  - Verify functionality in the app UI"
+        echo "  - Monitor for a few hours to ensure stability"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+
+  list-rbd-candidates:
+    desc: List apps that are good candidates for RBD migration
+    summary: |
+      Identifies apps currently on CephFS that could benefit from RBD.
+      Checks for:
+      - Apps using cephfs-shared storage
+      - Apps with volsync backup configured
+      - Single-pod deployments (good RWO candidates)
+    cmds:
+      - |
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "RBD Migration Candidates:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+
+        echo "Apps with volsync on CephFS (ready to migrate):"
+        echo "────────────────────────────────────────────────────────────────"
+
+        for ks_file in kubernetes/apps/*/*/ks.yaml; do
+          if [ -f "$ks_file" ]; then
+            # Has volsync capacity and NOT already on RBD
+            if grep -q "VOLSYNC_CAPACITY" "$ks_file" 2>/dev/null; then
+              if ! grep -q "VOLSYNC_STORAGECLASS.*ceph-rbd" "$ks_file" 2>/dev/null; then
+                app=$(basename $(dirname "$ks_file"))
+                ns=$(basename $(dirname $(dirname "$ks_file")))
+
+                # Check if PVC exists and is on CephFS
+                if {{.KUBECTL}} get pvc "$app" -n "$ns" &>/dev/null; then
+                  SC=$({{.KUBECTL}} get pvc "$app" -n "$ns" -o jsonpath='{.spec.storageClassName}')
+                  SIZE=$({{.KUBECTL}} get pvc "$app" -n "$ns" -o jsonpath='{.spec.resources.requests.storage}')
+                  AM=$({{.KUBECTL}} get pvc "$app" -n "$ns" -o jsonpath='{.spec.accessModes[0]}')
+
+                  if [[ "$SC" == "cephfs-shared" ]]; then
+                    # Check replica count
+                    REPLICAS="?"
+                    if {{.KUBECTL}} get deployment "$app" -n "$ns" &>/dev/null; then
+                      REPLICAS=$({{.KUBECTL}} get deployment "$app" -n "$ns" -o jsonpath='{.spec.replicas}')
+                    elif {{.KUBECTL}} get statefulset "$app" -n "$ns" &>/dev/null; then
+                      REPLICAS=$({{.KUBECTL}} get statefulset "$app" -n "$ns" -o jsonpath='{.spec.replicas}')
+                    fi
+
+                    if [ "$REPLICAS" = "1" ]; then
+                      echo "  ✅ $ns/$app ($SIZE, $AM, $REPLICAS replica)"
+                    else
+                      echo "  ⚠️  $ns/$app ($SIZE, $AM, $REPLICAS replicas - verify RWO compatibility)"
+                    fi
+                  fi
+                fi
+              fi
+            fi
+          fi
+        done
+
+        echo ""
+        echo "To migrate an app:"
+        echo "  task storage:migrate-to-rbd APP=<app> NS=<namespace>"
         echo ""
