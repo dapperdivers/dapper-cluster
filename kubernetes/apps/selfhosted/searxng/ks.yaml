@@ -30,5 +30,8 @@ spec:
       namespace: external-secrets
   postBuild:
     substitute:
+      VOLSYNC_STORAGECLASS: ceph-rbd
+      VOLSYNC_SNAPSHOTCLASS: ceph-rbd-snapshot
+      VOLSYNC_ACCESSMODES: ReadWriteOnce
       APP: *app
       VOLSYNC_CAPACITY: 2Gi
