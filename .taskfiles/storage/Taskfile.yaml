@@ -142,11 +142,12 @@ tasks:
       Process:
       1. Verify volsync backup exists
       2. Scale down app
-      3. Delete old PVC
+      3. Delete old PVC (handles immutability)
       4. Update ks.yaml with RBD config (3 lines)
-      5. Commit changes (interactive or auto with NONINTERACTIVE=true)
-      6. Reconcile Flux (volsync auto-restores)
-      7. Verify app is healthy
+      5. Commit and push (interactive or auto with NONINTERACTIVE=true)
+      6. Flux auto-reconciles via webhook
+      7. Volsync restores from backup to new RBD PVC
+      8. Verify app is healthy
 
       Examples:
         # Interactive mode (default - asks before commit)
@@ -266,10 +267,11 @@ tasks:
         fi
         echo ""
 
-        # Step 7: Reconcile Flux
-        echo "7. Reconciling Flux..."
-        flux reconcile kustomization {{.APP}} -n {{.NS}} --with-source
-        echo "   ✅ Flux reconciled"
+        # Step 7: Wait for webhook reconciliation
+        echo "7. Waiting for Flux to reconcile (webhook trigger)..."
+        echo "   Flux will auto-reconcile via webhook..."
+        sleep 5
+        echo "   ✅ Webhook triggered"
         echo ""
 
         # Step 8: Wait for restoration
