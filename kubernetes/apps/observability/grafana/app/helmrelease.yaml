@@ -257,10 +257,57 @@ spec:
         postgres-cluster:
           url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/main/charts/cluster/grafana-dashboard.json
           token: ''
+        # Ceph Dashboards for External Cluster Monitoring
+        ceph-cluster:
+          # renovate: depName="Ceph Cluster"
+          gnetId: 2842
+          revision: 18
+          datasource: Prometheus
+        ceph-pools:
+          # renovate: depName="Ceph - Pools"
+          gnetId: 5342
+          revision: 9
+          datasource: Prometheus
+        ceph-osd:
+          # renovate: depName="Ceph - OSD (Single)"
+          gnetId: 5336
+          revision: 9
+          datasource: Prometheus
+        # Alternative modern Ceph dashboards
+        ceph-cluster-overview:
+          # renovate: depName="Ceph - Cluster"
+          gnetId: 7056
+          revision: 2
+          datasource: Prometheus
+        ceph-multicluster:
+          # renovate: depName="Ceph - MultiCluster"
+          gnetId: 9966
+          revision: 1
+          datasource: Prometheus
+        # CephFS-specific monitoring (perfect for media migration)
+        ceph-cephfs:
+          # renovate: depName="Ceph - CephFS"
+          gnetId: 9340
+          revision: 1
+          datasource: Prometheus
+        # Detailed PVC monitoring across cluster
+        k8s-persistent-volumes:
+          # renovate: depName="Kubernetes Persistent Volumes"
+          gnetId: 13646
+          revision: 2
+          datasource: Prometheus
+        # Namespace-level storage view (useful for media namespace)
+        k8s-storage-volumes-namespace:
+          # renovate: depName="K8s / Storage / Volumes / Namespace"
+          gnetId: 11455
+          revision: 6
+          datasource: Prometheus
+        # Custom media storage dashboard loaded via ConfigMap
+        # See: kubernetes/apps/observability/grafana/app/kustomization.yaml
 
     sidecar:
       dashboards:
-        enabled: false
+        enabled: true
         searchNamespace: ALL
         label: grafana_dashboard
         folderAnnotation: grafana_folder
@@ -278,6 +325,13 @@ spec:
       - natel-discrete-panel
       - pr0ps-trackmap-panel
       - vonage-status-panel
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 2Gi
     serviceMonitor:
       enabled: true
     ingress:

@@ -84,6 +84,8 @@ spec:
               app.kubernetes.io/component: controller
       resources:
         requests:
-          cpu: 500m
+          cpu: 100m
+          memory: 512Mi
         limits:
-          memory: 500Mi
+          cpu: 500m
+          memory: 2Gi

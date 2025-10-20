@@ -91,7 +91,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-node-gpu-1"
     ipAddress: "10.100.0.53"
-    installDisk: "/dev/vda"
+    installDisk: "/dev/sda"
     talosImageURL: factory.talos.dev/installer/1f6caf935b35f840ea19acb12d2dcc6d8f9c7d47fc621b1fcebb4a04c5e3130d
     controlPlane: false
     nodeLabels:
@@ -125,7 +125,7 @@ nodes:
       - "@./patches/gpu/nvidia-gpu.yaml"
   - hostname: "talos-node-large-1"
     ipAddress: "10.100.0.54"
-    installDisk: "/dev/vda"
+    installDisk: "/dev/sda"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -145,7 +145,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-node-large-2"
     ipAddress: "10.100.0.55"
-    installDisk: "/dev/vda"
+    installDisk: "/dev/sda"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -165,7 +165,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-node-large-3"
     ipAddress: "10.100.0.56"
-    installDisk: "/dev/vda"
+    installDisk: "/dev/sda"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:

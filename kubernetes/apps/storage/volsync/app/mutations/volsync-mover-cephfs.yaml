@@ -51,7 +51,7 @@ spec:
               value: Object.spec.template.spec.volumes{
                 name: "repository",
                 persistentVolumeClaim: Object.spec.template.spec.volumes.persistentVolumeClaim{
-                  claimName: "volsync-" + object.metadata.name.replace("volsync-src-", "").replace("volsync-dst-", "") + "-repo"
+                  claimName: "volsync-" + object.metadata.name.replace("volsync-src-", "").replace("volsync-dst-", "").replace("-dst", "") + "-repo"
                 }
               }
             }

@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: loki
-      version: 6.42.0
+      version: 6.43.0
       sourceRef:
         kind: HelmRepository
         name: grafana
@@ -68,6 +68,7 @@ spec:
         retention_period: 14d
         allow_structured_metadata: true
         volume_enabled: true
+        max_line_size: 1048576  # 1MB - increased from default 256KB to handle large log entries
       pattern_ingester:
         enabled: false  # Disable if not needed, can reduce resource usage
       ruler:
@@ -80,14 +81,14 @@ spec:
       replicas: 1
       resources:
         requests:
-          cpu: 35m
-          memory: 450Mi
+          cpu: 50m
+          memory: 512Mi
         limits:
-          cpu: 200m
-          memory: 600Mi
+          cpu: 250m
+          memory: 2Gi
       persistence:
         enabled: true
-        storageClass: cephfs-shared
+        storageClass: ceph-rbd
         size: 30Gi
     gateway:
       replicas: 0

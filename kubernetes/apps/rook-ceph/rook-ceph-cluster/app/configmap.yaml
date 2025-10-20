@@ -1,7 +1,5 @@
 ---
 # ConfigMap for Ceph monitor endpoints
-# TODO: Replace the mon endpoints with your actual Ceph monitor IPs from the 10.150.0.0/24 network
-# Get this info from Proxmox: ceph mon dump
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,10 +9,10 @@ data:
   # Format: "monid1=ip1:port,monid2=ip2:port,monid3=ip3:port"
   # Use port 6789 - client will auto-negotiate to v2 protocol
   # Mon addresses: mon.proxmox-02=10.150.0.2, mon.Proxmox-04=10.150.0.4
-  data: monid2=10.150.0.2:6789,monid4=10.150.0.4:6789
+  data: proxmox-02=10.150.0.2:6789,proxmox-03=10.150.0.3:6789,Proxmox-04=10.150.0.4:6789
   mapping: "{}"
   # maxMonId should be the number of monitors minus 1
-  maxMonId: "1"
+  maxMonId: "2"
 ---
 # ConfigMap with cluster information
 apiVersion: v1

@@ -28,10 +28,11 @@ spec:
           init-config:
             image:
               repository: ghcr.io/kiwigrid/k8s-sidecar
-              tag: 1.30.11@sha256:91b49e5b6d2fb03e7a9014f8b072d0de199987845b02d96ce458dd9f14e753f5
+              tag: 1.30.10@sha256:835d79d8fbae62e42d8a86929d4e3c5eec2e869255dd37756b5a3166c2f22309
             env:
               FOLDER: /config
               LABEL: gatus.io/enabled
+              LABEL_VALUE: "true"
               NAMESPACE: ALL
               RESOURCE: both
               UNIQUE_FILENAMES: true
@@ -40,13 +41,14 @@ spec:
             resources:
               requests:
                 cpu: 10m
-              limits:
                 memory: 128Mi
+              limits:
+                memory: 512Mi
         containers:
           app:
             image:
               repository: ghcr.io/twin/gatus
-              tag: v5.26.0@sha256:3c0314bd1b1e9d7c34d8f2efee16b380770a9639ec5386cc305e8df104e097dc
+              tag: v5.27.0@sha256:5091320d752756d7ac0a094d26ac38eb8216d7ed5857642b305522d1c6641f72
             env:
               TZ: ${TIME_ZONE}
               GATUS_CONFIG_PATH: /config
@@ -76,8 +78,10 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 100m
+                cpu: 25m
+                memory: 128Mi
               limits:
+                cpu: 100m
                 memory: 256Mi
         serviceAccount:
           identifier: *app

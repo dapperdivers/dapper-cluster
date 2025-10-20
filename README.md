@@ -49,23 +49,51 @@ This is a mono repository for my home infrastructure and Kubernetes cluster. I t
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f331/512.gif" alt="🌱" width="20" height="20"> Kubernetes
 
-My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). Storage is provided by Rook Ceph, connecting to an external Ceph cluster running on Proxmox hosts. This provides unified, high-performance storage with CephFS for shared filesystem access and planned RBD support for block storage.
+My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). Storage is provided by multiple solutions including NFS via democratic-csi and local storage options.
+
+**Storage Architecture:**
+- **NFS Storage**: democratic-csi for shared filesystem access
+- **Local Storage**: Talos local storage for high-performance workloads
+- **Legacy Storage**: 2x Unraid VMs providing media storage (migration in progress)
+- **Network**: Multi-tier network with 40Gb links for storage traffic
+- **Total Capacity**: 476.96TB raw across 76 drives
 
 There is a template over at [onedr0p/cluster-template](https://github.com/onedr0p/cluster-template) if you want to try and follow along with some of the practices used here.
 
 ### Core Components
 
-- [actions-runner-controller](https://github.com/actions/actions-runner-controller): Self-hosted Github runners.
-- [cert-manager](https://github.com/cert-manager/cert-manager): Creates SSL certificates for services in my cluster.
-- [cilium](https://github.com/cilium/cilium): Internal Kubernetes container networking interface.
-- [cloudflared](https://github.com/cloudflare/cloudflared): Enables Cloudflare secure access to certain ingresses.
-- [external-dns](https://github.com/kubernetes-sigs/external-dns): Automatically syncs ingress DNS records to a DNS provider.
-- [external-secrets](https://github.com/external-secrets/external-secrets): Managed Kubernetes secrets using [Infisical](https://infisical.com/).
-- [ingress-nginx](https://github.com/kubernetes/ingress-nginx): Kubernetes ingress controller using NGINX as a reverse proxy and load balancer.
-- [rook-ceph](https://github.com/rook/rook): Cloud-native storage orchestrator providing unified file and block storage via Ceph.
-- [sops](https://github.com/getsops/sops): Managed secrets for Kubernetes and Terraform which are commited to Git.
-- [spegel](https://github.com/spegel-org/spegel): Stateless cluster local OCI registry mirror.
-- [volsync](https://github.com/backube/volsync): Backup and recovery of persistent volume claims.
+**Networking:**
+- [cilium](https://github.com/cilium/cilium): eBPF-based CNI with kube-proxy replacement, L2 announcements, and advanced networking features.
+- [multus-cni](https://github.com/k8snetworkplumbingwg/multus-cni): Multiple network interfaces per pod for IoT and legacy network integration.
+- [ingress-nginx](https://github.com/kubernetes/ingress-nginx): Dual ingress controllers (internal + external) for service routing.
+- [external-dns](https://github.com/kubernetes-sigs/external-dns): Automatic DNS management (internal via UniFi, external via Cloudflare).
+- [k8s-gateway](https://github.com/ori-edge/k8s_gateway): Internal DNS server for cluster services.
+- [cloudflared](https://github.com/cloudflare/cloudflared): Secure Cloudflare tunnels for external access.
+
+**Storage:**
+- [democratic-csi](https://github.com/democratic-csi/democratic-csi): NFS storage provisioner for shared workloads.
+- [volsync](https://github.com/backube/volsync): PVC backup and recovery.
+
+**Security & Secrets:**
+- [cert-manager](https://github.com/cert-manager/cert-manager): Automated SSL/TLS certificate management.
+- [external-secrets](https://github.com/external-secrets/external-secrets): Secrets management using [Infisical](https://infisical.com/).
+- [sops](https://github.com/getsops/sops): Encrypted secrets in Git.
+
+**Observability:**
+- [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus-stack): Prometheus, Grafana, and Alertmanager.
+- [loki](https://github.com/grafana/loki): Log aggregation and query.
+- [promtail](https://github.com/grafana/promtail): Log shipper for Loki.
+- [gatus](https://github.com/TwiN/gatus): Service health monitoring and status page.
+
+**GPU & Hardware:**
+- [nvidia-device-plugin](https://github.com/NVIDIA/k8s-device-plugin): GPU support for 4x Tesla P100 GPUs.
+- [intel-device-plugin](https://github.com/intel/intel-device-plugins-for-kubernetes): Intel hardware acceleration.
+- [node-feature-discovery](https://github.com/kubernetes-sigs/node-feature-discovery): Automatic hardware capability detection.
+
+**GitOps & Automation:**
+- [actions-runner-controller](https://github.com/actions/actions-runner-controller): Self-hosted GitHub runners.
+- [spegel](https://github.com/spegel-org/spegel): Stateless cluster-local OCI registry mirror.
+- [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller): Automated Talos system upgrades.
 
 ### GitOps
 
@@ -89,7 +117,7 @@ This Git repository contains the following directories under [Kubernetes](./kube
 
 ### Flux Workflow
 
-This is a high-level look how Flux deploys my applications with dependencies. In most cases a `HelmRelease` will depend on other `HelmRelease`'s, in other cases a `Kustomization` will depend on other `Kustomization`'s, and in rare situations an app can depend on a `HelmRelease` and a `Kustomization`. The example below shows that `plex` won't be deployed or upgrade until the `rook-ceph-cluster` is installed and in a healthy state.
+This is a high-level look how Flux deploys my applications with dependencies. In most cases a `HelmRelease` will depend on other `HelmRelease`'s, in other cases a `Kustomization` will depend on other `Kustomization`'s, and in rare situations an app can depend on a `HelmRelease` and a `Kustomization`. The example below shows that `plex` won't be deployed or upgrade until the storage dependencies are installed and in a healthy state.
 
 ```mermaid
 graph TD
@@ -98,9 +126,9 @@ graph TD
     classDef helmRelease fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
 
     %% Nodes
-    A>Kustomization: rook-ceph]:::kustomization
-    B[HelmRelease: rook-ceph-operator]:::helmRelease
-    C[Kustomization: rook-ceph-cluster]:::kustomization
+    A>Kustomization: democratic-csi]:::kustomization
+    B[HelmRelease: democratic-csi]:::helmRelease
+    C[Kustomization: democratic-csi-driver]:::kustomization
     D>Kustomization: plex]:::kustomization
     E[HelmRelease: plex]:::helmRelease
 
@@ -117,55 +145,158 @@ graph TD
 
 ### Networking
 
+My network spans two physical locations connected via a 60GHz wireless bridge, featuring a multi-tier switching architecture optimized for high-performance storage and compute workloads.
+
 <details>
-  <summary>Click here to see my high-level network diagram</summary>
+  <summary>Physical Network Topology</summary>
 
 ```mermaid
-graph TD
+graph TB
     %% Styling
-    classDef network fill:#2f73d8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef hardware fill:#d83933,stroke:#fff,stroke-width:2px,color:#fff
-    classDef vm fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
+    classDef router fill:#d83933,stroke:#fff,stroke-width:2px,color:#fff
+    classDef coreswitch fill:#2f73d8,stroke:#fff,stroke-width:2px,color:#fff
+    classDef distswitch fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
+    classDef accessswitch fill:#f39c12,stroke:#fff,stroke-width:2px,color:#fff
+    classDef server fill:#8e44ad,stroke:#fff,stroke-width:2px,color:#fff
+    classDef wireless fill:#e74c3c,stroke:#fff,stroke-width:2px,color:#fff
 
-    subgraph LAN [LAN - 192.168.1.1/24]
-        OPN[OPNsense Router]:::hardware
-        SW[Aruba S2500-48p Switch]:::hardware
-        PH1[Proxmox Host - Kubernetes]:::hardware
-        PH2[Proxmox Host - NAS]:::hardware
+    subgraph House["🏠 House"]
+        OPN["OPNsense<br/>192.168.1.1<br/>Gateway"]:::router
+        ARUBA["Aruba S2500-48p<br/>192.168.1.26<br/>PoE Access Switch"]:::accessswitch
+        CLIENTS["Client Devices"]
+        WHOUSE["Mikrotik NRay60<br/>192.168.1.7"]:::wireless
+
+        OPN --- ARUBA
+        ARUBA --- CLIENTS
+        ARUBA --- WHOUSE
     end
 
-    subgraph VLAN100 [SERVERS - 10.100.0.1/24]
-        K8S1[Talos VM 1]:::vm
-        K8S2[Talos VM 2]:::vm
-        K8S3[Talos VM 3]:::vm
-        K8S4[Talos VM 4]:::vm
-        K8S5[Talos VM 5]:::vm
-        K8S6[Talos VM 6]:::vm
-        K8S7[Talos VM 7]:::vm
+    subgraph Bridge["⚡ 60GHz Bridge"]
+        WHOUSE -.1Gbps Wireless.-> WSHOP
     end
 
-    %% Network connections with styled edges
-    OPN --- SW
-    SW --- PH1
-    SW --- PH2
+    subgraph Garage["🏭 Garage/Shop"]
+        WSHOP["Mikrotik NRay60<br/>192.168.1.8"]:::wireless
+        BROCADE["Brocade ICX6610<br/>192.168.1.20<br/>Core L3 Switch"]:::coreswitch
+        ARISTA["Arista 7050<br/>192.168.1.21<br/>40Gb Distribution"]:::distswitch
 
-    %% VM connections with styled edges
-    PH1 --> K8S1
-    PH1 --> K8S2
-    PH1 --> K8S3
-    PH1 --> K8S4
-    PH1 --> K8S5
-    PH1 --> K8S6
-    PH1 --> K8S7
+        PX1["Proxmox-01<br/>4C/16GB"]:::server
+        PX2["Proxmox-02<br/>24C/196GB"]:::server
+        PX3["Proxmox-03<br/>64C/516GB"]:::server
+        PX4["Proxmox-04<br/>24C/196GB"]:::server
 
-    %% Subgraph styling
-    style LAN fill:#f5f5f5,stroke:#666,stroke-width:2px
-    style VLAN100 fill:#f5f5f5,stroke:#666,stroke-width:2px
+        WSHOP --- BROCADE
+        BROCADE <-->|2x 40Gb LAG| ARISTA
 
-    %% Link styling
-    linkStyle default stroke:#666,stroke-width:2px
+        PX1 -->|2x10Gb + 2x1Gb| BROCADE
+        PX2 -->|2x10Gb + 2x1Gb| BROCADE
+        PX3 -->|2x10Gb + 2x1Gb| BROCADE
+        PX4 -->|2x10Gb + 2x1Gb| BROCADE
+
+        PX1 -.40Gb Storage.-> ARISTA
+        PX2 -.40Gb Storage.-> ARISTA
+        PX3 -.40Gb Storage.-> ARISTA
+        PX4 -.40Gb Storage.-> ARISTA
+    end
+
+    style House fill:#ecf0f1,stroke:#34495e,stroke-width:3px
+    style Garage fill:#ecf0f1,stroke:#34495e,stroke-width:3px
+    style Bridge fill:#ffebee,stroke:#c62828,stroke-width:2px
 ```
+
+**Key Features:**
+- Dual locations connected via 60GHz wireless (1Gbps)
+- Multi-tier switching: Core (Brocade), Distribution (Arista), Access (Aruba)
+- Dedicated 40Gb storage network on Arista
+- LACP bonding on server links for redundancy
+
 </details>
+
+<details>
+  <summary>Kubernetes Cluster</summary>
+
+```mermaid
+graph TB
+    %% Styling
+    classDef control fill:#2f73d8,stroke:#fff,stroke-width:2px,color:#fff
+    classDef worker fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
+    classDef gpu fill:#e74c3c,stroke:#fff,stroke-width:2px,color:#fff
+    classDef vip fill:#f39c12,stroke:#fff,stroke-width:3px,color:#000
+
+    VIP["Kubernetes API VIP<br/>10.100.0.40:6443"]:::vip
+
+    subgraph ControlPlane["Control Plane Nodes"]
+        CP1["talos-control-1<br/>10.100.0.50<br/>4 CPU / 16GB"]:::control
+        CP2["talos-control-2<br/>10.100.0.51<br/>4 CPU / 16GB"]:::control
+        CP3["talos-control-3<br/>10.100.0.52<br/>4 CPU / 16GB"]:::control
+    end
+
+    subgraph Workers["Worker Nodes"]
+        GPU["talos-node-gpu-1<br/>10.100.0.53<br/>16 CPU / 128GB<br/>4x Tesla P100"]:::gpu
+        W1["talos-node-large-1<br/>10.100.0.54<br/>16 CPU / 128GB"]:::worker
+        W2["talos-node-large-2<br/>10.100.0.55<br/>16 CPU / 128GB"]:::worker
+        W3["talos-node-large-3<br/>10.100.0.56<br/>16 CPU / 128GB"]:::worker
+    end
+
+    VIP -.-> CP1
+    VIP -.-> CP2
+    VIP -.-> CP3
+
+    style ControlPlane fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style Workers fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+```
+
+**Cluster Configuration:**
+- **Total Nodes:** 7 (3 control plane, 4 workers)
+- **Total Resources:** 76 CPU cores, 560GB RAM, 4x Tesla P100 GPUs
+- **OS:** Talos Linux
+- **CNI:** Cilium with eBPF (10.69.0.0/16 pod CIDR)
+- **API VIP:** 10.100.0.40 (shared across control plane)
+
+</details>
+
+<details>
+  <summary>VLAN & Network Segmentation</summary>
+
+```mermaid
+graph LR
+    %% Styling
+    classDef mgmt fill:#95a5a6,stroke:#fff,stroke-width:2px,color:#fff
+    classDef servers fill:#3498db,stroke:#fff,stroke-width:2px,color:#fff
+    classDef storage fill:#e74c3c,stroke:#fff,stroke-width:2px,color:#fff
+    classDef k8s fill:#2ecc71,stroke:#fff,stroke-width:2px,color:#fff
+
+    subgraph Physical["Physical Networks"]
+        V1["VLAN 1<br/>192.168.1.0/24<br/>Management<br/>MTU 1500"]:::mgmt
+        V100["VLAN 100<br/>10.100.0.0/24<br/>Servers/VMs<br/>MTU 1500"]:::servers
+        V150["VLAN 150<br/>10.150.0.0/24<br/>Storage Public<br/>MTU 9000"]:::storage
+        V200["VLAN 200<br/>10.200.0.0/24<br/>Storage Cluster<br/>MTU 9000"]:::storage
+    end
+
+    subgraph Kubernetes["Kubernetes Networks"]
+        POD["Pod Network<br/>10.69.0.0/16<br/>Cilium CNI"]:::k8s
+        SVC["Service Network<br/>10.96.0.0/16<br/>ClusterIP"]:::k8s
+    end
+
+    V100 -.Talos VMs.-> POD
+    V100 -.Talos VMs.-> SVC
+    V150 -.CSI Drivers.-> POD
+
+    style Physical fill:#ecf0f1,stroke:#34495e,stroke-width:2px
+    style Kubernetes fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+```
+
+**Network Details:**
+- **VLAN 1:** Switch management, IPMI, gateway: OPNsense
+- **VLAN 100:** Kubernetes nodes, gateway: OPNsense, internet access
+- **VLAN 150:** Storage client connections, jumbo frames, L2 only
+- **VLAN 200:** Storage cluster traffic (40Gb dedicated), jumbo frames, L2 only
+- **Pod Network:** Cilium eBPF-based CNI with native routing
+- **Service Network:** Standard Kubernetes ClusterIP services
+
+</details>
+
+For detailed network documentation including switch configurations, see [Network Architecture](./docs/src/architecture/network-topology.md).
 
 ---
 
@@ -196,16 +327,55 @@ In my cluster there are two instances of [ExternalDNS](https://github.com/kubern
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2699_fe0f/512.gif" alt="⚙" width="20" height="20"> Hardware
 
-| Device                    | CPU                                              | RAM   | Storage                                          | Function            |
-|--------------------------|--------------------------------------------------|-------|--------------------------------------------------|---------------------|
-| Proxmox Host (Kubernetes)| 2x Intel Xeon E5-2697A v4 (64 cores @ 2.60GHz)  | 512GB | 1TB NVMe (host), 4x 3.84TB SSD (passthrough)    | Kubernetes Cluster  |
-| Proxmox Host (NAS)       | 2x Intel Xeon E5-2687W (32 cores @ 3.10GHz)     | 126GB | 2x 120GB SSD (boot), 800GB NVMe, Various HDDs   | NAS + Storage       |
-| OPNsense Router          | Intel i3-4130T (2 cores, 4 threads @ 2.90GHz)   | 16GB  | 120GB SSD                                       | Router              |
-| Aruba S2500-48p          | -                                                | -     | -                                               | PoE Switch          |
+### Compute Infrastructure
 
-Additional Hardware:
-- 4x Tesla P100 16GB GPUs (passthrough to Kubernetes host)
-- 7x Virtualized Talos VMs running on Kubernetes host
+| Device | CPU | RAM | Storage | Network | Function |
+|--------|-----|-----|---------|---------|----------|
+| **Proxmox-01** | Intel Xeon E3-1230 V2<br/>(4 cores @ 3.30GHz) | 16GB | 24x 4TB HDD | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Primary Storage |
+| **Proxmox-02** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz) | 196GB | 2x 120GB ZFS mirror | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph |
+| **Proxmox-03** | 2x Intel Xeon E5-2697A v4<br/>(64 cores @ 2.60GHz) | 516GB | 1x 3.92TB SSD + 1x 800GB<br/>**4x Tesla P100 16GB** | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph<br/>**GPU Passthrough** |
+| **Proxmox-04** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz) | 196GB | 8x 10TB + 1x 3.84TB + 1x 800GB | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph |
+
+**Total Cluster Resources:**
+- **CPU:** 116 cores total
+- **RAM:** 924GB total
+- **Storage:** 476.96TB raw (76 drives across all hosts + JBOD)
+- **GPU:** 4x NVIDIA Tesla P100 16GB (64GB VRAM total)
+- **Network:** Multi-tier switching with 40Gb Ceph network
+
+### Kubernetes VMs (Talos Linux)
+
+| VM Name | vCPU | RAM | Host | Role | Notes |
+|---------|------|-----|------|------|-------|
+| talos-control-1 | 4 | 16GB | Proxmox-03 | Control Plane | |
+| talos-control-2 | 4 | 16GB | Proxmox-04 | Control Plane | |
+| talos-control-3 | 4 | 16GB | Proxmox-02 | Control Plane | |
+| talos-node-gpu-1 | 16 | 128GB | Proxmox-03 | Worker | 4x P100 GPU passthrough |
+| talos-node-large-1 | 16 | 128GB | Proxmox-03 | Worker | |
+| talos-node-large-2 | 16 | 128GB | Proxmox-03 | Worker | |
+| talos-node-large-3 | 16 | 128GB | Proxmox-03 | Worker | |
+
+**Kubernetes Cluster Totals:** 76 vCPU, 560GB RAM, 4x Tesla P100 GPUs
+
+### Network Equipment
+
+| Device | Model | Location | Role | Specs |
+|--------|-------|----------|------|-------|
+| **OPNsense Router** | Custom (i3-4130T) | House | Gateway/Firewall | 2C/4T @ 2.90GHz, 16GB RAM, 2.5Gb ATT Fiber |
+| **Brocade ICX6610** | Enterprise Switch | Garage | Core L3 Switch | 48x 1/10Gb ports, 4x 40Gb QSFP+, VLAN routing |
+| **Arista 7050** | Data Center Switch | Garage | Distribution | 48x 10Gb SFP+, 4x 40Gb QSFP+ |
+| **Aruba S2500-48p** | Access Switch | House | PoE Access | 48x 1Gb PoE+ ports |
+| **Mikrotik NRay60** | 60GHz Radio (x2) | Both | Wireless Bridge | 1Gbps point-to-point link |
+
+### Storage
+
+**Storage Distribution:**
+- **Proxmox-01:** 24x 4TB HDD (96TB) - Unraid VM
+- **Proxmox-03:** 3x 4TB + 7x 10TB + 2x 12TB (106TB) - Unraid VM
+- **Proxmox-04:** 8x 10TB + 1x 3.84TB + 1x 800GB (84.64TB)
+- **JBOD Shelf:** 18x 10TB + 1x 3.84TB + 1x 800GB (184.64TB)
+- **Total Raw Capacity:** 476.96TB across 76 drives
+- **Network:** Dedicated 40Gb network for storage traffic
 
 ---
 

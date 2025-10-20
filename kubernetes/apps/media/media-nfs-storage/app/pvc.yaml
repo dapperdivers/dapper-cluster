@@ -108,7 +108,6 @@ spec:
     - nolock                  # No file locking needed
     - noacl                   # No ACLs needed
 
----
 # PersistentVolumeClaims for the above PVs
 ---
 apiVersion: v1

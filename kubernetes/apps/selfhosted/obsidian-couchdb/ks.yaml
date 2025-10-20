@@ -29,3 +29,8 @@ spec:
     substitute:
       APP: *appname
       VOLSYNC_CAPACITY: 5Gi
+      VOLSYNC_STORAGECLASS: ceph-rbd
+      VOLSYNC_ACCESSMODES: ReadWriteOnce
+      VOLSYNC_SNAPSHOTCLASS: ceph-rbd-snapshot
+      VOLSYNC_CACHE_STORAGECLASS: ceph-rbd
+      VOLSYNC_CACHE_ACCESSMODES: ReadWriteOnce

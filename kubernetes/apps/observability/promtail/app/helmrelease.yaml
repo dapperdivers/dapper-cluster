@@ -30,10 +30,10 @@ spec:
     fullnameOverride: promtail
     resources:
       requests:
-        cpu: 50m
+        cpu: 100m
         memory: 300Mi
       limits:
-        cpu: 100m
+        cpu: 250m
         memory: 400Mi
     config:
       clients:

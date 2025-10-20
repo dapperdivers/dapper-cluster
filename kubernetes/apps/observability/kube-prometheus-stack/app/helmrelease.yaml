@@ -50,7 +50,7 @@ spec:
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: cephfs-shared
+              storageClassName: ceph-rbd
               resources:
                 requests:
                   storage: 2Gi
@@ -101,7 +101,7 @@ spec:
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: cephfs-shared
+              storageClassName: ceph-rbd
               resources:
                 requests:
                   storage: 100Gi
@@ -112,7 +112,6 @@ spec:
           cpu: 50m
           memory: 260Mi
         limits:
-          cpu: 250m
           memory: 350Mi
       prometheus:
         monitor:
@@ -129,6 +128,13 @@ spec:
         - pods=[*]
         - deployments=[*]
         - persistentvolumeclaims=[*]
+      resources:
+        requests:
+          cpu: 25m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 512Mi
       prometheus:
         monitor:
           enabled: true

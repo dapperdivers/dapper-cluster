@@ -16,9 +16,9 @@ spec:
         - tower-2.manor
         - proxmox-01.manor
         - proxmox-02.manor
+        - proxmox-03.manor
         - proxmox-04.manor
         - athena.manor
-        - circe.manor
         - firewall.manor
         - zigbee-controller.manor
         - zigbee-controller-garage.manor
