@@ -1,26 +1,24 @@
-# Shared NFS PersistentVolumes for Media Services
-# These PVs are mounted by multiple media services for shared access to media files
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: media-tower-pv
+  name: media-tower-direct-pv
   labels:
     storage.type: nfs-media
-    storage.server: tower
+    storage.server: tower-direct
     storage.tier: secondary
 spec:
   capacity:
-    storage: 100Ti  # Adjust based on actual storage
+    storage: 100Ti
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   claimRef:
     namespace: media
-    name: media-tower-pvc
+    name: media-tower-direct-pvc
   nfs:
-    server: tower.manor
+    server: 10.150.0.84  # Tower direct IP for better performance
     path: /mnt/user/Media
   mountOptions:
     # Core NFS options - optimized for resilience
@@ -54,27 +52,28 @@ spec:
     - nolock                  # No file locking needed
     - noacl                   # No ACLs needed
 
+
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: media-tower-2-pv
+  name: media-tower-2-direct-pv
   labels:
     storage.type: nfs-media
-    storage.server: tower-2
+    storage.server: tower-2-direct
     storage.tier: secondary
 spec:
   capacity:
-    storage: 100Ti  # Adjust based on actual storage
+    storage: 100Ti
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   claimRef:
     namespace: media
-    name: media-tower-2-pvc
+    name: media-tower-2-direct-pvc
   nfs:
-    server: tower-2.manor
+    server: 10.150.0.85  # Tower direct IP for better performance
     path: /mnt/user/Media
   mountOptions:
     # Core NFS options - optimized for resilience
@@ -83,8 +82,8 @@ spec:
     - vers=4.1                # NFS version 4.1 (more stable with Unraid)
 
     # Buffer sizes - reduced for better error detection
-    - rsize=4194304           # 1MB read buffer
-    - wsize=4194304           # 1MB write buffer
+    - rsize=4194304           # 4MB read buffer
+    - wsize=4194304           # 4MB write buffer
 
     # Timeout and retry settings - tuned for faster recovery
     - timeo=100               # 10 second timeout (quick failure detection)
@@ -108,39 +107,38 @@ spec:
     - nolock                  # No file locking needed
     - noacl                   # No ACLs needed
 
-# PersistentVolumeClaims for the above PVs
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: media-tower-pvc
-  namespace: media
-  labels:
-    app.kubernetes.io/name: media-storage
-    storage.server: tower
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: ""
-  volumeName: media-tower-pv
-  resources:
-    requests:
-      storage: 100Ti
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: media-tower-2-pvc
+  name: media-tower-direct-pvc
   namespace: media
   labels:
     app.kubernetes.io/name: media-storage
-    storage.server: tower-2
+    storage.server: tower-direct
 spec:
   accessModes:
     - ReadWriteMany
   storageClassName: ""
-  volumeName: media-tower-2-pv
+  volumeName: media-tower-direct-pv
+  resources:
+    requests:
+      storage: 100Ti
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-tower-2-direct-pvc
+  namespace: media
+  labels:
+    app.kubernetes.io/name: media-storage
+    storage.server: tower-2-direct
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-tower-2-direct-pv
   resources:
     requests:
       storage: 100Ti
