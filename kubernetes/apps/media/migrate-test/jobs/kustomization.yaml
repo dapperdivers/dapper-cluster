@@ -8,5 +8,6 @@ resources:
   - ./migrate-pmm-test.yaml        #21.2GB - ~16 min
   - ./migrate-pictures.yaml        #24.2GB - ~18 min
   - ./migrate-homework.yaml        # 120.1GB - ~1.5 hours
+  - ./migrate-movies.yaml          # 80TB - will take days
 
   # For massive folders (80TB movies, 59TB tv), create separate dedicated jobs
