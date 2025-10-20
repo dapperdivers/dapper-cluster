@@ -302,14 +302,12 @@ spec:
           gnetId: 11455
           revision: 6
           datasource: Prometheus
-        # Custom media storage dashboard
-        media-storage:
-          file: dashboards/media-storage.json
-          datasource: Prometheus
+        # Custom media storage dashboard loaded via ConfigMap
+        # See: kubernetes/apps/observability/grafana/app/kustomization.yaml
 
     sidecar:
       dashboards:
-        enabled: false
+        enabled: true
         searchNamespace: ALL
         label: grafana_dashboard
         folderAnnotation: grafana_folder
