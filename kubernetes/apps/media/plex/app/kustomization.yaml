@@ -6,6 +6,7 @@ resources:
   - ./pvc-cephfs.yaml
   - ./helmrelease.yaml
   - ./priorityclass.yaml
+  # - ./configmap.yaml
 configMapGenerator:
   - name: plex-loki-rules
     files:

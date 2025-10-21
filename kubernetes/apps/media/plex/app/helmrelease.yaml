@@ -44,6 +44,9 @@ spec:
               PLEX_NO_AUTH_NETWORKS: 192.168.1.0/24,10.69.0.0/16
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
+            # envFrom:  # Disabled - uncomment when ready to enable Plex preferences ConfigMap
+            #  - configMapRef:
+            #      name: plex-preferences
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -57,6 +60,27 @@ spec:
                 cpu: 8000m
                 memory: 32Gi
                 nvidia.com/gpu: 2  # Limit to 2 GPU slices
+          imagemaid:
+            image:
+              repository: docker.io/kometateam/imagemaid
+              tag: v1.1.1@sha256:fbec331b36c1473f8a9c4214f55e5b097860476c8a5274eb61a2b85df89e56cc
+            env:
+              TZ: ${TIME_ZONE}
+            envFrom:
+              - configMapRef:
+                  name: imagemaid-config
+              - secretRef:
+                  name: imagemaid-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
     defaultPodOptions:
       runtimeClassName: nvidia
       securityContext:
@@ -139,6 +163,18 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+      imagemaid-tmp:
+        type: emptyDir
+        advancedMounts:
+          plex:
+            imagemaid:
+              - path: /tmp
+      imagemaid-config:
+        type: emptyDir
+        advancedMounts:
+          plex:
+            imagemaid:
+              - path: /config
       transcode:
         medium: Memory
         type: emptyDir
