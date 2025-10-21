@@ -29,9 +29,24 @@ See: [nfs-health-checks.yaml](./nfs-health-checks.yaml)
 
 ---
 
-### 3. Postgres Init Container (`postgres-init-container.yaml`)
+### 3. Postgres Init Config (`postgres-init-config.yaml`)
 
-Automatically injects a postgres-init container into HelmReleases to initialize PostgreSQL databases and users.
+ConfigMap containing the postgres-init container image reference. This serves as the single source of truth for the image version and is automatically updated by Renovate.
+
+**Contents:**
+```yaml
+data:
+  image-repository: ghcr.io/home-operations/postgres-init
+  image-tag: 17.6@sha256:...
+```
+
+See: [postgres-init-config.yaml](./postgres-init-config.yaml)
+
+---
+
+### 4. Postgres Init Container (`postgres-init-container.yaml`)
+
+Automatically injects a postgres-init container into HelmReleases to initialize PostgreSQL databases and users. The container image is dynamically loaded from the `postgres-init-config` ConfigMap.
 
 **Usage:**
 ```yaml
@@ -62,7 +77,7 @@ See: [postgres-init-container.yaml](./postgres-init-container.yaml)
 
 ---
 
-### 4. Postgres Init ExternalSecret (`postgres-init-externalsecret.yaml`)
+### 5. Postgres Init ExternalSecret (`postgres-init-externalsecret.yaml`)
 
 Auto-generates an ExternalSecret for postgres-init credentials when a HelmRelease has postgres-init enabled.
 
@@ -324,22 +339,33 @@ kubectl logs -n {namespace} {pod} -c init-db
 
 ## Updating Postgres-Init Image Version
 
-To update the postgres-init image version cluster-wide:
+The postgres-init image is managed via ConfigMap, making it Renovate-friendly!
 
-1. Edit `postgres-init-container.yaml`:
+**Automatic updates via Renovate:**
+- Renovate automatically detects the image in `postgres-init-config.yaml`
+- Creates PRs when new versions are available
+- No manual intervention needed! 🎉
+
+**Manual update (if needed):**
+
+1. Edit `postgres-init-config.yaml`:
    ```yaml
-   value:
-     image:
-       repository: ghcr.io/home-operations/postgres-init
-       tag: NEW_VERSION@sha256:NEW_HASH  # Update this
+   data:
+     image-repository: ghcr.io/home-operations/postgres-init
+     image-tag: NEW_VERSION@sha256:NEW_HASH  # Update this
    ```
 
 2. Apply:
    ```bash
-   flux reconcile kustomization kyverno -n kyverno
+   flux reconcile kustomization kyverno-policies -n kyverno
    ```
 
 3. All apps will use the new version on next pod restart
+
+**How it works:**
+- The ConfigMap stores the image reference centrally
+- The ClusterPolicy uses `lookup()` to fetch values from the ConfigMap
+- Single source of truth for all postgres-init containers across the cluster
 
 ---
 

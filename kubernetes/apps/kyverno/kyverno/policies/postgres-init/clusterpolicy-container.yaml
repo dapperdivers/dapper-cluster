@@ -31,8 +31,8 @@ spec:
                   initContainers:
                     init-db:
                       image:
-                        repository: ghcr.io/home-operations/postgres-init
-                        tag: 17.6@sha256:86a1992d46273c58fd4ad95b626081dfaabfe16bd56944675169e406d1a660dd
+                        repository: "{{ lookup('v1', 'ConfigMap', 'kyverno', 'postgres-init-config').data.\"image-repository\" }}"
+                        tag: "{{ lookup('v1', 'ConfigMap', 'kyverno', 'postgres-init-config').data.\"image-tag\" }}"
                       envFrom:
                         - secretRef:
                             name: "{{ request.object.metadata.name }}-postgres-init"
