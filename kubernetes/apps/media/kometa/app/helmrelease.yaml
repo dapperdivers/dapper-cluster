@@ -65,7 +65,7 @@ spec:
             env:
               TZ: *timeZone
               KOMETA_TAUTULLI_HOST: "http://tautulli.media"
-              KOMETA_PLEX_HOST: "http://192.168.1.158:32400"
+              KOMETA_PLEX_HOST: "http://plex.media.svc.cluster.local:32400"
               KOMETA_RADARR_HOST: "http://radarr.media"
               KOMETA_RADARR_ROOT_FOLDER_PATH: "/safe/movies"
               KOMETA_RADARR_UHD_HOST: "http://radarr-uhd.media"
