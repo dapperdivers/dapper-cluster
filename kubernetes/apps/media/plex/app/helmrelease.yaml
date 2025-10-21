@@ -44,9 +44,9 @@ spec:
               PLEX_NO_AUTH_NETWORKS: 192.168.1.0/24,10.69.0.0/16
               NVIDIA_DRIVER_CAPABILITIES: all
               NVIDIA_VISIBLE_DEVICES: all
-            # envFrom:  # Disabled - uncomment when ready to enable Plex preferences ConfigMap
-            #  - configMapRef:
-            #      name: plex-preferences
+            envFrom:
+              - configMapRef:
+                  name: plex-preferences
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true

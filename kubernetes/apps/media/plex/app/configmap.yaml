@@ -1,4 +1,20 @@
 ---
+# Plex Preferences ConfigMap
+#
+# FINDING AVAILABLE SETTINGS:
+# The Plex API provides ALL 175+ available preferences with descriptions, types, defaults, and valid values.
+# To see all settings, run this from inside the Plex container:
+#
+#   curl "http://localhost:32400/:/prefs?X-Plex-Token={your_token}" | xmllint --format -
+#
+# Your Plex token is in: /config/Library/Application Support/Plex Media Server/Preferences.xml (PlexOnlineToken attribute)
+# Each setting includes: id, label, summary, type, default, value, and enumValues (valid options)
+#
+# Additional documentation:
+# - Official Plex Advanced Settings: https://support.plex.tv/articles/201105343-advanced-hidden-server-settings/
+#
+# Format: PLEX_PREFERENCE_<NUMBER>="Key=Value"
+# Keys are case-sensitive and must match Preferences.xml attribute names exactly (PascalCase)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,12 +30,12 @@ data:
 
   # Database Tasks
   PLEX_PREFERENCE_3: "ButlerTaskBackupDatabase=1"  # Backup every 3 days
-  PLEX_PREFERENCE_4: "ButlerTaskOptimizeDatabase=1"  # Optimize weekly
+  PLEX_PREFERENCE_4: "ButlerTaskOptimizeDatabase=0"  # Disabled - ImageMaid optimizes daily at 11:30
   PLEX_PREFERENCE_5: "ButlerDatabaseBackupPath=/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases/Backups"
 
   # Cache & Bundle Cleanup
-  PLEX_PREFERENCE_6: "ButlerTaskCleanOldBundles=1"  # Clean old bundles weekly
-  PLEX_PREFERENCE_7: "ButlerTaskCleanOldCacheFiles=1"  # Clean cache weekly
+  PLEX_PREFERENCE_6: "ButlerTaskCleanOldBundles=0"  # Disabled - ImageMaid cleans bundles daily at 11:30
+  PLEX_PREFERENCE_7: "ButlerTaskCleanOldCacheFiles=1"  # Clean cache weekly (general cache, not PhotoTranscoder)
 
   # Media Analysis (disable deep analysis to reduce load)
   PLEX_PREFERENCE_8: "ButlerTaskDeepMediaAnalysis=0"  # Disabled - resource intensive
@@ -35,40 +51,53 @@ data:
   PLEX_PREFERENCE_14: "ButlerTaskGenerateMediaIndexFiles=1"  # Enable - helps with search performance
 
   # Automatic Library Scanning (for network mounts where inotify doesn't work)
-  PLEX_PREFERENCE_15: "scheduledLibraryUpdatesEnabled=1"  # Enable periodic library scans
-  PLEX_PREFERENCE_16: "scheduledLibraryUpdateInterval=3600"  # Scan every hour (3600 seconds)
-  PLEX_PREFERENCE_17: "fSEventLibraryUpdatesEnabled=1"  # Enable auto-updates (may not work on NFS/CephFS)
-  PLEX_PREFERENCE_18: "fSEventLibraryPartialScanEnabled=1"  # Only scan changed folders
+  PLEX_PREFERENCE_15: "ScheduledLibraryUpdatesEnabled=1"  # Enable periodic library scans
+  PLEX_PREFERENCE_16: "ScheduledLibraryUpdateInterval=3600"  # Scan every hour (3600 seconds)
+  PLEX_PREFERENCE_17: "FSEventLibraryUpdatesEnabled=1"  # Enable auto-updates (may not work on NFS/CephFS)
+  PLEX_PREFERENCE_18: "FSEventLibraryPartialScanEnabled=1"  # Only scan changed folders
 
   # Network & Remote Access
-  PLEX_PREFERENCE_19: "secureConnections=1"  # Preferred (0=disabled, 1=preferred, 2=required)
-  PLEX_PREFERENCE_20: "enableIPv6=0"  # Disabled - not using IPv6
-  PLEX_PREFERENCE_21: "gdmEnabled=1"  # Enable local network discovery (GDM)
+  PLEX_PREFERENCE_19: "EnableIPv6=0"  # Disabled - not using IPv6
+  PLEX_PREFERENCE_20: "GdmEnabled=1"  # Enable local network discovery (GDM)
 
   # DLNA (if you use it for other devices)
-  PLEX_PREFERENCE_22: "dlnaEnabled=1"  # Enable DLNA server
-  PLEX_PREFERENCE_23: "dlnaReportTimeline=1"  # Report playback timeline to DLNA devices
+  PLEX_PREFERENCE_21: "DlnaEnabled=1"  # Enable DLNA server
 
   # Transcoding
-  PLEX_PREFERENCE_24: "transcodeCountLimit=3"  # Max 3 simultaneous transcodes (adjust based on GPU)
-  PLEX_PREFERENCE_25: "hardwareAcceleratedCodecs=1"  # Enable GPU transcoding (you have NVIDIA GPUs)
-  PLEX_PREFERENCE_26: "transcoderTempDirectory=/transcode"  # Use memory-backed transcode directory
-
-  # Webhooks (useful for automation/notifications)
-  PLEX_PREFERENCE_27: "webHooksEnabled=1"  # Enable webhooks for integrations
-
-  # Privacy & Analytics
-  PLEX_PREFERENCE_28: "collectUsageData=0"  # Disable sending analytics to Plex (privacy)
-
-  # Transcoding Buffer Optimizations (for smoother transcoded playback)
-  PLEX_PREFERENCE_29: "transcoderThrottleBuffer=120"  # Buffer 120s before throttling (default: 60s)
-  PLEX_PREFERENCE_30: "transcoderPruneBuffer=600"  # Retain 10min of segments (default: 300s)
-  PLEX_PREFERENCE_31: "segmentedTranscoderTimeout=30"  # Wait 30s for transcoder to start (default: 20s)
+  PLEX_PREFERENCE_22: "TranscoderTempDirectory=/transcode"  # Use memory-backed transcode directory
+  PLEX_PREFERENCE_23: "TranscoderThrottleBuffer=120"  # Buffer 120s before throttling (default: 300s)
 
   # Bandwidth Settings (unlimited - 2.5Gbps uplink)
-  PLEX_PREFERENCE_32: "wanPerStreamMaxUploadRate=0"  # Unlimited per-stream bandwidth
-  PLEX_PREFERENCE_33: "wanTotalMaxUploadRate=0"  # Unlimited total upload bandwidth
-  PLEX_PREFERENCE_34: "wanPerUserStreamCount=0"  # Unlimited streams per user
+  PLEX_PREFERENCE_24: "WanTotalMaxUploadRate=0"  # Unlimited total upload bandwidth (0 = unlimited)
 
   # Background Transcoding Quality (for sync/downloads)
-  PLEX_PREFERENCE_35: "transcoderH264BackgroundPreset=medium"  # Medium preset (balanced quality/speed)
+  # Options: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+  PLEX_PREFERENCE_25: "TranscoderH264BackgroundPreset=medium"  # Medium preset (balanced quality/speed)
+
+  # Hardware Transcoding & Quality
+  # Leveraging 2 NVIDIA GPU slices (8GB VRAM) for maximum quality transcoding
+  PLEX_PREFERENCE_26: "HardwareAcceleratedCodecs=1"  # Enable NVIDIA GPU hardware acceleration
+  PLEX_PREFERENCE_27: "TranscoderQuality=3"  # Maximum quality (0=auto, 1=speed, 2=quality, 3=max)
+  PLEX_PREFERENCE_28: "TranscodeCountLimit=10"  # Allow 10 simultaneous transcode streams
+  PLEX_PREFERENCE_29: "TranscoderToneMapping=1"  # Enable HDR to SDR tone mapping
+  PLEX_PREFERENCE_30: "HardwareAcceleratedEncoders=1"  # Explicitly enable GPU encoders
+
+  # Content Detection Features
+  # Run ASAP with available CPU/GPU resources for best UX
+  PLEX_PREFERENCE_31: "GenerateIntroMarkerBehavior=asap"  # Detect intros immediately when media added
+  PLEX_PREFERENCE_32: "GenerateCreditsMarkerBehavior=both, try online first"  # Credits detection (online + local)
+  PLEX_PREFERENCE_33: "GenerateChapterThumbBehavior=asap"  # Generate chapter thumbnails immediately
+
+  # Performance Optimization
+  # Tuned for large libraries with 32GB RAM available
+  PLEX_PREFERENCE_34: "DatabaseCacheSize=2048"  # 2GB database cache (recommended for 15k+ items)
+  PLEX_PREFERENCE_35: "LongRunningJobThreads=4"  # Parallel threads for Sonic/intro/credits analysis
+
+  # Network & Security
+  PLEX_PREFERENCE_36: "SecureConnections=preferred"  # Prefer HTTPS, allow HTTP fallback
+  PLEX_PREFERENCE_37: "RelayEnabled=0"  # Disable Plex Relay (2 Mbps limitation)
+  PLEX_PREFERENCE_38: "TreatWanIpAsLocal=1"  # Improve performance with internal DNS routing
+
+  # Video Preview Thumbnails (BIF files)
+  # Disabled per TRaSH guides - high disk I/O and storage cost
+  PLEX_PREFERENCE_39: "GenerateBIFBehavior=never"  # Disable video preview thumbnails
