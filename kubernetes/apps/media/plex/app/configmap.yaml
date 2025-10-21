@@ -85,19 +85,20 @@ data:
   # Content Detection Features
   # Run ASAP with available CPU/GPU resources for best UX
   PLEX_PREFERENCE_31: "GenerateIntroMarkerBehavior=asap"  # Detect intros immediately when media added
-  PLEX_PREFERENCE_32: "GenerateCreditsMarkerBehavior=both, try online first"  # Credits detection (online + local)
-  PLEX_PREFERENCE_33: "GenerateChapterThumbBehavior=asap"  # Generate chapter thumbnails immediately
+  PLEX_PREFERENCE_32: "GenerateCreditsMarkerBehavior=asap"  # Generate credits markers immediately
+  PLEX_PREFERENCE_33: "MarkerSource=any"  # Use both online and local detection (try online first)
+  PLEX_PREFERENCE_34: "GenerateChapterThumbBehavior=asap"  # Generate chapter thumbnails immediately
 
   # Performance Optimization
   # Tuned for large libraries with 32GB RAM available
-  PLEX_PREFERENCE_34: "DatabaseCacheSize=2048"  # 2GB database cache (recommended for 15k+ items)
-  PLEX_PREFERENCE_35: "LongRunningJobThreads=4"  # Parallel threads for Sonic/intro/credits analysis
+  PLEX_PREFERENCE_35: "DatabaseCacheSize=2048"  # 2GB database cache (recommended for 15k+ items)
+  PLEX_PREFERENCE_36: "LongRunningJobThreads=4"  # Parallel threads for Sonic/intro/credits analysis
 
   # Network & Security
-  PLEX_PREFERENCE_36: "SecureConnections=preferred"  # Prefer HTTPS, allow HTTP fallback
-  PLEX_PREFERENCE_37: "RelayEnabled=0"  # Disable Plex Relay (2 Mbps limitation)
-  PLEX_PREFERENCE_38: "TreatWanIpAsLocal=1"  # Improve performance with internal DNS routing
+  PLEX_PREFERENCE_37: "SecureConnections=preferred"  # Prefer HTTPS, allow HTTP fallback
+  PLEX_PREFERENCE_38: "RelayEnabled=0"  # Disable Plex Relay (2 Mbps limitation)
+  PLEX_PREFERENCE_39: "TreatWanIpAsLocal=1"  # Improve performance with internal DNS routing
 
   # Video Preview Thumbnails (BIF files)
   # Disabled per TRaSH guides - high disk I/O and storage cost
-  PLEX_PREFERENCE_39: "GenerateBIFBehavior=never"  # Disable video preview thumbnails
+  PLEX_PREFERENCE_40: "GenerateBIFBehavior=never"  # Disable video preview thumbnails
