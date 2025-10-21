@@ -1,0 +1,109 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: miniflux
+  annotations:
+    # Postgres-init automation - these 3 annotations enable automatic postgres initialization!
+    postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/user-key: "MINIFLUX_POSTGRES_USER"
+    postgres-init.home.arpa/pass-key: "MINIFLUX_POSTGRES_PASSWORD"
+    # postgres-init.home.arpa/dbname: "custom-db-name"  # Optional: override database name
+    # postgres-init.home.arpa/controller: "custom-controller"  # Optional: override controller name
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: cloudnative-pg-cluster
+      namespace: database
+    - name: external-secrets-stores
+      namespace: external-secrets
+  values:
+    controllers:
+      miniflux:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        # NOTE: No initContainers section needed! Kyverno injects postgres-init automatically
+        containers:
+          app:
+            image:
+              repository: ghcr.io/miniflux/miniflux
+              tag: 2.2.5
+            env:
+              # Miniflux configuration
+              RUN_MIGRATIONS: "1"
+              CREATE_ADMIN: "1"
+              ADMIN_USERNAME: admin
+              ADMIN_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: miniflux-secret
+                    key: ADMIN_PASSWORD
+              # Database connection - read from app secret (not postgres-init secret)
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: miniflux-secret
+                    key: DATABASE_URL
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthcheck
+                    port: &port 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+    service:
+      app:
+        controller: miniflux
+        ports:
+          http:
+            port: *port
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+        className: internal
+        hosts:
+          - host: &host "rss.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
