@@ -354,6 +354,46 @@ kubectl get ks volsync -n storage
 **Impact:** "Volume ID already exists" errors
 **Resolution:** Delete stuck PVCs, let VolSync recreate with fresh UIDs
 
+### Issue: Persistent "Volume ID already exists" after mass PVC deletion (2025-10-21)
+
+**Root Cause:** Released PVs blocking Ceph RBD volume IDs after PVC deletion
+**Impact:** New PVCs couldn't provision - Ceph saw volume IDs as "already exists"
+**Context:** During migration from CephFS to RBD, deleted 25 app PVCs but PVs remained in "Released" state
+
+**Complete Resolution Steps:**
+```bash
+# 1. Identify the deadlock
+kubectl get pvc -A | grep Pending  # PVCs stuck
+kubectl get pods -A | grep volsync-dst | grep Pending  # Mover pods can't start
+kubectl logs -n rook-ceph deploy/csi-rbdplugin-provisioner -c csi-rbdplugin --tail=50 | grep "already exists"
+
+# 2. Break the deadlock - delete ReplicationDestinations
+while read namespace app; do
+  kubectl delete replicationdestination -n "$namespace" "${app}-dst" --wait=false
+done < apps_list.txt
+
+# 3. Wait for mover pods and PVCs to clean up
+sleep 10
+
+# 4. Delete all Released PVs (THE KEY STEP!)
+kubectl get pv -o json | jq -r '.items[] | select(.spec.csi.driver == "rook-ceph.rbd.csi.ceph.com") | select(.status.phase == "Released") | .metadata.name' | xargs -r kubectl delete pv
+
+# 5. Optionally restart RBD provisioner for fresh state
+kubectl rollout restart deployment -n rook-ceph csi-rbdplugin-provisioner
+
+# 6. Reconcile apps to recreate everything
+flux reconcile kustomization -n <namespace> <app>
+```
+
+**Why this worked:**
+- PVCs were deleted → PVs became "Released" but not deleted (reclaimPolicy: Delete doesn't apply immediately)
+- Released PVs held references to Ceph RBD volume IDs
+- New PVCs got same UIDs, tried to create volumes with existing IDs
+- Deleting Released PVs freed the volume IDs in Ceph RBD
+- Fresh provisioning succeeded with clean slate
+
+**Key Insight:** When doing mass PVC migrations, always check for and clean up Released PVs immediately!
+
 ## Related Documentation
 
 - [VolSync Official Docs](https://volsync.readthedocs.io/)
