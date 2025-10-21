@@ -29,8 +29,5 @@ spec:
   timeout: 5m
   postBuild:
     substitute:
-      VOLSYNC_STORAGECLASS: ceph-rbd
-      VOLSYNC_SNAPSHOTCLASS: ceph-rbd-snapshot
-      VOLSYNC_ACCESSMODES: ReadWriteOnce
       APP: *app
       VOLSYNC_CAPACITY: 1Gi

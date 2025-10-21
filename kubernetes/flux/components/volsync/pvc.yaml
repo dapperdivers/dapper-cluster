@@ -4,8 +4,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: "${APP}"
 spec:
-  storageClassName: "${VOLSYNC_STORAGECLASS:-cephfs-shared}"
-  accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteMany}"]
+  storageClassName: "${VOLSYNC_STORAGECLASS:-ceph-rbd}"
+  accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteOnce}"]
   dataSourceRef:
     kind: ReplicationDestination
     apiGroup: volsync.backube

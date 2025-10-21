@@ -12,12 +12,12 @@ spec:
     copyMethod: "${VOLSYNC_COPYMETHOD:-Snapshot}"
     pruneIntervalDays: 14
     repository: "${APP}-volsync-r2-secret"
-    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:-cephfs-snapshot}"
+    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:-ceph-rbd-snapshot}"
     cacheCapacity: "${VOLSYNC_CACHE_CAPACITY:-10Gi}"
     cacheStorageClassName: "${VOLSYNC_CACHE_STORAGECLASS:-ceph-rbd}"
     cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:-ReadWriteOnce}"]
-    storageClassName: "${VOLSYNC_STORAGECLASS:-cephfs-shared}"
-    accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteMany}"]
+    storageClassName: "${VOLSYNC_STORAGECLASS:-ceph-rbd}"
+    accessModes: ["${VOLSYNC_ACCESSMODES:-ReadWriteOnce}"]
     moverSecurityContext:
       runAsUser: ${VOLSYNC_PUID:-1000}
       runAsGroup: ${VOLSYNC_PGID:-150}
