@@ -18,6 +18,8 @@ spec:
     volumeAttributes:
       clusterID: rook-ceph
       fsName: cephfs
+      staticVolume: "true"
+      pool: k8s-backups
       rootPath: "/volsync/${APP}"
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
