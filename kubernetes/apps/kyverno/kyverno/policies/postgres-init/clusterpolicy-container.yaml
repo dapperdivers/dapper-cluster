@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: postgres-init-container
+  annotations:
+    policies.kyverno.io/title: Postgres Init Container Injection
+    policies.kyverno.io/subject: HelmRelease
+    policies.kyverno.io/description: >-
+      This policy automatically adds a postgres-init container to HelmReleases
+      when the postgres-init.home.arpa/enabled annotation is set to true.
+      It injects the init container into the controller's initContainers section,
+      with the controller name defaulting to the release name unless overridden
+      via the postgres-init.home.arpa/controller annotation.
+spec:
+  rules:
+    - name: inject-postgres-init-container
+      match:
+        any:
+          - resources:
+              kinds: [HelmRelease]
+              annotations:
+                postgres-init.home.arpa/enabled: "true"
+      mutate:
+        patchStrategicMerge:
+          spec:
+            values:
+              controllers:
+                "{{ request.object.metadata.annotations.\"postgres-init.home.arpa/controller\" || request.object.metadata.name }}":
+                  initContainers:
+                    init-db:
+                      image:
+                        repository: "{{ lookup('v1', 'ConfigMap', 'kyverno', 'postgres-init-config').data.\"image-repository\" }}"
+                        tag: "{{ lookup('v1', 'ConfigMap', 'kyverno', 'postgres-init-config').data.\"image-tag\" }}"
+                      envFrom:
+                        - secretRef:
+                            name: "{{ request.object.metadata.name }}-postgres-init"

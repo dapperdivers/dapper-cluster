@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: imagemaid-config
+  namespace: media
+data:
+  # Plex Connection (sidecar uses localhost)
+  PLEX_URL: "http://localhost:32400"
+  PLEX_PATH: "/config/Library/Application Support/Plex Media Server"
+
+  # Database Settings
+  LOCAL_DB: "false"  # Use API - safer and still fast via localhost
+  USE_EXISTING: "true"  # Reuse DB if less than 2 hours old for efficiency
+
+  # Operation Mode: remove (delete files), move (safe mode - can restore), report (dry run)
+  MODE: "remove"
+
+  # Schedule (time|frequency format: runs at 11:30 AM daily, after Plex Butler tasks)
+  # Recommended timing: Kometa (01:00-~07:00) -> Plex Butler (07:00-11:00) -> ImageMaid (11:30)
+  SCHEDULE: '11:30|daily'
+
+  # Cleanup Operations
+  PHOTO_TRANSCODER: "true"  # Clean PhotoTranscoder cache directory
+  EMPTY_TRASH: "true"  # Empty Plex trash after cleanup
+  CLEAN_BUNDLES: "true"  # Clean up Plex bundles
+  OPTIMIZE_DB: "true"  # Optimize database after cleanup (VACUUM)
+  OVERLAYS_ONLY: "false"  # Clean all bloat, not just Kometa overlays
+
+  # Performance Settings
+  TIMEOUT: "600"  # 10 minute timeout for API calls
+  SLEEP: "60"  # Sleep 60s between operations
+
+  # Advanced Options
+  NO_VERIFY_SSL: "false"  # Verify SSL (not needed for localhost anyway)
+  IGNORE_RUNNING: "false"  # Don't bypass safety checks
+  TRACE: "false"  # Enable for debugging issues
+  LOG_REQUESTS: "false"  # Enable to log all HTTP requests

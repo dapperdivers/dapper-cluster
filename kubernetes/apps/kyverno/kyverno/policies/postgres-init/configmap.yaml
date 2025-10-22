@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-config
+  namespace: kyverno
+data:
+  # Renovate will automatically detect and update these image references
+  image-repository: ghcr.io/home-operations/postgres-init
+  image-tag: 17.6@sha256:86a1992d46273c58fd4ad95b626081dfaabfe16bd56944675169e406d1a660dd

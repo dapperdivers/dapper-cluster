@@ -4,10 +4,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: media
 resources:
-  - ./migrate-audiobooks.yaml     #16.1GB - ~12 min
-  - ./migrate-pmm-test.yaml        #21.2GB - ~16 min
-  - ./migrate-pictures.yaml        #24.2GB - ~18 min
-  - ./migrate-homework.yaml        # 120.1GB - ~1.5 hours
-  - ./migrate-movies.yaml          # 80TB - will take days
+  - ./migrate-movies-parallel-script.yaml  # ConfigMap with migration script
+  - ./migrate-movies-parallel.yaml         # 80TB - Indexed Job: 26 pods (A-Z), 4 at a time
 
-  # For massive folders (80TB movies, 59TB tv), create separate dedicated jobs
+  # For massive folders (80TB movies, 59TB tv), use indexed parallel jobs
+  # Original single job: ./migrate-movies.yaml

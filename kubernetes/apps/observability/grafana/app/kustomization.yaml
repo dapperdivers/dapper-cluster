@@ -5,3 +5,12 @@ kind: Kustomization
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
+configMapGenerator:
+  - name: grafana-dashboard-media-storage
+    namespace: observability
+    files:
+      - media-storage.json=dashboards/media-storage.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true

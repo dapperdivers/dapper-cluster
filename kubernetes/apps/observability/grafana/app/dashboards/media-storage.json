@@ -84,7 +84,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"}) * 100",
+          "expr": "(max(kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"}) / max(kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"})) * 100",
           "legendFormat": "Tower (NFS)",
           "range": true,
           "refId": "A"
@@ -155,7 +155,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"}) * 100",
+          "expr": "(max(kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"}) / max(kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"})) * 100",
           "legendFormat": "Tower-2 (NFS)",
           "range": true,
           "refId": "A"
@@ -226,7 +226,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"}) * 100",
+          "expr": "(max(kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"}) / max(kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"})) * 100",
           "legendFormat": "CephFS",
           "range": true,
           "refId": "A"
@@ -329,7 +329,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(kube_job_status_active{namespace=\"media\",job_name=~\"migrate.*\"} == 1) or vector(0)",
+          "expr": "count(kube_job_status_active{namespace=\"media\",job_name=~\"migrate.*\"} > 0) or vector(0)",
           "legendFormat": "Active Jobs",
           "range": true,
           "refId": "A"
@@ -392,7 +392,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(kube_job_status_succeeded{namespace=\"media\",job_name=~\"migrate.*\"} == 1) or vector(0)",
+          "expr": "count(kube_job_status_succeeded{namespace=\"media\",job_name=~\"migrate.*\"} > 0) or vector(0)",
           "legendFormat": "Completed",
           "range": true,
           "refId": "A"
@@ -459,7 +459,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(kube_job_status_failed{namespace=\"media\",job_name=~\"migrate.*\"} == 1) or vector(0)",
+          "expr": "count(kube_job_status_failed{namespace=\"media\",job_name=~\"migrate.*\"} > 0) or vector(0)",
           "legendFormat": "Failed",
           "range": true,
           "refId": "A"
@@ -669,7 +669,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 20
       },
@@ -714,99 +714,6 @@
         }
       ],
       "title": "Storage Capacity Over Time",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Available space remaining on each volume",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "decbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 20
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last",
-            "min"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "kubelet_volume_stats_available_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}",
-          "legendFormat": "{{persistentvolumeclaim}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Available Space",
       "type": "timeseries"
     },
     {
@@ -863,7 +770,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"}",
+          "expr": "max(kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"})",
           "legendFormat": "Tower - Used",
           "range": true,
           "refId": "A"
@@ -874,7 +781,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"}",
+          "expr": "max(kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"})",
           "legendFormat": "Tower - Total",
           "range": true,
           "refId": "B"
@@ -937,7 +844,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"}",
+          "expr": "max(kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"})",
           "legendFormat": "Tower-2 - Used",
           "range": true,
           "refId": "A"
@@ -948,7 +855,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"}",
+          "expr": "max(kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"})",
           "legendFormat": "Tower-2 - Total",
           "range": true,
           "refId": "B"
@@ -1011,7 +918,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"}",
+          "expr": "max(kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"})",
           "legendFormat": "CephFS - Used",
           "range": true,
           "refId": "A"
@@ -1022,7 +929,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"}",
+          "expr": "max(kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"})",
           "legendFormat": "CephFS - Total",
           "range": true,
           "refId": "B"

@@ -36,7 +36,9 @@ spec:
             command:
               - rsync
             args:
-              - --archive
+              - --recursive
+              - --links
+              - --times
               - --stats
               - --verbose
               - --human-readable
@@ -50,10 +52,10 @@ spec:
               TZ: ${TIME_ZONE}
             resources:
               requests:
-                cpu: 500m
+                cpu: 1000m
                 memory: 512Mi
               limits:
-                cpu: 2
+                cpu: 4
                 memory: 2Gi
             securityContext:
               allowPrivilegeEscalation: false
@@ -70,8 +72,8 @@ spec:
         seccompProfile: { type: RuntimeDefault }
 
     persistence:
-      nfs-tower-2:
-        existingClaim: media-tower-2-pvc
+      nfs-tower:
+        existingClaim: media-tower-2-direct-pvc  # Tower on ceph public
         globalMounts:
           - path: /tower-2
             readOnly: false
