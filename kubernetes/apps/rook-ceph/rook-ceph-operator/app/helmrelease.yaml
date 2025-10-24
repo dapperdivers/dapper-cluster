@@ -29,6 +29,10 @@ spec:
       enabled: true
 
     csi:
+      # Disable new CSI operator (v1.18+) for external cluster compatibility
+      # Reverts to legacy CSI configuration method that works with external Ceph
+      rookUseCsiOperator: false
+
       # RBD driver enabled for block storage (rook-pvc-pool)
       enableRbdDriver: true
       # Enable CephFS driver for shared filesystem storage
