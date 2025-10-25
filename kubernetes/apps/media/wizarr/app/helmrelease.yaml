@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository:  ghcr.io/wizarrrr/wizarr
-              tag: v2025.10.4@sha256:15cfcd68d06f89a5fda198f2c0658f3c56ceb20d35cb78717a5fa54fb614dc12
+              tag: v2025.10.6@sha256:f4bbe0499679b270760efe723ef9c6232c5c89a0a22974bd1ee21652ce03b7d1
             env:
               TZ: ${TIME_ZONE}
               APP_URL: https://invite.${SECRET_DOMAIN_MEDIA}
