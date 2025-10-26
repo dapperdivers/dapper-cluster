@@ -25,6 +25,21 @@ hubble:
     enabled: true
   ui:
     enabled: true
+    ingress:
+      enabled: true
+      className: internal
+      annotations:
+        gethomepage.dev/enabled: "true"
+        gethomepage.dev/name: Hubble
+        gethomepage.dev/icon: cilium.svg
+        gethomepage.dev/group: Monitoring
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      hosts:
+        - &host "hubble.${SECRET_DOMAIN}"
+      tls:
+        - secretName: ${SECRET_DOMAIN/./-}-tls
+          hosts:
+            - *host
 ipam:
   mode: kubernetes
 ipv4NativeRoutingCIDR: "10.69.0.0/16"
