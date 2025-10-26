@@ -9,9 +9,6 @@ spec:
   chart:
     spec:
       chart: rook-ceph
-      # Using v1.14.9 (bundles Ceph 18 Reef) to match Proxmox Ceph 18.2.7
-      # Upgrade to v1.15+ when Proxmox Ceph is upgraded to Squid
-      # Temporarily pinned to v1.18.4 due to YAML unmarshal bug in v1.18.5
       version: v1.18.4
       sourceRef:
         kind: HelmRepository
@@ -33,7 +30,6 @@ spec:
       # Disable new CSI operator (v1.18+) for external cluster compatibility
       # Reverts to legacy CSI configuration method that works with external Ceph
       rookUseCsiOperator: false
-
       # RBD driver enabled for block storage (rook-pvc-pool)
       enableRbdDriver: true
       # Enable CephFS driver for shared filesystem storage
