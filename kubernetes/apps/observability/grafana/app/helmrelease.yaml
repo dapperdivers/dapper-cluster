@@ -102,7 +102,7 @@ spec:
         nut-exporter:
           # renovate: depName="Cert-manager-Kubernetes"
           gnetId: 19308
-          revision: 3
+          revision: 4
           datasource: Prometheus
         cert-manager:
           # renovate: depName="Cert-manager-Kubernetes"
