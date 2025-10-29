@@ -43,8 +43,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/dapperdivers/posterizarr
-              tag: v1.9.77@sha256:3dee82f7719b60103344df94fefc9bc1ce61d9ccf791bf81239666f489f3add1
+              repository: ghcr.io/fscorrupt/posterizarr
+              tag: 2.0.5@sha256:f57a4ec95a0477cabe2446f3382a09435700db887be171dd49c8ee24ef22047e
             env:
               TZ: ${TIME_ZONE}
             resources:
@@ -59,6 +59,30 @@ spec:
               capabilities:
                 drop:
                 - ALL
+    service:
+      app:
+        controller: posterizarr
+        ports:
+          http:
+            port: &port 8000
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
+          authentik.home.arpa/internal: "true"
+          nginx.ingress.kubernetes.io/auth-signin: "https://posterizarr.${SECRET_DOMAIN_MEDIA}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
+        className: internal
+        hosts:
+          - host: &host "posterizarr.${SECRET_DOMAIN_MEDIA}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
