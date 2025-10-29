@@ -15,8 +15,6 @@ parameters:
   pool: rook-pvc-pool
   imageFormat: "2"
   imageFeatures: layering
-  # CRITICAL: Proper RBD map/unmap options for external Ceph cluster
-  # These ensure RBD exclusive locks are properly released when pods move/delete
   mapOptions: "krbd:rxbounce"
   unmapOptions: "force,tcmu"
   mounter: rbd
