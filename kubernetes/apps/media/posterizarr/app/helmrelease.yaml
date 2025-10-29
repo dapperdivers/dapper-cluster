@@ -109,3 +109,14 @@ spec:
         existingClaim: plex-posters-cephfs
         globalMounts:
         - path: /assets
+          subPath: assets
+      assetsbackup:
+        existingClaim: plex-posters-cephfs
+        globalMounts:
+          - path: /assetsbackup
+            subPath: assetsbackup
+      manualassets:
+        existingClaim: plex-posters-cephfs
+        globalMounts:
+          - path: /manualassets
+            subPath: manualassets

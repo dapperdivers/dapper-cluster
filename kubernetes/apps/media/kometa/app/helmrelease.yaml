@@ -112,6 +112,7 @@ spec:
         existingClaim: plex-posters-cephfs
         globalMounts:
         - path: /assets
+          subPath: assets
       git:
         type: emptyDir
         globalMounts:
