@@ -11,4 +11,101 @@ groups:
           category: logs
         annotations:
           app: "{{ $labels.app }}"
-          summary: "{{ $labels.app }} is experiencing database issues"
+          summary: "{{ $labels.app }} is experiencing database lock contention"
+          description: "Database is busy with retry attempts. This may slow down Plex operations."
+
+      - alert: PlexDatabaseCorruption
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(database.*corrupt|malformed database|database disk image is malformed)"[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} detected database corruption"
+          description: "CRITICAL: Plex database may be corrupted. Immediate attention required to prevent data loss."
+
+      - alert: PlexCrashDetected
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(segmentation fault|fatal error|panic|core dumped)"[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} has crashed"
+          description: "Plex encountered a fatal error or crash. Check logs for stack traces."
+
+      - alert: PlexTranscoderFailure
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(transcoder.*failed|transcoding.*error|EAE timeout)"[5m])) > 5
+        for: 3m
+        labels:
+          severity: warning
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} transcoding is failing repeatedly"
+          description: "Multiple transcoding failures detected. Users may experience playback issues."
+
+      - alert: PlexLibraryScanError
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(scan.*failed|failed to scan|library.*error)"[10m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} library scanning is experiencing errors"
+          description: "Multiple library scan failures detected. New media may not appear in Plex."
+
+      - alert: PlexAuthenticationFailures
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(auth.*failed|authentication.*error|token.*invalid)"[10m])) > 20
+        for: 5m
+        labels:
+          severity: warning
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} authentication failures detected"
+          description: "High rate of authentication failures. Users may be unable to sign in."
+
+      - alert: PlexPluginCrash
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(plugin.*crash|plugin.*error|agent.*failed)"[10m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} plugin/agent failures detected"
+          description: "Multiple plugin or agent failures. Metadata updates may be impacted."
+
+      - alert: PlexDiskSpaceWarning
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(disk.*full|no space left|insufficient.*space)"[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} is reporting disk space issues"
+          description: "CRITICAL: Plex is running out of disk space. This can cause data loss."
+
+      - alert: PlexNetworkErrors
+        expr: |
+          sum by (app) (count_over_time({app="plex"} |~ "(?i)(connection.*refused|connection.*timeout|network.*unreachable)"[10m])) > 20
+        for: 5m
+        labels:
+          severity: warning
+          category: logs
+        annotations:
+          app: "{{ $labels.app }}"
+          summary: "{{ $labels.app }} is experiencing network connectivity issues"
+          description: "High rate of network errors. Remote access or external services may be affected."

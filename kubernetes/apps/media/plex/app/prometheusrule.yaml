@@ -1,0 +1,162 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: plex
+spec:
+  groups:
+    - name: plex.rules
+      rules:
+        - alert: PlexPodNotReady
+          annotations:
+            summary: Plex pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready
+            description: >-
+              Plex pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready
+              state for more than 5 minutes. Users cannot access Plex.
+          expr: |
+            kube_pod_status_ready{namespace="media", pod=~"plex-.*", condition="true"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            category: availability
+
+        - alert: PlexPodCrashLooping
+          annotations:
+            summary: Plex pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping
+            description: >-
+              Plex pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted
+              {{ $value }} times in the last 15 minutes. This indicates a serious issue.
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace="media", pod=~"plex-.*"}[15m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+            category: stability
+
+        - alert: PlexContainerOOMKilled
+          annotations:
+            summary: Plex container was killed due to out of memory
+            description: >-
+              Plex container in pod {{ $labels.namespace }}/{{ $labels.pod }} was
+              OOMKilled. Consider increasing memory limits or investigating memory leaks.
+          expr: |
+            kube_pod_container_status_last_terminated_reason{namespace="media", pod=~"plex-.*", reason="OOMKilled"} == 1
+          for: 1m
+          labels:
+            severity: critical
+            category: resources
+
+        - alert: PlexHighMemoryUsage
+          annotations:
+            summary: Plex memory usage is critically high
+            description: >-
+              Plex container in {{ $labels.namespace }}/{{ $labels.pod }} is using
+              {{ $value | humanizePercentage }} of its memory limit. May OOMKill soon.
+          expr: |
+            (
+              container_memory_working_set_bytes{namespace="media", pod=~"plex-.*", container="app"}
+              /
+              container_spec_memory_limit_bytes{namespace="media", pod=~"plex-.*", container="app"}
+            ) > 0.90
+          for: 5m
+          labels:
+            severity: warning
+            category: resources
+
+        - alert: PlexHighCPUUsage
+          annotations:
+            summary: Plex CPU usage is critically high
+            description: >-
+              Plex container in {{ $labels.namespace }}/{{ $labels.pod }} is using
+              {{ $value | humanizePercentage }} of its CPU limit for more than 10 minutes.
+              This may impact streaming quality.
+          expr: |
+            (
+              rate(container_cpu_usage_seconds_total{namespace="media", pod=~"plex-.*", container="app"}[5m])
+              /
+              container_spec_cpu_quota{namespace="media", pod=~"plex-.*", container="app"}
+              * 100000
+            ) > 0.90
+          for: 10m
+          labels:
+            severity: warning
+            category: resources
+
+        - alert: PlexPodPending
+          annotations:
+            summary: Plex pod is stuck in pending state
+            description: >-
+              Plex pod {{ $labels.namespace }}/{{ $labels.pod }} has been in pending
+              state for more than 5 minutes. Check for resource constraints or scheduling issues.
+          expr: |
+            kube_pod_status_phase{namespace="media", pod=~"plex-.*", phase="Pending"} == 1
+          for: 5m
+          labels:
+            severity: warning
+            category: availability
+
+        - alert: PlexPodFailed
+          annotations:
+            summary: Plex pod is in failed state
+            description: >-
+              Plex pod {{ $labels.namespace }}/{{ $labels.pod }} is in a failed state.
+              Immediate investigation required.
+          expr: |
+            kube_pod_status_phase{namespace="media", pod=~"plex-.*", phase="Failed"} == 1
+          for: 1m
+          labels:
+            severity: critical
+            category: availability
+
+        - alert: PlexPersistentVolumeIssue
+          annotations:
+            summary: Plex persistent volume has issues
+            description: >-
+              PersistentVolumeClaim for Plex in {{ $labels.namespace }} is not bound.
+              Plex may lose data or fail to start.
+          expr: |
+            kube_persistentvolumeclaim_status_phase{namespace="media", persistentvolumeclaim="plex", phase!="Bound"} == 1
+          for: 5m
+          labels:
+            severity: critical
+            category: storage
+
+        - alert: PlexServiceDown
+          annotations:
+            summary: Plex service has no endpoints
+            description: >-
+              Plex service in {{ $labels.namespace }} has no healthy endpoints.
+              Users cannot access Plex.
+          expr: |
+            kube_endpoint_address_available{namespace="media", endpoint="plex"} == 0
+          for: 3m
+          labels:
+            severity: critical
+            category: availability
+
+        - alert: PlexHighRestartRate
+          annotations:
+            summary: Plex pod is restarting frequently
+            description: >-
+              Plex pod {{ $labels.namespace }}/{{ $labels.pod }} has had
+              {{ $value }} restarts in the last hour. Investigate for stability issues.
+          expr: |
+            increase(kube_pod_container_status_restarts_total{namespace="media", pod=~"plex-.*"}[1h]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            category: stability
+
+        - alert: PlexImagePullBackOff
+          annotations:
+            summary: Plex image pull is failing
+            description: >-
+              Plex pod {{ $labels.namespace }}/{{ $labels.pod }} is in ImagePullBackOff state.
+              Check image availability and registry credentials.
+          expr: |
+            kube_pod_container_status_waiting_reason{namespace="media", pod=~"plex-.*", reason="ImagePullBackOff"} == 1
+          for: 5m
+          labels:
+            severity: warning
+            category: deployment
