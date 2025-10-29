@@ -15,6 +15,11 @@ parameters:
   pool: rook-pvc-pool
   imageFormat: "2"
   imageFeatures: layering
+  # CRITICAL: Proper RBD map/unmap options for external Ceph cluster
+  # These ensure RBD exclusive locks are properly released when pods move/delete
+  mapOptions: "krbd:rxbounce"
+  unmapOptions: "force,tcmu"
+  mounter: rbd
   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
