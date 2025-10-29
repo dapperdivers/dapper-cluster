@@ -35,6 +35,10 @@ spec:
       # Enable CephFS driver for shared filesystem storage
       enableCephfsDriver: true
 
+      # Increase timeouts for external Ceph cluster (default: 150s)
+      # External clusters may have higher latency than co-located Ceph
+      csiGRPCTimeout: 300
+
       # CSI driver resource configuration
       csiRBDProvisionerResource: |
         - name: csi-provisioner
@@ -56,11 +60,11 @@ spec:
         - name: csi-attacher
           resource:
             requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
               memory: 256Mi
               cpu: 200m
+            limits:
+              memory: 512Mi
+              cpu: 400m
         - name: csi-snapshotter
           resource:
             requests:
@@ -106,11 +110,11 @@ spec:
         - name: csi-attacher
           resource:
             requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
               memory: 256Mi
               cpu: 200m
+            limits:
+              memory: 512Mi
+              cpu: 400m
         - name: csi-snapshotter
           resource:
             requests:
