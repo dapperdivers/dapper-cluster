@@ -47,7 +47,7 @@ spec:
             - name: ROOK_CEPH_MON_HOST
               valueFrom:
                 secretKeyRef:
-                  name: rook-ceph-mon
+                  name: rook-ceph-config
                   key: mon_host
             - name: ROOK_CEPH_ADMIN_KEY
               valueFrom:
