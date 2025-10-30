@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-tools
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rook-ceph-tools
+  template:
+    metadata:
+      labels:
+        app: rook-ceph-tools
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: rook-ceph-tools
+          image: quay.io/ceph/ceph:v18
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Create ceph config
+              cat <<EOF > /etc/ceph/ceph.conf
+              [global]
+              mon_host = $(ROOK_CEPH_MON_HOST)
+
+              [client.admin]
+              keyring = /etc/ceph/keyring
+              EOF
+
+              # Create admin keyring from secret
+              cat <<EOF > /etc/ceph/keyring
+              [client.admin]
+              key = $(ROOK_CEPH_ADMIN_KEY)
+              EOF
+
+              chmod 600 /etc/ceph/keyring
+
+              # Keep container running
+              exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
+          env:
+            - name: ROOK_CEPH_MON_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-config
+                  key: mon_host
+            - name: ROOK_CEPH_ADMIN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-mon
+                  key: admin-secret
+          volumeMounts:
+            - mountPath: /etc/ceph
+              name: ceph-config
+            - mountPath: /var/log/ceph
+              name: mon-endpoint-volume
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 2016
+            runAsGroup: 2016
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: ceph-config
+          emptyDir: {}
+        - name: mon-endpoint-volume
+          configMap:
+            name: rook-ceph-mon-endpoints
+            items:
+              - key: data
+                path: mon-endpoints
+      tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: 5
