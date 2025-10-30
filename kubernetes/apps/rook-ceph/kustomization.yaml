@@ -20,3 +20,70 @@ patches:
           pod-security.kubernetes.io/warn: privileged
     target:
       kind: Namespace
+  # Increase CSI timeout for external Ceph cluster (default: 2m30s → 10m)
+  # External clusters need longer timeouts due to network latency + large volumes
+  # Prevents operation lock deadlocks from kubernetes-csi/external-snapshotter#134
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: csi-rbdplugin-provisioner
+        namespace: rook-ceph
+      spec:
+        template:
+          spec:
+            containers:
+              - name: csi-provisioner
+                args:
+                  - --csi-address=$(ADDRESS)
+                  - --v=0
+                  - --timeout=10m
+                  - --retry-interval-start=500ms
+                  - --leader-election=true
+                  - --leader-election-namespace=rook-ceph
+                  - --leader-election-lease-duration=2m17s
+                  - --leader-election-renew-deadline=1m47s
+                  - --leader-election-retry-period=26s
+                  - --default-fstype=ext4
+                  - --extra-create-metadata=true
+                  - --prevent-volume-mode-conversion=true
+                  - --feature-gates=HonorPVReclaimPolicy=true
+                  - --feature-gates=CrossNamespaceVolumeDataSource=false
+                  - --feature-gates=Topology=false
+              - name: csi-resizer
+                args:
+                  - --csi-address=$(ADDRESS)
+                  - --v=0
+                  - --timeout=10m
+                  - --leader-election=true
+                  - --leader-election-namespace=rook-ceph
+                  - --leader-election-lease-duration=2m17s
+                  - --leader-election-renew-deadline=1m47s
+                  - --leader-election-retry-period=26s
+                  - --handle-volume-inuse-error=false
+                  - --feature-gates=RecoverVolumeExpansionFailure=true
+              - name: csi-attacher
+                args:
+                  - --v=0
+                  - --timeout=10m
+                  - --csi-address=$(ADDRESS)
+                  - --leader-election=true
+                  - --leader-election-namespace=rook-ceph
+                  - --leader-election-lease-duration=2m17s
+                  - --leader-election-renew-deadline=1m47s
+                  - --leader-election-retry-period=26s
+                  - --default-fstype=ext4
+              - name: csi-snapshotter
+                args:
+                  - --csi-address=$(ADDRESS)
+                  - --v=0
+                  - --timeout=10m
+                  - --leader-election=true
+                  - --leader-election-namespace=rook-ceph
+                  - --leader-election-lease-duration=2m17s
+                  - --leader-election-renew-deadline=1m47s
+                  - --leader-election-retry-period=26s
+                  - --extra-create-metadata=true
+    target:
+      kind: Deployment
+      name: csi-rbdplugin-provisioner
