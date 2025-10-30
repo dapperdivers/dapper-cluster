@@ -16,7 +16,7 @@ parameters:
   imageFormat: "2"
   imageFeatures: layering
   mapOptions: "krbd:rxbounce"
-  unmapOptions: "krdb:force"
+  unmapOptions: "krbd:force"
   mounter: rbd
   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
