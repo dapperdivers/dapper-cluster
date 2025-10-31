@@ -37,108 +37,14 @@ spec:
 
       # Increase timeouts for external Ceph cluster (default: 150s)
       # External clusters may have higher latency than co-located Ceph
-      csiGRPCTimeout: 300
+      # Converted from csiGRPCTimeout to grpcTimeoutInSeconds (600s = 10m)
+      grpcTimeoutInSeconds: 600
 
-      # CSI driver resource configuration
-      csiRBDProvisionerResource: |
-        - name: csi-provisioner
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 200m
-        - name: csi-resizer
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 200m
-        - name: csi-attacher
-          resource:
-            requests:
-              memory: 256Mi
-              cpu: 200m
-            limits:
-              memory: 512Mi
-              cpu: 400m
-        - name: csi-snapshotter
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 200m
-        - name: csi-rbdplugin
-          resource:
-            requests:
-              memory: 512Mi
-              cpu: 250m
-            limits:
-              memory: 1Gi
-              cpu: 500m
-        - name: liveness-prometheus
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 50m
-            limits:
-              memory: 256Mi
-              cpu: 100m
-
-      csiCephFSProvisionerResource: |
-        - name: csi-provisioner
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 200m
-        - name: csi-resizer
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 200m
-        - name: csi-attacher
-          resource:
-            requests:
-              memory: 256Mi
-              cpu: 200m
-            limits:
-              memory: 512Mi
-              cpu: 400m
-        - name: csi-snapshotter
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 200m
-        - name: csi-cephfsplugin
-          resource:
-            requests:
-              memory: 512Mi
-              cpu: 250m
-            limits:
-              memory: 1Gi
-              cpu: 500m
-        - name: liveness-prometheus
-          resource:
-            requests:
-              memory: 128Mi
-              cpu: 50m
-            limits:
-              memory: 256Mi
-              cpu: 100m
+      # Increase Kubernetes API rate limits for snapshot controller
+      # Default: 5 QPS, 10 burst - too low for large snapshot backlogs
+      # With 71+ concurrent snapshots, controller hits throttling
+      kubeApiQPS: 100
+      kubeApiBurst: 200
 
     # Enable monitoring
     monitoring:
