@@ -14,7 +14,7 @@ data:
     LETTERS="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
     LETTER=$$(echo $$LETTERS | cut -d' ' -f$$((INDEX + 1)))
 
-    SOURCE="/tower-2"  # Mount is now at movies level, so /tower-2 = movies directory
+    SOURCE="/tower-2/movies"
     DEST="/destination/movies"
     LOG_FILE="/metrics/migration-$${LETTER}.log"
     BATCH_SIZE=20

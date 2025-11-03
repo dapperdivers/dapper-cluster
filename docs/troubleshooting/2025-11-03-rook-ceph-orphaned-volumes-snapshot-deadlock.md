@@ -2,8 +2,29 @@
 
 **Date:** October 30 - November 3, 2025
 **Severity:** Critical (98% snapshot failure, 10+ applications stuck)
-**Status:** ✅ ROOT CAUSE IDENTIFIED - Resolution in progress
+**Status:** 🔄 RESOLUTION IN PROGRESS - Major breakthrough achieved
 **Duration:** 5 days investigation
+
+## 🎯 Current Status (November 3, 2025 - 3:30 PM)
+
+**Progress Made:**
+- ✅ 144/247 orphaned volumes cleaned (58%)
+- ✅ Identified stale watchers from non-existent node (10.150.0.15)
+- ✅ **KEY DISCOVERY:** Pending snapshots were targeting DELETED volumes!
+- ✅ Reduced pending snapshots from 62 → 7 (88% reduction)
+- 🔄 Cleaning up remaining orphaned VolumeSnapshot objects
+
+**Remaining Work:**
+- Delete 7 remaining pending VolumeSnapshot objects
+- Clean up 93 orphaned VolumeSnapshotContent objects
+- Test NEW snapshot creation with existing volumes
+- Commit StorageClass `discard` mount option
+- Accept 103 orphaned volumes with stale watchers will remain (not blocking operations)
+
+**Next Steps:**
+1. Complete orphaned snapshot cleanup
+2. Test that NEW snapshots work for actual existing PVCs
+3. Verify gatus and vaultwarden can create fresh snapshots
 
 ---
 
@@ -106,24 +127,52 @@ rbd: unknown unmap option 'tcmu'
 #   /tmp/cleanup-failed.log (108 volumes)
 ```
 
-### Phase 2: Force Cleanup Stale Watchers 🔄 IN PROGRESS
+### Phase 2: Force Cleanup Stale Watchers ❌ FAILED
 
 **Script created:** `/tmp/force-cleanup-watched-volumes.sh`
 
-**Process:**
+**Attempted approach:**
 1. For each of 108 orphaned volumes with watchers
-2. Identify stale Ceph clients (e.g., `client.6306334`)
+2. Identify stale Ceph clients (e.g., `client.6306334 from 10.150.0.15`)
 3. Blacklist them in Ceph: `ceph osd blacklist add <client>`
 4. Force-delete the orphaned volume
 5. Restart CSI plugins to clear unmap queue
 
-**Expected outcome:**
-- ✅ All 108 orphaned volumes removed
-- ✅ CSI unmap queue cleared
-- ✅ 62 pending snapshots can complete
-- ✅ gatus and vaultwarden PVCs provision successfully
+**Result:** ❌ 5/108 succeeded (95% failure rate)
 
-### Phase 3: Prevention ⏳ PENDING COMMIT
+**Why it failed:**
+- Watchers are from **non-existent node** (10.150.0.15 not in cluster)
+- Node was likely removed/rebuilt, leaving stale connections
+- Ceph blacklist commands failed or had no effect
+- Volumes remain locked by ghost watchers
+
+### Phase 3: Critical Discovery - Orphaned VolumeSnapshots 🎯 KEY FINDING
+
+**Breakthrough:** The 62 pending snapshots weren't being created properly - they were trying to snapshot **DELETED orphaned volumes**!
+
+**Evidence:**
+```
+snapcontent-2c3615d5: failed to take snapshot of volume 5ee65ec6-436d-484c-896c-bd74fb108a42
+"rpc error: code = NotFound desc = source Volume ID not found"
+
+snapcontent-b4ad079e: failed to take snapshot of volume 957850a8-b635-4236-b93b-dc47de5ad020
+"rpc error: code = NotFound desc = source Volume ID not found"
+```
+
+**Analysis:**
+- These volume IDs (5ee65ec6, 957850a8) are in our cleanup success logs - **we deleted them**!
+- The VolumeSnapshot objects remained after we deleted the underlying RBD volumes
+- CSI snapshotter kept retrying to snapshot non-existent volumes
+- Created a cascading failure blocking all snapshot operations
+
+**Resolution:** Delete all orphaned VolumeSnapshot and VolumeSnapshotContent objects
+
+**Status:** 🔄 IN PROGRESS
+- Pending snapshots reduced from 62 → 7
+- 93 orphaned VolumeSnapshotContent objects remain
+- Clearing these should unblock NEW snapshot creation
+
+### Phase 4: Prevention ⏳ PENDING COMMIT
 
 **Added to StorageClass** (not yet committed per user request):
 ```yaml
