@@ -12,7 +12,7 @@ spec:
   # Required for creating additional CRs (RGW, MDS, NFS)
   # PINNED: Renovate is configured to prevent upgrades beyond v18.x
   cephVersion:
-    image: quay.io/ceph/ceph:v18.2.7
+    image: quay.io/ceph/ceph:v20.1.1
 
   # CephCluster settings for external mode
   dataDirHostPath: /var/lib/rook
