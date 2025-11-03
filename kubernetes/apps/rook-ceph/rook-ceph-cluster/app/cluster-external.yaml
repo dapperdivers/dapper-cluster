@@ -8,6 +8,12 @@ spec:
   external:
     enable: true
 
+  # Ceph version must match the external cluster version (18.2.7 Reef)
+  # Required for creating additional CRs (RGW, MDS, NFS)
+  # PINNED: Renovate is configured to prevent upgrades beyond v18.x
+  cephVersion:
+    image: quay.io/ceph/ceph:v18.2.7
+
   # CephCluster settings for external mode
   dataDirHostPath: /var/lib/rook
 

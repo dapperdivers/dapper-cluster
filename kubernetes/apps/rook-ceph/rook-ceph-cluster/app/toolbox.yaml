@@ -19,7 +19,9 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: rook-ceph-tools
-          image: quay.io/ceph/ceph:v18
+          # PINNED: Must match external Ceph cluster version (18.2.7)
+          # Renovate is configured to prevent upgrades beyond v18.x
+          image: quay.io/ceph/ceph:v18.2.7
           command:
             - /bin/bash
             - -c
