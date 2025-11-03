@@ -74,7 +74,7 @@ spec:
     name: media-tower-2-direct-pvc
   nfs:
     server: 10.150.0.85  # Tower direct IP for better performance
-    path: /mnt/user/Media
+    path: /mnt/user/Media/movies  # Specific path to avoid mount conflicts
   mountOptions:
     # Core NFS options - optimized for resilience
     - soft                    # Fail operations instead of hanging indefinitely
