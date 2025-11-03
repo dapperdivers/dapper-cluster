@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+tasks:
+
+  restart-job:
+    desc: Restart a migration job by uninstalling and reconciling the HelmRelease [NS=media] [JOB=required]
+    cmds:
+      - helm uninstall {{.JOB}} -n {{.NS}}
+      - flux reconcile helmrelease {{.JOB}} -n {{.NS}}
+      - echo "Migration job {{.JOB}} has been restarted"
+      - echo "Monitor with kubectl get jobs -n {{.NS}} -w"
+    vars:
+      NS: '{{.NS | default "media"}}'
+    requires:
+      vars: [JOB]
+    preconditions:
+      - which flux helm kubectl
+      - flux get helmrelease {{.JOB}} -n {{.NS}}

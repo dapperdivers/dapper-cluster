@@ -22,6 +22,10 @@ includes:
   kubernetes: .taskfiles/kubernetes
   talos: .taskfiles/talos
   volsync: .taskfiles/volsync
+  migration:
+    taskfile: .taskfiles/migration/Taskfile.yaml
+    vars:
+      ROOT_DIR: '{{.ROOT_DIR}}'
   storage:
     taskfile: .taskfiles/storage/Taskfile.yaml
     vars:
