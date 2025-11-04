@@ -27,6 +27,280 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "Total storage capacity across all media volumes",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 51,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "value_and_name",
+        "showPercentChange": false,
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))",
+          "legendFormat": "Total Capacity",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Capacity",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Total storage used across all media volumes",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 52,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "value_and_name",
+        "showPercentChange": false,
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))",
+          "legendFormat": "Total Used",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Used",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Available storage space across all media volumes",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 53,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "value_and_name",
+        "showPercentChange": false,
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})) - sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))",
+          "legendFormat": "Available",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Available Space",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Overall storage usage percentage",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "orange",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent",
+          "max": 100,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 54,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "value_and_name",
+        "showPercentChange": false,
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})) / sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))) * 100",
+          "legendFormat": "Usage %",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Usage Percentage",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "description": "Storage capacity usage across media PVCs",
       "fieldConfig": {
         "defaults": {
@@ -61,7 +335,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 0
+        "y": 6
       },
       "id": 1,
       "options": {
@@ -132,7 +406,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 0
+        "y": 6
       },
       "id": 2,
       "options": {
@@ -203,7 +477,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 0
+        "y": 6
       },
       "id": 3,
       "options": {
@@ -241,7 +515,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 20
       },
       "id": 100,
       "panels": [],
@@ -253,7 +527,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of active migration jobs",
+      "description": "Number of active migration pods (job indexes)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -304,7 +578,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 9
+        "y": 21
       },
       "id": 10,
       "options": {
@@ -329,13 +603,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(kube_job_status_active{namespace=\"media\",job_name=~\"migrate.*\"} > 0) or vector(0)",
-          "legendFormat": "Active Jobs",
+          "expr": "sum(kube_job_status_active{namespace=\"media\",job_name=~\"migrate.*\"}) or vector(0)",
+          "legendFormat": "Active Pods",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Active Migration Jobs",
+      "title": "Active Migration Pods",
       "type": "stat"
     },
     {
@@ -343,7 +617,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of completed migration jobs",
+      "description": "Number of completed migration pods (job indexes)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -367,7 +641,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 9
+        "y": 21
       },
       "id": 11,
       "options": {
@@ -392,13 +666,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(kube_job_status_succeeded{namespace=\"media\",job_name=~\"migrate.*\"} > 0) or vector(0)",
-          "legendFormat": "Completed",
+          "expr": "sum(kube_job_status_succeeded{namespace=\"media\",job_name=~\"migrate.*\"}) or vector(0)",
+          "legendFormat": "Completed Pods",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Completed Jobs",
+      "title": "Completed Pods",
       "type": "stat"
     },
     {
@@ -406,7 +680,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of failed migration jobs",
+      "description": "Number of failed migration pods (job indexes)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -434,7 +708,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 9
+        "y": 21
       },
       "id": 12,
       "options": {
@@ -459,13 +733,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(kube_job_status_failed{namespace=\"media\",job_name=~\"migrate.*\"} > 0) or vector(0)",
-          "legendFormat": "Failed",
+          "expr": "sum(kube_job_status_failed{namespace=\"media\",job_name=~\"migrate.*\"}) or vector(0)",
+          "legendFormat": "Failed Pods",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Failed Jobs",
+      "title": "Failed Pods",
       "type": "stat"
     },
     {
@@ -527,7 +801,7 @@
         "h": 4,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 21
       },
       "id": 13,
       "options": {
@@ -552,7 +826,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(ceph_pool_wr{name=\"cephfs-data\"}[5m])",
+          "expr": "rate(ceph_pool_wr{name=\"cephfs_data\"}[5m])",
           "legendFormat": "CephFS Writes/sec",
           "range": true,
           "refId": "A"
@@ -566,12 +840,12 @@
         "type": "loki",
         "uid": "loki"
       },
-      "description": "rsync transfer statistics from logs",
+      "description": "rsync transfer statistics from structured log files (via log-tailer sidecar)",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 35
       },
       "id": 14,
       "options": {
@@ -591,7 +865,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{namespace=\"media\", app_kubernetes_io_name=~\"migrate.*\"} |~ \"sent|received|speedup|total size\"",
+          "expr": "{namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"} |~ \"sent|received|speedup|total size\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -605,11 +879,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 68
       },
-      "id": 101,
+      "id": 200,
       "panels": [],
-      "title": "Storage Details",
+      "title": "Unraid NFS Servers",
       "type": "row"
     },
     {
@@ -617,7 +891,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Total storage capacity and usage",
+      "description": "CPU usage percentage for Unraid NFS servers",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -626,7 +900,215 @@
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "CPU %",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 69
+      },
+      "id": 201,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{job=\"node-exporter\",instance=~\"tower.*\",mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "{{instance}} CPU",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Unraid CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Memory usage percentage for Unraid NFS servers",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Memory %",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 69
+      },
+      "id": 202,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "((node_memory_MemTotal_bytes{job=\"node-exporter\",instance=~\"tower.*\"} - node_memory_MemAvailable_bytes{job=\"node-exporter\",instance=~\"tower.*\"}) / node_memory_MemTotal_bytes{job=\"node-exporter\",instance=~\"tower.*\"}) * 100",
+          "legendFormat": "{{instance}} Memory",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Unraid Memory Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Network throughput (TX/RX) for Unraid NFS servers",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Throughput",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -663,22 +1145,36 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "Bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*TX.*/"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 6,
+        "w": 12,
         "x": 0,
-        "y": 20
+        "y": 75
       },
-      "id": 4,
+      "id": 203,
       "options": {
         "legend": {
           "calcs": [
             "last",
-            "max"
+            "max",
+            "mean"
           ],
           "displayMode": "table",
           "placement": "bottom",
@@ -696,7 +1192,264 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}",
+          "expr": "rate(node_network_receive_bytes_total{job=\"node-exporter\",instance=~\"tower.*\",device!~\"lo|veth.*|br.*|docker.*\"}[5m])",
+          "legendFormat": "{{instance}} RX",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_network_transmit_bytes_total{job=\"node-exporter\",instance=~\"tower.*\",device!~\"lo|veth.*|br.*|docker.*\"}[5m])",
+          "legendFormat": "{{instance}} TX",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Unraid Network Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "NFS server operations and throughput from Unraid servers",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Ops/Bytes per sec",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 75
+      },
+      "id": 204,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_nfsd_disk_bytes_read_total{job=\"node-exporter\",instance=~\"tower.*\"}[5m])",
+          "legendFormat": "{{instance}} NFS Read",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_nfsd_disk_bytes_written_total{job=\"node-exporter\",instance=~\"tower.*\"}[5m])",
+          "legendFormat": "{{instance}} NFS Write",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Unraid NFS Server Throughput",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "id": 101,
+      "panels": [],
+      "title": "Storage Details",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Storage usage trends for migration sources (NFS - decreasing) and destination (CephFS - increasing)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Storage",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*cephfs.*/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*tower.*/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "min",
+            "max",
+            "delta"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Last",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})",
           "legendFormat": "{{persistentvolumeclaim}} - Used",
           "range": true,
           "refId": "A"
@@ -707,7 +1460,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}",
+          "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})",
           "legendFormat": "{{persistentvolumeclaim}} - Capacity",
           "range": true,
           "refId": "B"
@@ -721,7 +1474,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of inodes used vs available",
+      "description": "Total data remaining on source NFS volumes to migrate to CephFS",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -732,12 +1485,24 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 30000000000000
+              },
+              {
+                "color": "yellow",
+                "value": 10000000000000
+              },
+              {
+                "color": "green",
+                "value": 1000000000000
               }
             ]
           },
-          "unit": "short"
+          "unit": "decbytes"
         },
         "overrides": []
       },
@@ -745,7 +1510,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 28
+        "y": 29
       },
       "id": 6,
       "options": {
@@ -770,24 +1535,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"})",
-          "legendFormat": "Tower - Used",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc\"}))",
+          "legendFormat": "NFS Data Remaining",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "max(kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-tower-pvc\"})",
-          "legendFormat": "Tower - Total",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Tower NFS Inodes",
+      "title": "Data Remaining (NFS Sources)",
       "type": "stat"
     },
     {
@@ -795,7 +1549,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of inodes used vs available",
+      "description": "Current write throughput to CephFS - shows migration speed",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -806,12 +1560,20 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10485760
+              },
+              {
+                "color": "green",
+                "value": 104857600
               }
             ]
           },
-          "unit": "short"
+          "unit": "Bps"
         },
         "overrides": []
       },
@@ -819,7 +1581,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 28
+        "y": 29
       },
       "id": 7,
       "options": {
@@ -844,24 +1606,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"})",
-          "legendFormat": "Tower-2 - Used",
+          "expr": "rate(ceph_pool_wr_bytes{pool_id=\"3\"}[5m])",
+          "legendFormat": "Write Rate",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "max(kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-tower-2-pvc\"})",
-          "legendFormat": "Tower-2 - Total",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Tower-2 NFS Inodes",
+      "title": "Migration Transfer Rate",
       "type": "stat"
     },
     {
@@ -869,7 +1620,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of inodes used vs available",
+      "description": "CephFS metadata pool objects (files/directories). CephFS uses dynamic allocation without fixed inode limits.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -882,6 +1633,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1000000
+              },
+              {
+                "color": "orange",
+                "value": 5000000
               }
             ]
           },
@@ -893,7 +1652,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 28
+        "y": 29
       },
       "id": 8,
       "options": {
@@ -918,24 +1677,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(kubelet_volume_stats_inodes_used{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"})",
-          "legendFormat": "CephFS - Used",
+          "expr": "ceph_pool_objects{pool_id=\"4\"}",
+          "legendFormat": "Metadata Objects",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "max(kubelet_volume_stats_inodes{namespace=\"media\",persistentvolumeclaim=\"media-cephfs-pvc\"})",
-          "legendFormat": "CephFS - Total",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "CephFS Inodes",
+      "title": "CephFS Objects (Files/Dirs)",
       "type": "stat"
     },
     {
@@ -943,12 +1691,12 @@
         "type": "loki",
         "uid": "loki"
       },
-      "description": "All migration job logs",
+      "description": "All migration job logs from structured log files (via log-tailer sidecar) - clean, sequential, no interleaving",
       "gridPos": {
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 41
       },
       "id": 9,
       "options": {
@@ -968,19 +1716,352 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{namespace=\"media\", app_kubernetes_io_name=~\"migrate.*\"}",
+          "expr": "{namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Full Migration Logs",
+      "title": "Full Migration Logs (Structured)",
       "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "CRITICAL: Directories that failed checksum verification (source NOT deleted)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "All OK"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 25
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "count_over_time({namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"} |= \"Verification FAILED\" [24h]) or vector(0)",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "\u26a0\ufe0f Verification Failures",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Number of directories being transferred concurrently (PARALLEL_JOBS setting)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 25
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time({namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"} |= \"Parallel Jobs:\" | regexp `Parallel Jobs: (?P<parallel>\\d+)` | unwrap parallel [1h])",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Parallel Jobs (Concurrency)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Directories skipped due to checkpoint resume (shows resume is working)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 25
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "count_over_time({namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"} |= \"SKIPPING\" |= \"already completed\" [1h]) or vector(0)",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Checkpoint Resumes (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Latest progress report from active migrations",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 25
+      },
+      "id": 23,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": false,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"} |= \"Progress:\" | line_format \"{{.letter}}: \u2705{{.success}} \u23ed\ufe0f{{.skip}} \u274c{{.fail}} \u23f3{{.remain}}\"",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Progress",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Directories completed per letter over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Directories",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (count_over_time({namespace=\"media\", job=~\"media/migrate.*\", container=\"log-tailer\"} |= \"\u2713 Source removed\" [5m]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Migration Progress by Letter",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["storage", "media", "ceph", "nfs", "migration"],
+  "tags": [
+    "storage",
+    "media",
+    "ceph",
+    "nfs",
+    "migration"
+  ],
   "templating": {
     "list": []
   },
@@ -992,6 +2073,6 @@
   "timezone": "",
   "title": "Media Storage",
   "uid": "media-storage",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

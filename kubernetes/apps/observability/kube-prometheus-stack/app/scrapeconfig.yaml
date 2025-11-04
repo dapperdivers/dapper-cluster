@@ -8,6 +8,8 @@ spec:
   staticConfigs:
     - targets:
       - openmediavault-used.manor:9100
+      - tower.manor:9100
+      - tower-2.manor:9100
   metricsPath: /metrics
   relabelings:
     - action: replace

@@ -36,7 +36,7 @@ spec:
     - retry=1                 # Retry mount for 1 minute on failure
 
     # Cache settings - reduced for stale handle detection
-    - actimeo=60              # Cache attributes for 1 minute
+    - actimeo=30              # Cache attributes for 30 seconds (different from regular PV to force separate mount)
     - lookupcache=positive    # Only cache positive lookups
 
     # Performance optimizations
@@ -91,7 +91,7 @@ spec:
     - retry=1                 # Retry mount for 1 minute on failure
 
     # Cache settings - reduced for stale handle detection
-    - actimeo=60              # Cache attributes for 1 minute
+    - actimeo=30              # Cache attributes for 30 seconds (different from regular PV to force separate mount)
     - lookupcache=positive    # Only cache positive lookups
 
     # Performance optimizations
