@@ -59,6 +59,8 @@ data:
 
                 # Use --files-from with --relative to sync only listed dirs (no full scan!)
                 # The -R flag makes rsync use relative paths from the source
+                # --delay-updates: Apply updates at end (smoother network traffic)
+                # --chmod/--chown: Set permissions during transfer (no post-processing needed)
                 rsync \
                     --recursive \
                     --relative \
@@ -68,7 +70,9 @@ data:
                     --verbose \
                     --human-readable \
                     --whole-file \
-                    --remove-source-files \
+                    --delay-updates \
+                    --chmod=D755,F644 \
+                    --chown=1000:140 \
                     --files-from="$${TMPFILE}.batch" \
                     --log-file="$${LOG_FILE}" \
                     "$${SOURCE}/" \
@@ -80,7 +84,27 @@ data:
                     exit 1
                 fi
 
-                echo "[$$(date)] Batch $$batch_num completed successfully"
+                echo "[$$(date)] Batch $$batch_num completed successfully, cleaning up source files..."
+
+                # Delete source directories for this batch
+                failed_deletes=0
+                while IFS= read -r dir_path; do
+                    # Remove leading ./ from path
+                    clean_path=$$(echo "$$dir_path" | sed 's|^\./||')
+                    if [ -d "$${SOURCE}/$$clean_path" ]; then
+                        echo "Removing source: $${SOURCE}/$$clean_path"
+                        if ! rm -rf "$${SOURCE}/$$clean_path" 2>/dev/null; then
+                            echo "WARNING: Failed to remove $${SOURCE}/$$clean_path"
+                            failed_deletes=$$(( failed_deletes + 1 ))
+                        fi
+                    fi
+                done < "$${TMPFILE}.batch"
+
+                if [ $$failed_deletes -gt 0 ]; then
+                    echo "[$$(date)] Source cleanup completed with $$failed_deletes failures for batch $$batch_num"
+                else
+                    echo "[$$(date)] Source cleanup completed successfully for batch $$batch_num"
+                fi
                 batch_num=$$(( batch_num + 1 ))
                 rm -f "$${TMPFILE}.batch"
             fi
@@ -118,7 +142,9 @@ data:
             --verbose \
             --human-readable \
             --whole-file \
-            --remove-source-files \
+            --delay-updates \
+            --chmod=D755,F644 \
+            --chown=1000:140 \
             --files-from="$${TMPFILE}.batch" \
             --log-file="$${LOG_FILE}" \
             "$${SOURCE}/" \
@@ -130,28 +156,35 @@ data:
             exit 1
         fi
 
-        echo "[$$(date)] Batch $$batch_num completed successfully"
+        echo "[$$(date)] Batch $$batch_num completed successfully, cleaning up source files..."
+
+        # Delete source directories for this batch
+        failed_deletes=0
+        while IFS= read -r dir_path; do
+            # Remove leading ./ from path
+            clean_path=$$(echo "$$dir_path" | sed 's|^\./||')
+            if [ -d "$${SOURCE}/$$clean_path" ]; then
+                echo "Removing source: $${SOURCE}/$$clean_path"
+                if ! rm -rf "$${SOURCE}/$$clean_path" 2>/dev/null; then
+                    echo "WARNING: Failed to remove $${SOURCE}/$$clean_path"
+                    failed_deletes=$$(( failed_deletes + 1 ))
+                fi
+            fi
+        done < "$${TMPFILE}.batch"
+
+        if [ $$failed_deletes -gt 0 ]; then
+            echo "[$$(date)] Source cleanup completed with $$failed_deletes failures for batch $$batch_num"
+        else
+            echo "[$$(date)] Source cleanup completed successfully for batch $$batch_num"
+        fi
         rm -f "$${TMPFILE}.batch"
     fi
 
     rm -f $$TMPFILE
     echo ""
-    echo "[$$(date)] All $$total_batches batches completed for letter $${LETTER}"
-
-    # Step 2: Fix permissions on destination (CephFS only - no NFS overhead)
-    echo "[$$(date)] Fixing permissions for letter $${LETTER}..."
-
-    # Find all directories starting with this letter and set to 755
-    find "$${DEST}/" -maxdepth 1 -type d -name "$${LETTER}*" -print0 | while IFS= read -r -d '' dir; do
-        echo "Setting directory permissions: $${dir}"
-        find "$$dir" -type d -exec chmod 755 {} +
-        find "$$dir" -type f -exec chmod 644 {} +
-        find "$$dir" -exec chown 1000:140 {} +
-    done
-
-    echo "[$$(date)] Permissions fixed for letter $${LETTER}"
     echo "======================================"
     echo "Letter $${LETTER} fully completed at: $$(date)"
+    echo "All $$total_batches batches transferred and source cleaned up"
     echo "======================================"
 
     exit 0

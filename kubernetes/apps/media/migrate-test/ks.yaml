@@ -2,20 +2,20 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app migrate-test-dryrun
+  name: &app migrate-jobs
   namespace: &namespace media
 spec:
   targetNamespace: *namespace
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  path: ./kubernetes/apps/media/migrate-test/app
+  path: ./kubernetes/apps/media/migrate-test/jobs
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  wait: false  # Don't wait for Job completion (runs for 1 hour)
+  wait: false  # Don't wait for Job completion
   interval: 30m
   retryInterval: 1m
   timeout: 5m

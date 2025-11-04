@@ -27,5 +27,4 @@ resources:
   - ./prowlarr/ks.yaml
   - ./plex/ks.yaml
   - ./wizarr/ks.yaml
-  - ./migrate-test/ks.yaml  # Interactive migration job (sleep mode)
-  - ./migrate-test/jobs/ks.yaml  # Automated migration jobs (enable/disable in jobs/kustomization.yaml)
+  - ./migrate-test/ks.yaml  # Automated migration jobs (enable/disable in jobs/kustomization.yaml)
