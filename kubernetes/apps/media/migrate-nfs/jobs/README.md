@@ -73,7 +73,7 @@ After a job completes, empty source directories remain. To clean them up:
 
 ```bash
 # Exec into the interactive migration pod
-export MPOD=$(kubectl get pods -n media -l app.kubernetes.io/name=migrate-test-dryrun -o name)
+export MPOD=$(kubectl get pods -n media -l app.kubernetes.io/name=migrate-nfs-dryrun -o name)
 kubectl exec -it -n media $MPOD -- /bin/sh
 
 # Inside container:

@@ -6,15 +6,15 @@ Interactive migration job for moving data from NFS (Unraid) to CephFS.
 
 ```bash
 # 1. Deploy
-git add kubernetes/apps/media/migrate-test/
+git add kubernetes/apps/media/migrate-nfs/
 git commit -m "feat(media): deploy migration job"
 git push
 
 # 2. Wait for pod to start
-kubectl get pods -n media -l app.kubernetes.io/name=migrate-test-dryrun
+kubectl get pods -n media -l app.kubernetes.io/name=migrate-nfs-dryrun
 
 # 3. Exec into container
-export MPOD=$(kubectl get pods -n media -l app.kubernetes.io/name=migrate-test-dryrun -o name)
+export MPOD=$(kubectl get pods -n media -l app.kubernetes.io/name=migrate-nfs-dryrun -o name)
 kubectl exec -it -n media $MPOD -- /bin/sh
 
 # 4. Inside container - explore and migrate!
@@ -36,7 +36,7 @@ The job deploys a container with:
 **Note**: Each PVC mounts the **full** `/mnt/user/Media` directory from NFS servers, and the full `/truenas/Media` from CephFS.
 
 **Important Notes**:
-- **Jobs are immutable**: To update the configuration, you must delete the existing Job first: `kubectl delete job -n media migrate-test-dryrun`
+- **Jobs are immutable**: To update the configuration, you must delete the existing Job first: `kubectl delete job -n media migrate-nfs-dryrun`
 - **Flux health checks disabled**: The Kustomization has `wait: false` because the Job runs for 1 hour. Flux won't wait for completion.
 
 ### Mount Structure
@@ -266,7 +266,7 @@ kubectl exec -n media $MPOD -- ls -ln /source/
 kubectl get pod -n media $MPOD -o jsonpath='{.status.startTime}'
 
 # If it exited, trigger a new job by redeploying
-flux reconcile helmrelease -n media migrate-test-dryrun
+flux reconcile helmrelease -n media migrate-nfs-dryrun
 ```
 
 ## Storage Details
@@ -291,15 +291,15 @@ For large migrations, run multiple jobs simultaneously:
 cd kubernetes/apps/media/
 
 # Job 1: Movies
-cp -r migrate-test/ migrate-movies/
+cp -r migrate-nfs/ migrate-movies/
 # Edit: change name to "migrate-movies", set source/destination to /source/movies/
 
 # Job 2: TV Shows
-cp -r migrate-test/ migrate-tv/
+cp -r migrate-nfs/ migrate-tv/
 # Edit: change name to "migrate-tv", set source/destination to /source/tv/
 
 # Job 3: Music
-cp -r migrate-test/ migrate-music/
+cp -r migrate-nfs/ migrate-music/
 # Edit: change name to "migrate-music", set source/destination to /source/music/
 
 # Add all to kubernetes/apps/media/kustomization.yaml:

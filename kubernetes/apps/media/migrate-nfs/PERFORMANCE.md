@@ -118,7 +118,7 @@ With current configuration:
 # Watch dashboard: https://grafana.${SECRET_DOMAIN}/d/media-storage
 
 # Check job logs for speed
-kubectl logs -n media -l app.kubernetes.io/name=migrate-test-dryrun | grep "bytes/sec"
+kubectl logs -n media -l app.kubernetes.io/name=migrate-nfs-dryrun | grep "bytes/sec"
 
 # Monitor Ceph write ops
 kubectl exec -n rook-ceph deploy/rook-ceph-tools -- ceph osd pool stats cephfs-data
