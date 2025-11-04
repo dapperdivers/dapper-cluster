@@ -42,97 +42,36 @@ data:
     total_batches=$$(( (TOTAL_DIRS + BATCH_SIZE - 1) / BATCH_SIZE ))
     echo "[$$(date)] Will process in $$total_batches batches of up to $${BATCH_SIZE} folders each"
 
-    # Process in batches - using single rsync call per batch with --files-from
+    # Process folders one-by-one for resilience (no --delay-updates)
+    # If job crashes, only current folder lost (not entire batch)
     batch_num=1
     counter=0
-    batch_count=0
 
     while IFS= read -r dir_name; do
         # Skip empty lines
         [ -z "$$dir_name" ] && continue
 
-        # Start new batch
-        if [ $$(( counter % BATCH_SIZE )) -eq 0 ]; then
-            # Run previous batch's rsync if not the first batch
-            if [ $$counter -gt 0 ]; then
-                echo "[$$(date)] Running rsync for batch $$batch_num ($$batch_count folders)..."
+        counter=$$(( counter + 1 ))
 
-                # Use --files-from with --relative to sync only listed dirs (no full scan!)
-                # The -R flag makes rsync use relative paths from the source
-                # --delay-updates: Apply updates at end (smoother network traffic)
-                # --chmod/--chown: Set permissions during transfer (no post-processing needed)
-                rsync \
-                    --recursive \
-                    --relative \
-                    --links \
-                    --times \
-                    --stats \
-                    --verbose \
-                    --human-readable \
-                    --whole-file \
-                    --delay-updates \
-                    --chmod=D755,F644 \
-                    --chown=1000:140 \
-                    --files-from="$${TMPFILE}.batch" \
-                    --log-file="$${LOG_FILE}" \
-                    "$${SOURCE}/" \
-                    "$${DEST}/"
-
-                if [ $$? -ne 0 ]; then
-                    echo "ERROR: rsync failed for letter $${LETTER} batch $$batch_num"
-                    rm -f $$TMPFILE "$${TMPFILE}.batch"
-                    exit 1
-                fi
-
-                echo "[$$(date)] Batch $$batch_num completed successfully, cleaning up source files..."
-
-                # Delete source directories for this batch
-                failed_deletes=0
-                while IFS= read -r dir_path; do
-                    # Remove leading ./ from path
-                    clean_path=$$(echo "$$dir_path" | sed 's|^\./||')
-                    if [ -d "$${SOURCE}/$$clean_path" ]; then
-                        echo "Removing source: $${SOURCE}/$$clean_path"
-                        if ! rm -rf "$${SOURCE}/$$clean_path" 2>/dev/null; then
-                            echo "WARNING: Failed to remove $${SOURCE}/$$clean_path"
-                            failed_deletes=$$(( failed_deletes + 1 ))
-                        fi
-                    fi
-                done < "$${TMPFILE}.batch"
-
-                if [ $$failed_deletes -gt 0 ]; then
-                    echo "[$$(date)] Source cleanup completed with $$failed_deletes failures for batch $$batch_num"
-                else
-                    echo "[$$(date)] Source cleanup completed successfully for batch $$batch_num"
-                fi
-                batch_num=$$(( batch_num + 1 ))
-                rm -f "$${TMPFILE}.batch"
-            fi
-
-            # Initialize new batch
-            batch_start=$$(( counter + 1 ))
-            batch_end=$$(( counter + BATCH_SIZE ))
+        # Print batch header every BATCH_SIZE folders (for organization)
+        if [ $$(( (counter - 1) % BATCH_SIZE )) -eq 0 ]; then
+            batch_end=$$(( counter + BATCH_SIZE - 1 ))
             [ $$batch_end -gt $$TOTAL_DIRS ] && batch_end=$$TOTAL_DIRS
 
             echo ""
             echo "======================================"
-            echo "[$$(date)] Batch $$batch_num/$$total_batches: Items $$batch_start-$$batch_end of $$TOTAL_DIRS"
+            echo "[$$(date)] Batch $$batch_num/$$total_batches: Items $$counter-$$batch_end of $$TOTAL_DIRS"
             echo "======================================"
-
-            batch_count=0
         fi
 
-        # Add directory to batch file (relative path from SOURCE)
-        echo "./$$dir_name" >> "$${TMPFILE}.batch"
-        batch_count=$$(( batch_count + 1 ))
-        counter=$$(( counter + 1 ))
+        # Transfer this folder immediately
+        echo "[$$(date)] [$$counter/$$TOTAL_DIRS] Transferring: $$dir_name"
 
-    done < $$TMPFILE
+        # Create temp file with just this folder
+        echo "./$$dir_name" > "$${TMPFILE}.single"
 
-    # Run final batch
-    if [ $$batch_count -gt 0 ]; then
-        echo "[$$(date)] Running rsync for batch $$batch_num ($$batch_count folders)..."
-
+        # rsync this folder (no --delay-updates for immediate finalization)
+        # --chmod/--chown: Set permissions during transfer
         rsync \
             --recursive \
             --relative \
@@ -142,43 +81,41 @@ data:
             --verbose \
             --human-readable \
             --whole-file \
-            --delay-updates \
             --chmod=D755,F644 \
             --chown=1000:140 \
-            --files-from="$${TMPFILE}.batch" \
+            --files-from="$${TMPFILE}.single" \
             --log-file="$${LOG_FILE}" \
             "$${SOURCE}/" \
             "$${DEST}/"
 
-        if [ $$? -ne 0 ]; then
-            echo "ERROR: rsync failed for letter $${LETTER} batch $$batch_num"
-            rm -f $$TMPFILE "$${TMPFILE}.batch"
+        rsync_exit=$$?
+        rm -f "$${TMPFILE}.single"
+
+        if [ $$rsync_exit -ne 0 ]; then
+            echo "ERROR: rsync failed for $$dir_name (exit code: $$rsync_exit)"
+            rm -f $$TMPFILE
             exit 1
         fi
 
-        echo "[$$(date)] Batch $$batch_num completed successfully, cleaning up source files..."
+        echo "[$$(date)] Transfer completed for $$dir_name"
 
-        # Delete source directories for this batch
-        failed_deletes=0
-        while IFS= read -r dir_path; do
-            # Remove leading ./ from path
-            clean_path=$$(echo "$$dir_path" | sed 's|^\./||')
-            if [ -d "$${SOURCE}/$$clean_path" ]; then
-                echo "Removing source: $${SOURCE}/$$clean_path"
-                if ! rm -rf "$${SOURCE}/$$clean_path" 2>/dev/null; then
-                    echo "WARNING: Failed to remove $${SOURCE}/$$clean_path"
-                    failed_deletes=$$(( failed_deletes + 1 ))
-                fi
+        # Delete source folder immediately after successful transfer
+        if [ -d "$${SOURCE}/$$dir_name" ]; then
+            echo "[$$(date)] Removing source: $${SOURCE}/$$dir_name"
+            if ! rm -rf "$${SOURCE}/$$dir_name" 2>/dev/null; then
+                echo "WARNING: Failed to remove $${SOURCE}/$$dir_name"
+            else
+                echo "[$$(date)] Source removed successfully"
             fi
-        done < "$${TMPFILE}.batch"
-
-        if [ $$failed_deletes -gt 0 ]; then
-            echo "[$$(date)] Source cleanup completed with $$failed_deletes failures for batch $$batch_num"
-        else
-            echo "[$$(date)] Source cleanup completed successfully for batch $$batch_num"
         fi
-        rm -f "$${TMPFILE}.batch"
-    fi
+
+        # Increment batch number every BATCH_SIZE folders
+        if [ $$(( counter % BATCH_SIZE )) -eq 0 ]; then
+            echo "[$$(date)] Batch $$batch_num completed"
+            batch_num=$$(( batch_num + 1 ))
+        fi
+
+    done < $$TMPFILE
 
     rm -f $$TMPFILE
     echo ""
