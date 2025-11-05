@@ -1,0 +1,266 @@
+#!/bin/bash
+set -euo pipefail
+
+# Map JOB_COMPLETION_INDEX (0-25) to letter (A-Z)
+INDEX=${JOB_COMPLETION_INDEX:-0}
+LETTERS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
+LETTER=${LETTERS[$INDEX]}
+
+# Allow override via environment variables
+SOURCE="${SOURCE:-/tower-2/movies}"
+DEST="${DEST:-/destination/movies}"
+LOG_DIR="/metrics"
+LOG_FILE="${LOG_DIR}/migration-${LETTER}.log"
+ERROR_LOG="${LOG_DIR}/errors-${LETTER}.log"
+CHECKPOINT="${LOG_DIR}/completed-${LETTER}.txt"
+VERIFICATION_LOG="${LOG_DIR}/verify-${LETTER}.log"
+
+# DRY RUN MODE: Set DRY_RUN=true to test without deleting source files
+DRY_RUN="${DRY_RUN:-false}"
+
+# Concurrency: Process N directories in parallel within single pod
+# NFS mount constraint: Only 1 pod allowed, but can use internal parallelism
+PARALLEL_JOBS="${PARALLEL_JOBS:-4}"
+
+# Ensure log directory exists
+mkdir -p "${LOG_DIR}"
+
+# Build rsync options function (called in subshells)
+build_rsync_opts() {
+    local opts=(
+        --archive
+        --verbose
+        --human-readable
+        --progress
+        --stats
+        --partial
+        --inplace
+        --no-whole-file
+        --compress-level=0
+        --timeout=600
+    )
+
+    # Add dry-run flag if DRY_RUN is enabled
+    if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
+        opts+=(--dry-run)
+    fi
+
+    echo "${opts[@]}"
+}
+
+# Display dry-run warning if enabled
+if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
+    echo "========== DRY RUN MODE ENABLED ==========" | tee -a "${LOG_FILE}"
+    echo "WARNING: Source files will NOT be deleted!" | tee -a "${LOG_FILE}"
+    echo "==========================================" | tee -a "${LOG_FILE}"
+fi
+
+echo "======================================" | tee -a "${LOG_FILE}"
+echo "Job Index: ${INDEX}" | tee -a "${LOG_FILE}"
+echo "Processing Letter: ${LETTER}" | tee -a "${LOG_FILE}"
+echo "Parallel Jobs: ${PARALLEL_JOBS}" | tee -a "${LOG_FILE}"
+echo "Started at: $(date)" | tee -a "${LOG_FILE}"
+echo "======================================" | tee -a "${LOG_FILE}"
+
+# Get list of all directories starting with this letter
+echo "[$(date)] Scanning for directories starting with ${LETTER}..." | tee -a "${LOG_FILE}"
+TMPFILE="/tmp/dirs-${LETTER}.txt"
+
+if ! find "${SOURCE}/" -maxdepth 1 -type d -name "${LETTER}*" -printf "%f\n" | sort > "${TMPFILE}"; then
+    echo "ERROR: Failed to scan directories" | tee -a "${ERROR_LOG}"
+    exit 1
+fi
+
+TOTAL_DIRS=$(wc -l < "${TMPFILE}")
+
+if [ ${TOTAL_DIRS} -eq 0 ]; then
+    echo "[$(date)] No directories found for letter ${LETTER}, skipping..." | tee -a "${LOG_FILE}"
+    rm -f "${TMPFILE}"
+    exit 0
+fi
+
+echo "[$(date)] Found ${TOTAL_DIRS} directories for letter ${LETTER}" | tee -a "${LOG_FILE}"
+
+# Load checkpoint file if exists
+touch "${CHECKPOINT}"
+COMPLETED_COUNT=$(wc -l < "${CHECKPOINT}")
+echo "[$(date)] Previously completed: ${COMPLETED_COUNT} directories" | tee -a "${LOG_FILE}"
+
+# Counters (shared via files for parallel access)
+COUNTER_FILE="/tmp/counter-${LETTER}.txt"
+SUCCESS_FILE="/tmp/success-${LETTER}.txt"
+SKIP_FILE="/tmp/skip-${LETTER}.txt"
+FAIL_FILE="/tmp/fail-${LETTER}.txt"
+echo "0" > "${COUNTER_FILE}"
+echo "0" > "${SUCCESS_FILE}"
+echo "0" > "${SKIP_FILE}"
+echo "0" > "${FAIL_FILE}"
+
+# Function to increment counter atomically
+increment_counter() {
+    local file="$1"
+    local lockfile="${file}.lock"
+    (
+        flock -x 200
+        local val=$(cat "$file")
+        echo $((val + 1)) > "$file"
+    ) 200>"$lockfile"
+}
+
+# Function to process a single directory
+process_directory() {
+    local dir_name="$1"
+    local dir_log="${LOG_DIR}/dir-${LETTER}-${dir_name//[^a-zA-Z0-9]/_}.log"
+
+    # Skip empty lines
+    [ -z "${dir_name}" ] && return 0
+
+    increment_counter "${COUNTER_FILE}"
+    local counter=$(cat "${COUNTER_FILE}")
+
+    # Check if already completed (with file locking)
+    if grep -qFx "${dir_name}" "${CHECKPOINT}" 2>/dev/null; then
+        echo "[$(date)] [${counter}/${TOTAL_DIRS}] SKIPPING ${dir_name} (already completed)" | tee -a "${LOG_FILE}"
+        increment_counter "${SKIP_FILE}"
+        return 0
+    fi
+
+    echo "" | tee -a "${LOG_FILE}"
+    echo "======================================" | tee -a "${LOG_FILE}"
+    echo "[$(date)] [${counter}/${TOTAL_DIRS}] Processing: ${dir_name}" | tee -a "${LOG_FILE}"
+    echo "======================================" | tee -a "${LOG_FILE}"
+
+    # PHASE 1: Transfer
+    echo "[$(date)] Transferring ${dir_name}..." | tee -a "${LOG_FILE}"
+
+    # Build rsync options as array
+    local rsync_opts
+    read -ra rsync_opts <<< "$(build_rsync_opts)"
+
+    if rsync "${rsync_opts[@]}" \
+        --log-file="${dir_log}" \
+        "${SOURCE}/${dir_name}/" \
+        "${DEST}/${dir_name}/" 2>> "${ERROR_LOG}"; then
+        echo "[$(date)] ✓ Transfer completed for ${dir_name}" | tee -a "${LOG_FILE}"
+    else
+        rsync_exit=$?
+        echo "ERROR: rsync failed for ${dir_name} (exit code: ${rsync_exit})" | tee -a "${ERROR_LOG}"
+        increment_counter "${FAIL_FILE}"
+        return 1
+    fi
+
+    # PHASE 2: Verification (SKIP IN DRY-RUN MODE)
+    if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
+        echo "[$(date)] DRY-RUN: Skipping verification for ${dir_name}" | tee -a "${LOG_FILE}"
+    else
+        echo "[$(date)] Verifying ${dir_name}..." | tee -a "${LOG_FILE}"
+
+        # Count files in source and destination
+        SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f 2>/dev/null | wc -l)
+        DEST_COUNT=$(find "${DEST}/${dir_name}" -type f 2>/dev/null | wc -l)
+
+        echo "[$(date)] Source files: ${SOURCE_COUNT}, Destination files: ${DEST_COUNT}" | tee -a "${LOG_FILE}"
+
+        # Verify file counts match
+        if [ "${SOURCE_COUNT}" -ne "${DEST_COUNT}" ]; then
+            echo "ERROR: File count mismatch for ${dir_name} (Source: ${SOURCE_COUNT}, Dest: ${DEST_COUNT})" | tee -a "${ERROR_LOG}"
+            echo "SOURCE DATA NOT DELETED - Manual intervention required" | tee -a "${ERROR_LOG}"
+            increment_counter "${FAIL_FILE}"
+            return 1
+        fi
+
+        # Skip rsync verification if directory is empty
+        if [ "${SOURCE_COUNT}" -eq 0 ]; then
+            echo "[$(date)] ⚠ Empty directory detected for ${dir_name}, skipping rsync verification" | tee -a "${LOG_FILE}"
+        else
+            # Run rsync verification for non-empty directories
+            if rsync -avn \
+                --log-file="${VERIFICATION_LOG}" \
+                "${SOURCE}/${dir_name}/" \
+                "${DEST}/${dir_name}/" 2>> "${ERROR_LOG}"; then
+                echo "[$(date)] ✓ Verification passed for ${dir_name}" | tee -a "${LOG_FILE}"
+            else
+                echo "ERROR: Verification FAILED for ${dir_name}" | tee -a "${ERROR_LOG}"
+                echo "SOURCE DATA NOT DELETED - Manual intervention required" | tee -a "${ERROR_LOG}"
+                increment_counter "${FAIL_FILE}"
+                return 1
+            fi
+        fi
+    fi
+
+    # PHASE 3: Set ownership (SKIP IN DRY-RUN MODE)
+    if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
+        echo "[$(date)] DRY-RUN: Skipping ownership changes for ${dir_name}" | tee -a "${LOG_FILE}"
+    else
+        echo "[$(date)] Setting ownership for ${dir_name}..." | tee -a "${LOG_FILE}"
+        chown -R 1000:140 "${DEST}/${dir_name}" 2>> "${ERROR_LOG}" || true
+        chmod -R u=rwX,g=rX,o=rX "${DEST}/${dir_name}" 2>> "${ERROR_LOG}" || true
+    fi
+
+    # PHASE 4: Delete source ONLY after verification (SKIP IN DRY-RUN MODE)
+    if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
+        echo "[$(date)] DRY-RUN: Skipping source deletion for ${dir_name}" | tee -a "${LOG_FILE}"
+        increment_counter "${SUCCESS_FILE}"
+    elif [ -d "${SOURCE}/${dir_name}" ]; then
+        echo "[$(date)] Removing source: ${SOURCE}/${dir_name}" | tee -a "${LOG_FILE}"
+
+        if rm -rf "${SOURCE}/${dir_name}" 2>> "${ERROR_LOG}"; then
+            echo "[$(date)] ✓ Source removed for ${dir_name}" | tee -a "${LOG_FILE}"
+
+            # Mark as complete (with file locking)
+            (
+                flock -x 200
+                echo "${dir_name}" >> "${CHECKPOINT}"
+            ) 200>"${CHECKPOINT}.lock"
+
+            increment_counter "${SUCCESS_FILE}"
+        else
+            echo "WARNING: Failed to remove ${dir_name}" | tee -a "${ERROR_LOG}"
+            increment_counter "${FAIL_FILE}"
+            return 1
+        fi
+    else
+        echo "WARNING: Source directory ${dir_name} not found" | tee -a "${ERROR_LOG}"
+    fi
+
+    return 0
+}
+
+# Export functions and variables for parallel execution
+export -f process_directory
+export -f increment_counter
+export -f build_rsync_opts
+export SOURCE DEST LOG_DIR LOG_FILE ERROR_LOG CHECKPOINT VERIFICATION_LOG
+export COUNTER_FILE SUCCESS_FILE SKIP_FILE FAIL_FILE TOTAL_DIRS LETTER DRY_RUN
+export PATH
+
+# Process directories in parallel using xargs
+echo "[$(date)] Starting parallel processing with ${PARALLEL_JOBS} workers..." | tee -a "${LOG_FILE}"
+
+cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -I {} -P "${PARALLEL_JOBS}" bash -c 'process_directory "{}"' || true
+
+# Read final counters (xargs waits for all processes by default)
+success_count=$(cat "${SUCCESS_FILE}")
+skip_count=$(cat "${SKIP_FILE}")
+fail_count=$(cat "${FAIL_FILE}")
+
+# Cleanup temp files
+rm -f "${TMPFILE}" "${COUNTER_FILE}" "${SUCCESS_FILE}" "${SKIP_FILE}" "${FAIL_FILE}"
+
+echo "" | tee -a "${LOG_FILE}"
+echo "======================================" | tee -a "${LOG_FILE}"
+echo "Letter ${LETTER} completed at: $(date)" | tee -a "${LOG_FILE}"
+echo "Summary:" | tee -a "${LOG_FILE}"
+echo "  Total directories: ${TOTAL_DIRS}" | tee -a "${LOG_FILE}"
+echo "  Successful: ${success_count}" | tee -a "${LOG_FILE}"
+echo "  Skipped: ${skip_count}" | tee -a "${LOG_FILE}"
+echo "  Failed: ${fail_count}" | tee -a "${LOG_FILE}"
+echo "======================================" | tee -a "${LOG_FILE}"
+
+# Exit with error if any failures
+if [ ${fail_count} -gt 0 ]; then
+    echo "Job completed with ${fail_count} failures" | tee -a "${ERROR_LOG}"
+    exit 1
+fi
+
+exit 0

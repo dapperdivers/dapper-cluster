@@ -1,0 +1,216 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: migrate-job-parallel
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    disableWait: true
+    remediation:
+      retries: 3
+  upgrade:
+    disableWait: true
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+
+  values:
+    controllers:
+      migrate-job-parallel:
+        type: job
+        annotations:
+          reloader.stakater.com/auto: "true"
+        job:
+          # ============================================================
+          # CONFIGURATION - Modify these before deploying:
+          # ============================================================
+          # parallelism: Number of concurrent pods (3-5 recommended)
+          # completions: Number of letters to process (26 for A-Z)
+          # PARALLEL_JOBS: Concurrent transfers per pod (2-4 recommended)
+          #
+          # Total concurrency = parallelism × PARALLEL_JOBS
+          # Current: 3 pods × 2 jobs = 6 concurrent transfers
+          #
+          # Monitor tower-2 load before increasing further
+          # ============================================================
+          completions: 26
+          parallelism: 3   # Conservative start - monitor tower-2 CPU/disk
+          completionMode: Indexed
+          ttlSecondsAfterFinished: 86400
+        containers:
+          app:
+            image:
+              repository: debian
+              tag: bookworm-slim
+            command:
+              - /bin/bash
+              - -c
+              - |
+                apt-get update -qq && apt-get install -y -qq rsync
+                exec /bin/bash /scripts/migrate.sh
+            env:
+              TZ: ${TIME_ZONE}
+              DRY_RUN: false
+              SOURCE: /tower-2/movies
+              DEST: /destination/movies
+              PARALLEL_JOBS: "2"  # Reduced from 4 to ease tower-2 load (3 pods × 2 = 6 total)
+            resources:
+              requests:
+                cpu: 2000m   # Increased for parallel processing
+                memory: 2Gi  # Increased for multiple rsync processes
+              limits:
+                cpu: 4       # Allow bursting for parallel transfers
+                memory: 4Gi
+            securityContext:
+              readOnlyRootFilesystem: false
+              capabilities:
+                add: ["CHOWN", "SETUID", "SETGID"]  # Needed for apt-get and chown operations
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - /bin/bash
+                      - -c
+                      - |
+                        # Detect hung transfers (log not updated in 30min)
+                        LOG_FILE=$(ls /metrics/migration-*.log 2>/dev/null | head -1)
+                        if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
+                          LAST_MODIFIED=$(stat -c %Y "$LOG_FILE" 2>/dev/null)
+                          CURRENT_TIME=$(date +%s)
+                          if [ $((CURRENT_TIME - LAST_MODIFIED)) -gt 1800 ]; then
+                            exit 1
+                          fi
+                        fi
+                  initialDelaySeconds: 300
+                  periodSeconds: 300
+                  timeoutSeconds: 10
+                  failureThreshold: 2
+          log-tailer:
+            image:
+              repository: busybox
+              tag: "1.36"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                # Get job completion index (set by Kubernetes for indexed jobs)
+                INDEX=$JOB_COMPLETION_INDEX
+
+                # Convert index to letter: 0=A, 1=B, etc (using printf and ASCII codes)
+                # ASCII A=65, so we add the index to 65
+                LETTER=$(printf "\\$(printf '%03o' $((65 + INDEX)))")
+                LOG_FILE="/metrics/migration-$LETTER.log"
+                COMPLETION_MARKER="/metrics/completed-$LETTER.txt"
+
+                echo "[log-tailer] Job Index: $INDEX, Letter: $LETTER"
+                echo "[log-tailer] Waiting for structured log file: $LOG_FILE"
+
+                # Wait up to 5 minutes for log file to be created
+                for i in $(seq 1 60); do
+                  if [ -f "$LOG_FILE" ]; then
+                    echo "[log-tailer] Found log file, starting tail..."
+                    break
+                  fi
+                  sleep 5
+                done
+
+                if [ ! -f "$LOG_FILE" ]; then
+                  echo "[log-tailer] ERROR: Log file not created after 5 minutes: $LOG_FILE"
+                  exit 1
+                fi
+
+                # Tail log file and monitor main container process for completion
+                # Exit when main container's process exits (shareProcessNamespace allows us to see it)
+                tail -F "$LOG_FILE" &
+                TAIL_PID=$!
+
+                echo "[log-tailer] Monitoring main container process..."
+
+                while true; do
+                  # Check if main container's bash process (running migrate.sh) is still running
+                  # With shareProcessNamespace, we can see all pod processes
+                  if ! pgrep -f "/bin/bash /scripts/migrate.sh" > /dev/null 2>&1; then
+                    echo "[log-tailer] Main container process finished. Exiting..."
+                    kill $TAIL_PID 2>/dev/null
+                    # Give tail a moment to flush any remaining logs
+                    sleep 2
+                    exit 0
+                  fi
+
+                  sleep 5
+                done
+            env:
+              JOB_COMPLETION_INDEX:
+                fieldRef:
+                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 50m
+                memory: 64Mi
+
+    defaultPodOptions:
+      shareProcessNamespace: true  # Allow log-tailer to see main container's processes
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - plex
+                      - tautulli
+                      - overseerr
+                      - radarr-uhd
+                      - radarr
+                      - sonarr-uhd
+                      - sonarr
+                      - tdarr
+                      - sabnzbd
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsUser: 0  # Root for migration job (needs chown privileges)
+        runAsNonRoot: false
+        fsGroup: 150
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+
+    persistence:
+      # ============================================================
+      # CONFIGURATION - Update PVC names and mount paths as needed:
+      # ============================================================
+      nfs-tower:
+        existingClaim: media-tower-2-direct-pvc
+        globalMounts:
+          - path: /tower-2
+            readOnly: false
+      ceph-dest:
+        existingClaim: media-cephfs-pvc
+        globalMounts:
+          - path: /destination
+      # ============================================================
+      # Metrics PVC - Shared across all workers (DO NOT CHANGE)
+      # Contains checkpoint files and logs for resume capability
+      # ============================================================
+      metrics:
+        existingClaim: migration-metrics
+        globalMounts:
+          - path: /metrics
+      script:
+        type: configMap
+        name: migrate-movies-parallel-script
+        defaultMode: 0555
+        globalMounts:
+          - path: /scripts
