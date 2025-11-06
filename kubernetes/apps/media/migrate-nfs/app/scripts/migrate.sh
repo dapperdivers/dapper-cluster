@@ -66,9 +66,11 @@ echo "======================================" | tee -a "${LOG_FILE}"
 echo "[$(date)] Scanning for directories starting with ${LETTER}..." | tee -a "${LOG_FILE}"
 TMPFILE="/tmp/dirs-${LETTER}.txt"
 
-if ! find "${SOURCE}/" -maxdepth 1 -type d -name "${LETTER}*" -printf "%f\n" | sort > "${TMPFILE}"; then
-    echo "ERROR: Failed to scan directories" | tee -a "${ERROR_LOG}"
-    exit 1
+# Use ls instead of find to avoid race conditions with parallel deletions
+# Ignore errors from directories being deleted during scan
+if ! (cd "${SOURCE}" && ls -1d "${LETTER}"* 2>/dev/null | sort > "${TMPFILE}"); then
+    # If ls fails completely (e.g., no matches), create empty file
+    touch "${TMPFILE}"
 fi
 
 TOTAL_DIRS=$(wc -l < "${TMPFILE}")
