@@ -73,27 +73,7 @@ spec:
                 add: ["CHOWN", "SETUID", "SETGID"]  # Needed for apt-get and chown operations
             probes:
               liveness:
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - /bin/bash
-                      - -c
-                      - |
-                        # Detect hung transfers (log not updated in 30min)
-                        LOG_FILE=$(ls /metrics/migration-*.log 2>/dev/null | head -1)
-                        if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
-                          LAST_MODIFIED=$(stat -c %Y "$LOG_FILE" 2>/dev/null)
-                          CURRENT_TIME=$(date +%s)
-                          if [ $((CURRENT_TIME - LAST_MODIFIED)) -gt 1800 ]; then
-                            exit 1
-                          fi
-                        fi
-                  initialDelaySeconds: 300
-                  periodSeconds: 300
-                  timeoutSeconds: 10
-                  failureThreshold: 2
+                enabled: false  # Disabled - large file transfers exceed timeout
           log-tailer:
             image:
               repository: busybox
