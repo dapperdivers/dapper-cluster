@@ -140,3 +140,75 @@ spec:
           labels:
             severity: warning
             component: unraid
+
+        # Disk I/O and Load alerts for Unraid servers (Tower and Tower-2)
+        - alert: UnraidHighDiskIOUtilization
+          annotations:
+            summary: "High disk I/O utilization on Unraid server {{ $labels.instance }} device {{ $labels.device }}"
+            description: "Disk {{ $labels.device }} on {{ $labels.instance }} is at {{ $value | humanizePercentage }} I/O utilization. This may cause performance degradation."
+          expr: |
+            rate(node_disk_io_time_seconds_total{job="node-exporter",instance=~"tower.*"}[5m]) * 100 > 90
+          for: 10m
+          labels:
+            severity: warning
+            component: unraid
+
+        - alert: UnraidHighLoadAverage
+          annotations:
+            summary: "High load average on Unraid server {{ $labels.instance }}"
+            description: "Load average on {{ $labels.instance }} is {{ $value }}, which is high. System may be overloaded."
+          expr: |
+            node_load15{job="node-exporter",instance=~"tower.*"} > 40
+          for: 10m
+          labels:
+            severity: warning
+            component: unraid
+
+        - alert: UnraidCriticalLoadAverage
+          annotations:
+            summary: "CRITICAL load average on Unraid server {{ $labels.instance }}"
+            description: "Load average on {{ $labels.instance }} is {{ $value }}, which is critically high. System performance severely degraded."
+          expr: |
+            node_load15{job="node-exporter",instance=~"tower.*"} > 60
+          for: 5m
+          labels:
+            severity: critical
+            component: unraid
+
+        - alert: UnraidHighDiskReadLatency
+          annotations:
+            summary: "High disk read latency on Unraid server {{ $labels.instance }} device {{ $labels.device }}"
+            description: "Disk {{ $labels.device }} on {{ $labels.instance }} has high read latency ({{ $value }}ms average). Migration may be slow."
+          expr: |
+            rate(node_disk_read_time_seconds_total{job="node-exporter",instance=~"tower.*"}[5m])
+            /
+            rate(node_disk_reads_completed_total{job="node-exporter",instance=~"tower.*"}[5m])
+            * 1000 > 100
+          for: 15m
+          labels:
+            severity: warning
+            component: unraid
+
+        - alert: UnraidHighDiskIOPS
+          annotations:
+            summary: "High disk IOPS on Unraid server {{ $labels.instance }} device {{ $labels.device }}"
+            description: "Disk {{ $labels.device }} on {{ $labels.instance }} is handling {{ $value }} read IOPS. Disk may be saturated."
+          expr: |
+            rate(node_disk_reads_completed_total{job="node-exporter",instance=~"tower.*"}[5m]) > 500
+          for: 10m
+          labels:
+            severity: info
+            component: unraid
+
+        - alert: UnraidLowDiskThroughput
+          annotations:
+            summary: "Low disk read throughput on Unraid server {{ $labels.instance }} during migration"
+            description: "Disk read throughput on {{ $labels.instance }} has dropped to {{ $value | humanize }}B/s. Migration may be stalled."
+          expr: |
+            rate(node_disk_read_bytes_total{job="node-exporter",instance=~"tower.*"}[5m]) < 5242880
+            and
+            kube_job_status_active{namespace="media", job_name=~"migrate.*"} > 0
+          for: 20m
+          labels:
+            severity: warning
+            component: unraid
