@@ -41,9 +41,9 @@ spec:
             summary: "Migration job {{ $labels.job_name }} has no active pods"
             description: "Migration job {{ $labels.job_name }} is marked as active but has no running pods. Job may be stuck."
           expr: |
-            kube_job_status_active{namespace="media", job_name=~"migrate.*"} > 0
-            unless
-            kube_pod_status_phase{namespace="media", pod=~"migrate.*", phase="Running"} > 0
+            (kube_job_status_active{namespace="media", job_name=~"migrate.*"} > 0)
+            and
+            (count(kube_pod_status_phase{namespace="media", pod=~"migrate.*", phase="Running"}) or vector(0)) == 0
           for: 15m
           labels:
             severity: warning

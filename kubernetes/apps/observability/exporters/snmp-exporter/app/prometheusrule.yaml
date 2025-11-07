@@ -14,6 +14,8 @@ spec:
           annotations:
             summary: >
               ZPM {{$labels.instance}} is running on batteries and has less than 5 minutes of battery left
+            description: >
+              ZPM UPS {{$labels.instance}} has lost power and is running on battery with less than 5 minutes of runtime remaining. Prepare for shutdown.
           for: 30s
           labels:
             severity: critical

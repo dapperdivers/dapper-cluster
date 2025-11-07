@@ -31,7 +31,7 @@ spec:
             description: UPS {{ $labels.ups }} battery is low and the system is getting ready to shutdown.
             summary: UPS battery is low.
           expr: |
-            network_ups_tools_ups_status{flag="OB"} == 1
+            network_ups_tools_ups_status{flag="LB"} == 1
           for: 5s
           labels:
             severity: critical
