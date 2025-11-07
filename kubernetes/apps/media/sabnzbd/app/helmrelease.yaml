@@ -120,15 +120,12 @@ spec:
       safe:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe/downloads/usenet
-            subPath: downloads/usenet
+          - path: /safe
       tower:
         existingClaim: media-tower-pvc
         globalMounts:
-          - path: /tower/downloads/usenet
-            subPath: downloads/usenet
+          - path: /tower
       tower-2:
         existingClaim: media-tower-2-pvc
         globalMounts:
-          - path: /tower-2/downloads/usenet
-            subPath: downloads/usenet
+          - path: /tower-2
