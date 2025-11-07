@@ -40,9 +40,11 @@ build_rsync_opts() {
         --timeout=600
     )
 
-    # Add dry-run flag if DRY_RUN is enabled
+    # Add dry-run flag if DRY_RUN is enabled, otherwise add remove-source-files
     if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
         opts+=(--dry-run)
+    else
+        opts+=(--remove-source-files)
     fi
 
     echo "${opts[@]}"
@@ -132,68 +134,44 @@ process_directory() {
     echo "[$(date)] [${counter}/${TOTAL_DIRS}] Processing: ${dir_name}" | tee -a "${LOG_FILE}"
     echo "======================================" | tee -a "${LOG_FILE}"
 
-    # PHASE 1: Transfer
+    # PHASE 1: Transfer and remove source files atomically
     echo "[$(date)] Transferring ${dir_name}..." | tee -a "${LOG_FILE}"
 
+    # Count files before transfer for logging
+    SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f 2>/dev/null | wc -l || echo 0)
+
+    if [ "${SOURCE_COUNT}" -eq 0 ]; then
+        echo "[$(date)] ℹ️  No files to transfer (already migrated)" | tee -a "${LOG_FILE}"
+    else
+        echo "[$(date)] Found ${SOURCE_COUNT} files to transfer" | tee -a "${LOG_FILE}"
+    fi
+
     # Build rsync options as array
+    # Note: --remove-source-files is added automatically (unless DRY_RUN=true)
     local rsync_opts
     read -ra rsync_opts <<< "$(build_rsync_opts)"
 
+    # MERGE MODE: rsync will add source files to destination (destination may have more files from other sources)
+    # With --remove-source-files, rsync will only delete source files after successful transfer
     if rsync "${rsync_opts[@]}" \
         --log-file="${dir_log}" \
         "${SOURCE}/${dir_name}/" \
         "${DEST}/${dir_name}/" 2>> "${ERROR_LOG}"; then
-        echo "[$(date)] ✓ Transfer completed for ${dir_name}" | tee -a "${LOG_FILE}"
+
+        if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
+            echo "[$(date)] ✓ DRY-RUN: Transfer simulated for ${dir_name}" | tee -a "${LOG_FILE}"
+        else
+            echo "[$(date)] ✓ Transfer completed and source files removed for ${dir_name}" | tee -a "${LOG_FILE}"
+        fi
     else
         rsync_exit=$?
         echo "ERROR: rsync failed for ${dir_name} (exit code: ${rsync_exit})" | tee -a "${ERROR_LOG}"
+        echo "SOURCE FILES NOT DELETED - rsync detected an error" | tee -a "${ERROR_LOG}"
         increment_counter "${FAIL_FILE}"
         return 1
     fi
 
-    # PHASE 2: Verification (SKIP IN DRY-RUN MODE)
-    if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
-        echo "[$(date)] DRY-RUN: Skipping verification for ${dir_name}" | tee -a "${LOG_FILE}"
-    else
-        echo "[$(date)] Verifying ${dir_name}..." | tee -a "${LOG_FILE}"
-
-        # Count files in source and destination
-        SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f 2>/dev/null | wc -l)
-        DEST_COUNT=$(find "${DEST}/${dir_name}" -type f 2>/dev/null | wc -l)
-
-        echo "[$(date)] Source files: ${SOURCE_COUNT}, Destination files: ${DEST_COUNT}" | tee -a "${LOG_FILE}"
-
-        # Handle already-migrated directories (empty source, files in destination)
-        if [ "${SOURCE_COUNT}" -eq 0 ] && [ "${DEST_COUNT}" -gt 0 ]; then
-            echo "[$(date)] ℹ️  Directory already migrated (empty source, ${DEST_COUNT} files in destination)" | tee -a "${LOG_FILE}"
-            echo "[$(date)] Skipping verification and cleanup for ${dir_name}" | tee -a "${LOG_FILE}"
-            # Skip to cleanup phase - remove empty source directory
-        # Verify file counts match for non-migrated directories
-        elif [ "${SOURCE_COUNT}" -ne "${DEST_COUNT}" ]; then
-            echo "ERROR: File count mismatch for ${dir_name} (Source: ${SOURCE_COUNT}, Dest: ${DEST_COUNT})" | tee -a "${ERROR_LOG}"
-            echo "SOURCE DATA NOT DELETED - Manual intervention required" | tee -a "${ERROR_LOG}"
-            increment_counter "${FAIL_FILE}"
-            return 1
-        # Skip rsync verification if both are empty
-        elif [ "${SOURCE_COUNT}" -eq 0 ] && [ "${DEST_COUNT}" -eq 0 ]; then
-            echo "[$(date)] ⚠ Both source and destination empty for ${dir_name}, skipping verification" | tee -a "${LOG_FILE}"
-        else
-            # Run rsync verification for non-empty directories
-            if rsync -avn \
-                --log-file="${VERIFICATION_LOG}" \
-                "${SOURCE}/${dir_name}/" \
-                "${DEST}/${dir_name}/" 2>> "${ERROR_LOG}"; then
-                echo "[$(date)] ✓ Verification passed for ${dir_name}" | tee -a "${LOG_FILE}"
-            else
-                echo "ERROR: Verification FAILED for ${dir_name}" | tee -a "${ERROR_LOG}"
-                echo "SOURCE DATA NOT DELETED - Manual intervention required" | tee -a "${ERROR_LOG}"
-                increment_counter "${FAIL_FILE}"
-                return 1
-            fi
-        fi
-    fi
-
-    # PHASE 3: Set ownership (SKIP IN DRY-RUN MODE)
+    # PHASE 2: Set ownership (SKIP IN DRY-RUN MODE)
     if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
         echo "[$(date)] DRY-RUN: Skipping ownership changes for ${dir_name}" | tee -a "${LOG_FILE}"
     else
@@ -202,32 +180,33 @@ process_directory() {
         chmod -R u=rwX,g=rX,o=rX "${DEST}/${dir_name}" 2>> "${ERROR_LOG}" || true
     fi
 
-    # PHASE 4: Delete source ONLY after verification (SKIP IN DRY-RUN MODE)
+    # PHASE 3: Clean up empty source directories (SKIP IN DRY-RUN MODE)
+    # Note: --remove-source-files only removes files, not directories
     if [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]; then
-        echo "[$(date)] DRY-RUN: Skipping source deletion for ${dir_name}" | tee -a "${LOG_FILE}"
-        increment_counter "${SUCCESS_FILE}"
-    elif [ -d "${SOURCE}/${dir_name}" ]; then
-        echo "[$(date)] Removing source: ${SOURCE}/${dir_name}" | tee -a "${LOG_FILE}"
-
-        if rm -rf "${SOURCE}/${dir_name}" 2>> "${ERROR_LOG}"; then
-            echo "[$(date)] ✓ Source removed for ${dir_name}" | tee -a "${LOG_FILE}"
-
-            # Mark as complete (with file locking)
-            (
-                flock -x 200
-                echo "${dir_name}" >> "${CHECKPOINT}"
-            ) 200>"${CHECKPOINT}.lock"
-
-            increment_counter "${SUCCESS_FILE}"
-        else
-            echo "WARNING: Failed to remove ${dir_name}" | tee -a "${ERROR_LOG}"
-            increment_counter "${FAIL_FILE}"
-            return 1
-        fi
+        echo "[$(date)] DRY-RUN: Skipping empty directory cleanup for ${dir_name}" | tee -a "${LOG_FILE}"
     else
-        echo "WARNING: Source directory ${dir_name} not found" | tee -a "${ERROR_LOG}"
+        if [ -d "${SOURCE}/${dir_name}" ]; then
+            # Remove empty directories recursively (bottom-up)
+            find "${SOURCE}/${dir_name}" -type d -empty -delete 2>> "${ERROR_LOG}" || true
+
+            # Remove the parent directory if it's now empty
+            if [ -d "${SOURCE}/${dir_name}" ]; then
+                rmdir "${SOURCE}/${dir_name}" 2>> "${ERROR_LOG}" || {
+                    echo "[$(date)] ⚠ Source directory not empty (may contain subdirs or files): ${dir_name}" | tee -a "${LOG_FILE}"
+                }
+            else
+                echo "[$(date)] ✓ Empty source directory removed: ${dir_name}" | tee -a "${LOG_FILE}"
+            fi
+        fi
     fi
 
+    # Mark as complete (with file locking)
+    (
+        flock -x 200
+        echo "${dir_name}" >> "${CHECKPOINT}"
+    ) 200>"${CHECKPOINT}.lock"
+
+    increment_counter "${SUCCESS_FILE}"
     return 0
 }
 
