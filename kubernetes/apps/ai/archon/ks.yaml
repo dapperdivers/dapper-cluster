@@ -24,7 +24,8 @@ spec:
   targetNamespace: *namespace
   components:
     - ../../../../flux/components/gatus/guarded
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
