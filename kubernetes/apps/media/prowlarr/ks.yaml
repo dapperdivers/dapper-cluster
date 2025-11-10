@@ -11,7 +11,8 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   components:
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   dependsOn:
     - name: volsync
       namespace: storage
@@ -19,14 +20,14 @@ spec:
       namespace: external-secrets
   interval: 30m
   retryInterval: 1m
-  timeout: 5m
+  timeout: 10m
   path: "./kubernetes/apps/media/prowlarr/app"
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  wait: false
+  wait: true
   postBuild:
     substitute:
       APP: *app

@@ -1,0 +1,9 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+# Remote backup resources for VolSync
+# Backs up to Cloudflare R2 object storage for off-site disaster recovery
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+resources:
+  - externalsecret.yaml
+  - replicationsource.yaml

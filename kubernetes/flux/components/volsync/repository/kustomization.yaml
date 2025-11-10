@@ -1,0 +1,10 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+# VolSync Repository Component
+# Phase 1: Creates repository PV/PVC infrastructure
+# Must be applied BEFORE operations component to ensure repository is ready
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - repository-pv.yaml
+  - repository-pvc.yaml

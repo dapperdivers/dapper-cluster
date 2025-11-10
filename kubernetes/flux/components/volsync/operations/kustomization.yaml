@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+# VolSync Operations Component
+# Phase 2: Creates all VolSync operational resources
+# Applied AFTER repository component ensures repository PVC is bound
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - replicationdestination.yaml
+  - pvc.yaml
+  - local
+  - remote

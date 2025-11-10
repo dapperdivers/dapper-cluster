@@ -1,0 +1,9 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+# Local backup resources for VolSync
+# Backs up to on-cluster CephFS repository at /k8s-backups/volsync/${APP}
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+resources:
+  - externalsecret.yaml
+  - replicationsource.yaml
