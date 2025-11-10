@@ -7,7 +7,8 @@ metadata:
 spec:
   targetNamespace: *namespace
   components:
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   dependsOn:
     - name: volsync
       namespace: storage
@@ -25,7 +26,8 @@ spec:
     namespace: flux-system
   interval: 30m
   retryInterval: 1m
-  timeout: 5m
+  timeout: 10m
+  wait: true
   postBuild:
     substitute:
       APP: *app

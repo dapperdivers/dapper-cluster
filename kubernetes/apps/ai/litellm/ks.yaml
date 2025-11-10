@@ -11,7 +11,8 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   components:
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   dependsOn:
     - name: volsync
       namespace: storage

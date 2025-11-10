@@ -11,16 +11,17 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   components:
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   interval: 30m
-  timeout: 5m
+  timeout: 10m
   path: "./kubernetes/apps/selfhosted/searxng/app"
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  wait: false
+  wait: true
   dependsOn:
     - name: volsync
       namespace: storage

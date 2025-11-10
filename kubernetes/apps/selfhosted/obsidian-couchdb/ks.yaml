@@ -12,7 +12,8 @@ spec:
       app.kubernetes.io/name: *appname
   interval: 10m
   components:
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   path: "./kubernetes/apps/selfhosted/obsidian-couchdb/app"
   prune: true
   sourceRef:
@@ -26,7 +27,7 @@ spec:
     - name: external-secrets-stores
       namespace: external-secrets
   retryInterval: 1m
-  timeout: 5m
+  timeout: 10m
   postBuild:
     substitute:
       APP: *appname

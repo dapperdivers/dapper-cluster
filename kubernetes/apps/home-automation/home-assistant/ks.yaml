@@ -12,7 +12,8 @@ spec:
       app.kubernetes.io/name: *app
   components:
     - ../../../../flux/components/gatus/external
-    - ../../../../flux/components/volsync
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
   dependsOn:
     - name: volsync
       namespace: storage
@@ -26,10 +27,10 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  wait: false
+  wait: true
   interval: 30m
   retryInterval: 1m
-  timeout: 5m
+  timeout: 10m
   postBuild:
     substitute:
       APP: *app
