@@ -48,19 +48,3 @@ spec:
     - action: replace
       targetLabel: job
       replacement: *name
-
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: &name nut
-spec:
-  staticConfigs:
-    - targets:
-        - nut-upsd.kube-system.svc.cluster.local:3493
-  metricsPath: /nut
-  relabelings:
-    - action: replace
-      targetLabel: job
-      replacement: *name

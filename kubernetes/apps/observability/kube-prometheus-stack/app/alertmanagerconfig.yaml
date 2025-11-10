@@ -17,6 +17,11 @@ spec:
           - name: alertname
             value: InfoInhibitor
             matchType: =
+      - receiver: "null"
+        matchers:
+          - name: alertname
+            value: PrometheusDuplicateTimestamps
+            matchType: =
       - receiver: heartbeat
         groupInterval: 5m
         groupWait: 0s

@@ -16,6 +16,8 @@ spec:
               state for more than 5 minutes. Users cannot access Plex.
           expr: |
             kube_pod_status_ready{namespace="media", pod=~"plex-.*", condition="true"} == 0
+            and
+            kube_pod_status_phase{namespace="media", pod=~"plex-.*", phase!~"Succeeded|Failed"} == 1
           for: 5m
           labels:
             severity: critical
@@ -28,7 +30,7 @@ spec:
               Plex pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted
               {{ $value }} times in the last 15 minutes. This indicates a serious issue.
           expr: |
-            rate(kube_pod_container_status_restarts_total{namespace="media", pod=~"plex-.*"}[15m]) > 0
+            increase(kube_pod_container_status_restarts_total{namespace="media", pod=~"plex-.*"}[15m]) > 0
           for: 5m
           labels:
             severity: critical

@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: prometheus-blackbox-exporter
-      version: 11.4.1
+      version: 11.4.2
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
@@ -84,5 +84,6 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: |-
-              The host {{ $labels.target }} is currently unreachable
+            summary: The host {{ $labels.target }} is currently unreachable
+            description: |-
+              Blackbox probe to {{ $labels.target }} has failed for more than 15 minutes. The host may be down or network connectivity issues exist.
