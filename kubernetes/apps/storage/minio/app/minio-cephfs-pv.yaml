@@ -22,6 +22,8 @@ spec:
       fsName: cephfs
       staticVolume: "true"
       rootPath: /truenas/Minio
+      # Force FUSE mount for Talos (kernel module not available)
+      mounter: fuse
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph
