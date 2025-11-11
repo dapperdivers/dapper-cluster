@@ -26,7 +26,6 @@ spec:
   staticConfigs:
     - targets:
       - athena.manor:9221  # Proxmox VE node with PVE exporter.
-      - circe.manor:9221
   metricsPath: /pve
   relabelings:
     - action: replace
