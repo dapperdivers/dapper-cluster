@@ -29,9 +29,11 @@ spec:
   # CSI driver configuration for improved resilience
   csi:
     cephfs:
-      # Kernel mount options for better session recovery and performance
-      # recover_session=clean: Auto-reconnect when blocklisted, dropping dirty data (kernel 5.4+)
-      kernelMountOptions: "recover_session=clean"
+      # FUSE mount options (required for Talos v1.11.3+ - kernel 6.12.52 lacks ceph module)
+      # Using FUSE instead of kernel mounts due to missing ceph kernel module
+      fuseMountOptions: "recover_session=clean"
+      # Kernel mount options disabled - would fail on Talos 6.12.52
+      # kernelMountOptions: "recover_session=clean"
 
   # Network configuration
   network:
