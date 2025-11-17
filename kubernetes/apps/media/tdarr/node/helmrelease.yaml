@@ -40,7 +40,7 @@ spec:
           app: &node
             image:
               repository: ghcr.io/haveagitgat/tdarr_node
-              tag: 2.53.01@sha256:4d84c17dbba44602bf52c2f606e43b33ecbac4b8706cffb6eca5bc93b6e63a66
+              tag: 2.56.01@sha256:b9c87dcad8a7732eda4ddf3fc3cbe9045324769791e0a79e17074f5443ae5f5e
             envFrom:
               - configMapRef:
                   name: tdarr-config
