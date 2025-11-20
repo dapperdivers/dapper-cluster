@@ -21,6 +21,7 @@ spec:
       staticVolume: "true"
       pool: k8s-backups
       rootPath: "/k8s-backups/volsync/${APP}"
+      mounter: fuse
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph
