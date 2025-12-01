@@ -8,6 +8,8 @@ This directory contains the configuration for connecting Kubernetes to an extern
 
 This configuration connects the Kubernetes cluster to an external Ceph 18.2.7 (Reef) cluster via Rook v1.18.6 in external mode. Both RBD and CephFS storage drivers are active and operational.
 
+> **Note (2025-12-01):** CephFS filesystem was recreated after a failed recovery. All CephFS data pools are empty. Static PVs have been updated to use the new pool structure: `cephfs_data`, `cephfs_media`, `cephfs_backups`.
+
 ### External Ceph Cluster
 - **Version**: Ceph 18.2.7 (Reef)
 - **Location**: Proxmox hosts (10.150.0.0/24)
@@ -50,7 +52,7 @@ rook-ceph/
 |------------|------|------|---------|----------|
 | `ceph-rbd` | rook-pvc-pool | RBD (RWO) | ✅ Yes | General application storage (default) |
 | `cephfs-shared` | cephfs_data | CephFS (RWX) | No | Shared storage, multi-pod access |
-| `cephfs-backups` | k8s-backups | CephFS (RWX) | No | Backups with Retain reclaim policy |
+| `cephfs-backups` | cephfs_backups | CephFS (RWX) | No | Backups with Retain reclaim policy |
 
 **Snapshot Classes**:
 - `ceph-rbd-snapshot` - RBD snapshots with Delete retention
