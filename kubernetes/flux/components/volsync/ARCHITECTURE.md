@@ -7,8 +7,8 @@ This document illustrates the PVC and snapshot lifecycle for VolSync two-phase b
 ```mermaid
 graph TB
     subgraph "Phase 1: Repository"
-        RepoPV["PV: volsync-prowlarr-repo-pv<br/>(CephFS @ /k8s-backups/volsync/prowlarr)<br/>Storage: cephfs-backups"]
-        RepoPVC["PVC: volsync-prowlarr-repo<br/>(5Ti RWX)<br/>Storage: cephfs-backups"]
+        RepoPV["PV: volsync-prowlarr-repo-pv<br/>(CephFS @ /volsync/prowlarr)<br/>Storage: cephfs-static"]
+        RepoPVC["PVC: volsync-prowlarr-repo<br/>(5Ti RWX)<br/>Storage: cephfs-static"]
         RepoPV -->|binds to| RepoPVC
     end
 
@@ -65,8 +65,8 @@ graph TB
 ## Lifecycle Phases
 
 ### Phase 1: Repository Setup
-1. **PV Created**: Static CephFS PV points to `/k8s-backups/volsync/${APP}`
-2. **PVC Binds**: Repository PVC binds to PV using `cephfs-backups` storage class
+1. **PV Created**: Static CephFS PV points to `/volsync/${APP}` on cephfs_backups pool
+2. **PVC Binds**: Repository PVC binds to PV using `cephfs-static` storage class
 
 ### Phase 2: One-Time Restore (on first deployment)
 1. **ReplicationDestination Created**: With `trigger: restore-once`
@@ -88,13 +88,13 @@ graph TB
 
 ## Storage Classes
 
-| Resource | Storage Class | Type | Access Mode |
-|----------|---------------|------|-------------|
-| Repository | `cephfs-backups` | CephFS | RWX |
-| App PVC | `ceph-rbd` | RBD | RWO |
-| Cache | `ceph-rbd` | RBD | RWO |
-| Dest | `ceph-rbd` | RBD | RWO |
-| Snapshots | `ceph-rbd-snapshot` | RBD Snapshot | - |
+| Resource | Storage Class | Pool | Type | Access Mode |
+|----------|---------------|------|------|-------------|
+| Repository | `cephfs-static` | cephfs_backups | CephFS (static) | RWX |
+| App PVC | `ceph-rbd` | rook-pvc-pool | RBD | RWO |
+| Cache | `ceph-rbd` | rook-pvc-pool | RBD | RWO |
+| Dest | `ceph-rbd` | rook-pvc-pool | RBD | RWO |
+| Snapshots | `ceph-rbd-snapshot` | - | RBD Snapshot | - |
 
 ## Troubleshooting
 

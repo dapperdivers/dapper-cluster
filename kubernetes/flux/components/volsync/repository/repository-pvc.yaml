@@ -1,6 +1,6 @@
 ---
 # Repository PVC for VolSync Restic backups
-# Binds to per-app PV (volsync-${APP}-repo-pv) on k8s-backups pool
+# Binds to per-app static PV (volsync-${APP}-repo-pv) on cephfs_backups pool
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -8,7 +8,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: cephfs-backups
+  storageClassName: cephfs-static
   resources:
     requests:
       storage: 5Ti

@@ -1,5 +1,7 @@
 # Storage Applications
 
+> **Note (2025-12-01):** CephFS filesystem was recreated after a failed recovery. All CephFS data pools are empty. Static PVs now use dedicated pools: `cephfs_data`, `cephfs_media`, `cephfs_backups`.
+
 This document covers the storage-related applications and services running in the cluster.
 
 ## Storage Stack Overview
@@ -46,7 +48,7 @@ The Rook operator is the bridge between Kubernetes and the external Ceph cluster
 
 **Current Setup**:
 - **CephFS Driver**: Enabled ✅
-- **RBD Driver**: Disabled (Phase 2)
+- **RBD Driver**: Enabled ✅
 - **Connection Mode**: External cluster
 - **Network**: Public network 10.150.0.0/24
 
@@ -229,7 +231,7 @@ task volsync:restore NS=<namespace> APP=<app>
 
 ### Media Storage
 
-Large media library mounted from pre-existing CephFS path:
+Large media library using dedicated cephfs_media pool:
 
 **Location**: `kubernetes/apps/media/storage/app/media-cephfs-pv.yaml`
 
@@ -255,7 +257,9 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/media
+      rootPath: /media
+      pool: cephfs_media
+      mounter: fuse
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -276,7 +280,7 @@ spec:
 
 ### Minio Object Storage
 
-Minio data stored on CephFS:
+Minio data stored on CephFS using cephfs_data pool:
 
 **Location**: `kubernetes/apps/storage/minio/app/minio-cephfs-pv.yaml`
 
@@ -301,12 +305,14 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/minio
+      rootPath: /minio
+      pool: cephfs_data
+      mounter: fuse
 ```
 
 ### Paperless-ngx Document Storage
 
-Document management system storage:
+Document management system storage using cephfs_data pool:
 
 **Location**: `kubernetes/apps/selfhosted/paperless-ngx/app/paperless-cephfs-pv.yaml`
 
@@ -331,7 +337,9 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/paperless
+      rootPath: /paperless
+      pool: cephfs_data
+      mounter: fuse
 ```
 
 ## Storage Operations
@@ -340,9 +348,11 @@ spec:
 
 **Step 1**: Create directory in CephFS (on Proxmox Ceph node)
 ```bash
-# SSH to a Proxmox node with Ceph access
-mkdir -p /mnt/cephfs/truenas/my-app
-chmod 777 /mnt/cephfs/truenas/my-app  # Or appropriate permissions
+# SSH to a Proxmox node and mount CephFS
+ceph-fuse /mnt/cephfs
+mkdir -p /mnt/cephfs/my-app
+chmod 777 /mnt/cephfs/my-app  # Or appropriate permissions
+fusermount -u /mnt/cephfs
 ```
 
 **Step 2**: Create PV manifest
@@ -367,7 +377,9 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/my-app
+      rootPath: /my-app
+      pool: cephfs_data  # Or cephfs_media, cephfs_backups
+      mounter: fuse
 ```
 
 **Step 3**: Create PVC manifest
@@ -564,19 +576,22 @@ kubectl scale deployment -n <namespace> <app> --replicas=1
 - **Restic Encryption**: Repository encryption with per-app keys
 - **Snapshot Access**: Controlled via ReplicationSource ownership
 
-## Future Enhancements (Phase 2)
+## Current Status
 
-### RBD Block Storage
+### RBD Block Storage ✅ Complete
 
-When Mayastor hardware is repurposed:
+RBD block storage is now fully operational:
+- **RBD driver**: Enabled
+- **RBD pool**: `rook-pvc-pool` (32 PGs, replicated size 2, snappy compression)
+- **Storage class**: `ceph-rbd` (default)
+- **Use for**: Databases, single-pod applications requiring high performance
 
-1. **Enable RBD driver** in Rook operator
-2. **Create RBD pools** on Ceph cluster:
-   - `ssd-db` - Critical workloads
-   - `rook-pvc-pool` - General purpose
-   - `media-bulk` - Erasure-coded bulk storage
-3. **Deploy RBD storage classes**
-4. **Migrate workloads** based on performance requirements
+### CephFS Pools ✅ Complete
+
+CephFS now has three dedicated data pools:
+- **cephfs_data**: General application data (minio, paperless, etc.)
+- **cephfs_media**: Large media files (plex, sonarr, etc.)
+- **cephfs_backups**: VolSync backup repositories
 
 ### Planned Improvements
 

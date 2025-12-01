@@ -1,5 +1,7 @@
 # Storage Architecture
 
+> **Note (2025-12-01):** CephFS filesystem was recreated after a failed recovery. All CephFS data pools are empty. The cluster now uses three dedicated CephFS data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
+
 ## Storage Overview
 
 The Dapper Cluster uses Rook Ceph as its primary storage solution, providing unified storage for all Kubernetes workloads. The external Ceph cluster runs on Proxmox hosts and is connected to the Kubernetes cluster via Rook's external cluster mode.
@@ -104,7 +106,7 @@ Used for pre-existing CephFS paths that need to be mounted into Kubernetes.
 - **Provisioning**: Manual - requires creating both PV and PVC
 - **Pattern**: See "Static PV Pattern" section below
 
-**Example**: Media storage at `/truenas/media`
+**Example**: Media storage at `/media` on cephfs_media pool
 ```yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -126,7 +128,9 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/media
+      rootPath: /media
+      pool: cephfs_media
+      mounter: fuse
 ```
 
 ### RBD Block Storage
@@ -215,7 +219,9 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/my-data  # Pre-existing path in CephFS
+      rootPath: /my-data  # Path in CephFS
+      pool: cephfs_data   # Target data pool
+      mounter: fuse       # Required for Talos
 ```
 
 **Step 2**: Create matching PersistentVolumeClaim
@@ -236,9 +242,9 @@ spec:
 ```
 
 **Current Static PVs in Use**:
-- `media-cephfs-pv` → `/truenas/media` (100Ti)
-- `minio-cephfs-pv` → `/truenas/minio` (10Ti)
-- `paperless-cephfs-pv` → `/truenas/paperless` (5Ti)
+- `media-cephfs-pv` → `/media` on cephfs_media pool (100Ti)
+- `minio-cephfs-pv` → `/minio` on cephfs_data pool (10Ti)
+- `paperless-cephfs-pv` → `/paperless` on cephfs_data pool (5Ti)
 
 ## Storage Decision Matrix
 
