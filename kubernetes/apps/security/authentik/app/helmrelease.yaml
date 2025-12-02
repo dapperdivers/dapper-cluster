@@ -46,6 +46,8 @@ spec:
         db: 1
         port: 6379
     server:
+      podSecurityContext:
+        fsGroup: 150
       securityContext:
         runAsUser: 1000
         runAsGroup: 150
