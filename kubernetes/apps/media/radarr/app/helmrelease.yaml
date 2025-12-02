@@ -96,11 +96,7 @@ spec:
         existingClaim: radarr
       tmp:
         type: emptyDir
-      safe:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe
-      tower-2:
-        existingClaim: media-tower-2-pvc
-        globalMounts:
-          - path: /tower-2
+          - path: /media

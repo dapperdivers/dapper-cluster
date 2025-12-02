@@ -117,15 +117,7 @@ spec:
         defaultMode: 0775
         globalMounts:
           - readOnly: true
-      safe:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe
-      tower:
-        existingClaim: media-tower-pvc
-        globalMounts:
-          - path: /tower
-      tower-2:
-        existingClaim: media-tower-2-pvc
-        globalMounts:
-          - path: /tower-2
+          - path: /media

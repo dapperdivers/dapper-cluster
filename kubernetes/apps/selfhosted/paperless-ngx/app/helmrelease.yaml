@@ -49,9 +49,9 @@ spec:
               PAPERLESS_TIKA_ENDPOINT: http://127.0.0.1:9998
 
               # Paths and folders
-              PAPERLESS_CONSUMPTION_DIR: /safe/consume
+              PAPERLESS_CONSUMPTION_DIR: /media/consume
               PAPERLESS_DATA_DIR: /data/local
-              PAPERLESS_MEDIA_ROOT: /safe/media
+              PAPERLESS_MEDIA_ROOT: /media/paperless
               PAPERLESS_FILENAME_FORMAT: "{created_year}/{correspondent}/{title}"
               PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: 'true'
 
@@ -131,10 +131,10 @@ spec:
           main:
             app:
               - path: /data/local
-      safe:
+      media:
         existingClaim: paperless-cephfs-pvc
         globalMounts:
-          - path: /safe
+          - path: /media
       tmp:
         type: emptyDir
         medium: Memory
