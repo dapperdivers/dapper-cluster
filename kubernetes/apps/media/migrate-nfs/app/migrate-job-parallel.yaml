@@ -40,7 +40,7 @@ spec:
           # Monitor tower-2 load before increasing further
           # ============================================================
           completions: 26
-          parallelism: 3   # Conservative start - monitor tower-2 CPU/disk
+          parallelism: 5   # Increased for faster migration
           completionMode: Indexed
           ttlSecondsAfterFinished: 86400
         containers:
@@ -59,7 +59,7 @@ spec:
               DRY_RUN: false
               SOURCE: /tower-2/movies
               DEST: /destination/movies
-              PARALLEL_JOBS: "2"  # Reduced from 4 to ease tower-2 load (3 pods × 2 = 6 total)
+              PARALLEL_JOBS: "3"  # Increased for faster migration (5 pods × 3 = 15 total)
             resources:
               requests:
                 cpu: 2000m   # Increased for parallel processing
