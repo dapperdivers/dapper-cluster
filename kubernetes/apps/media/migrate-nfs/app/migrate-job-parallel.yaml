@@ -144,22 +144,35 @@ spec:
       shareProcessNamespace: true  # Allow log-tailer to see main container's processes
       affinity:
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/name
-                    operator: In
-                    values:
-                      - plex
-                      - tautulli
-                      - overseerr
-                      - radarr-uhd
-                      - radarr
-                      - sonarr-uhd
-                      - sonarr
-                      - tdarr
-                      - sabnzbd
-              topologyKey: kubernetes.io/hostname
+          # Prefer not to run on same node as media apps (soft rule - won't block them)
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - plex
+                        - tautulli
+                        - overseerr
+                        - radarr-uhd
+                        - radarr
+                        - sonarr-uhd
+                        - sonarr
+                        - tdarr
+                        - sabnzbd
+                topologyKey: kubernetes.io/hostname
+            # Spread migrate jobs across different nodes
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - migrate-job-parallel
+                topologyKey: kubernetes.io/hostname
       securityContext:
         runAsUser: 0  # Root for migration job (needs chown privileges)
         runAsNonRoot: false
