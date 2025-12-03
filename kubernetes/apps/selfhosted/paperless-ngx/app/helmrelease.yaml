@@ -87,7 +87,7 @@ spec:
           tika:
             image:
               repository: apache/tika
-              tag: 2.9.2.1-full
+              tag: 3.2.3.0-full
               pullPolicy: IfNotPresent
             ports:
               - containerPort: 9998
