@@ -163,6 +163,10 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+        advancedMounts:
+          plex:
+            app:
+              - path: /tmp
       imagemaid-tmp:
         type: emptyDir
         advancedMounts:
