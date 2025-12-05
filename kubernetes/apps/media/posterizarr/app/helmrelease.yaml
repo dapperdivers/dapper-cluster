@@ -5,13 +5,16 @@ metadata:
   name: &app posterizarr
 spec:
   interval: 30m
+  timeout: 10m
   chartRef:
     kind: OCIRepository
     name: app-template
   install:
+    timeout: 10m
     remediation:
       retries: 3
   upgrade:
+    timeout: 10m
     cleanupOnFail: true
     remediation:
       strategy: rollback
