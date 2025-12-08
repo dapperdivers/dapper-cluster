@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: migrate-job-parallel # redeploy
+  name: migrate-job-parallel
 spec:
   interval: 30m
   chartRef:
