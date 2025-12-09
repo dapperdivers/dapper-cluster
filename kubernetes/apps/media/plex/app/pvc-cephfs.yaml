@@ -9,16 +9,3 @@ spec:
     requests:
       storage: 100Gi
   storageClassName: cephfs-shared
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plex-posters-cephfs
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: cephfs-shared
-  resources:
-    requests:
-      storage: 200Gi  # Expanded from 100Gi - was at 100% capacity

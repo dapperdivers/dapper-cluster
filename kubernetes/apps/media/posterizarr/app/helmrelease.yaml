@@ -101,7 +101,7 @@ spec:
       posterizarr-watcher:
         existingClaim: posterizarr-watcher
         globalMounts:
-          - path: /config/watcher
+          - path: /watcher
       config-file:
         type: configMap
         defaultMode: 511
@@ -111,15 +111,4 @@ spec:
       assets:
         existingClaim: plex-posters-cephfs
         globalMounts:
-        - path: /assets
-          subPath: assets
-      assetsbackup:
-        existingClaim: plex-posters-cephfs
-        globalMounts:
-          - path: /assetsbackup
-            subPath: assetsbackup
-      manualassets:
-        existingClaim: plex-posters-cephfs
-        globalMounts:
-          - path: /manualassets
-            subPath: manualassets
+          - path: /assets
