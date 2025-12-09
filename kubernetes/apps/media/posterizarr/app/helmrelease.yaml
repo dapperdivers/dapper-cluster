@@ -101,7 +101,7 @@ spec:
       posterizarr-watcher:
         existingClaim: posterizarr-watcher
         globalMounts:
-          - path: /config/watcher
+          - path: /watcher
       config-file:
         type: configMap
         defaultMode: 511
