@@ -35,10 +35,10 @@ spec:
       # Enable CephFS driver for shared filesystem storage
       enableCephfsDriver: true
 
-      # Force FUSE mount for CephFS (required for Talos v1.11.3+)
-      # Talos kernel 6.12.52 doesn't include the ceph kernel module
-      # FUSE mounts provide compatibility without kernel module dependency
-      forceCephFSKernelClient: false
+      # Use kernel mount for CephFS (available in Talos v1.11+)
+      # Talos v1.11+ includes the ceph kernel module and has IMA disabled
+      # Kernel mounts are faster and handle concurrent mounts better than FUSE
+      forceCephFSKernelClient: true
 
       # Increase timeouts for external Ceph cluster (default: 150s)
       # External clusters may have higher latency than co-located Ceph
