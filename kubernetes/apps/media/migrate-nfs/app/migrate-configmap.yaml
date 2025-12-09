@@ -381,7 +381,8 @@ data:
     # Process directories in parallel using xargs
     echo "[$(date)] Starting parallel processing with ${PARALLEL_JOBS} workers..." | safe_tee "${LOG_FILE}"
 
-    cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -I {} -P "${PARALLEL_JOBS}" bash -c 'process_directory "{}"' || true
+    # Note: Pass directory name as $1 to avoid shell expansion of special chars like $
+    cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -P "${PARALLEL_JOBS}" -I {} bash -c 'process_directory "$1"' _ {} || true
 
     # Read final counters (xargs waits for all processes by default)
     success_count=$(cat "${SUCCESS_FILE}")
