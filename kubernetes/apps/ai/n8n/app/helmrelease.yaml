@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: ghcr.io/n8n-io/n8n
-              tag: 1.119.1@sha256:4a43ddf853afe3ad44be51379e7ed85c16b974cae26cf732d2fcbf71d0cb16c4
+              tag: 2.0.1@sha256:6162cdbae72808795e0a68f5d8b05264c035d481544f5928a9581488bbae8778
             resources:
               requests:
                 cpu: 1400m

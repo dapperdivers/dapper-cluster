@@ -54,7 +54,7 @@ spec:
           app:
             image:
               repository: kometateam/kometa
-              tag: nightly@sha256:8f3fbaabec52810b3ece37e4e1c7b4d06e938b7973f0e0f9046d29395ac3f8da
+              tag: nightly@sha256:d8355ba0a86996472a60586b3b783f5e356a31c812b785c37e1d2caea7f4cc74
             command:
               - /bin/sh
               - -c
@@ -64,16 +64,16 @@ spec:
                 python3 kometa.py --read-only-config --run;
             env:
               TZ: *timeZone
-              KOMETA_TAUTULLI_HOST: "http://tautulli.media"
+              KOMETA_TAUTULLI_HOST: "http://tautulli.media:8181"
               KOMETA_PLEX_HOST: "http://plex.media.svc.cluster.local:32400"
               KOMETA_RADARR_HOST: "http://radarr.media"
-              KOMETA_RADARR_ROOT_FOLDER_PATH: "/safe/movies"
+              KOMETA_RADARR_ROOT_FOLDER_PATH: "/media/movies"
               KOMETA_RADARR_UHD_HOST: "http://radarr-uhd.media"
-              KOMETA_RADARR_UHD_ROOT_FOLDER_PATH: "/safe/movies-4k"
+              KOMETA_RADARR_UHD_ROOT_FOLDER_PATH: "/media/movies-4k"
               KOMETA_SONARR_HOST: "http://sonarr.media"
-              KOMETA_SONARR_ROOT_FOLDER_PATH: "/safe/tv"
+              KOMETA_SONARR_ROOT_FOLDER_PATH: "/media/tv"
               KOMETA_SONARR_UHD_HOST: "http://sonarr-uhd.media"
-              KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/safe/tv-4k"
+              KOMETA_SONARR_UHD_ROOT_FOLDER_PATH: "/media/tv-4k"
             envFrom:
               - secretRef:
                   name: kometa-secret
@@ -117,3 +117,7 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /git
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/sabnzbd
-              tag: 4.5.3@sha256:ecb57bd6257fbfbd9aee70d8ef3df8814b7270ae793fd1f44219ae73cacd519a
+              tag: 4.5.5@sha256:da57e01cdebc547852b6df85c8df8c0e4d87792742c7608c5590dc653b184e8c
             env:
               TZ: ${TIME_ZONE}
               SABNZBD__PORT: &port 80
@@ -105,10 +105,12 @@ spec:
     persistence:
       config:
         existingClaim: sabnzbd
+      incomplete:
+        existingClaim: sabnzbd-incomplete
+        globalMounts:
+          - path: /incomplete
       tmp:
-        medium: Memory
         type: emptyDir
-        sizeLimit: 70Gi
         globalMounts:
           - path: /tmp
       scripts:
@@ -117,15 +119,7 @@ spec:
         defaultMode: 0775
         globalMounts:
           - readOnly: true
-      safe:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe
-      tower:
-        existingClaim: media-tower-pvc
-        globalMounts:
-          - path: /tower
-      tower-2:
-        existingClaim: media-tower-2-pvc
-        globalMounts:
-          - path: /tower-2
+          - path: /media

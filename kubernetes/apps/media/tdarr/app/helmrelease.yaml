@@ -75,10 +75,10 @@ spec:
         existingClaim: *app
         globalMounts:
           - path: /app/server
-      safe:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe
+          - path: /media
       transcode:
         type: emptyDir
         medium: Memory
