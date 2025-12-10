@@ -8,13 +8,13 @@ sonarr:
     replace_existing_custom_formats: true
     # For Sonarr
     media_naming:
-      series: standard
-      season: standard
+      series: default
+      season: default
       episodes:
         rename: true
-        standard: standard
-        daily: standard
-        anime: standard
+        standard: default
+        daily: default
+        anime: default
     quality_definition:
       type: series
     include:
@@ -54,13 +54,13 @@ sonarr:
     replace_existing_custom_formats: true
     # For Sonarr
     media_naming:
-      series: standard
-      season: standard
+      series: default
+      season: default
       episodes:
         rename: true
-        standard: standard
-        daily: standard
-        anime: standard
+        standard: default
+        daily: default
+        anime: default
     quality_definition:
       type: series
     include:
@@ -79,10 +79,13 @@ sonarr:
           - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
 
           # HDR10+ Boost - Uncomment the next two lines if any of your devices DO support HDR10+
-          - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10+ Boost
-          - 385e9e8581d33133c3961bdcdeffb7b4 # DV HDR10+ Boost
+          - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
+          - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
         assign_scores_to:
           - name: WEB-2160p
+
+      # Note: Audio custom formats are not available for Sonarr (only Radarr)
+      # Audio scoring is handled via the quality profile instead
 
       # Optional
       - trash_ids:
@@ -121,7 +124,7 @@ radarr:
     delete_old_custom_formats: true
     replace_existing_custom_formats: true
     media_naming:
-      folder: standard
+      folder: default
       movie:
         rename: true
         standard: standard
@@ -175,7 +178,7 @@ radarr:
     delete_old_custom_formats: true
     replace_existing_custom_formats: true
     media_naming:
-      folder: standard
+      folder: default
       movie:
         rename: true
         standard: standard
@@ -250,8 +253,8 @@ radarr:
           # - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
 
           # HDR10+ Boost - Uncomment the next line if any of your devices DO support HDR10+
-          - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
-          - 55a5b50cb416dea5a50c4955896217ab # DV HDR10+ Boost
+          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
         assign_scores_to:
           - name: UHD Bluray + WEB
 
@@ -261,6 +264,6 @@ radarr:
       # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
       - trash_ids:
           - 9c38ebb7384dada637be8899efa68e6f # SDR
-            # - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
+          # - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
         assign_scores_to:
           - name: UHD Bluray + WEB

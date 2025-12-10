@@ -130,7 +130,7 @@ spec:
       staticVolume: "true"
       rootPath: /media
       pool: cephfs_media
-      mounter: fuse
+      mounter: kernel
 ```
 
 ### RBD Block Storage
@@ -221,7 +221,7 @@ spec:
       staticVolume: "true"
       rootPath: /my-data  # Path in CephFS
       pool: cephfs_data   # Target data pool
-      mounter: fuse       # Required for Talos
+      mounter: kernel     # Kernel mounter for better performance
 ```
 
 **Step 2**: Create matching PersistentVolumeClaim
