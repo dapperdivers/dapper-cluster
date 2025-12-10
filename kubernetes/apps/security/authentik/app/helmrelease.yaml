@@ -77,10 +77,22 @@ spec:
               - *host
     worker:
       replicas: 1
-      # Disable healthchecks - worker doesn't create PID file properly
-      livenessProbe: {}
-      readinessProbe: {}
-      startupProbe: {}
+      # Increase probe timeouts - worker takes ~90s to start
+      livenessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 30
+        timeoutSeconds: 30
+        failureThreshold: 5
+      readinessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 30
+        timeoutSeconds: 30
+        failureThreshold: 5
+      startupProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 30
+        failureThreshold: 30
       resources:
         requests:
           cpu: 100m
