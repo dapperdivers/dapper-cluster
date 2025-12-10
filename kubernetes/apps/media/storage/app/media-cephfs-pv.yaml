@@ -1,11 +1,11 @@
 ---
-# Static PV for existing CephFS media library
-# Points to /truenas/Media on external Ceph cluster
+# Static PV for CephFS media library
+# Points to /media on external Ceph cluster using cephfs_media pool
 #
-# External Access: This path (/truenas/Media) can be mounted directly from
+# External Access: This path (/media) can be mounted directly from
 # Proxmox hosts using standard CephFS mount, allowing access outside K8s
 #
-# NOTE: tower and tower-2 remain on NFS (not migrated yet)
+# Pool: cephfs_media (dedicated media data pool)
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -24,7 +24,10 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/Media
+      rootPath: /media
+      pool: cephfs_media
+      # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+      mounter: kernel
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph

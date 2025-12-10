@@ -59,6 +59,25 @@ volumeBindingMode: Immediate
 ---
 # CephFS Storage Classes
 
+# Storage class for static CephFS PVs (manually created paths)
+# Used for pre-existing CephFS directories that need to be mounted into K8s
+# Does not provision new volumes - only used for PV/PVC matching
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cephfs-static
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: cephfs
+  # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+  mounter: kernel
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+
+---
 # Default storage class for general shared filesystem storage
 # Uses the main cephfs_data pool
 apiVersion: storage.k8s.io/v1
@@ -73,8 +92,9 @@ parameters:
   # Subvolume group for organizing CephFS volumes
   # Created with: ceph fs subvolumegroup create cephfs csi
   subvolumeGroup: csi
-  # Force FUSE mounts (required for Talos v1.11.3+ - kernel 6.12.52 lacks ceph module)
-  mounter: fuse
+  # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+  # FUSE was previously required but kernel mount is now available and faster
+  mounter: kernel
   csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
@@ -87,7 +107,7 @@ volumeBindingMode: Immediate
 
 ---
 # CephFS storage class for backups
-# Uses the k8s-backups datapool for backup-specific workloads
+# Uses the cephfs_backups datapool for backup-specific workloads
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -96,12 +116,13 @@ provisioner: rook-ceph.cephfs.csi.ceph.com
 parameters:
   clusterID: rook-ceph
   fsName: cephfs
-  pool: k8s-backups
+  pool: cephfs_backups
   # Subvolume group for organizing CephFS volumes
   # Created with: ceph fs subvolumegroup create cephfs csi
   subvolumeGroup: csi
-  # Force FUSE mounts (required for Talos v1.11.3+ - kernel 6.12.52 lacks ceph module)
-  mounter: fuse
+  # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+  # FUSE was previously required but kernel mount is now available and faster
+  mounter: kernel
   csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner

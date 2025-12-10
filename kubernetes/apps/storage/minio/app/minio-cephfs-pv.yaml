@@ -1,8 +1,9 @@
 ---
-# Static PV for existing CephFS MinIO data
-# Points to /truenas/Minio on external Ceph cluster
+# Static PV for CephFS MinIO data
+# Points to /minio on external Ceph cluster using cephfs_data pool
 #
 # External Access: This path can be mounted directly from Proxmox hosts
+# Pool: cephfs_data (general data pool)
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -21,9 +22,10 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/Minio
-      # Force FUSE mount for Talos (kernel module not available)
-      mounter: fuse
+      rootPath: /minio
+      pool: cephfs_data
+      # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+      mounter: kernel
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph

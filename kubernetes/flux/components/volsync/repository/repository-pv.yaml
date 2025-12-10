@@ -1,6 +1,7 @@
 ---
 # Repository PV for VolSync Restic backups
-# Points to /volsync/${APP} on k8s-backups pool for per-app isolation
+# Points to /volsync/${APP} on cephfs_backups pool for per-app isolation
+# Uses cephfs-static storage class for static PV binding
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -11,7 +12,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: cephfs-backups
+  storageClassName: cephfs-static
   csi:
     driver: rook-ceph.cephfs.csi.ceph.com
     volumeHandle: "volsync-${APP}-repo"
@@ -19,8 +20,10 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      pool: k8s-backups
-      rootPath: "/k8s-backups/volsync/${APP}"
+      pool: cephfs_backups
+      rootPath: "/volsync/${APP}"
+      # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+      mounter: kernel
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph

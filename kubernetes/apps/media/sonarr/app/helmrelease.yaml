@@ -95,11 +95,7 @@ spec:
         existingClaim: sonarr
       tmp:
         type: emptyDir
-      safe:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe
-      tower:
-        existingClaim: media-tower-pvc
-        globalMounts:
-          - path: /tower
+          - path: /media

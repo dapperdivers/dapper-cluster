@@ -26,14 +26,15 @@ spec:
       - ip: "10.150.0.3"
       - ip: "10.150.0.4"
 
-  # CSI driver configuration for improved resilience
+  # CSI driver configuration
+  # Note: FUSE mounter is configured in StorageClass due to Talos v1.11.3+ lacking ceph kernel module
+  # client_reconnect_stale is NOT supported by ceph-fuse in Ceph 18.2.7 Reef
+  # Instead, rely on MDS-side config: mds_session_blocklist_on_timeout=false
   csi:
     cephfs:
-      # FUSE mount options (required for Talos v1.11.3+ - kernel 6.12.52 lacks ceph module)
-      # Using FUSE instead of kernel mounts due to missing ceph kernel module
-      fuseMountOptions: "recover_session=clean"
-      # Kernel mount options disabled - would fail on Talos 6.12.52
-      # kernelMountOptions: "recover_session=clean"
+      fuseMountOptions: ""
+    readAffinity:
+      enabled: false
 
   # Network configuration
   network:
