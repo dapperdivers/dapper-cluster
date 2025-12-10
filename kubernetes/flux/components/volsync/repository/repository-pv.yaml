@@ -22,7 +22,8 @@ spec:
       staticVolume: "true"
       pool: cephfs_backups
       rootPath: "/volsync/${APP}"
-      mounter: fuse
+      # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+      mounter: kernel
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph

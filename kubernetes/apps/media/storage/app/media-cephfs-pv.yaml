@@ -26,7 +26,8 @@ spec:
       staticVolume: "true"
       rootPath: /media
       pool: cephfs_media
-      mounter: fuse
+      # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+      mounter: kernel
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph
