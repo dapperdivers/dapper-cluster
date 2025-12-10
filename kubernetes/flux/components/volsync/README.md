@@ -56,12 +56,12 @@ Creates CephFS repository at `/k8s-backups/volsync/${APP}` for storing Restic ba
 
 ## Storage Classes
 
-| Resource | Storage Class | Type |
-|----------|---------------|------|
-| Repository | `cephfs-backups` | CephFS RWX |
-| App PVC | `ceph-rbd` | RBD RWO |
-| Cache | `ceph-rbd` | RBD RWO |
-| Snapshots | `ceph-rbd-snapshot` | RBD |
+| Resource | Storage Class | Pool | Type |
+|----------|---------------|------|------|
+| Repository | `cephfs-static` | cephfs_backups | CephFS RWX (static PV) |
+| App PVC | `ceph-rbd` | rook-pvc-pool | RBD RWO |
+| Cache | `ceph-rbd` | rook-pvc-pool | RBD RWO |
+| Snapshots | `ceph-rbd-snapshot` | - | RBD |
 
 ## Troubleshooting
 

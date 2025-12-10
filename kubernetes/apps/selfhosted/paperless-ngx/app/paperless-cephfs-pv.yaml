@@ -1,8 +1,9 @@
 ---
-# Static PV for existing CephFS Paperless data
-# Points to /truenas/Paperless-ngx on external Ceph cluster
+# Static PV for CephFS Paperless data
+# Points to /paperless on external Ceph cluster using cephfs_data pool
 #
 # External Access: This path can be mounted directly from Proxmox hosts
+# Pool: cephfs_data (general data pool)
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -21,7 +22,10 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /truenas/Paperless-ngx
+      rootPath: /paperless
+      pool: cephfs_data
+      # Use kernel mounter for better performance (Talos v1.11+ has ceph module)
+      mounter: kernel
     nodeStageSecretRef:
       name: rook-csi-cephfs-static
       namespace: rook-ceph

@@ -110,10 +110,10 @@ spec:
             port: 8266
 
     persistence:
-      safe:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /safe
+          - path: /media
       transcode:
         type: emptyDir
         medium: Memory
