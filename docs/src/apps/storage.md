@@ -259,7 +259,7 @@ spec:
       staticVolume: "true"
       rootPath: /media
       pool: cephfs_media
-      mounter: fuse
+      mounter: kernel
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -307,7 +307,7 @@ spec:
       staticVolume: "true"
       rootPath: /minio
       pool: cephfs_data
-      mounter: fuse
+      mounter: kernel
 ```
 
 ### Paperless-ngx Document Storage
@@ -339,7 +339,7 @@ spec:
       staticVolume: "true"
       rootPath: /paperless
       pool: cephfs_data
-      mounter: fuse
+      mounter: kernel
 ```
 
 ## Storage Operations
@@ -379,7 +379,7 @@ spec:
       staticVolume: "true"
       rootPath: /my-app
       pool: cephfs_data  # Or cephfs_media, cephfs_backups
-      mounter: fuse
+      mounter: kernel
 ```
 
 **Step 3**: Create PVC manifest
