@@ -63,7 +63,7 @@ spec:
         type: configMap
         name: recyclarr-configmap
         globalMounts:
-          - path: /config/recyclarr.yml |
+          - path: /config/recyclarr.yml
             subPath: recyclarr.yml
             readOnly: true
       logs:
