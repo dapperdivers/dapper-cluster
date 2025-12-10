@@ -64,7 +64,7 @@ spec:
                 python3 kometa.py --read-only-config --run;
             env:
               TZ: *timeZone
-              KOMETA_TAUTULLI_HOST: "http://tautulli.media"
+              KOMETA_TAUTULLI_HOST: "http://tautulli.media:8181"
               KOMETA_PLEX_HOST: "http://plex.media.svc.cluster.local:32400"
               KOMETA_RADARR_HOST: "http://radarr.media"
               KOMETA_RADARR_ROOT_FOLDER_PATH: "/media/movies"
