@@ -28,7 +28,7 @@ spec:
           init-config:
             image:
               repository: ghcr.io/kiwigrid/k8s-sidecar
-              tag: 2.1.2@sha256:5304aa2b45f80a19f84a5e9dfb139c9caeaeecf1f9e507d0bdb9bc1cdb87a58a
+              tag: 2.1.4@sha256:0b56b3ef7efc0c47f87c2230c4dfdcfb5b4b7399132cd7daecede82f85d7e342
             env:
               FOLDER: /config
               LABEL: gatus.io/enabled
@@ -48,7 +48,7 @@ spec:
           app:
             image:
               repository: ghcr.io/twin/gatus
-              tag: v5.31.0@sha256:3a432fcc2826b8eb2b38caceb83e7777fda139b8058b1d022c73a82be7342682
+              tag: v5.33.0@sha256:bf249f4d7cf69e825457ade2ebc3d11168d73527ef1657a653119a0d9da97a4a
             env:
               TZ: ${TIME_ZONE}
               GATUS_CONFIG_PATH: /config
