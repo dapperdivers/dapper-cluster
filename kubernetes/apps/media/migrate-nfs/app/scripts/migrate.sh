@@ -43,10 +43,40 @@ mkdir -p "${LOG_DIR}/archive"
 # HELPER FUNCTIONS
 # =============================================================================
 
+# Retry settings for transient storage errors
+readonly MAX_RETRIES=3
+readonly RETRY_DELAY=2
+
 # Check if running in dry-run mode
 # Returns: 0 if dry-run, 1 if production mode
 is_dry_run() {
     [ "${DRY_RUN}" = "true" ] || [ "${DRY_RUN}" = "1" ]
+}
+
+# Resilient file append - handles transient mount failures
+# Args: $1 - Text to append, $2 - File path
+# Usage: safe_append "message" "/path/to/file.log"
+safe_append() {
+    local text="$1"
+    local file="$2"
+    local retries=${MAX_RETRIES}
+    while ! echo "$text" >> "$file" 2>/dev/null; do
+        ((retries--)) || { echo "[WARN] Failed to append to $file after ${MAX_RETRIES} retries" >&2; return 1; }
+        sleep ${RETRY_DELAY}
+    done
+    return 0
+}
+
+# Wrapper for tee -a with retry logic
+# Args: $1 - Log file path
+# Usage: echo "message" | safe_tee "/path/to/file.log"
+safe_tee() {
+    local file="$1"
+    local line
+    while IFS= read -r line; do
+        echo "$line"
+        safe_append "$line" "$file"
+    done
 }
 
 # Archive old logs for this letter before starting new run
@@ -71,7 +101,7 @@ archive_old_logs() {
 
     # Only archive if there are files to archive
     if [ ${#files_to_archive[@]} -gt 0 ]; then
-        echo "[$(date)] Archiving previous run logs to ${archive_name}..." | tee -a "${LOG_FILE}.new"
+        echo "[$(date)] Archiving previous run logs to ${archive_name}..." | safe_tee "${LOG_FILE}.new"
         tar -czf "${archive_name}" "${files_to_archive[@]}" 2>/dev/null || true
 
         # Remove archived files
@@ -79,7 +109,7 @@ archive_old_logs() {
             rm -f "${file}" 2>/dev/null || true
         done
 
-        echo "[$(date)] ✓ Previous logs archived successfully" | tee -a "${LOG_FILE}.new"
+        echo "[$(date)] ✓ Previous logs archived successfully" | safe_tee "${LOG_FILE}.new"
     fi
 }
 
@@ -121,25 +151,25 @@ START_TIME=$(date +%s)
 START_TIMESTAMP=$(date)
 
 # Display enhanced header with mode and configuration
-echo "======================================" | tee -a "${LOG_FILE}"
-echo "MIGRATION JOB - Letter ${LETTER} (Index: ${INDEX})" | tee -a "${LOG_FILE}"
-echo "======================================" | tee -a "${LOG_FILE}"
+echo "======================================" | safe_tee "${LOG_FILE}"
+echo "MIGRATION JOB - Letter ${LETTER} (Index: ${INDEX})" | safe_tee "${LOG_FILE}"
+echo "======================================" | safe_tee "${LOG_FILE}"
 
 if is_dry_run; then
-    echo "Mode: DRY-RUN (no files will be deleted)" | tee -a "${LOG_FILE}"
+    echo "Mode: DRY-RUN (no files will be deleted)" | safe_tee "${LOG_FILE}"
 else
-    echo "Mode: PRODUCTION (files will be deleted after transfer)" | tee -a "${LOG_FILE}"
+    echo "Mode: PRODUCTION (files will be deleted after transfer)" | safe_tee "${LOG_FILE}"
 fi
 
-echo "Source:      ${SOURCE}" | tee -a "${LOG_FILE}"
-echo "Destination: ${DEST}" | tee -a "${LOG_FILE}"
-echo "Parallel Workers: ${PARALLEL_JOBS}" | tee -a "${LOG_FILE}"
-echo "Started: ${START_TIMESTAMP}" | tee -a "${LOG_FILE}"
-echo "======================================" | tee -a "${LOG_FILE}"
-echo "" | tee -a "${LOG_FILE}"
+echo "Source:      ${SOURCE}" | safe_tee "${LOG_FILE}"
+echo "Destination: ${DEST}" | safe_tee "${LOG_FILE}"
+echo "Parallel Workers: ${PARALLEL_JOBS}" | safe_tee "${LOG_FILE}"
+echo "Started: ${START_TIMESTAMP}" | safe_tee "${LOG_FILE}"
+echo "======================================" | safe_tee "${LOG_FILE}"
+echo "" | safe_tee "${LOG_FILE}"
 
 # Get list of all directories starting with this letter
-echo "[$(date)] Scanning source for directories starting with '${LETTER}'..." | tee -a "${LOG_FILE}"
+echo "[$(date)] Scanning source for directories starting with '${LETTER}'..." | safe_tee "${LOG_FILE}"
 TMPFILE=$(mktemp -t "migration-dirs-${LETTER}.XXXXXX")
 
 # Use ls instead of find to avoid race conditions with parallel deletions
@@ -156,34 +186,34 @@ touch "${CHECKPOINT}"
 COMPLETED_COUNT=$(wc -l < "${CHECKPOINT}")
 
 if [ ${TOTAL_DIRS} -eq 0 ]; then
-    echo "[$(date)] ✓ Scan complete: 0 directories found" | tee -a "${LOG_FILE}"
-    echo "[$(date)] ℹ️  Nothing to migrate - all '${LETTER}' directories already processed or don't exist" | tee -a "${LOG_FILE}"
-    echo "" | tee -a "${LOG_FILE}"
+    echo "[$(date)] ✓ Scan complete: 0 directories found" | safe_tee "${LOG_FILE}"
+    echo "[$(date)] ℹ️  Nothing to migrate - all '${LETTER}' directories already processed or don't exist" | safe_tee "${LOG_FILE}"
+    echo "" | safe_tee "${LOG_FILE}"
 
     # Print summary for empty job
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
 
-    echo "======================================" | tee -a "${LOG_FILE}"
-    echo "MIGRATION COMPLETE - Letter ${LETTER}" | tee -a "${LOG_FILE}"
-    echo "======================================" | tee -a "${LOG_FILE}"
-    echo "Started:  ${START_TIMESTAMP}" | tee -a "${LOG_FILE}"
-    echo "Finished: $(date)" | tee -a "${LOG_FILE}"
-    echo "Duration: ${DURATION} seconds" | tee -a "${LOG_FILE}"
-    echo "" | tee -a "${LOG_FILE}"
-    echo "Directories scanned:      ${TOTAL_DIRS}" | tee -a "${LOG_FILE}"
-    echo "Previously completed:     ${COMPLETED_COUNT}" | tee -a "${LOG_FILE}"
-    echo "" | tee -a "${LOG_FILE}"
-    echo "Status: ✓ SUCCESS - Nothing to migrate" | tee -a "${LOG_FILE}"
-    echo "======================================" | tee -a "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
+    echo "MIGRATION COMPLETE - Letter ${LETTER}" | safe_tee "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
+    echo "Started:  ${START_TIMESTAMP}" | safe_tee "${LOG_FILE}"
+    echo "Finished: $(date)" | safe_tee "${LOG_FILE}"
+    echo "Duration: ${DURATION} seconds" | safe_tee "${LOG_FILE}"
+    echo "" | safe_tee "${LOG_FILE}"
+    echo "Directories scanned:      ${TOTAL_DIRS}" | safe_tee "${LOG_FILE}"
+    echo "Previously completed:     ${COMPLETED_COUNT}" | safe_tee "${LOG_FILE}"
+    echo "" | safe_tee "${LOG_FILE}"
+    echo "Status: ✓ SUCCESS - Nothing to migrate" | safe_tee "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
 
     rm -f "${TMPFILE}"
     exit 0
 fi
 
-echo "[$(date)] ✓ Scan complete: ${TOTAL_DIRS} directories found" | tee -a "${LOG_FILE}"
-echo "[$(date)] Previously completed: ${COMPLETED_COUNT} directories" | tee -a "${LOG_FILE}"
-echo "" | tee -a "${LOG_FILE}"
+echo "[$(date)] ✓ Scan complete: ${TOTAL_DIRS} directories found" | safe_tee "${LOG_FILE}"
+echo "[$(date)] Previously completed: ${COMPLETED_COUNT} directories" | safe_tee "${LOG_FILE}"
+echo "" | safe_tee "${LOG_FILE}"
 
 # Counters (shared via files for parallel access)
 COUNTER_FILE=$(mktemp -t "migration-counter-${LETTER}.XXXXXX")
@@ -228,26 +258,26 @@ process_directory() {
 
     # Check if already completed (with file locking)
     if grep -qFx "${dir_name}" "${CHECKPOINT}" 2>/dev/null; then
-        echo "[$(date)] [${counter}/${TOTAL_DIRS}] SKIPPING ${dir_name} (already completed)" | tee -a "${LOG_FILE}"
+        echo "[$(date)] [${counter}/${TOTAL_DIRS}] SKIPPING ${dir_name} (already completed)" | safe_tee "${LOG_FILE}"
         increment_counter "${SKIP_FILE}"
         return 0
     fi
 
-    echo "" | tee -a "${LOG_FILE}"
-    echo "======================================" | tee -a "${LOG_FILE}"
-    echo "[$(date)] [${counter}/${TOTAL_DIRS}] Processing: ${dir_name}" | tee -a "${LOG_FILE}"
-    echo "======================================" | tee -a "${LOG_FILE}"
+    echo "" | safe_tee "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
+    echo "[$(date)] [${counter}/${TOTAL_DIRS}] Processing: ${dir_name}" | safe_tee "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
 
     # PHASE 1: Transfer and remove source files atomically
-    echo "[$(date)] Transferring ${dir_name}..." | tee -a "${LOG_FILE}"
+    echo "[$(date)] Transferring ${dir_name}..." | safe_tee "${LOG_FILE}"
 
     # Count files before transfer for logging
     SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f 2>/dev/null | wc -l)
 
     if [ "${SOURCE_COUNT}" -eq 0 ]; then
-        echo "[$(date)] ℹ️  No files to transfer (already migrated)" | tee -a "${LOG_FILE}"
+        echo "[$(date)] ℹ️  No files to transfer (already migrated)" | safe_tee "${LOG_FILE}"
     else
-        echo "[$(date)] Found ${SOURCE_COUNT} files to transfer" | tee -a "${LOG_FILE}"
+        echo "[$(date)] Found ${SOURCE_COUNT} files to transfer" | safe_tee "${LOG_FILE}"
     fi
 
     # Build rsync options as array
@@ -257,57 +287,69 @@ process_directory() {
 
     # MERGE MODE: rsync will add source files to destination (destination may have more files from other sources)
     # With --remove-source-files, rsync will only delete source files after successful transfer
+    # Capture stderr for resilient logging
+    local rsync_stderr
+    rsync_stderr=$(mktemp -t "rsync-stderr-${LETTER}.XXXXXX")
     if rsync "${rsync_opts[@]}" \
         --log-file="${dir_log}" \
         "${SOURCE}/${dir_name}/" \
-        "${DEST}/${dir_name}/" 2>> "${ERROR_LOG}"; then
+        "${DEST}/${dir_name}/" 2>"${rsync_stderr}"; then
 
         if is_dry_run; then
-            echo "[$(date)] ✓ DRY-RUN: Transfer simulated for ${dir_name}" | tee -a "${LOG_FILE}"
+            echo "[$(date)] ✓ DRY-RUN: Transfer simulated for ${dir_name}" | safe_tee "${LOG_FILE}"
         else
-            echo "[$(date)] ✓ Transfer completed and source files removed for ${dir_name}" | tee -a "${LOG_FILE}"
+            echo "[$(date)] ✓ Transfer completed and source files removed for ${dir_name}" | safe_tee "${LOG_FILE}"
         fi
+        rm -f "${rsync_stderr}"
     else
         rsync_exit=$?
-        echo "ERROR: rsync failed for ${dir_name} (exit code: ${rsync_exit})" | tee -a "${ERROR_LOG}"
-        echo "SOURCE FILES NOT DELETED - rsync detected an error" | tee -a "${ERROR_LOG}"
+        # Append captured stderr to error log with retry
+        [ -s "${rsync_stderr}" ] && while IFS= read -r line; do safe_append "$line" "${ERROR_LOG}"; done < "${rsync_stderr}"
+        rm -f "${rsync_stderr}"
+        echo "ERROR: rsync failed for ${dir_name} (exit code: ${rsync_exit})" | safe_tee "${ERROR_LOG}"
+        echo "SOURCE FILES NOT DELETED - rsync detected an error" | safe_tee "${ERROR_LOG}"
         increment_counter "${FAIL_FILE}"
         return 1
     fi
 
     # PHASE 2: Set ownership (SKIP IN DRY-RUN MODE)
     if is_dry_run; then
-        echo "[$(date)] DRY-RUN: Skipping ownership changes for ${dir_name}" | tee -a "${LOG_FILE}"
+        echo "[$(date)] DRY-RUN: Skipping ownership changes for ${dir_name}" | safe_tee "${LOG_FILE}"
     else
-        echo "[$(date)] Setting ownership for ${dir_name}..." | tee -a "${LOG_FILE}"
-        chown -R "${DEST_UID}:${DEST_GID}" "${DEST}/${dir_name}" 2>> "${ERROR_LOG}" || true
-        chmod -R u=rwX,g=rX,o=rX "${DEST}/${dir_name}" 2>> "${ERROR_LOG}" || true
+        echo "[$(date)] Setting ownership for ${dir_name}..." | safe_tee "${LOG_FILE}"
+        local chown_err
+        chown_err=$(chown -R "${DEST_UID}:${DEST_GID}" "${DEST}/${dir_name}" 2>&1) || safe_append "${chown_err}" "${ERROR_LOG}"
+        local chmod_err
+        chmod_err=$(chmod -R u=rwX,g=rX,o=rX "${DEST}/${dir_name}" 2>&1) || safe_append "${chmod_err}" "${ERROR_LOG}"
     fi
 
     # PHASE 3: Clean up empty source directories (SKIP IN DRY-RUN MODE)
     # Note: --remove-source-files only removes files, not directories
     if is_dry_run; then
-        echo "[$(date)] DRY-RUN: Skipping empty directory cleanup for ${dir_name}" | tee -a "${LOG_FILE}"
+        echo "[$(date)] DRY-RUN: Skipping empty directory cleanup for ${dir_name}" | safe_tee "${LOG_FILE}"
     else
         if [ -d "${SOURCE}/${dir_name}" ]; then
             # Remove empty directories recursively (bottom-up)
-            find "${SOURCE}/${dir_name}" -type d -empty -delete 2>> "${ERROR_LOG}" || true
+            local find_err
+            find_err=$(find "${SOURCE}/${dir_name}" -type d -empty -delete 2>&1) || safe_append "${find_err}" "${ERROR_LOG}"
 
             # Remove the parent directory if it's now empty
             if [ -d "${SOURCE}/${dir_name}" ]; then
-                rmdir "${SOURCE}/${dir_name}" 2>> "${ERROR_LOG}" || {
-                    echo "[$(date)] ⚠ Source directory not empty (may contain subdirs or files): ${dir_name}" | tee -a "${LOG_FILE}"
+                local rmdir_err
+                rmdir_err=$(rmdir "${SOURCE}/${dir_name}" 2>&1) || {
+                    safe_append "${rmdir_err}" "${ERROR_LOG}"
+                    echo "[$(date)] ⚠ Source directory not empty (may contain subdirs or files): ${dir_name}" | safe_tee "${LOG_FILE}"
                 }
             else
-                echo "[$(date)] ✓ Empty source directory removed: ${dir_name}" | tee -a "${LOG_FILE}"
+                echo "[$(date)] ✓ Empty source directory removed: ${dir_name}" | safe_tee "${LOG_FILE}"
             fi
         fi
     fi
 
-    # Mark as complete (with file locking)
+    # Mark as complete (with file locking and retry)
     (
         flock -x 200
-        echo "${dir_name}" >> "${CHECKPOINT}"
+        safe_append "${dir_name}" "${CHECKPOINT}"
     ) 200>"${CHECKPOINT}.lock"
 
     increment_counter "${SUCCESS_FILE}"
@@ -319,15 +361,18 @@ export -f process_directory
 export -f increment_counter
 export -f build_rsync_opts
 export -f is_dry_run
+export -f safe_append
+export -f safe_tee
 export SOURCE DEST LOG_DIR LOG_FILE ERROR_LOG CHECKPOINT
 export COUNTER_FILE SUCCESS_FILE SKIP_FILE FAIL_FILE TOTAL_DIRS LETTER DRY_RUN
-export DEST_UID DEST_GID RSYNC_TIMEOUT
+export DEST_UID DEST_GID RSYNC_TIMEOUT MAX_RETRIES RETRY_DELAY
 export PATH
 
 # Process directories in parallel using xargs
-echo "[$(date)] Starting parallel processing with ${PARALLEL_JOBS} workers..." | tee -a "${LOG_FILE}"
+echo "[$(date)] Starting parallel processing with ${PARALLEL_JOBS} workers..." | safe_tee "${LOG_FILE}"
 
-cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -I {} -P "${PARALLEL_JOBS}" bash -c 'process_directory "{}"' || true
+# Note: Pass directory name as $1 to avoid shell expansion of special chars like $
+cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -P "${PARALLEL_JOBS}" -I {} bash -c 'process_directory "$1"' _ {} || true
 
 # Read final counters (xargs waits for all processes by default)
 success_count=$(cat "${SUCCESS_FILE}")
@@ -345,43 +390,43 @@ DURATION_SEC=$((DURATION % 60))
 rm -f "${TMPFILE}" "${COUNTER_FILE}" "${SUCCESS_FILE}" "${SKIP_FILE}" "${FAIL_FILE}"
 
 # Enhanced completion summary
-echo "" | tee -a "${LOG_FILE}"
-echo "======================================" | tee -a "${LOG_FILE}"
-echo "MIGRATION COMPLETE - Letter ${LETTER}" | tee -a "${LOG_FILE}"
-echo "======================================" | tee -a "${LOG_FILE}"
-echo "Started:  ${START_TIMESTAMP}" | tee -a "${LOG_FILE}"
-echo "Finished: ${END_TIMESTAMP}" | tee -a "${LOG_FILE}"
+echo "" | safe_tee "${LOG_FILE}"
+echo "======================================" | safe_tee "${LOG_FILE}"
+echo "MIGRATION COMPLETE - Letter ${LETTER}" | safe_tee "${LOG_FILE}"
+echo "======================================" | safe_tee "${LOG_FILE}"
+echo "Started:  ${START_TIMESTAMP}" | safe_tee "${LOG_FILE}"
+echo "Finished: ${END_TIMESTAMP}" | safe_tee "${LOG_FILE}"
 
 if [ ${DURATION_MIN} -gt 0 ]; then
-    echo "Duration: ${DURATION_MIN} minutes ${DURATION_SEC} seconds" | tee -a "${LOG_FILE}"
+    echo "Duration: ${DURATION_MIN} minutes ${DURATION_SEC} seconds" | safe_tee "${LOG_FILE}"
 else
-    echo "Duration: ${DURATION_SEC} seconds" | tee -a "${LOG_FILE}"
+    echo "Duration: ${DURATION_SEC} seconds" | safe_tee "${LOG_FILE}"
 fi
 
-echo "" | tee -a "${LOG_FILE}"
-echo "Directories scanned:      ${TOTAL_DIRS}" | tee -a "${LOG_FILE}"
-echo "Previously completed:     ${COMPLETED_COUNT}" | tee -a "${LOG_FILE}"
-echo "Newly migrated:           ${success_count}" | tee -a "${LOG_FILE}"
-echo "Skipped (already done):   ${skip_count}" | tee -a "${LOG_FILE}"
-echo "Failed:                   ${fail_count}" | tee -a "${LOG_FILE}"
-echo "" | tee -a "${LOG_FILE}"
+echo "" | safe_tee "${LOG_FILE}"
+echo "Directories scanned:      ${TOTAL_DIRS}" | safe_tee "${LOG_FILE}"
+echo "Previously completed:     ${COMPLETED_COUNT}" | safe_tee "${LOG_FILE}"
+echo "Newly migrated:           ${success_count}" | safe_tee "${LOG_FILE}"
+echo "Skipped (already done):   ${skip_count}" | safe_tee "${LOG_FILE}"
+echo "Failed:                   ${fail_count}" | safe_tee "${LOG_FILE}"
+echo "" | safe_tee "${LOG_FILE}"
 
 # Status indicator
 if [ ${fail_count} -gt 0 ]; then
-    echo "Status: ⚠ COMPLETED WITH ERRORS" | tee -a "${LOG_FILE}"
-    echo "See ${ERROR_LOG} for details" | tee -a "${LOG_FILE}"
-    echo "======================================" | tee -a "${LOG_FILE}"
+    echo "Status: ⚠ COMPLETED WITH ERRORS" | safe_tee "${LOG_FILE}"
+    echo "See ${ERROR_LOG} for details" | safe_tee "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
     exit 1
 elif [ ${success_count} -gt 0 ]; then
     if is_dry_run; then
-        echo "Status: ✓ DRY-RUN SUCCESS - ${success_count} directories simulated" | tee -a "${LOG_FILE}"
+        echo "Status: ✓ DRY-RUN SUCCESS - ${success_count} directories simulated" | safe_tee "${LOG_FILE}"
     else
-        echo "Status: ✓ SUCCESS - ${success_count} directories migrated" | tee -a "${LOG_FILE}"
+        echo "Status: ✓ SUCCESS - ${success_count} directories migrated" | safe_tee "${LOG_FILE}"
     fi
-    echo "======================================" | tee -a "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
     exit 0
 else
-    echo "Status: ✓ SUCCESS - All directories already migrated" | tee -a "${LOG_FILE}"
-    echo "======================================" | tee -a "${LOG_FILE}"
+    echo "Status: ✓ SUCCESS - All directories already migrated" | safe_tee "${LOG_FILE}"
+    echo "======================================" | safe_tee "${LOG_FILE}"
     exit 0
 fi
