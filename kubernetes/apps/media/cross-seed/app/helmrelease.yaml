@@ -78,21 +78,8 @@ spec:
           - path: /qbittorrent/qBittorrent/BT_backup
             subPath: qBittorrent/BT_backup
             readOnly: true
-      # Mount all three media servers for complete access to downloads
-      vault-media:
+      media:
         existingClaim: media-cephfs-pvc
         globalMounts:
-          - path: /media/vault
-            readOnly: true
-
-      tower-media:
-        existingClaim: media-tower-pvc
-        globalMounts:
-          - path: /media/tower
-            readOnly: true
-
-      tower-2-media:
-        existingClaim: media-tower-2-pvc
-        globalMounts:
-          - path: /media/tower-2
+          - path: /media
             readOnly: true
