@@ -10,3 +10,17 @@ spec:
   resources:
     requests:
       storage: 5Gi  # Room to grow from 1Gi
+
+---
+# Shared PVC for poster assets - used by posterizarr and kometa
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-posters-cephfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-shared
+  resources:
+    requests:
+      storage: 200Gi

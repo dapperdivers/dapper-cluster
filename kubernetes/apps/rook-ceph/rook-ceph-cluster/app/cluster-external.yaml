@@ -12,7 +12,7 @@ spec:
   # Required for creating additional CRs (RGW, MDS, NFS)
   # PINNED: Renovate is configured to prevent upgrades beyond v18.x
   cephVersion:
-    image: quay.io/ceph/ceph:v18.2.7
+    image: quay.io/ceph/ceph:v20.2.0
 
   # CephCluster settings for external mode
   dataDirHostPath: /var/lib/rook
@@ -28,7 +28,8 @@ spec:
 
   # CSI driver configuration
   # Note: FUSE mounter is configured in StorageClass due to Talos v1.11.3+ lacking ceph kernel module
-  # No special mount options needed - recover_session=clean is kernel-only and not supported by ceph-fuse
+  # client_reconnect_stale is NOT supported by ceph-fuse in Ceph 18.2.7 Reef
+  # Instead, rely on MDS-side config: mds_session_blocklist_on_timeout=false
   csi:
     cephfs:
       fuseMountOptions: ""
