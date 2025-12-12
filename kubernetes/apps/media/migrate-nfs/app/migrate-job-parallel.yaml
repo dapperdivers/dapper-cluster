@@ -114,7 +114,9 @@ spec:
                 echo "[log-tailer] Monitoring main container process..."
 
                 while true; do
-                  if ! pgrep -f "/bin/bash /scripts/migrate.sh" > /dev/null 2>&1; then
+                  # Check if app container's bash process is still running
+                  # Use [m] trick to avoid matching the grep itself
+                  if ! ps aux | grep -q "[m]igrate.sh"; then
                     echo "[log-tailer] Main container process finished. Exiting..."
                     kill $TAIL_PID 2>/dev/null
                     sleep 2
