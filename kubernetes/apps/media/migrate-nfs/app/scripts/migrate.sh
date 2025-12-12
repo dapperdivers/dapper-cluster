@@ -189,7 +189,8 @@ TMPFILE=$(mktemp -t "migration-dirs-${LETTER}.XXXXXX")
 # Ignore errors from directories being deleted during scan
 if [ "$LETTER" = "nonalpha" ]; then
     # Find directories NOT starting with A-Za-z (numbers, special chars, etc.)
-    if ! (cd "${SOURCE}" && ls -1d */ 2>/dev/null | sed 's|/$||' | grep -v '^[A-Za-z]' | sort > "${TMPFILE}"); then
+    # Use -- to handle dirs starting with dash (e.g., "-batteries not included")
+    if ! (cd "${SOURCE}" && ls -1d -- */ 2>/dev/null | sed 's|/$||' | grep -v '^[A-Za-z]' | sort > "${TMPFILE}"); then
         touch "${TMPFILE}"
     fi
 else
