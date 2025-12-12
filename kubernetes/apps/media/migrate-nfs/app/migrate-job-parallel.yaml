@@ -57,8 +57,8 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               DRY_RUN: false
-              SOURCE: /tower/tv
-              DEST: /destination/tv
+              SOURCE: /tower/tv/tv_shows
+              DEST: /destination/tv/
               PARALLEL_JOBS: "3"
             resources:
               requests:
