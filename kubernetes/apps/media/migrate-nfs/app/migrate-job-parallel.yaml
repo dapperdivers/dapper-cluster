@@ -57,8 +57,8 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               DRY_RUN: false
-              SOURCE: /tower-2/movies
-              DEST: /destination/movies
+              SOURCE: /tower/tv
+              DEST: /destination/tv
               PARALLEL_JOBS: "3"
             resources:
               requests:
@@ -181,9 +181,9 @@ spec:
       # CONFIGURATION - Update PVC names and mount paths as needed:
       # ============================================================
       nfs-tower:
-        existingClaim: media-tower-2-direct-pvc
+        existingClaim: media-tower-direct-pvc
         globalMounts:
-          - path: /tower-2
+          - path: /tower
             readOnly: false
       ceph-dest:
         existingClaim: media-cephfs-pvc
