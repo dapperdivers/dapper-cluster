@@ -194,8 +194,9 @@ if [ "$LETTER" = "nonalpha" ]; then
         touch "${TMPFILE}"
     fi
 else
-    # Standard: find directories starting with specific letter
-    if ! (cd "${SOURCE}" && ls -1d "${LETTER}"* 2>/dev/null | sort > "${TMPFILE}"); then
+    # Standard: find directories starting with specific letter (case-insensitive)
+    LETTER_LOWER=$(echo "$LETTER" | tr 'A-Z' 'a-z')
+    if ! (cd "${SOURCE}" && ls -1d -- "${LETTER}"* "${LETTER_LOWER}"* 2>/dev/null | sort -u > "${TMPFILE}"); then
         touch "${TMPFILE}"
     fi
 fi
@@ -394,6 +395,9 @@ echo "[$(date)] Starting parallel processing with ${PARALLEL_JOBS} workers..." |
 
 # Note: Pass directory name as $1 to avoid shell expansion of special chars like $
 cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -P "${PARALLEL_JOBS}" -I {} bash -c 'process_directory "$1"' _ {} || true
+
+echo "" | safe_tee "${LOG_FILE}"
+echo "[$(date)] All parallel transfers complete." | safe_tee "${LOG_FILE}"
 
 # Read final counters (xargs waits for all processes by default)
 success_count=$(cat "${SUCCESS_FILE}")
