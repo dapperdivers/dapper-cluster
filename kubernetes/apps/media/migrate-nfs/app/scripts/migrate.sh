@@ -27,7 +27,7 @@ else
 fi
 
 # Allow override via environment variables
-SOURCE="${SOURCE:-/tower-2/movies}"
+SOURCE="${SOURCE:-/tower/movies}"
 DEST="${DEST:-/destination/movies}"
 LOG_DIR="/metrics"
 LOG_FILE="${LOG_DIR}/migration-${LETTER}.log"

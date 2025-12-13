@@ -37,7 +37,7 @@ spec:
           # Total concurrency = parallelism × PARALLEL_JOBS
           # Current: 3 pods × 2 jobs = 6 concurrent transfers
           #
-          # Monitor tower-2 load before increasing further
+          # Monitor tower load before increasing further
           # ============================================================
           completions: 27
           parallelism: 5
