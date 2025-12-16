@@ -303,8 +303,8 @@ data:
         # PHASE 1: Transfer and remove source files atomically
         echo "[$(date)] Transferring ${dir_name}..." | safe_tee "${LOG_FILE}"
 
-        # Count files before transfer for logging
-        SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f 2>/dev/null | wc -l)
+        # Count files before transfer for logging (streaming to avoid memory buildup)
+        SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f -printf '.' 2>/dev/null | wc -c)
 
         if [ "${SOURCE_COUNT}" -eq 0 ]; then
             echo "[$(date)] ℹ️  No files to transfer (already migrated)" | safe_tee "${LOG_FILE}"

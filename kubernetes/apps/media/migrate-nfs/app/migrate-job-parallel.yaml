@@ -35,7 +35,7 @@ spec:
           # PARALLEL_JOBS: Concurrent transfers per pod (2-4 recommended)
           #
           # Total concurrency = parallelism × PARALLEL_JOBS
-          # Current: 3 pods × 2 jobs = 6 concurrent transfers
+          # Current: 5 pods × 3 jobs = 15 concurrent transfers
           #
           # Monitor tower load before increasing further
           # ============================================================
@@ -63,10 +63,10 @@ spec:
             resources:
               requests:
                 cpu: 2000m   # Increased for parallel processing
-                memory: 2Gi  # Increased for multiple rsync processes
+                memory: 4Gi  # Increased for multiple rsync processes + TV show file counts
               limits:
                 cpu: 4       # Allow bursting for parallel transfers
-                memory: 4Gi
+                memory: 8Gi
             securityContext:
               readOnlyRootFilesystem: false
               capabilities:
