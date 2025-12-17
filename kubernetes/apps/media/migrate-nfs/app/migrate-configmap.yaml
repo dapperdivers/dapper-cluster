@@ -322,10 +322,12 @@ data:
         # Capture stderr for resilient logging
         local rsync_stderr
         rsync_stderr=$(mktemp -t "rsync-stderr-${LETTER}.XXXXXX")
+        # Redirect stdout to /dev/null - verbose/progress output causes OOM when buffered
+        # Transfer details are captured via --log-file instead
         if rsync "${rsync_opts[@]}" \
             --log-file="${dir_log}" \
             "${SOURCE}/${dir_name}/" \
-            "${DEST}/${dir_name}/" 2>"${rsync_stderr}"; then
+            "${DEST}/${dir_name}/" >/dev/null 2>"${rsync_stderr}"; then
 
             if is_dry_run; then
                 echo "[$(date)] ✓ DRY-RUN: Transfer simulated for ${dir_name}" | safe_tee "${LOG_FILE}"
