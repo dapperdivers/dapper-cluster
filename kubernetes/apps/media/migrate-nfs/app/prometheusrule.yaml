@@ -141,7 +141,7 @@ spec:
             severity: warning
             component: unraid
 
-        # Disk I/O and Load alerts for Unraid servers (Tower and Tower-2)
+        # Disk I/O and Load alerts for Unraid servers (Tower)
         - alert: UnraidHighDiskIOUtilization
           annotations:
             summary: "High disk I/O utilization on Unraid server {{ $labels.instance }} device {{ $labels.device }}"
