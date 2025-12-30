@@ -11,7 +11,7 @@ Parallel migration job with checksum verification and resume capability.
 vi jobs/migrate-job-parallel.yaml
 
 env:
-  SOURCE: "/tower-2/movies"      # Change this
+  SOURCE: "/tower/movies"      # Change this
   DEST: "/destination/movies"    # Change this
   PARALLEL_JOBS: "4"              # 2-8 concurrent dirs
 
