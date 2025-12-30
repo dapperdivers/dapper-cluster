@@ -6,7 +6,6 @@ sonarr:
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
     replace_existing_custom_formats: true
-    # For Sonarr
     media_naming:
       series: default
       season: default
@@ -18,14 +17,10 @@ sonarr:
     quality_definition:
       type: series
     include:
-      # Comment out any of the following includes to disable them
       - template: sonarr-quality-definition-series
-      # Choose between the standard or alternative quality profile setup (choose one only)
       - template: sonarr-v4-quality-profile-web-1080p
-      # - template: sonarr-v4-quality-profile-web-1080p-alternative
       - template: sonarr-v4-custom-formats-web-1080p
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
     custom_formats:
       # Optional
       - trash_ids:
@@ -38,13 +33,13 @@ sonarr:
           - name: WEB-1080p
 
       - trash_ids:
-          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
+          # Uncomment to allow x265 HD releases with HDR/DV
           # - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
         # assign_scores_to:
-        # - name: WEB-1080p
-        # score: 0
+        #   - name: WEB-1080p
+        #     score: 0
         # - trash_ids:
-        # - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+          # - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
         assign_scores_to:
           - name: WEB-1080p
   sonarr-uhd:
@@ -52,7 +47,6 @@ sonarr:
     api_key: !env_var SONARR_UHD_API_KEY
     delete_old_custom_formats: true
     replace_existing_custom_formats: true
-    # For Sonarr
     media_naming:
       series: default
       season: default
@@ -64,28 +58,37 @@ sonarr:
     quality_definition:
       type: series
     include:
-      # Comment out any of the following includes to disable them
       - template: sonarr-quality-definition-series
-      # Choose between the standard or alternative quality profile setup (choose one only)
       - template: sonarr-v4-quality-profile-web-2160p
-      # - template: sonarr-v4-quality-profile-web-2160p-alternative
       - template: sonarr-v4-custom-formats-web-2160p
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
+    # Additional custom profile with Blu-ray + WEB
+    quality_profiles:
+      - name: Bluray + WEB 2160p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-2160p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+
     custom_formats:
       # HDR Formats
       - trash_ids:
-          # Comment out the next line if you and all of your users' setups are fully DV compatible
           - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
-
-          # HDR10+ Boost - Uncomment the next two lines if any of your devices DO support HDR10+
           - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
           - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
         assign_scores_to:
           - name: WEB-2160p
-
-      # Note: Audio custom formats are not available for Sonarr (only Radarr)
-      # Audio scoring is handled via the quality profile instead
+          - name: Bluray + WEB 2160p
 
       # Optional
       - trash_ids:
@@ -96,27 +99,27 @@ sonarr:
           # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
         assign_scores_to:
           - name: WEB-2160p
+          - name: Bluray + WEB 2160p
 
       - trash_ids:
-          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
           - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
         assign_scores_to:
           - name: WEB-2160p
+            score: 0
+          - name: Bluray + WEB 2160p
             score: 0
       - trash_ids:
           - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
         assign_scores_to:
           - name: WEB-2160p
+          - name: Bluray + WEB 2160p
 
-      # Optional SDR
-      # Only ever use ONE of the following custom formats:
-      # SDR - block ALL SDR releases
-      # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
+      # Block SDR releases for 4K
       - trash_ids:
           - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
-          # - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)
         assign_scores_to:
           - name: WEB-2160p
+          - name: Bluray + WEB 2160p
 radarr:
   radarr:
     base_url: http://radarr.media.svc.cluster.local
@@ -131,25 +134,42 @@ radarr:
     quality_definition:
       type: movie
     include:
-      # Comment out any of the following includes to disable them
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-hd-bluray-web
       - template: radarr-custom-formats-hd-bluray-web
 
+    # Additional custom profile
+    quality_profiles:
+      - name: Bluray + WEB 1080p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+
     custom_formats:
       # Movie Versions
       - trash_ids:
-        # Uncomment any of the following lines to prefer these movie versions
-        # - 570bc9ebecd92723d2d21500f4be314c # Remaster
-        # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
-        # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
-        # - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
-        # - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
-        # - 957d0f44b592285f26449575e8b1167e # Special Edition
-        # - eecf3a857724171f968a66cb5719e152 # IMAX
-        # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+          # - 570bc9ebecd92723d2d21500f4be314c # Remaster
+          # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
+          # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
+          # - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
+          # - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
+          # - 957d0f44b592285f26449575e8b1167e # Special Edition
+          # - eecf3a857724171f968a66cb5719e152 # IMAX
+          # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
         assign_scores_to:
           - name: HD Bluray + WEB
+          - name: Bluray + WEB 1080p
 
       # Optional
       - trash_ids:
@@ -161,17 +181,21 @@ radarr:
           # - f537cf427b64c38c8e36298f657e4828 # Scene
         assign_scores_to:
           - name: HD Bluray + WEB
+          - name: Bluray + WEB 1080p
 
       - trash_ids:
-          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
+          # Uncomment to allow x265 HD releases with HDR/DV
           # - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
         # assign_scores_to:
-        # - name: HD Bluray + WEB
-        # score: 0
+        #   - name: HD Bluray + WEB
+        #     score: 0
+        #   - name: Bluray + WEB 1080p
+        #     score: 0
         # - trash_ids:
-        # - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+          # - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
         assign_scores_to:
           - name: HD Bluray + WEB
+          - name: Bluray + WEB 1080p
   radarr-uhd:
     base_url: http://radarr-uhd.media.svc.cluster.local
     api_key: !env_var RADARR_UHD_API_KEY
@@ -185,16 +209,31 @@ radarr:
     quality_definition:
       type: movie
     include:
-      # Comment out any of the following includes to disable them
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-uhd-bluray-web
       - template: radarr-custom-formats-uhd-bluray-web
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
+    # Additional custom profile
+    quality_profiles:
+      - name: Bluray + WEB 2160p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-2160p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+
     custom_formats:
       # Audio
       - trash_ids:
-          # Uncomment the next section to enable Advanced Audio Formats
           - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
           - 2f22d89048b01681dde8afe203bf2e95 # DTS X
           - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
@@ -211,20 +250,21 @@ radarr:
           - c2998bd0d90ed5621d8df281e839436e # DD
         assign_scores_to:
           - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p
 
       # Movie Versions
       - trash_ids:
-        # Uncomment any of the following lines to prefer these movie versions
-        # - 570bc9ebecd92723d2d21500f4be314c # Remaster
-        # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
-        # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
-        # - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
-        # - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
-        # - 957d0f44b592285f26449575e8b1167e # Special Edition
-        # - eecf3a857724171f968a66cb5719e152 # IMAX
-        # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+          # - 570bc9ebecd92723d2d21500f4be314c # Remaster
+          # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
+          # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
+          # - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
+          # - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
+          # - 957d0f44b592285f26449575e8b1167e # Special Edition
+          # - eecf3a857724171f968a66cb5719e152 # IMAX
+          # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
         assign_scores_to:
           - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p
 
       # Optional
       - trash_ids:
@@ -236,34 +276,32 @@ radarr:
           # - f537cf427b64c38c8e36298f657e4828 # Scene
         assign_scores_to:
           - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p
 
       - trash_ids:
-          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
           - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
         assign_scores_to:
           - name: UHD Bluray + WEB
+            score: 0
+          - name: Bluray + WEB 2160p
             score: 0
       - trash_ids:
           - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
         assign_scores_to:
           - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p
 
       - trash_ids:
-          # Comment out the next line if you and all of your users' setups are fully DV compatible
           # - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
-
-          # HDR10+ Boost - Uncomment the next line if any of your devices DO support HDR10+
           - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
           - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
         assign_scores_to:
           - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p
 
-      # Optional SDR
-      # Only ever use ONE of the following custom formats:
-      # SDR - block ALL SDR releases
-      # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
+      # Block SDR releases for 4K
       - trash_ids:
           - 9c38ebb7384dada637be8899efa68e6f # SDR
-          # - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
         assign_scores_to:
           - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p

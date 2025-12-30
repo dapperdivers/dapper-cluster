@@ -35,12 +35,12 @@ spec:
           # PARALLEL_JOBS: Concurrent transfers per pod (2-4 recommended)
           #
           # Total concurrency = parallelism × PARALLEL_JOBS
-          # Current: 3 pods × 2 jobs = 6 concurrent transfers
+          # Current: 5 pods × 3 jobs = 15 concurrent transfers
           #
-          # Monitor tower-2 load before increasing further
+          # Monitor tower load before increasing further
           # ============================================================
-          completions: 26
-          parallelism: 5   # Increased for faster migration
+          completions: 27
+          parallelism: 5
           completionMode: Indexed
           ttlSecondsAfterFinished: 86400
         containers:
@@ -57,16 +57,16 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               DRY_RUN: false
-              SOURCE: /tower-2/movies
-              DEST: /destination/movies
-              PARALLEL_JOBS: "3"  # Increased for faster migration (5 pods × 3 = 15 total)
+              SOURCE: /tower/tv/tv_shows
+              DEST: /destination/tv/
+              PARALLEL_JOBS: "3"
             resources:
               requests:
                 cpu: 2000m   # Increased for parallel processing
-                memory: 2Gi  # Increased for multiple rsync processes
+                memory: 4Gi  # Increased for multiple rsync processes + TV show file counts
               limits:
                 cpu: 4       # Allow bursting for parallel transfers
-                memory: 4Gi
+                memory: 8Gi
             securityContext:
               readOnlyRootFilesystem: false
               capabilities:
@@ -82,19 +82,19 @@ spec:
               - /bin/sh
               - -c
               - |
-                # Get job completion index (set by Kubernetes for indexed jobs)
                 INDEX=$JOB_COMPLETION_INDEX
 
-                # Convert index to letter: 0=A, 1=B, etc (using printf and ASCII codes)
-                # ASCII A=65, so we add the index to 65
-                LETTER=$(printf "\\$(printf '%03o' $((65 + INDEX)))")
+                # Convert index to letter (0-25=A-Z, 26=nonalpha)
+                if [ "$INDEX" -eq 26 ]; then
+                  LETTER="nonalpha"
+                else
+                  LETTER=$(printf "\\$(printf '%03o' $((65 + INDEX)))")
+                fi
                 LOG_FILE="/metrics/migration-$LETTER.log"
-                COMPLETION_MARKER="/metrics/completed-$LETTER.txt"
 
                 echo "[log-tailer] Job Index: $INDEX, Letter: $LETTER"
-                echo "[log-tailer] Waiting for structured log file: $LOG_FILE"
+                echo "[log-tailer] Waiting for log file: $LOG_FILE"
 
-                # Wait up to 5 minutes for log file to be created
                 for i in $(seq 1 60); do
                   if [ -f "$LOG_FILE" ]; then
                     echo "[log-tailer] Found log file, starting tail..."
@@ -108,24 +108,20 @@ spec:
                   exit 1
                 fi
 
-                # Tail log file and monitor main container process for completion
-                # Exit when main container's process exits (shareProcessNamespace allows us to see it)
                 tail -F "$LOG_FILE" &
                 TAIL_PID=$!
 
                 echo "[log-tailer] Monitoring main container process..."
 
                 while true; do
-                  # Check if main container's bash process (running migrate.sh) is still running
-                  # With shareProcessNamespace, we can see all pod processes
-                  if ! pgrep -f "/bin/bash /scripts/migrate.sh" > /dev/null 2>&1; then
+                  # Check if app container's bash process is still running
+                  # Use [m] trick to avoid matching the grep itself
+                  if ! ps aux | grep -q "[m]igrate.sh"; then
                     echo "[log-tailer] Main container process finished. Exiting..."
                     kill $TAIL_PID 2>/dev/null
-                    # Give tail a moment to flush any remaining logs
                     sleep 2
                     exit 0
                   fi
-
                   sleep 5
                 done
             env:
@@ -185,9 +181,9 @@ spec:
       # CONFIGURATION - Update PVC names and mount paths as needed:
       # ============================================================
       nfs-tower:
-        existingClaim: media-tower-2-direct-pvc
+        existingClaim: media-tower-direct-pvc
         globalMounts:
-          - path: /tower-2
+          - path: /tower
             readOnly: false
       ceph-dest:
         existingClaim: media-cephfs-pvc
