@@ -26,13 +26,18 @@ data:
     # ENVIRONMENT VARIABLES
     # =============================================================================
 
-    # Map JOB_COMPLETION_INDEX (0-25) to letter (A-Z)
+    # Map JOB_COMPLETION_INDEX (0-25) to letter (A-Z), index 26 = nonalpha
     INDEX=${JOB_COMPLETION_INDEX:-0}
     LETTERS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
-    LETTER=${LETTERS[$INDEX]}
+
+    if [ "$INDEX" -eq 26 ]; then
+        LETTER="nonalpha"
+    else
+        LETTER=${LETTERS[$INDEX]}
+    fi
 
     # Allow override via environment variables
-    SOURCE="${SOURCE:-/tower-2/movies}"
+    SOURCE="${SOURCE:-/tower/movies}"
     DEST="${DEST:-/destination/movies}"
     LOG_DIR="/metrics"
     LOG_FILE="${LOG_DIR}/migration-${LETTER}.log"
@@ -162,7 +167,11 @@ data:
 
     # Display enhanced header with mode and configuration
     echo "======================================" | safe_tee "${LOG_FILE}"
-    echo "MIGRATION JOB - Letter ${LETTER} (Index: ${INDEX})" | safe_tee "${LOG_FILE}"
+    if [ "$LETTER" = "nonalpha" ]; then
+        echo "MIGRATION JOB - Non-Alphabetic Directories (Index: ${INDEX})" | safe_tee "${LOG_FILE}"
+    else
+        echo "MIGRATION JOB - Letter ${LETTER} (Index: ${INDEX})" | safe_tee "${LOG_FILE}"
+    fi
     echo "======================================" | safe_tee "${LOG_FILE}"
 
     if is_dry_run; then
@@ -178,15 +187,28 @@ data:
     echo "======================================" | safe_tee "${LOG_FILE}"
     echo "" | safe_tee "${LOG_FILE}"
 
-    # Get list of all directories starting with this letter
-    echo "[$(date)] Scanning source for directories starting with '${LETTER}'..." | safe_tee "${LOG_FILE}"
+    # Get list of directories to process
+    if [ "$LETTER" = "nonalpha" ]; then
+        echo "[$(date)] Scanning source for directories starting with non-alphabetic chars..." | safe_tee "${LOG_FILE}"
+    else
+        echo "[$(date)] Scanning source for directories starting with '${LETTER}'..." | safe_tee "${LOG_FILE}"
+    fi
     TMPFILE=$(mktemp -t "migration-dirs-${LETTER}.XXXXXX")
 
     # Use ls instead of find to avoid race conditions with parallel deletions
     # Ignore errors from directories being deleted during scan
-    if ! (cd "${SOURCE}" && ls -1d "${LETTER}"* 2>/dev/null | sort > "${TMPFILE}"); then
-        # If ls fails completely (e.g., no matches), create empty file
-        touch "${TMPFILE}"
+    if [ "$LETTER" = "nonalpha" ]; then
+        # Find directories NOT starting with A-Za-z (numbers, special chars, etc.)
+        # Use -- to handle dirs starting with dash (e.g., "-batteries not included")
+        if ! (cd "${SOURCE}" && ls -1d -- */ 2>/dev/null | sed 's|/$||' | grep -v '^[A-Za-z]' | sort > "${TMPFILE}"); then
+            touch "${TMPFILE}"
+        fi
+    else
+        # Standard: find directories starting with specific letter (case-insensitive)
+        LETTER_LOWER=$(echo "$LETTER" | tr 'A-Z' 'a-z')
+        if ! (cd "${SOURCE}" && ls -1d -- "${LETTER}"* "${LETTER_LOWER}"* 2>/dev/null | sort -u > "${TMPFILE}"); then
+            touch "${TMPFILE}"
+        fi
     fi
 
     TOTAL_DIRS=$(wc -l < "${TMPFILE}")
@@ -281,8 +303,8 @@ data:
         # PHASE 1: Transfer and remove source files atomically
         echo "[$(date)] Transferring ${dir_name}..." | safe_tee "${LOG_FILE}"
 
-        # Count files before transfer for logging
-        SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f 2>/dev/null | wc -l)
+        # Count files before transfer for logging (streaming to avoid memory buildup)
+        SOURCE_COUNT=$(find "${SOURCE}/${dir_name}" -type f -printf '.' 2>/dev/null | wc -c)
 
         if [ "${SOURCE_COUNT}" -eq 0 ]; then
             echo "[$(date)] ℹ️  No files to transfer (already migrated)" | safe_tee "${LOG_FILE}"
@@ -300,10 +322,12 @@ data:
         # Capture stderr for resilient logging
         local rsync_stderr
         rsync_stderr=$(mktemp -t "rsync-stderr-${LETTER}.XXXXXX")
+        # Redirect stdout to /dev/null - verbose/progress output causes OOM when buffered
+        # Transfer details are captured via --log-file instead
         if rsync "${rsync_opts[@]}" \
             --log-file="${dir_log}" \
             "${SOURCE}/${dir_name}/" \
-            "${DEST}/${dir_name}/" 2>"${rsync_stderr}"; then
+            "${DEST}/${dir_name}/" >/dev/null 2>"${rsync_stderr}"; then
 
             if is_dry_run; then
                 echo "[$(date)] ✓ DRY-RUN: Transfer simulated for ${dir_name}" | safe_tee "${LOG_FILE}"
@@ -383,6 +407,9 @@ data:
 
     # Note: Pass directory name as $1 to avoid shell expansion of special chars like $
     cat "${TMPFILE}" | tr '\n' '\0' | xargs -0 -P "${PARALLEL_JOBS}" -I {} bash -c 'process_directory "$1"' _ {} || true
+
+    echo "" | safe_tee "${LOG_FILE}"
+    echo "[$(date)] All parallel transfers complete." | safe_tee "${LOG_FILE}"
 
     # Read final counters (xargs waits for all processes by default)
     success_count=$(cat "${SUCCESS_FILE}")
