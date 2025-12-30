@@ -78,7 +78,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"}))",
           "legendFormat": "Total Capacity",
           "range": true,
           "refId": "A"
@@ -143,7 +143,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"}))",
           "legendFormat": "Total Used",
           "range": true,
           "refId": "A"
@@ -208,7 +208,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})) - sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))",
+          "expr": "sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"})) - sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"}))",
           "legendFormat": "Available",
           "range": true,
           "refId": "A"
@@ -287,7 +287,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})) / sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"}))) * 100",
+          "expr": "(sum(max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"})) / sum(max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"}))) * 100",
           "legendFormat": "Usage %",
           "range": true,
           "refId": "A"
@@ -1449,7 +1449,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})",
+          "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"})",
           "legendFormat": "{{persistentvolumeclaim}} - Used",
           "range": true,
           "refId": "A"
@@ -1460,7 +1460,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-tower-2-pvc|media-cephfs-pvc\"})",
+          "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"media\",persistentvolumeclaim=~\"media-tower-pvc|media-cephfs-pvc\"})",
           "legendFormat": "{{persistentvolumeclaim}} - Capacity",
           "range": true,
           "refId": "B"
