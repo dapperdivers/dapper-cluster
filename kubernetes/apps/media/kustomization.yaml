@@ -27,4 +27,3 @@ resources:
   - ./prowlarr/ks.yaml
   - ./plex/ks.yaml
   - ./wizarr/ks.yaml
-  - ./migrate-nfs/ks.yaml  # NFS migration - no longer needed
