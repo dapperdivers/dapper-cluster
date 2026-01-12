@@ -52,7 +52,7 @@ spec:
                           privileged: true
                           runAsUser: 0
                           runAsGroup: 0
-          # Inject secrets as env vars on worker
+          # Inject secrets as env vars on worker (KESTRA_ prefix exposes to envs.*)
           - target:
               kind: Deployment
               name: kestra-worker
@@ -67,7 +67,7 @@ spec:
                     containers:
                       - name: kestra-worker
                         env:
-                          - name: CLAUDE_CODE_OAUTH_TOKEN
+                          - name: KESTRA_CLAUDE_CODE_OAUTH_TOKEN
                             valueFrom:
                               secretKeyRef:
                                 name: kestra-secret
