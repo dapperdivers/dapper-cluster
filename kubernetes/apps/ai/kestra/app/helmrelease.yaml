@@ -23,7 +23,7 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-  # Patch worker deployment to use kestra service account (chart bug workaround)
+  # Patch worker deployment (chart bug workarounds)
   postRenderers:
     - kustomize:
         patches:
@@ -34,6 +34,24 @@ spec:
               - op: add
                 path: /spec/template/spec/serviceAccountName
                 value: kestra
+          # Fix dind to run as root (not rootless)
+          - target:
+              kind: Deployment
+              name: kestra-worker
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: kestra-worker
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: kestra-worker-docker-dind
+                        securityContext:
+                          privileged: true
+                          runAsUser: 0
+                          runAsGroup: 0
   valuesFrom:
     - kind: Secret
       name: kestra-secret
