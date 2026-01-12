@@ -37,3 +37,4 @@ resources:
   - ./rook.yaml
   - ./spegel.yaml
   - ./stakater.yaml
+  - ./kestra.yaml
