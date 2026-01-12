@@ -52,6 +52,26 @@ spec:
                           privileged: true
                           runAsUser: 0
                           runAsGroup: 0
+          # Inject secrets as env vars on worker
+          - target:
+              kind: Deployment
+              name: kestra-worker
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: kestra-worker
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: kestra-worker
+                        env:
+                          - name: CLAUDE_CODE_OAUTH_TOKEN
+                            valueFrom:
+                              secretKeyRef:
+                                name: kestra-secret
+                                key: CLAUDE_CODE_OAUTH_TOKEN
   valuesFrom:
     - kind: Secret
       name: kestra-secret
