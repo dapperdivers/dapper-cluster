@@ -68,8 +68,9 @@ spec:
             - type: io.kestra.plugin.scripts
               values:
                 taskRunner:
-                  type: io.kestra.plugin.ee.kubernetes.runner.Kubernetes
+                  type: io.kestra.plugin.kubernetes.runner.Kubernetes
                   namespace: ai
+                  pullPolicy: IF_NOT_PRESENT
 
     # Disable Docker-in-Docker (using K8s task runner)
     dind:
