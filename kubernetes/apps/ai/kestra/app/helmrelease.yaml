@@ -23,6 +23,17 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
+  # Patch worker deployment to use kestra service account (chart bug workaround)
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: kestra-worker
+            patch: |
+              - op: add
+                path: /spec/template/spec/serviceAccountName
+                value: kestra
   valuesFrom:
     - kind: Secret
       name: kestra-secret
