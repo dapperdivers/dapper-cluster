@@ -32,7 +32,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/home-assistant
-              tag: 2025.11.3@sha256:8cdb8a2ae0bd6d96b4c0bb1cd529cf97a7634a40ca8ac3b6ebd824a5583a7281
+              tag: 2026.1.1@sha256:4dbdda39034b3f859ea6dc961bb12d4ccc7046a30738af8b1c2bb3188a7d6617
             env:
               TZ: ${TIME_ZONE}
               UV_SYSTEM_PYTHON: true
@@ -58,7 +58,7 @@ spec:
           code-server:
             image:
               repository: ghcr.io/coder/code-server
-              tag: 4.106.3@sha256:1a0e813039c8f01404a89654278779ac77492b833bc2d126431268b9b1f1e40a
+              tag: 4.107.0@sha256:4b622c4cd1b0f559fec0df67fcf09042d63e9ce84c575102066afd9511695627
             args: [
               "--auth", "none",
               "--user-data-dir", "/config/.vscode",
