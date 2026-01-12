@@ -35,7 +35,7 @@ spec:
       # Database init container (runs before main container)
       initContainers:
         - name: init-db
-          image: ghcr.io/home-operations/postgres-init:18.0
+          image: ghcr.io/home-operations/postgres-init:18.1
           envFrom:
             - secretRef:
                 name: kestra-postgres-secret
