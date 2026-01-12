@@ -23,6 +23,15 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
+  valuesFrom:
+    - kind: Secret
+      name: kestra-secret
+      valuesKey: DATASOURCES_POSTGRES_USERNAME
+      targetPath: configuration.datasources.postgres.username
+    - kind: Secret
+      name: kestra-secret
+      valuesKey: DATASOURCES_POSTGRES_PASSWORD
+      targetPath: configuration.datasources.postgres.password
   values:
     # Disable bundled dependencies (using external postgres + local PVC)
     postgresql:
@@ -30,16 +39,12 @@ spec:
     minio:
       enabled: false
 
-    # Database init container (runs before webserver)
-    extraInitContainers:
-      - name: init-db
-        image: ghcr.io/home-operations/postgres-init:18.0
-        envFrom:
-          - secretRef:
-              name: kestra-postgres-secret
-
-    # Kestra configuration
+    # Kestra configuration (rendered to application.yml)
     configuration:
+      datasources:
+        postgres:
+          url: jdbc:postgresql://postgres-rw.database.svc.cluster.local:5432/kestra
+          driverClassName: org.postgresql.Driver
       kestra:
         repository:
           type: postgres
@@ -49,24 +54,6 @@ spec:
           type: local
           local:
             basePath: /app/storage
-
-    # Environment from secrets (DB only, no MinIO)
-    extraEnv:
-      - name: KESTRA_DATASOURCES_POSTGRES_URL
-        valueFrom:
-          secretKeyRef:
-            name: kestra-secret
-            key: KESTRA_DATASOURCES_POSTGRES_URL
-      - name: KESTRA_DATASOURCES_POSTGRES_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: kestra-secret
-            key: KESTRA_DATASOURCES_POSTGRES_USERNAME
-      - name: KESTRA_DATASOURCES_POSTGRES_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: kestra-secret
-            key: KESTRA_DATASOURCES_POSTGRES_PASSWORD
 
     # Disable Docker-in-Docker (using K8s task runner)
     dind:
@@ -95,10 +82,10 @@ spec:
     # Resources per component
     resources:
       requests:
-        cpu: 250m
-        memory: 512Mi
+        cpu: 100m
+        memory: 768Mi
       limits:
-        memory: 1Gi
+        memory: 1536Mi
 
     # Ingress with Authentik
     ingress:
