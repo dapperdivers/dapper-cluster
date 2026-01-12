@@ -33,6 +33,11 @@ spec:
       valuesKey: DATASOURCES_POSTGRES_PASSWORD
       targetPath: configuration.datasources.postgres.password
   values:
+    # Use existing service account with RBAC for K8s task runner
+    serviceAccount:
+      create: false
+      name: kestra
+
     # Disable bundled dependencies (using external postgres + local PVC)
     postgresql:
       enabled: false
@@ -54,6 +59,13 @@ spec:
           type: local
           local:
             basePath: /app/storage
+        plugins:
+          configurations:
+            - type: io.kestra.plugin.scripts
+              values:
+                taskRunner:
+                  type: io.kestra.plugin.ee.kubernetes.runner.Kubernetes
+                  namespace: ai
 
     # Disable Docker-in-Docker (using K8s task runner)
     dind:
