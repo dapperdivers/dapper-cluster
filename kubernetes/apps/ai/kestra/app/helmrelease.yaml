@@ -83,9 +83,9 @@ spec:
                   namespace: ai
                   pullPolicy: IF_NOT_PRESENT
 
-    # Disable Docker-in-Docker (using K8s task runner)
+    # Enable Docker-in-Docker for script task runner
     dind:
-      enabled: false
+      enabled: true
 
     # Distributed mode - separate deployments
     deployments:
