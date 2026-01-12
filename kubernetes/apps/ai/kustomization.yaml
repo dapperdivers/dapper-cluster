@@ -12,3 +12,4 @@ resources:
   # - ./ollama/ks.yaml
   # - ./litellm/ks.yaml
   # - ./wyoming-whisper/ks.yaml
+  - ./kestra/ks.yaml  # Requires: Infisical secrets (KESTRA_POSTGRES_*), Authentik app
