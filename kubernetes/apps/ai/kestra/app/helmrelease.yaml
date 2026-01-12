@@ -32,6 +32,10 @@ spec:
       name: kestra-secret
       valuesKey: DATASOURCES_POSTGRES_PASSWORD
       targetPath: configuration.datasources.postgres.password
+    - kind: Secret
+      name: kestra-secret
+      valuesKey: CLAUDE_CODE_OAUTH_TOKEN
+      targetPath: configuration.kestra.variables.globals.CLAUDE_CODE_OAUTH_TOKEN
   values:
     # Use existing service account with RBAC for K8s task runner
     serviceAccount:
