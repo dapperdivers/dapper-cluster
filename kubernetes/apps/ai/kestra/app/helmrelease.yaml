@@ -74,11 +74,11 @@ spec:
                                 key: CLAUDE_CODE_OAUTH_TOKEN
   valuesFrom:
     - kind: Secret
-      name: kestra-secret
+      name: kestra-postgres-secret
       valuesKey: DATASOURCES_POSTGRES_USERNAME
       targetPath: configuration.datasources.postgres.username
     - kind: Secret
-      name: kestra-secret
+      name: kestra-postgres-secret
       valuesKey: DATASOURCES_POSTGRES_PASSWORD
       targetPath: configuration.datasources.postgres.password
     - kind: Secret
@@ -86,11 +86,11 @@ spec:
       valuesKey: CLAUDE_CODE_OAUTH_TOKEN
       targetPath: configuration.kestra.variables.globals.CLAUDE_CODE_OAUTH_TOKEN
     - kind: Secret
-      name: kestra-minio-secret
+      name: kestra-secret
       valuesKey: MINIO_ACCESS_KEY
       targetPath: configuration.kestra.storage.minio.accessKey
     - kind: Secret
-      name: kestra-minio-secret
+      name: kestra-secret
       valuesKey: MINIO_SECRET_KEY
       targetPath: configuration.kestra.storage.minio.secretKey
   values:
