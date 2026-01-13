@@ -74,11 +74,11 @@ spec:
                                 key: CLAUDE_CODE_OAUTH_TOKEN
   valuesFrom:
     - kind: Secret
-      name: kestra-postgres-secret
+      name: kestra-datasources-secret
       valuesKey: DATASOURCES_POSTGRES_USERNAME
       targetPath: configuration.datasources.postgres.username
     - kind: Secret
-      name: kestra-postgres-secret
+      name: kestra-datasources-secret
       valuesKey: DATASOURCES_POSTGRES_PASSWORD
       targetPath: configuration.datasources.postgres.password
     - kind: Secret
