@@ -67,6 +67,8 @@ spec:
                     containers:
                       - name: kestra-worker
                         env:
+                          - name: DOCKER_HOST
+                            value: unix:///dind/docker.sock
                           - name: KESTRA_CLAUDE_CODE_OAUTH_TOKEN
                             valueFrom:
                               secretKeyRef:
