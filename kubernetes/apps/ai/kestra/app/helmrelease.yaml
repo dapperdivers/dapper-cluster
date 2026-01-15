@@ -76,65 +76,80 @@ spec:
     - kind: Secret
       name: kestra-datasources-secret
       valuesKey: DATASOURCES_POSTGRES_USERNAME
-      targetPath: configuration.datasources.postgres.username
+      targetPath: configurations.application.datasources.postgres.username
     - kind: Secret
       name: kestra-datasources-secret
       valuesKey: DATASOURCES_POSTGRES_PASSWORD
-      targetPath: configuration.datasources.postgres.password
+      targetPath: configurations.application.datasources.postgres.password
     - kind: Secret
       name: kestra-secret
       valuesKey: CLAUDE_CODE_OAUTH_TOKEN
-      targetPath: configuration.kestra.variables.globals.CLAUDE_CODE_OAUTH_TOKEN
+      targetPath: configurations.application.kestra.variables.globals.CLAUDE_CODE_OAUTH_TOKEN
     - kind: Secret
       name: kestra-secret
       valuesKey: MINIO_ACCESS_KEY
-      targetPath: configuration.kestra.storage.minio.accessKey
+      targetPath: configurations.application.kestra.storage.minio.accessKey
     - kind: Secret
       name: kestra-secret
       valuesKey: MINIO_SECRET_KEY
-      targetPath: configuration.kestra.storage.minio.secretKey
+      targetPath: configurations.application.kestra.storage.minio.secretKey
   values:
     # Use existing service account with RBAC for K8s task runner
     serviceAccount:
       create: false
       name: kestra
 
-    # Disable bundled dependencies (using external postgres + local PVC)
-    postgresql:
-      enabled: false
-    minio:
-      enabled: false
-
     # Kestra configuration (rendered to application.yml)
-    configuration:
-      datasources:
-        postgres:
-          url: jdbc:postgresql://postgres-rw.database.svc.cluster.local:5432/kestra
-          driverClassName: org.postgresql.Driver
-      kestra:
-        repository:
-          type: postgres
-        queue:
-          type: postgres
-        storage:
-          type: minio
-          minio:
-            endpoint: minio.storage.svc.cluster.local
-            port: 9000
-            secure: false
-            bucket: kestra
-        plugins:
-          configurations:
-            - type: io.kestra.plugin.scripts
-              values:
-                taskRunner:
-                  type: io.kestra.plugin.kubernetes.runner.Kubernetes
-                  namespace: ai
-                  pullPolicy: IF_NOT_PRESENT
+    # NOTE: configurations.application is required in chart v1.0.0+
+    configurations:
+      application:
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres-rw.database.svc.cluster.local:5432/kestra
+            driverClassName: org.postgresql.Driver
+        kestra:
+          repository:
+            type: postgres
+          queue:
+            type: postgres
+          storage:
+            type: minio
+            minio:
+              endpoint: minio.storage.svc.cluster.local
+              port: 9000
+              secure: false
+              bucket: kestra
+          plugins:
+            configurations:
+              - type: io.kestra.plugin.scripts
+                values:
+                  taskRunner:
+                    type: io.kestra.plugin.kubernetes.runner.Kubernetes
+                    namespace: ai
+                    pullPolicy: IF_NOT_PRESENT
+
+    # Common settings for all deployments
+    common:
+      # Resources per component
+      resources:
+        requests:
+          cpu: 100m
+          memory: 768Mi
+        limits:
+          memory: 1536Mi
+      # Persistence for local storage (using extraVolumes in v1.0.0+)
+      extraVolumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: kestra
+      extraVolumeMounts:
+        - name: storage
+          mountPath: /app/storage
 
     # Enable Docker-in-Docker for script task runner
     dind:
       enabled: true
+      mode: insecure  # Required for privileged dind (was default in old chart)
 
     # Distributed mode - separate deployments
     deployments:
@@ -150,19 +165,6 @@ spec:
         enabled: true
       worker:
         enabled: true
-
-    # Persistence for local storage
-    persistence:
-      enabled: true
-      existingClaim: kestra
-
-    # Resources per component
-    resources:
-      requests:
-        cpu: 100m
-        memory: 768Mi
-      limits:
-        memory: 1536Mi
 
     # Ingress with Authentik
     ingress:
