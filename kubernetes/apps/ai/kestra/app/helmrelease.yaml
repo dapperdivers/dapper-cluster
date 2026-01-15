@@ -64,6 +64,8 @@ spec:
               spec:
                 template:
                   spec:
+                    securityContext:
+                      fsGroup: 2375  # Docker group for socket access
                     containers:
                       - name: kestra-worker
                         env:
