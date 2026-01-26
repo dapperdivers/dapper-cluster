@@ -37,6 +37,33 @@
       automerge: false,
     },
     {
+      description: "Auto-merge all ghcr.io minor/patch updates (catch-all)",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/ghcr.io/"],
+      excludePackageNames: [
+        // Networking
+        "/cilium/",
+        "/nginx/",
+        "/cloudflare/",
+        "/coredns/",
+        "/external-dns/",
+        "/k8s-gateway/",
+        // Storage
+        "/openebs/",
+        "/minio/",
+        "/rook/",
+        "/volsync/",
+        "/csi-driver-nfs/",
+        // DapperDivers
+        "/dapperdivers/"
+      ],
+      matchUpdateTypes: ["minor", "patch"],
+      automerge: true,
+      automergeType: "pr",
+      minimumReleaseAge: "12 hours",
+      ignoreTests: false,
+    },
+    {
       description: "Auto-merge trusted container digests",
       matchDatasources: ["docker"],
       automerge: true,
