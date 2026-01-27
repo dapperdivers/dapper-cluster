@@ -76,9 +76,7 @@ spec:
             envFrom:
               #N8N_ENCRYPTION_KEY
               - secretRef:
-                  name: n8n-secret
-    serviceAccount:
-      name: n8n
+                name: n8n-secret
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
