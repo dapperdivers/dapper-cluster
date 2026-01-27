@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: n8n-jobs
+  name: molt-vault
 spec:
   accessModes: ["ReadWriteMany"]
   resources:

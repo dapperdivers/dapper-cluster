@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -17,7 +18,9 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-
+  dependsOn:
+    - name: volsync
+      namespace: storage
   values:
     controllers:
       obsidian-couchdb:
@@ -28,8 +31,7 @@ spec:
             runAsUser: 1000
             runAsGroup: 150
             fsGroup: 140
-            fsGroupChangePolicy: "OnRootMismatch"
-
+            fsGroupChangePolicy: OnRootMismatch
         initContainers:
           init-config:
             image:
@@ -65,7 +67,6 @@ spec:
                 memory: 250M
               limits:
                 memory: 500M
-
     service:
       app:
         controller: obsidian-couchdb
@@ -92,7 +93,6 @@ spec:
 
     persistence:
       config:
-        enabled: true
         type: configMap
         name: obsidian-couchdb-configmap
         advancedMounts:
@@ -100,14 +100,12 @@ spec:
             init-config:
               - path: /tmp/config
       data:
-        enabled: true
         existingClaim: obsidian-couchdb
         advancedMounts:
           obsidian-couchdb:
             app:
               - path: /opt/couchdb/data
       config-storage:
-        enabled: true
         type: emptyDir
         globalMounts:
           - path: /opt/couchdb/etc/default.d
