@@ -117,3 +117,8 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/.cache
+      jobs:
+        enabled: true
+        existingClaim: n8n-jobs
+        globalMounts:
+          - path: /jobs
