@@ -76,9 +76,7 @@ spec:
             envFrom:
               #N8N_ENCRYPTION_KEY
               - secretRef:
-                  name: n8n-secret
-    serviceAccount:
-      name: n8n
+                name: n8n-secret
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
@@ -117,22 +115,3 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/.cache
-      jobs:
-        enabled: true
-        existingClaim: n8n-jobs
-        globalMounts:
-          - path: /jobs
-      k8s-token:
-        type: projected
-        sources:
-          - serviceAccountToken:
-              path: token
-              expirationSeconds: 3600
-              audience: api
-          - configMap:
-              name: kube-root-ca.crt
-              items:
-                - key: ca.crt
-                  path: ca.crt
-        globalMounts:
-          - path: /k8s
