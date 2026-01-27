@@ -60,6 +60,9 @@ spec:
               N8N_TEMPLATES_ENABLED: false
               N8N_PROXY_HOPS: "1"
 
+              # Community Nodes
+              N8N_COMMUNITY_PACKAGES_ENABLED: true
+
               # Logging
               N8N_LOG_LEVEL: debug
               N8N_LOG_OUTPUT: console, file
@@ -74,6 +77,8 @@ spec:
               #N8N_ENCRYPTION_KEY
               - secretRef:
                   name: n8n-secret
+    serviceAccount:
+      name: n8n
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
