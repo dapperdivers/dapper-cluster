@@ -8,8 +8,7 @@ components:
 resources:
   - ./archon/ks.yaml
   # - ./open-webui/ks.yaml
-  # - ./n8n/ks.yaml removed for now, need to understand the breaking changes
+  - ./n8n/ks.yaml
   # - ./ollama/ks.yaml
   # - ./litellm/ks.yaml
   # - ./wyoming-whisper/ks.yaml
-  - ./kestra/ks.yaml  # Requires: Infisical secrets (KESTRA_POSTGRES_*), Authentik app

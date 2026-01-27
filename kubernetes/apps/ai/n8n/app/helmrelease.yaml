@@ -60,8 +60,11 @@ spec:
               N8N_TEMPLATES_ENABLED: false
               N8N_PROXY_HOPS: "1"
 
+              # Community Nodes
+              N8N_COMMUNITY_PACKAGES_ENABLED: true
+
               # Logging
-              N8N_LOG_LEVEL: verbose
+              N8N_LOG_LEVEL: debug
               N8N_LOG_OUTPUT: console, file
               N8N_DIAGONISTICS_ENABLED: true
               N8N_METRICS: true
@@ -74,17 +77,14 @@ spec:
               #N8N_ENCRYPTION_KEY
               - secretRef:
                   name: n8n-secret
-    podSecurityContext:
-      supplementalGroups: [140]
-    containerSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 150
-      runAsNonRoot: true
-      privileged: false
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: false
-      capabilities: { drop: ["ALL"] }
-      seccompProfile: { type: RuntimeDefault }
+    serviceAccount:
+      name: n8n
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         controller: n8n
@@ -117,3 +117,22 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/.cache
+      jobs:
+        enabled: true
+        existingClaim: n8n-jobs
+        globalMounts:
+          - path: /jobs
+      k8s-token:
+        type: projected
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3600
+              audience: api
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+        globalMounts:
+          - path: /k8s
