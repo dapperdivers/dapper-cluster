@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: ghcr.io/n8n-io/n8n
-              tag: 2.0.1@sha256:6162cdbae72808795e0a68f5d8b05264c035d481544f5928a9581488bbae8778
+              tag: 2.6.1@sha256:f3214c30a15cd94eb55b3bc6400c402e38e43175f57c678bebc56091a72b73f3
             resources:
               requests:
                 cpu: 1400m
@@ -51,10 +51,6 @@ spec:
               N8N_USER_FOLDER: /config
               N8N_RUNNERS_ENABLED: true
               N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
-
-              # User management
-              EXTERNAL_HOOK_FILES: /config/.n8n/hooks.js
-              N8N_FORWARD_AUTH_HEADER: X-authentik-email
 
               # App Configuration
               N8N_PERSONALIZATION_ENABLED: false
@@ -121,15 +117,3 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/.cache
-      hook-files:
-        type: configMap
-        name: n8n-configmap
-        globalMounts:
-          - path: /config/.n8n/hooks.js
-            subPath: hooks.js
-            readOnly: true
-      files:
-        enabled: true
-        existingClaim: n8n-files
-        globalMounts:
-          - path: /files
