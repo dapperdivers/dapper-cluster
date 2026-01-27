@@ -98,6 +98,14 @@ spec:
       valuesKey: MINIO_SECRET_KEY
       targetPath: configurations.application.kestra.storage.minio.secretKey
   values:
+    # Install additional plugins on startup
+    plugins:
+      enabled: true
+      repositories: []
+      # Plugin maven coordinates to install
+      list:
+        - io.kestra.plugin:plugin-kubernetes:LATEST
+
     # Use existing service account with RBAC for K8s task runner
     serviceAccount:
       create: false
