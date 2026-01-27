@@ -61,7 +61,7 @@ spec:
               N8N_PROXY_HOPS: "1"
 
               # Logging
-              N8N_LOG_LEVEL: verbose
+              N8N_LOG_LEVEL: debug
               N8N_LOG_OUTPUT: console, file
               N8N_DIAGONISTICS_ENABLED: true
               N8N_METRICS: true
@@ -75,7 +75,9 @@ spec:
               - secretRef:
                   name: n8n-secret
     podSecurityContext:
-      supplementalGroups: [140]
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 150
     containerSecurityContext:
       runAsUser: 1000
       runAsGroup: 150
