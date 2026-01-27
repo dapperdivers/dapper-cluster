@@ -74,19 +74,12 @@ spec:
               #N8N_ENCRYPTION_KEY
               - secretRef:
                   name: n8n-secret
-    podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 150
-    containerSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 150
-      runAsNonRoot: true
-      privileged: false
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: false
-      capabilities: { drop: ["ALL"] }
-      seccompProfile: { type: RuntimeDefault }
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         controller: n8n
