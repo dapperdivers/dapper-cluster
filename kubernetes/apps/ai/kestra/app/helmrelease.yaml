@@ -27,6 +27,7 @@ spec:
   postRenderers:
     - kustomize:
         patches:
+          # Set service account for K8s runner RBAC
           - target:
               kind: Deployment
               name: kestra-worker
@@ -34,48 +35,40 @@ spec:
               - op: add
                 path: /spec/template/spec/serviceAccountName
                 value: kestra
-          # Fix dind to run as root (not rootless)
+          # Add docker group (2375) to worker for socket access
           - target:
               kind: Deployment
               name: kestra-worker
             patch: |
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: kestra-worker
-              spec:
-                template:
-                  spec:
-                    containers:
-                      - name: kestra-worker-docker-dind
-                        securityContext:
-                          privileged: true
-                          runAsUser: 0
-                          runAsGroup: 0
-          # Inject secrets as env vars on worker (KESTRA_ prefix exposes to envs.*)
+              - op: add
+                path: /spec/template/spec/securityContext
+                value:
+                  fsGroup: 2375
+                  supplementalGroups:
+                    - 2375
+          # Set DOCKER_HOST env var on worker container
           - target:
               kind: Deployment
               name: kestra-worker
             patch: |
-              apiVersion: apps/v1
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value:
+                  name: DOCKER_HOST
+                  value: unix:///dind/docker.sock
+          # Inject secret env var on worker container
+          - target:
               kind: Deployment
-              metadata:
-                name: kestra-worker
-              spec:
-                template:
-                  spec:
-                    securityContext:
-                      fsGroup: 2375  # Docker group for socket access
-                    containers:
-                      - name: kestra-worker
-                        env:
-                          - name: DOCKER_HOST
-                            value: unix:///dind/docker.sock
-                          - name: KESTRA_CLAUDE_CODE_OAUTH_TOKEN
-                            valueFrom:
-                              secretKeyRef:
-                                name: kestra-secret
-                                key: CLAUDE_CODE_OAUTH_TOKEN
+              name: kestra-worker
+            patch: |
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value:
+                  name: KESTRA_CLAUDE_CODE_OAUTH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: kestra-secret
+                      key: CLAUDE_CODE_OAUTH_TOKEN
   valuesFrom:
     - kind: Secret
       name: kestra-datasources-secret
