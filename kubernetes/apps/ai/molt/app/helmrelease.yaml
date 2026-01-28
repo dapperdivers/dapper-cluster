@@ -52,25 +52,6 @@ spec:
             envFrom:
               - secretRef:
                   name: molt-secret
-            probes:
-              liveness:
-                enabled: true
-                custom: true
-                spec:
-                  tcpSocket:
-                    port: &port 18789
-                  initialDelaySeconds: 30
-                  periodSeconds: 10
-                  failureThreshold: 3
-              readiness:
-                enabled: true
-                custom: true
-                spec:
-                  tcpSocket:
-                    port: *port
-                  initialDelaySeconds: 10
-                  periodSeconds: 5
-                  failureThreshold: 3
     defaultPodOptions:
       shareProcessNamespace: true
       securityContext:
