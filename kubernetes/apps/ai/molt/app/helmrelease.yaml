@@ -33,7 +33,9 @@ spec:
               - /bin/sh
               - -c
               - |
-                ln -sf /app/moltbot.mjs /usr/local/bin/moltbot
+                mkdir -p /home/node/.local/bin
+                ln -sf /app/moltbot.mjs /home/node/.local/bin/moltbot
+                export PATH="/home/node/.local/bin:$PATH"
                 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
               requests:
