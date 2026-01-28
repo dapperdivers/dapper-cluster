@@ -64,7 +64,7 @@ spec:
         controller: molt
         ports:
           http:
-            port: *port
+            port: 18789
     ingress:
       app:
         annotations:
