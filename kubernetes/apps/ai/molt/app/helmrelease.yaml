@@ -28,7 +28,7 @@ spec:
           app:
             image:
               repository: ghcr.io/moltbot/moltbot
-              tag: main@sha256:19fad966a21887bc472cbe79c4e30328d6f4b68341520bf56bd032019d00ec55
+              tag: main@sha256:a5e022e1a5d55ea3e35ec997eb16bbe9ec21aed8aff190bb0944977a1b72202c
             command:
               - node
               - dist/index.js
@@ -81,13 +81,14 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
-    persistence:
-      config:
-        enabled: true
-        existingClaim: molt
-        globalMounts:
-          - path: /home/node/.moltbot
-      workspace:
-        type: emptyDir
-        globalMounts:
-          - path: /home/node/molty
+persistence:
+  config:
+    enabled: true
+    existingClaim: molt
+    globalMounts:
+      - path: /home/node/.moltbot
+        subPath: moltbot
+      - path: /home/node/.clawdbot
+        subPath: clawdbot
+      - path: /home/node/molty
+        subPath: workspace
