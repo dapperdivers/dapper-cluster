@@ -106,13 +106,6 @@ spec:
         existingClaim: molt
         globalMounts:
           - path: /home/node/.moltbot
-      moltbot-config:
-        type: configMap
-        name: molt-config
-        globalMounts:
-          - path: /home/node/.moltbot/moltbot.json
-            subPath: moltbot.json
-            readOnly: true
       workspace:
         type: emptyDir
         globalMounts:
