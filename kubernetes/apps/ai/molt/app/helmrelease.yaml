@@ -56,10 +56,24 @@ spec:
                   rm -rf go.tar.gz
                 fi
 
+                # Install Homebrew if not present on PVC
+                if [ ! -f /home/node/.local/homebrew/bin/brew ]; then
+                  echo "Installing Homebrew..."
+                  export HOMEBREW_PREFIX=/home/node/.local/homebrew
+                  export HOMEBREW_CELLAR=/home/node/.local/homebrew/Cellar
+                  export HOMEBREW_REPOSITORY=/home/node/.local/homebrew
+                  mkdir -p $HOMEBREW_PREFIX
+                  cd /tmp
+                  git clone --depth 1 https://github.com/Homebrew/brew $HOMEBREW_PREFIX
+                fi
+
                 # Set up symlink and PATH
                 ln -sf /app/moltbot.mjs /home/node/.local/bin/moltbot
-                export PATH="/home/node/.local/bin:/home/node/.local/go/bin:$PATH"
+                export PATH="/home/node/.local/bin:/home/node/.local/go/bin:/home/node/.local/homebrew/bin:$PATH"
                 export GOPATH=/home/node/go
+                export HOMEBREW_PREFIX=/home/node/.local/homebrew
+                export HOMEBREW_CELLAR=/home/node/.local/homebrew/Cellar
+                export HOMEBREW_REPOSITORY=/home/node/.local/homebrew
 
                 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
@@ -73,8 +87,11 @@ spec:
               TZ: ${TIME_ZONE}
               HOME: /home/node
               TERM: xterm-256color
-              PATH: /home/node/.local/bin:/home/node/.local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              PATH: /home/node/.local/bin:/home/node/.local/go/bin:/home/node/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               GOPATH: /home/node/go
+              HOMEBREW_PREFIX: /home/node/.local/homebrew
+              HOMEBREW_CELLAR: /home/node/.local/homebrew/Cellar
+              HOMEBREW_REPOSITORY: /home/node/.local/homebrew
             envFrom:
               - secretRef:
                   name: molt-secret
