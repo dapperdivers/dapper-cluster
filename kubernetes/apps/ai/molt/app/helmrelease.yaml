@@ -105,8 +105,8 @@ spec:
         enabled: true
         existingClaim: molt
         globalMounts:
-          - path: /home/node/.clawdbot
+          - path: /home/node/.moltbot
       workspace:
         type: emptyDir
         globalMounts:
-          - path: /home/node/clawd
+          - path: /home/node/molty
