@@ -28,7 +28,7 @@ spec:
           app:
             image:
               repository: ghcr.io/moltbot/moltbot
-              tag: main@sha256:68fe5ede2e36dbdd36fdf0fd82c2f8e3d7a5044ba4fbddebd608092e3e0b9792
+              tag: main@sha256:009778547f399bb3f2581ffbbdfdf54e082709c8d2d1108646c246f51b7a770e
             command:
               - node
               - dist/index.js
