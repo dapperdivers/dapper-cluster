@@ -121,11 +121,11 @@ spec:
             envFrom:
               - secretRef:
                   name: molt-secret
-      obsidian:
+      syncthing:
         containers:
           app:
             image:
-              repository: ghcr.io/sytone/obsidian-remote
+              repository: lscr.io/linuxserver/syncthing
               tag: latest
             env:
               PUID: "1000"
@@ -133,11 +133,11 @@ spec:
               TZ: ${TIME_ZONE}
             resources:
               requests:
-                cpu: 100m
-                memory: 256Mi
+                cpu: 50m
+                memory: 128Mi
               limits:
-                cpu: 1000m
-                memory: 1Gi
+                cpu: 500m
+                memory: 512Mi
             securityContext:
               runAsUser: 0
               runAsGroup: 0
@@ -159,11 +159,14 @@ spec:
         ports:
           http:
             port: 18789
-      obsidian:
-        controller: obsidian
+      syncthing:
+        controller: syncthing
         ports:
           http:
-            port: 8080
+            port: 8384
+          sync:
+            port: 22000
+            protocol: TCP
     ingress:
       app:
         annotations:
@@ -197,6 +200,16 @@ spec:
           molt:
             app:
               - path: /home/node/obsidian-vault
-          obsidian:
+          syncthing:
             app:
-              - path: /vault
+              - path: /data/vault
+      syncthing-config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-rbd
+        advancedMounts:
+          syncthing:
+            app:
+              - path: /config
