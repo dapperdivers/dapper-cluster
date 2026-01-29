@@ -205,10 +205,7 @@ spec:
               - path: /data/vault
       syncthing-config:
         enabled: true
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 1Gi
-        storageClass: ceph-rbd
+        existingClaim: molt-syncthing-config
         advancedMounts:
           syncthing:
             app:

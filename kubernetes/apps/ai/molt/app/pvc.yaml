@@ -9,3 +9,14 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: cephfs-shared
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: molt-syncthing-config
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ceph-rbd
