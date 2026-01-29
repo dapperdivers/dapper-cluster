@@ -142,6 +142,7 @@ spec:
               runAsUser: 0
               runAsGroup: 0
         pod:
+          shareProcessNamespace: false
           securityContext:
             fsGroup: 1000
             fsGroupChangePolicy: OnRootMismatch
