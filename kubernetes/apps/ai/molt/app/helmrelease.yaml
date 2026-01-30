@@ -27,8 +27,8 @@ spec:
         initContainers:
           install-tools:
             image:
-              repository: ghcr.io/moltbot/moltbot
-              tag: main@sha256:a5e022e1a5d55ea3e35ec997eb16bbe9ec21aed8aff190bb0944977a1b72202c
+              repository: ghcr.io/openclaw/openclaw
+              tag: main@sha256:0a4695c499e194971de9dae51b201f3108c988c75038d3f62a28c8f723f3f197
             command:
               - /bin/sh
               - -c
@@ -90,14 +90,14 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/moltbot/moltbot
-              tag: main@sha256:c91d58c148ce8f9453b148187386dcee37c87e1ab2872341252e694bf201089c
+              repository: ghcr.io/openclaw/openclaw
+              tag: main@sha256:0a4695c499e194971de9dae51b201f3108c988c75038d3f62a28c8f723f3f197
             command:
               - /bin/sh
               - -c
               - |
-                # Set up moltbot CLI symlink
-                ln -sf /app/moltbot.mjs /home/node/.local/bin/moltbot
+                # Set up openclaw CLI symlink
+                ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
 
                 # Start gateway
                 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
