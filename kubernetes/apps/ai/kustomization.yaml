@@ -12,4 +12,4 @@ resources:
   - ./n8n/ks.yaml
   # - ./ollama/ks.yaml
   # - ./litellm/ks.yaml
-  # - ./wyoming-whisper/ks.yaml
+  - ./wyoming-whisper/ks.yaml
