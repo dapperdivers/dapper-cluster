@@ -145,13 +145,20 @@ spec:
                 memory: 1Gi
           code-server:
             image:
-              repository: lscr.io/linuxserver/code-server
-              tag: latest
+              repository: ghcr.io/coder/code-server
+              tag: 4.107.0@sha256:4b622c4cd1b0f559fec0df67fcf09042d63e9ce84c575102066afd9511695627
+            args:
+              - --auth
+              - none
+              - --user-data-dir
+              - /home/node/.vscode
+              - --extensions-dir
+              - /home/node/.vscode
+              - --port
+              - "8443"
+              - /home/node
             env:
               TZ: ${TIME_ZONE}
-              PUID: "1000"
-              PGID: "1000"
-              DEFAULT_WORKSPACE: /home/node
             resources:
               requests:
                 cpu: 100m
