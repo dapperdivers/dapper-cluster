@@ -118,9 +118,26 @@ spec:
               HOMEBREW_CELLAR: /home/node/.local/homebrew/Cellar
               HOMEBREW_REPOSITORY: /home/node/.local/homebrew
               PIP_BREAK_SYSTEM_PACKAGES: "1"
+              BROWSER_WS_ENDPOINT: "ws://localhost:3000/chromium"
             envFrom:
               - secretRef:
                   name: molt-secret
+          chrome:
+            image:
+              repository: ghcr.io/browserless/chromium
+              tag: latest
+            env:
+              TZ: ${TIME_ZONE}
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+            securityContext:
+              runAsUser: 999
+              runAsGroup: 999
       syncthing:
         containers:
           app:
