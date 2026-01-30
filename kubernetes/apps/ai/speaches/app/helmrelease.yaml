@@ -34,6 +34,15 @@ spec:
               tag: latest-cuda
             env:
               TZ: ${TIME_ZONE}
+              # Use int8 quantization (optimized for P100/Pascal GPUs)
+              WHISPER__COMPUTE_TYPE: int8
+              WHISPER__INFERENCE_DEVICE: cuda
+              # Keep models loaded in memory (no unload delay)
+              STT_MODEL_TTL: "-1"
+              # Preload the large-v3-turbo model at startup
+              PRELOAD_MODELS: '["deepdml/faster-whisper-large-v3-turbo-ct2"]'
+              # Disable UI to reduce overhead
+              ENABLE_UI: "false"
             probes:
               liveness:
                 enabled: true
