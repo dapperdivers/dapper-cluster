@@ -143,29 +143,24 @@ spec:
               limits:
                 cpu: 1000m
                 memory: 1Gi
-          code-server:
+          ssh:
             image:
-              repository: ghcr.io/coder/code-server
-              tag: 4.107.0@sha256:4b622c4cd1b0f559fec0df67fcf09042d63e9ce84c575102066afd9511695627
-            args:
-              - --auth
-              - none
-              - --user-data-dir
-              - /home/node/.vscode
-              - --extensions-dir
-              - /home/node/.vscode
-              - --port
-              - "8443"
-              - /home/node
+              repository: panubo/sshd
+              tag: latest
             env:
               TZ: ${TIME_ZONE}
+              SSH_USERS: "node:1000:1000:/bin/sh"
+              SSH_ENABLE_PASSWORD_AUTH: "false"
             resources:
               requests:
-                cpu: 100m
-                memory: 256Mi
+                cpu: 10m
+                memory: 32Mi
               limits:
-                cpu: 1000m
-                memory: 1Gi
+                cpu: 100m
+                memory: 128Mi
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
       syncthing:
         containers:
           app:
@@ -204,8 +199,8 @@ spec:
         ports:
           http:
             port: 18789
-          code:
-            port: 8443
+          ssh:
+            port: 2222
       syncthing:
         controller: syncthing
         ports:
@@ -230,21 +225,6 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
-      code:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &codehost "code-molt.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: code
-        tls:
-          - hosts:
-              - *codehost
-            secretName: ${SECRET_DOMAIN/./-}-tls
     persistence:
       config:
         enabled: true
@@ -255,7 +235,7 @@ spec:
               - path: /home/node
             app:
               - path: /home/node
-            code-server:
+            ssh:
               - path: /home/node
       vault:
         enabled: true
