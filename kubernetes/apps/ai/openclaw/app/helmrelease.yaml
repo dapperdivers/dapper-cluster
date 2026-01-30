@@ -205,7 +205,7 @@ spec:
               - path: /data/vault
       syncthing-config:
         enabled: true
-        existingClaim: openclaw-syncthing-config
+        existingClaim: molt-syncthing-config
         advancedMounts:
           syncthing:
             app:
