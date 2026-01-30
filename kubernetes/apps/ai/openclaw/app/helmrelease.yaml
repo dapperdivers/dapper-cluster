@@ -154,6 +154,7 @@ spec:
                 apk add --no-cache openssh
                 ssh-keygen -A
                 adduser -D -u 1000 -h /home/node -s /bin/sh node 2>/dev/null || true
+                passwd -u node 2>/dev/null || true
                 mkdir -p /run/sshd
                 cat > /etc/ssh/sshd_config << 'EOF'
                 Port 22
