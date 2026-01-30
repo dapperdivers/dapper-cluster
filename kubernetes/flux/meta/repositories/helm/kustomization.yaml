@@ -24,7 +24,7 @@ resources:
   - ./jetstack.yaml
   - ./k8s-gateway.yaml
   - ./kubernetes-sigs-nfd.yaml
-  - ./kubernetes-dashboard.yaml
+  - ./headlamp.yaml
   - ./kyverno.yaml
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
