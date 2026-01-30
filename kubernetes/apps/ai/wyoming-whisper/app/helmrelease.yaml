@@ -31,9 +31,13 @@ spec:
               tag: latest
             args:
               - --model
-              - base
+              - large-v3
               - --language
               - en
+              - --compute-type
+              - float16
+              - --beam-size
+              - "5"
             env:
               TZ: ${TIME_ZONE}
             probes:
@@ -41,19 +45,27 @@ spec:
                 enabled: false
               readiness:
                 enabled: false
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: nvidia.feature.node.kubernetes.io/gpu
-                  operator: In
-                  values:
-                    - "true"
-    nodeSelector:
-      nvidia.feature.node.kubernetes.io/gpu: "true"
-    runtimeClassName: nvidia
+            resources:
+              requests:
+                cpu: 100m
+                memory: 2Gi
+                nvidia.com/gpu: 1
+              limits:
+                memory: 8Gi
+                nvidia.com/gpu: 1
     defaultPodOptions:
+      runtimeClassName: nvidia
+      nodeSelector:
+        nvidia.feature.node.kubernetes.io/gpu: "true"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.feature.node.kubernetes.io/gpu
+                    operator: In
+                    values:
+                      - "true"
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
