@@ -17,17 +17,15 @@ spec:
       strategy: rollback
       retries: 3
   dependsOn:
-    - name: intel-device-plugin-gpu
-      namespace: kube-system
     - name: nvidia-device-plugin
       namespace: kube-system
   values:
     controllers:
-      main:
+      wyoming-whisper:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
-          main:
+          app:
             image:
               repository: rhasspy/wyoming-whisper
               tag: latest
