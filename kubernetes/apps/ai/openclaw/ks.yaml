@@ -3,7 +3,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app molt
+  name: &app openclaw
   namespace: &namespace ai
 spec:
   targetNamespace: *namespace
@@ -19,7 +19,7 @@ spec:
       namespace: storage
     - name: external-secrets-stores
       namespace: external-secrets
-  path: ./kubernetes/apps/ai/molt/app
+  path: ./kubernetes/apps/ai/openclaw/app
   prune: true
   sourceRef:
     kind: GitRepository
@@ -32,6 +32,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      GATUS_SUBDOMAIN: molt
+      GATUS_SUBDOMAIN: openclaw
       GATUS_DOMAIN: ${SECRET_DOMAIN}
       VOLSYNC_CAPACITY: 5Gi
