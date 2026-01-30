@@ -151,6 +151,7 @@ spec:
               TZ: ${TIME_ZONE}
               SSH_USERS: "node:1000:1000:/bin/sh"
               SSH_ENABLE_PASSWORD_AUTH: "false"
+              SSHD_OPTS: "-o AllowTcpForwarding=yes -o PermitTunnel=yes"
             resources:
               requests:
                 cpu: 10m
