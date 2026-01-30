@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: openclaw
+  name: molt
 spec:
   interval: 30m
   chartRef:
@@ -21,7 +21,7 @@ spec:
     keepHistory: false
   values:
     controllers:
-      openclaw:
+      molt:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -120,7 +120,7 @@ spec:
               PIP_BREAK_SYSTEM_PACKAGES: "1"
             envFrom:
               - secretRef:
-                  name: openclaw-secret
+                  name: molt-secret
       syncthing:
         containers:
           app:
@@ -155,7 +155,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: openclaw
+        controller: molt
         ports:
           http:
             port: 18789
@@ -173,7 +173,7 @@ spec:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
         hosts:
-          - host: &host "openclaw.${SECRET_DOMAIN}"
+          - host: &host "molt.${SECRET_DOMAIN}"
             paths:
               - path: /
                 service:
@@ -188,7 +188,7 @@ spec:
         enabled: true
         existingClaim: molt
         advancedMounts:
-          openclaw:
+          molt:
             install-tools:
               - path: /home/node
             app:
@@ -197,7 +197,7 @@ spec:
         enabled: true
         existingClaim: molt-vault
         advancedMounts:
-          openclaw:
+          molt:
             app:
               - path: /home/node/obsidian-vault
           syncthing:
