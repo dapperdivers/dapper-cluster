@@ -143,6 +143,22 @@ spec:
               limits:
                 cpu: 1000m
                 memory: 1Gi
+          code-server:
+            image:
+              repository: lscr.io/linuxserver/code-server
+              tag: latest
+            env:
+              TZ: ${TIME_ZONE}
+              PUID: "1000"
+              PGID: "1000"
+              DEFAULT_WORKSPACE: /home/node
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
       syncthing:
         containers:
           app:
@@ -181,6 +197,8 @@ spec:
         ports:
           http:
             port: 18789
+          code:
+            port: 8443
       syncthing:
         controller: syncthing
         ports:
@@ -205,6 +223,21 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+      code:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &codehost "code-molt.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: code
+        tls:
+          - hosts:
+              - *codehost
+            secretName: ${SECRET_DOMAIN/./-}-tls
     persistence:
       config:
         enabled: true
@@ -214,6 +247,8 @@ spec:
             install-tools:
               - path: /home/node
             app:
+              - path: /home/node
+            code-server:
               - path: /home/node
       vault:
         enabled: true
