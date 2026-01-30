@@ -35,7 +35,7 @@ spec:
               - --language
               - en
               - --compute-type
-              - float16
+              - int8
               - --beam-size
               - "5"
             env:
