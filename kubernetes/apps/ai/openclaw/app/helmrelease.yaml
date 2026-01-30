@@ -145,12 +145,30 @@ spec:
                 memory: 1Gi
           ssh:
             image:
-              repository: panubo/sshd
-              tag: latest
+              repository: alpine
+              tag: "3.21"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                apk add --no-cache openssh
+                ssh-keygen -A
+                adduser -D -u 1000 -h /home/node -s /bin/sh node 2>/dev/null || true
+                mkdir -p /run/sshd
+                cat > /etc/ssh/sshd_config << 'EOF'
+                Port 22
+                PermitRootLogin no
+                PasswordAuthentication no
+                PubkeyAuthentication yes
+                AuthorizedKeysFile /etc/authorized_keys/%u
+                AllowTcpForwarding yes
+                GatewayPorts no
+                X11Forwarding no
+                Subsystem sftp /usr/lib/ssh/sftp-server
+                EOF
+                exec /usr/sbin/sshd -D -e
             env:
               TZ: ${TIME_ZONE}
-              SSH_USERS: "node:1000:1000:/bin/sh"
-              SSH_ENABLE_PASSWORD_AUTH: "false"
             resources:
               requests:
                 cpu: 10m
