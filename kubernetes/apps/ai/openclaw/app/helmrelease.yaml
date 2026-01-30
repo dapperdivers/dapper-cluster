@@ -200,7 +200,7 @@ spec:
           http:
             port: 18789
           ssh:
-            port: 2222
+            port: 22
       syncthing:
         controller: syncthing
         ports:
@@ -237,6 +237,8 @@ spec:
               - path: /home/node
             ssh:
               - path: /home/node
+              - path: /etc/authorized_keys/node
+                subPath: .ssh/authorized_keys
       vault:
         enabled: true
         existingClaim: molt-vault
