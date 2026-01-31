@@ -5,7 +5,20 @@ cluster:
       # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
       enable-aggregator-routing: true
       feature-gates: MutatingAdmissionPolicy=true
-      runtime-config: admissionregistration.k8s.io/v1alpha1=true
+      runtime-config: admissionregistration.k8s.io/v1beta1=true
+      # Increase timeouts and request handling capacity
+      request-timeout: "300s"
+      max-requests-inflight: "800"
+      max-mutating-requests-inflight: "400"
+      # Reduce watch cache memory usage
+      default-watch-cache-size: "100"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
     admissionControl:
       - name: PodSecurity
         configuration:
