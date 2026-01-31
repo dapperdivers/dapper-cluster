@@ -34,8 +34,8 @@ spec:
               tag: latest-cuda
             env:
               TZ: ${TIME_ZONE}
-              # Use float16 for Pascal GPUs (int8 requires Turing or newer)
-              WHISPER__COMPUTE_TYPE: float16
+              # Use default to let CTranslate2 choose the best compute type for the GPU
+              WHISPER__COMPUTE_TYPE: default
               WHISPER__INFERENCE_DEVICE: cuda
               # Keep models loaded in memory (no unload delay)
               STT_MODEL_TTL: "-1"
