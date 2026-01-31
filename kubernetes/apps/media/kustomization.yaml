@@ -5,7 +5,7 @@ namespace: media
 components:
   - ../../flux/components/common
 resources:
-  - ./media-nfs-storage/ks.yaml  # NFS PVCs - deprecated, using CephFS only
+  # - ./media-nfs-storage/ks.yaml  # NFS PVCs - deprecated, using CephFS only
   - ./storage/ks.yaml  # CephFS static PVs
   #- ./autobrr/ks.yaml
   - ./bazarr/ks.yaml
