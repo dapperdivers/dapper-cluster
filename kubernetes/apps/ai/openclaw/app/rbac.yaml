@@ -1,92 +1,48 @@
 ---
-# Tim the Enchanter - Cluster Read-Only RBAC
-# Gives the default ServiceAccount in the 'ai' namespace
-# read-only access to monitor cluster health.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tim-cluster-reader
-  labels:
-    app.kubernetes.io/name: openclaw
-    app.kubernetes.io/component: tim
+  name: openclaw-reader
 rules:
-  # Cluster-level resources (read-only)
   - apiGroups: [""]
-    resources:
-      - nodes
-      - namespaces
-      - persistentvolumes
+    resources: ["nodes", "namespaces", "persistentvolumes"]
     verbs: ["get", "list", "watch"]
-  # Namespace-scoped resources (read-only)
   - apiGroups: [""]
-    resources:
-      - pods
-      - pods/log
-      - services
-      - endpoints
-      - persistentvolumeclaims
-      - configmaps
-      - events
+    resources: ["pods", "pods/log", "services", "endpoints", "persistentvolumeclaims", "configmaps", "events"]
     verbs: ["get", "list", "watch"]
-  # Apps (deployments, statefulsets, etc.)
   - apiGroups: ["apps"]
-    resources:
-      - deployments
-      - statefulsets
-      - daemonsets
-      - replicasets
+    resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
     verbs: ["get", "list", "watch"]
-  # Batch (jobs, cronjobs)
   - apiGroups: ["batch"]
-    resources:
-      - jobs
-      - cronjobs
+    resources: ["jobs", "cronjobs"]
     verbs: ["get", "list", "watch"]
-  # Networking
   - apiGroups: ["networking.k8s.io"]
-    resources:
-      - ingresses
-      - networkpolicies
+    resources: ["ingresses", "networkpolicies"]
     verbs: ["get", "list", "watch"]
-  # Storage
   - apiGroups: ["storage.k8s.io"]
-    resources:
-      - storageclasses
+    resources: ["storageclasses"]
     verbs: ["get", "list", "watch"]
-  # Flux GitOps
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources:
-      - gitrepositories
-      - helmrepositories
-      - helmcharts
+    resources: ["gitrepositories", "helmrepositories", "helmcharts"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources:
-      - kustomizations
+    resources: ["kustomizations"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources:
-      - helmreleases
+    resources: ["helmreleases"]
     verbs: ["get", "list", "watch"]
-  # Ceph/Rook storage
   - apiGroups: ["ceph.rook.io"]
-    resources:
-      - cephclusters
-      - cephblockpools
-      - cephfilesystems
+    resources: ["cephclusters", "cephblockpools", "cephfilesystems"]
     verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tim-cluster-reader
-  labels:
-    app.kubernetes.io/name: openclaw
-    app.kubernetes.io/component: tim
+  name: openclaw-reader
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: tim-cluster-reader
+  name: openclaw-reader
 subjects:
   - kind: ServiceAccount
     name: default
