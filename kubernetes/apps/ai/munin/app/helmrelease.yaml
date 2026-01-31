@@ -1,0 +1,148 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: munin
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      munin:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          install-tools:
+            image:
+              repository: ghcr.io/openclaw/openclaw
+              tag: main@sha256:0a4695c499e194971de9dae51b201f3108c988c75038d3f62a28c8f723f3f197
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                mkdir -p /home/node/.local/bin
+
+                # Install gh CLI if not present
+                if [ ! -f /home/node/.local/bin/gh ]; then
+                  echo "Installing gh CLI..."
+                  cd /tmp
+                  curl -fsSL https://github.com/cli/cli/releases/download/v2.61.0/gh_2.61.0_linux_amd64.tar.gz -o gh.tar.gz
+                  tar xzf gh.tar.gz
+                  cp gh_2.61.0_linux_amd64/bin/gh /home/node/.local/bin/
+                  rm -rf gh.tar.gz gh_2.61.0_linux_amd64
+                fi
+
+                echo "Tool installation complete"
+            env:
+              HOME: /home/node
+        containers:
+          app:
+            image:
+              repository: ghcr.io/openclaw/openclaw
+              tag: main@sha256:0a4695c499e194971de9dae51b201f3108c988c75038d3f62a28c8f723f3f197
+            command:
+              - /bin/sh
+              - -c
+              - |
+                ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
+                exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
+            resources:
+              requests:
+                cpu: 250m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+            env:
+              TZ: ${TIME_ZONE}
+              HOME: /home/node
+              TERM: xterm-256color
+              PATH: /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              PIP_BREAK_SYSTEM_PACKAGES: "1"
+              BROWSER_WS_ENDPOINT: "ws://localhost:9222"
+            envFrom:
+              - secretRef:
+                  name: munin-secret
+          chrome:
+            image:
+              repository: zenika/alpine-chrome
+              tag: with-node
+            command:
+              - chromium-browser
+              - --headless=new
+              - --disable-gpu
+              - --remote-debugging-address=0.0.0.0
+              - --remote-debugging-port=9222
+              - --no-sandbox
+              - --disable-dev-shm-usage
+            env:
+              TZ: ${TIME_ZONE}
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+    defaultPodOptions:
+      shareProcessNamespace: true
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: munin
+        ports:
+          http:
+            port: 18789
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &host "munin.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
+    persistence:
+      config:
+        enabled: true
+        existingClaim: munin
+        advancedMounts:
+          munin:
+            install-tools:
+              - path: /home/node
+            app:
+              - path: /home/node
+      # Read-only access to Tim's vault
+      vault:
+        enabled: true
+        existingClaim: molt-vault
+        advancedMounts:
+          munin:
+            app:
+              - path: /home/node/obsidian-vault
+                readOnly: true
