@@ -39,8 +39,9 @@ spec:
               WHISPER__INFERENCE_DEVICE: cuda
               # Keep models loaded in memory (no unload delay)
               STT_MODEL_TTL: "-1"
-              # Preload the large-v3-turbo model at startup
-              PRELOAD_MODELS: '["deepdml/faster-whisper-large-v3-turbo-ct2"]'
+              TTS_MODEL_TTL: "-1"
+              # Preload STT (Whisper) and TTS (Kokoro) models at startup
+              PRELOAD_MODELS: '["deepdml/faster-whisper-large-v3-turbo-ct2", "speaches-ai/Kokoro-82M-v1.0-ONNX"]'
               # Disable UI to reduce overhead
               ENABLE_UI: "false"
             probes:
