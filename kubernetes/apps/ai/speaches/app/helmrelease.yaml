@@ -34,8 +34,8 @@ spec:
               tag: latest-cuda
             env:
               TZ: ${TIME_ZONE}
-              # Use int8 quantization (optimized for P100/Pascal GPUs)
-              WHISPER__COMPUTE_TYPE: int8
+              # Use float16 for Pascal GPUs (int8 requires Turing or newer)
+              WHISPER__COMPUTE_TYPE: float16
               WHISPER__INFERENCE_DEVICE: cuda
               # Keep models loaded in memory (no unload delay)
               STT_MODEL_TTL: "-1"
