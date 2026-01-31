@@ -1,0 +1,34 @@
+---
+# Allow molt (Tim) to manage munin (apprentice)
+# Enables exec, logs, and pod inspection
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: molt-munin-access
+rules:
+  # Exec into pods (run commands in munin)
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  # Get/list pods (find munin)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  # View logs
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: molt-munin-access
+subjects:
+  # molt's service account (default in ai namespace)
+  - kind: ServiceAccount
+    name: default
+    namespace: ai
+roleRef:
+  kind: Role
+  name: molt-munin-access
+  apiGroup: rbac.authorization.k8s.io
