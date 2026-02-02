@@ -137,6 +137,23 @@ spec:
               # Stealth flags to reduce bot detection
               - --disable-blink-features=AutomationControlled
               - --user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+              # Container environment fixes (suppress D-Bus and OOM errors)
+              - --disable-software-rasterizer
+              - --disable-features=AudioServiceOutOfProcess,VizDisplayCompositor
+              - --disable-background-networking
+              - --disable-breakpad
+              - --disable-component-update
+              - --disable-default-apps
+              - --disable-extensions
+              - --disable-hang-monitor
+              - --disable-popup-blocking
+              - --disable-prompt-on-repost
+              - --disable-sync
+              - --disable-translate
+              - --metrics-recording-only
+              - --mute-audio
+              - --no-first-run
+              - --safebrowsing-disable-auto-update
             env:
               TZ: ${TIME_ZONE}
             resources:
