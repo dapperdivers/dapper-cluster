@@ -7,6 +7,7 @@ components:
   - ../../flux/components/common
 resources:
   - ./archon/ks.yaml
+  - ./camoufox/ks.yaml
   - ./munin/ks.yaml
   - ./openclaw/ks.yaml
   # - ./open-webui/ks.yaml
