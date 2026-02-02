@@ -28,7 +28,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/outlook-bridge
-              tag: 947a16bc70dcba654193c07feead895e51031497
+              tag: 55e100dc0af66e444ef6aa00c5f11db89c00d445
             env:
               TZ: America/Chicago
               TOKEN_CACHE_PATH: /data/token_cache.json
