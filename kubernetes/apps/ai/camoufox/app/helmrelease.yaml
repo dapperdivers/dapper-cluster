@@ -38,12 +38,8 @@ spec:
                 set -e
                 echo "Installing Camoufox and dependencies..."
 
-                # Create virtual environment in shared volume
-                python3 -m venv /app/venv
-                source /app/venv/bin/activate
-
-                # Install Python packages
-                pip install --no-cache-dir \
+                # Install to user site-packages (no venv needed)
+                pip install --user --no-cache-dir \
                   'camoufox[geoip]>=0.4.0' \
                   'fastapi>=0.109.0' \
                   'uvicorn[standard]>=0.27.0' \
@@ -51,14 +47,16 @@ spec:
 
                 # Download Camoufox browser binary
                 echo "Fetching Camoufox browser..."
-                python -m camoufox fetch
+                python3 -m camoufox fetch
 
-                # Copy server script to app directory
+                # Copy server script and mark install complete
                 cp /config/server.py /app/server.py
+                touch /app/.installed
 
                 echo "Installation complete!"
             env:
               TZ: ${TIME_ZONE}
+              HOME: /app
               PIP_BREAK_SYSTEM_PACKAGES: "1"
         containers:
           app:
@@ -74,10 +72,9 @@ spec:
                 export DISPLAY=:99
                 sleep 2
 
-                # Activate venv and run server
-                source /app/venv/bin/activate
+                # Run server (packages installed to /app/.local by init)
                 cd /app
-                exec python server.py
+                exec python3 server.py
             resources:
               requests:
                 cpu: 200m
@@ -87,10 +84,12 @@ spec:
                 memory: 2Gi
             env:
               TZ: ${TIME_ZONE}
+              HOME: /app
               PORT: "8080"
               DEFAULT_TIMEOUT: "30000"
               MAX_CONTENT_LENGTH: "2000000"
               DISPLAY: ":99"
+              PYTHONUSERBASE: /app/.local
             probes:
               liveness:
                 enabled: true
