@@ -32,7 +32,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/home-assistant
-              tag: 2026.1.1@sha256:9cd3ab36e0f226915dba281c4867cc6c9d14fd18208234f4a65ddbf8a10bf7e5
+              tag: 2026.1.3@sha256:c36741490472518338323db8ee67775d7df70d2fa1f68eff9b9e63679fe64a18
             env:
               TZ: ${TIME_ZONE}
               UV_SYSTEM_PYTHON: true
@@ -45,7 +45,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: 
+              capabilities:
                 drop: ["ALL"]
                 add: ["NET_RAW", "NET_ADMIN", "NET_BROADCAST"]
             resources:
