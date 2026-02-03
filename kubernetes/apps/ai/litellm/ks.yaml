@@ -13,8 +13,9 @@ spec:
   dependsOn:
     - name: external-secrets-stores
       namespace: external-secrets
-    - name: dragonfly-cluster
-      namespace: database
+    # dragonfly-cluster kustomization is stuck but pods are running
+    # - name: dragonfly-cluster
+    #   namespace: database
     - name: cloudnative-pg-cluster
       namespace: database
     - name: vllm

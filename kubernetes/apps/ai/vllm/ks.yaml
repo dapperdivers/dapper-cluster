@@ -15,8 +15,9 @@ spec:
       namespace: external-secrets
     - name: nvidia-device-plugin
       namespace: kube-system
-    - name: volsync
-      namespace: storage
+    # volsync stuck on rook-ceph - not needed for initial deployment
+    # - name: volsync
+    #   namespace: storage
   path: ./kubernetes/apps/ai/vllm/app
   prune: true
   sourceRef:
