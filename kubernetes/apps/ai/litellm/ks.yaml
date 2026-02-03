@@ -12,9 +12,13 @@ spec:
       app.kubernetes.io/name: *app
   dependsOn:
     - name: external-secrets-stores
-    - name: dragonfly
+      namespace: external-secrets
+    - name: dragonfly-cluster
+      namespace: database
     - name: cloudnative-pg-cluster
+      namespace: database
     - name: vllm
+      namespace: flux-system
   path: ./kubernetes/apps/ai/litellm/app
   prune: true
   sourceRef:
