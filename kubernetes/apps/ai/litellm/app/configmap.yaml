@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+data:
+  config.yaml: |
+    # LiteLLM Proxy Configuration
+    # Routes requests to local vLLM models with cloud fallback
+
+    model_list:
+      # ============================================
+      # LOCAL MODELS (vLLM on P100 GPUs)
+      # ============================================
+
+      # Fast general model - Qwen 7B
+      - model_name: local/qwen-7b
+        litellm_params:
+          model: openai/qwen-7b
+          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
+          api_key: "not-needed"
+        model_info:
+          description: "Fast local 7B model for quick tasks"
+          max_tokens: 8192
+
+      # Reasoning model - DeepSeek R1 14B
+      - model_name: local/deepseek-r1
+        litellm_params:
+          model: openai/deepseek-r1
+          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
+          api_key: "not-needed"
+        model_info:
+          description: "Local reasoning model for complex analysis"
+          max_tokens: 4096
+
+      # ============================================
+      # CLOUD FALLBACK MODELS
+      # ============================================
+
+      # Claude for complex tasks
+      - model_name: claude-sonnet
+        litellm_params:
+          model: anthropic/claude-sonnet-4-20250514
+          api_key: os.environ/ANTHROPIC_API_KEY
+        model_info:
+          description: "Claude Sonnet 4 for complex reasoning"
+
+      - model_name: claude-haiku
+        litellm_params:
+          model: anthropic/claude-3-5-haiku-20241022
+          api_key: os.environ/ANTHROPIC_API_KEY
+        model_info:
+          description: "Claude Haiku for fast cloud responses"
+
+      # OpenAI for compatibility
+      - model_name: gpt-4o
+        litellm_params:
+          model: openai/gpt-4o
+          api_key: os.environ/OPENAI_API_KEY
+        model_info:
+          description: "OpenAI GPT-4o"
+
+      - model_name: gpt-4o-mini
+        litellm_params:
+          model: openai/gpt-4o-mini
+          api_key: os.environ/OPENAI_API_KEY
+        model_info:
+          description: "OpenAI GPT-4o Mini for cost efficiency"
+
+      # ============================================
+      # ALIASED ROUTING
+      # ============================================
+
+      # Default to local fast model
+      - model_name: gpt-3.5-turbo
+        litellm_params:
+          model: openai/qwen-7b
+          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
+          api_key: "not-needed"
+        model_info:
+          description: "Alias for local fast model"
+
+      # GPT-4 requests go to local reasoning model first
+      - model_name: gpt-4
+        litellm_params:
+          model: openai/deepseek-r1
+          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
+          api_key: "not-needed"
+        model_info:
+          description: "Alias for local reasoning model"
+
+    # Router settings
+    router_settings:
+      routing_strategy: least-busy
+      enable_pre_call_checks: true
+      num_retries: 2
+      timeout: 120
+      retry_after: 5
+      fallbacks:
+        - gpt-4: [claude-sonnet, gpt-4o]
+        - gpt-3.5-turbo: [claude-haiku, gpt-4o-mini]
+
+    # General settings
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+      database_url: os.environ/DATABASE_URL
+
+    # Logging
+    litellm_settings:
+      success_callback: ["prometheus"]
+      failure_callback: ["prometheus"]
+      service_callback: ["prometheus"]
+      cache: true
+      cache_params:
+        type: redis
+        host: dragonfly.database.svc.cluster.local
+        port: 6379

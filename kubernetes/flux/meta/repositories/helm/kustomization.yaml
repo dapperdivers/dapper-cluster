@@ -38,3 +38,4 @@ resources:
   - ./spegel.yaml
   - ./stakater.yaml
   - ./kestra.yaml
+  - ./vllm.yaml

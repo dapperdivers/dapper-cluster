@@ -1,12 +1,11 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app litellm
-  namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chartRef:
     kind: OCIRepository
     name: app-template
@@ -18,6 +17,9 @@ spec:
     remediation:
       strategy: rollback
       retries: 5
+  dependsOn:
+    - name: vllm
+      namespace: ai
 
   values:
     controllers:
@@ -25,6 +27,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         replicas: 1
+
         initContainers:
           init-db:
             image:
@@ -33,62 +36,80 @@ spec:
             envFrom:
               - secretRef:
                   name: litellm-postgres-secret
+
         containers:
-          litellm:
+          app:
             image:
               repository: ghcr.io/berriai/litellm
               tag: v1.80.5-stable@sha256:e9711f484c7c8462c028803130afef546aa54c8d2fc11120242c01bbadc12e65
-            ports:
-              - containerPort: &port 4000
-            env:
-              TZ: "${TIME_ZONE}"
-              REDIS_URL: redis://dragonfly.database.svc.cluster.local
-              STORE_MODEL_IN_DB: True
-            envFrom:
-              - secretRef:
-                  name: litellm-secret
             args:
               - "--config"
               - "/app/config.yaml"
+            env:
+              TZ: ${TIME_ZONE}
+              STORE_MODEL_IN_DB: "True"
+            envFrom:
+              - secretRef:
+                  name: litellm-secret
+            ports:
+              - name: http
+                containerPort: &port 4000
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/liveliness
+                    port: *port
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/readiness
+                    port: *port
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 500m
+                memory: 512Mi
+              limits:
+                cpu: 2
+                memory: 2Gi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities: { drop: ["ALL"] }
-            resources:
-              requests:
-                cpu: 2
-                memory: 830Mi
-              limits:
-                cpu: 4
-                memory: 1Gi
-    containerSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 150
-      runAsNonRoot: true
-      privileged: false
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: false
-      capabilities: { drop: ["ALL"] }
-      seccompProfile: { type: RuntimeDefault }
+
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+
     service:
       app:
         controller: litellm
         ports:
           http:
             port: *port
+
     ingress:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
         hosts:
-          - host:  &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: &host litellm.${SECRET_DOMAIN}
             paths:
               - path: /
-                service:
-                  identifier: app
-                  port: http
-              - path: /ui
                 service:
                   identifier: app
                   port: http
@@ -96,11 +117,22 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+
     persistence:
-      config-file:
+      config:
         type: configMap
-        name: litellm-configmap
+        name: litellm-config
         globalMounts:
           - path: /app/config.yaml
             subPath: config.yaml
             readOnly: true
+
+    serviceMonitor:
+      app:
+        serviceName: litellm
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 30s
+            scrapeTimeout: 10s

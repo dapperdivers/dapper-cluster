@@ -1,0 +1,152 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vllm
+spec:
+  interval: 30m
+  timeout: 30m
+  chart:
+    spec:
+      chart: vllm-stack
+      version: 0.1.9
+      sourceRef:
+        kind: HelmRepository
+        name: vllm
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+
+  valuesFrom:
+    - kind: Secret
+      name: vllm-secret
+      valuesKey: HF_TOKEN
+      targetPath: servingEngineSpec.modelSpec[0].hf_token
+    - kind: Secret
+      name: vllm-secret
+      valuesKey: HF_TOKEN
+      targetPath: servingEngineSpec.modelSpec[1].hf_token
+
+  values:
+    # Router configuration
+    routerSpec:
+      enabled: true
+      replicaCount: 1
+
+    # Model serving engines
+    servingEngineSpec:
+      runtimeClassName: nvidia
+
+      modelSpec:
+        # Pool 1: Fast general model (Qwen 7B)
+        - name: qwen-7b
+          repository: vllm/vllm-openai
+          tag: v0.8.0
+          modelURL: Qwen/Qwen2.5-7B-Instruct
+          replicaCount: 1
+
+          requestCPU: 4
+          requestMemory: 32Gi
+          requestGPU: 2
+
+          pvcStorage: 50Gi
+          pvcAccessMode:
+            - ReadWriteOnce
+
+          vllmConfig:
+            enableChunkedPrefill: true
+            enablePrefixCaching: true
+            maxModelLen: 8192
+            tensorParallelSize: 2
+            dtype: float16
+            extraArgs:
+              - "--disable-log-requests"
+              - "--gpu-memory-utilization"
+              - "0.85"
+              - "--max-num-seqs"
+              - "64"
+
+          shmSize: 16Gi
+
+          env:
+            - name: TZ
+              value: "${TIME_ZONE}"
+
+          nodeSelector:
+            nvidia.feature.node.kubernetes.io/gpu: "true"
+
+          tolerations:
+            - key: nvidia.com/gpu
+              operator: Exists
+              effect: NoSchedule
+
+        # Pool 2: Reasoning model (DeepSeek R1 14B)
+        - name: deepseek-r1
+          repository: vllm/vllm-openai
+          tag: v0.8.0
+          modelURL: deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
+          replicaCount: 1
+
+          requestCPU: 4
+          requestMemory: 48Gi
+          requestGPU: 2
+
+          pvcStorage: 50Gi
+          pvcAccessMode:
+            - ReadWriteOnce
+
+          vllmConfig:
+            enableChunkedPrefill: true
+            enablePrefixCaching: true
+            maxModelLen: 4096
+            tensorParallelSize: 2
+            dtype: float16
+            extraArgs:
+              - "--disable-log-requests"
+              - "--gpu-memory-utilization"
+              - "0.90"
+              - "--max-num-seqs"
+              - "32"
+
+          shmSize: 20Gi
+
+          env:
+            - name: TZ
+              value: "${TIME_ZONE}"
+
+          nodeSelector:
+            nvidia.feature.node.kubernetes.io/gpu: "true"
+
+          tolerations:
+            - key: nvidia.com/gpu
+              operator: Exists
+              effect: NoSchedule
+
+    # Observability
+    observabilitySpec:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+    # Ingress for router
+    ingress:
+      enabled: true
+      className: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+      hosts:
+        - host: vllm.${SECRET_DOMAIN}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - vllm.${SECRET_DOMAIN}
+          secretName: ${SECRET_DOMAIN/./-}-tls

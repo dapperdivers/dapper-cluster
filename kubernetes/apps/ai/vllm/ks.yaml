@@ -3,7 +3,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app litellm
+  name: &app vllm
   namespace: flux-system
 spec:
   targetNamespace: ai
@@ -12,10 +12,9 @@ spec:
       app.kubernetes.io/name: *app
   dependsOn:
     - name: external-secrets-stores
-    - name: dragonfly
-    - name: cloudnative-pg-cluster
-    - name: vllm
-  path: ./kubernetes/apps/ai/litellm/app
+    - name: nvidia-device-plugin
+    - name: volsync
+  path: ./kubernetes/apps/ai/vllm/app
   prune: true
   sourceRef:
     kind: GitRepository
