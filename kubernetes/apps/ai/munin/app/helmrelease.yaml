@@ -84,6 +84,11 @@ spec:
                 fi
                 set -e  # Re-enable error checking
 
+                # Install npm packages to persistent location
+                echo "Installing npm packages..."
+                export NPM_CONFIG_PREFIX=/home/node/.local
+                npm install -g twitter-api-v2 || echo "npm install skipped"
+
                 echo "Tool installation complete"
             env:
               HOME: /home/node
@@ -110,6 +115,7 @@ spec:
               HOME: /home/node
               TERM: xterm-256color
               PATH: /home/node/.local/bin:/home/node/.local/go/bin:/home/node/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              NODE_PATH: /home/node/.local/lib/node_modules
               GOPATH: /home/node/go
               HOMEBREW_PREFIX: /home/node/.local/homebrew
               HOMEBREW_CELLAR: /home/node/.local/homebrew/Cellar
