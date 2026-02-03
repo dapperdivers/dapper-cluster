@@ -91,15 +91,7 @@ spec:
                 
                 # Configure mcporter to connect to ha-mcp sidecar (streamable-http on port 8086)
                 mkdir -p /home/node/config
-                cat > /home/node/config/mcporter.json << 'EOF'
-{
-  "servers": {
-    "ha-mcp": {
-      "url": "http://localhost:8086/mcp"
-    }
-  }
-}
-EOF
+                echo '{"servers":{"ha-mcp":{"url":"http://localhost:8086/mcp"}}}' > /home/node/config/mcporter.json
 
                 echo "Tool installation complete"
             env:
