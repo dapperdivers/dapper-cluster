@@ -63,10 +63,10 @@ spec:
           image: wazuh/wazuh-indexer:4.9.2
           resources:
             requests:
-              memory: 1Gi
+              memory: 2Gi
               cpu: 500m
             limits:
-              memory: 2Gi
+              memory: 3Gi
           ports:
             - containerPort: 9200
               name: api
@@ -74,7 +74,7 @@ spec:
               name: cluster
           env:
             - name: OPENSEARCH_JAVA_OPTS
-              value: "-Xms512m -Xmx512m"
+              value: "-Xms1g -Xmx1g"
             - name: bootstrap.memory_lock
               value: "false"
             - name: discovery.type
