@@ -11,3 +11,4 @@ resources:
   - ./wazuh-indexer.yaml
   - ./wazuh-manager.yaml
   - ./wazuh-dashboard.yaml
+  - ./service-lb.yaml            # External LB for agent connections
