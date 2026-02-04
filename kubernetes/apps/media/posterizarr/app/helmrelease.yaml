@@ -28,7 +28,7 @@ spec:
           init-config:
             image:
               repository: docker.io/mikefarah/yq
-              tag: 4.52.1@sha256:c0f7a8a84f1dbfb7a19530683788dde8fc41227c7a2446a9d89d1e7eb9bad0a5
+              tag: 4.52.2@sha256:601e1d0faee899567ed5c8e50bead050efe51a2b90f07395e5cf5836ce3726a8
               pullPolicy: IfNotPresent
             command:
               - "/bin/sh"
