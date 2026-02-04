@@ -16,6 +16,6 @@ resources:
   - ./speaches/ks.yaml
   - ./wyoming-whisper/ks.yaml
   
-  # LLM Inference Stack (disabled - stabilizing cluster)
-  # - ./vllm/ks.yaml
-  # - ./litellm/ks.yaml
+  # LLM Inference Stack
+  - ./vllm/ks.yaml
+  # - ./litellm/ks.yaml  # enable after vllm stable
