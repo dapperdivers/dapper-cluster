@@ -32,6 +32,32 @@ spec:
       labels:
         app: wazuh-indexer
     spec:
+      # Init container to set up certificate files with correct names
+      initContainers:
+        - name: setup-certs
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              # Copy certs with Wazuh-expected names
+              cp /certs-source/tls.crt /certs/indexer.pem
+              cp /certs-source/tls.key /certs/indexer-key.pem
+              cp /certs-source/ca.crt /certs/root-ca.pem
+              # Admin certs for security initialization
+              cp /admin-certs/tls.crt /certs/admin.pem
+              cp /admin-certs/tls.key /certs/admin-key.pem
+              chmod 400 /certs/*.pem
+              chown -R 1000:1000 /certs
+          volumeMounts:
+            - name: certs-source
+              mountPath: /certs-source
+              readOnly: true
+            - name: admin-certs
+              mountPath: /admin-certs
+              readOnly: true
+            - name: certs
+              mountPath: /certs
       containers:
         - name: wazuh-indexer
           image: wazuh/wazuh-indexer:4.9.2
@@ -53,16 +79,32 @@ spec:
               value: "false"
             - name: discovery.type
               value: "single-node"
+            - name: INDEXER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-passwords
+                  key: indexer-password
           volumeMounts:
             - name: data
               mountPath: /var/lib/wazuh-indexer
             - name: config
               mountPath: /usr/share/wazuh-indexer/opensearch.yml
               subPath: opensearch.yml
+            - name: certs
+              mountPath: /usr/share/wazuh-indexer/certs
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: wazuh-config
+        - name: certs-source
+          secret:
+            secretName: wazuh-indexer-certs
+        - name: admin-certs
+          secret:
+            secretName: wazuh-admin-certs
+        - name: certs
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data

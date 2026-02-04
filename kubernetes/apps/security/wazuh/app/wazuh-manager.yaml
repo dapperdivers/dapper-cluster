@@ -38,6 +38,25 @@ spec:
       labels:
         app: wazuh-manager
     spec:
+      initContainers:
+        - name: setup-certs
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              # Filebeat certs for manager -> indexer communication
+              cp /filebeat-certs/tls.crt /certs/filebeat.pem
+              cp /filebeat-certs/tls.key /certs/filebeat-key.pem
+              cp /filebeat-certs/ca.crt /certs/root-ca.pem
+              chmod 400 /certs/*.pem
+              chown -R 999:999 /certs
+          volumeMounts:
+            - name: filebeat-certs
+              mountPath: /filebeat-certs
+              readOnly: true
+            - name: certs
+              mountPath: /certs
       containers:
         - name: wazuh-manager
           image: wazuh/wazuh-manager:4.9.2
@@ -58,26 +77,47 @@ spec:
               name: cluster
           env:
             - name: INDEXER_URL
-              value: "http://wazuh-indexer:9200"
+              value: "https://wazuh-indexer:9200"
+            - name: INDEXER_USERNAME
+              value: "admin"
+            - name: INDEXER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-passwords
+                  key: indexer-password
             - name: FILEBEAT_SSL_VERIFICATION_MODE
-              value: "none"
+              value: "full"
+            - name: SSL_CERTIFICATE_AUTHORITIES
+              value: "/etc/ssl/root-ca.pem"
+            - name: SSL_CERTIFICATE
+              value: "/etc/ssl/filebeat.pem"
+            - name: SSL_KEY
+              value: "/etc/ssl/filebeat-key.pem"
             - name: API_USERNAME
               value: "wazuh-wui"
             - name: API_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: wazuh-generated-passwords
-                  key: WAZUH_API_PASSWORD
+                  name: wazuh-passwords
+                  key: api-password
           volumeMounts:
             - name: data
               mountPath: /var/ossec/data
             - name: config
               mountPath: /var/ossec/etc/ossec.conf
               subPath: ossec.conf
+            - name: certs
+              mountPath: /etc/ssl
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: wazuh-config
+        - name: filebeat-certs
+          secret:
+            secretName: wazuh-filebeat-certs
+        - name: certs
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data
