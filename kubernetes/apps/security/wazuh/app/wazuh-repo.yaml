@@ -69,7 +69,7 @@ data:
           url: https://wazuh-manager
           port: 55000
           username: wazuh-wui
-          password: "${API_PASSWORD}"
+          password: wazuh-wui
           run_as: false
 
   # Manager ossec.conf - Core configuration
