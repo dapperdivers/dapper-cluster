@@ -2,14 +2,43 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: security
+
+# Pull from official Wazuh Kubernetes repo
 resources:
-  - ./namespace.yaml
-  - ./password-generator.yaml  # Generates random passwords
-  - ./pushsecret.yaml          # Pushes to Infisical
-  - ./externalsecret.yaml      # Pulls back (for consistency)
-  - ./wazuh-repo.yaml
-  - ./wazuh-indexer.yaml
-  - ./wazuh-manager.yaml
-  - ./wazuh-dashboard.yaml
-  # - ./wazuh-agents.yaml  # Enable after core components stable
+  - https://github.com/wazuh/wazuh-kubernetes//envs/local-env?ref=v4.9.2
+
+# Patch storage class to use ceph-rbd
+patches:
+  - patch: |-
+      - op: replace
+        path: /provisioner
+        value: rbd.csi.ceph.com
+    target:
+      kind: StorageClass
+      name: wazuh-storage
+
+  # Patch indexer storage
+  - patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: ceph-rbd
+    target:
+      kind: StatefulSet
+      name: wazuh-indexer
+
+  # Patch manager storage
+  - patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: ceph-rbd
+    target:
+      kind: StatefulSet
+      name: wazuh-manager-master
+
+  - patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: ceph-rbd
+    target:
+      kind: StatefulSet
+      name: wazuh-manager-worker
