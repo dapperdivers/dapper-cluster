@@ -60,7 +60,7 @@ spec:
               mountPath: /certs
       containers:
         - name: wazuh-indexer
-          image: wazuh/wazuh-indexer:4.9.2
+          image: wazuh/wazuh-indexer:4.14.2
           resources:
             requests:
               memory: 2Gi
