@@ -6,6 +6,7 @@ metadata:
   name: &app vllm
   namespace: flux-system
 spec:
+  suspend: true  # TEMP: causing cluster instability, disk pressure on GPU node
   targetNamespace: ai
   commonMetadata:
     labels:
