@@ -103,17 +103,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/ossec/data
-            - name: config
-              mountPath: /wazuh-config-mount/etc/ossec.conf
-              subPath: ossec.conf
-              readOnly: true
             - name: certs
               mountPath: /etc/ssl
               readOnly: true
       volumes:
-        - name: config
-          configMap:
-            name: wazuh-config
         - name: filebeat-certs
           secret:
             secretName: wazuh-filebeat-certs
