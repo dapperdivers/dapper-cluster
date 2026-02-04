@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
         - name: wazuh-manager
-          image: wazuh/wazuh-manager:4.9.2
+          image: wazuh/wazuh-manager:4.14.2
           resources:
             requests:
               memory: 512Mi
