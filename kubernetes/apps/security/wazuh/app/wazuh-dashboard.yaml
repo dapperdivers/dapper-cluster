@@ -51,7 +51,7 @@ spec:
                   name: wazuh-generated-passwords
                   key: WAZUH_INDEXER_PASSWORD
             - name: WAZUH_API_URL
-              value: "https://wazuh-manager:55000"
+              value: "http://wazuh-manager:55000"
             - name: API_USERNAME
               value: "wazuh-wui"
             - name: API_PASSWORD
@@ -59,8 +59,14 @@ spec:
                 secretKeyRef:
                   name: wazuh-generated-passwords
                   key: WAZUH_API_PASSWORD
-            - name: SERVER_SSL_ENABLED
-              value: "false"
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+              subPath: opensearch_dashboards.yml
+      volumes:
+        - name: config
+          configMap:
+            name: wazuh-config
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

@@ -17,6 +17,18 @@ data:
     plugins.security.disabled: true
     compatibility.override_main_response_version: true
   
+  # Dashboard config - disable SSL
+  opensearch_dashboards.yml: |
+    server.host: 0.0.0.0
+    server.port: 5601
+    server.ssl.enabled: false
+    opensearch.hosts: http://wazuh-indexer:9200
+    opensearch.ssl.verificationMode: none
+    opensearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+    opensearch_security.multitenancy.enabled: false
+    opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+    uiSettings.overrides.defaultRoute: /app/wazuh
+  
   # Manager ossec.conf basics
   ossec.conf: |
     <ossec_config>
