@@ -53,8 +53,6 @@ spec:
               value: "false"
             - name: discovery.type
               value: "single-node"
-            - name: plugins.security.disabled
-              value: "true"
           volumeMounts:
             - name: data
               mountPath: /var/lib/wazuh-indexer

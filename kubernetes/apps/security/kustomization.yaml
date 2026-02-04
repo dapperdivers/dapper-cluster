@@ -8,4 +8,4 @@ components:
 resources:
   - ./vaultwarden/ks.yaml
   - ./authentik/ks.yaml
-  # - ./wazuh/ks.yaml  # Enable when Infisical secrets added
+  - ./wazuh/ks.yaml  # Passwords auto-generated and pushed to Infisical
