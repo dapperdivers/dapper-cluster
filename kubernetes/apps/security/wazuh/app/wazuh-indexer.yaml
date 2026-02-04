@@ -32,6 +32,9 @@ spec:
       labels:
         app: wazuh-indexer
     spec:
+      # fsGroup ensures PVC is mounted with correct group ownership for wazuh-indexer (UID 1000)
+      securityContext:
+        fsGroup: 1000
       # Init container to set up certificate files with correct names
       initContainers:
         - name: setup-certs
