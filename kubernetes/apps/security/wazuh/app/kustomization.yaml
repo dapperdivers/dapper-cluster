@@ -5,7 +5,9 @@ kind: Kustomization
 namespace: security
 resources:
   - ./namespace.yaml
-  - ./externalsecret.yaml
+  - ./password-generator.yaml  # Generates random passwords
+  - ./pushsecret.yaml          # Pushes to Infisical
+  - ./externalsecret.yaml      # Pulls back (for consistency)
   - ./wazuh-repo.yaml
   - ./wazuh-indexer.yaml
   - ./wazuh-manager.yaml
