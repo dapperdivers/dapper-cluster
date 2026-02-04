@@ -17,15 +17,15 @@ data:
     plugins.security.disabled: true
     compatibility.override_main_response_version: true
   
-  # Dashboard config - disable SSL and security (indexer has no auth)
+  # Dashboard config - no auth (indexer has security disabled)
   opensearch_dashboards.yml: |
     server.host: 0.0.0.0
     server.port: 5601
     server.ssl.enabled: false
     opensearch.hosts: http://wazuh-indexer:9200
     opensearch.ssl.verificationMode: none
-    # Disable security plugin since indexer has it disabled
-    opensearch_security.disabled: true
+    # Disable security plugin to match indexer
+    securityDashboards.disabled: true
     uiSettings.overrides.defaultRoute: /app/wazuh
   
   # Wazuh app config - API connection
