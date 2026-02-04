@@ -11,10 +11,6 @@ rules:
   - apiGroups: [""]
     resources: ["pods", "pods/log", "services", "endpoints", "persistentvolumeclaims", "configmaps", "events"]
     verbs: ["get", "list", "watch"]
-  # Secrets - for debugging cert issues, external-secrets, etc.
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "list", "watch"]
   # Apps
   - apiGroups: ["apps"]
     resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
