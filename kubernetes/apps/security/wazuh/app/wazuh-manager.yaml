@@ -104,8 +104,9 @@ spec:
             - name: data
               mountPath: /var/ossec/data
             - name: config
-              mountPath: /var/ossec/etc/ossec.conf
+              mountPath: /wazuh-config-mount/etc/ossec.conf
               subPath: ossec.conf
+              readOnly: true
             - name: certs
               mountPath: /etc/ssl
               readOnly: true
