@@ -1,0 +1,41 @@
+---
+# ConfigMap with Wazuh configuration files
+# These would normally come from the wazuh-kubernetes repo
+# but we're inlining for GitOps simplicity
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wazuh-config
+data:
+  # Indexer config
+  opensearch.yml: |
+    network.host: 0.0.0.0
+    node.name: wazuh-indexer
+    cluster.name: wazuh-cluster
+    discovery.type: single-node
+    plugins.security.ssl.http.enabled: false
+    plugins.security.disabled: true
+    compatibility.override_main_response_version: true
+  
+  # Manager ossec.conf basics
+  ossec.conf: |
+    <ossec_config>
+      <global>
+        <jsonout_output>yes</jsonout_output>
+        <alerts_log>yes</alerts_log>
+        <logall>no</logall>
+        <logall_json>no</logall_json>
+        <email_notification>no</email_notification>
+      </global>
+      
+      <alerts>
+        <log_alert_level>3</log_alert_level>
+        <email_alert_level>12</email_alert_level>
+      </alerts>
+
+      <vulnerability-detection>
+        <enabled>yes</enabled>
+        <index-status>yes</index-status>
+        <feed-update-interval>60m</feed-update-interval>
+      </vulnerability-detection>
+    </ossec_config>

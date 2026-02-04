@@ -1,0 +1,93 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-dashboard
+  labels:
+    app: wazuh-dashboard
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5601
+      targetPort: 5601
+  selector:
+    app: wazuh-dashboard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wazuh-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-dashboard
+  template:
+    metadata:
+      labels:
+        app: wazuh-dashboard
+    spec:
+      containers:
+        - name: wazuh-dashboard
+          image: wazuh/wazuh-dashboard:4.9.2
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+          ports:
+            - containerPort: 5601
+              name: http
+          env:
+            - name: INDEXER_URL
+              value: "http://wazuh-indexer:9200"
+            - name: INDEXER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-secret
+                  key: INDEXER_USERNAME
+            - name: INDEXER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-secret
+                  key: INDEXER_PASSWORD
+            - name: WAZUH_API_URL
+              value: "https://wazuh-manager:55000"
+            - name: API_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-secret
+                  key: API_USERNAME
+            - name: API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-secret
+                  key: API_PASSWORD
+            - name: SERVER_SSL_ENABLED
+              value: "false"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wazuh-dashboard
+  annotations:
+    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+spec:
+  ingressClassName: internal
+  rules:
+    - host: wazuh.${SECRET_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wazuh-dashboard
+                port:
+                  number: 5601
+  tls:
+    - hosts:
+        - wazuh.${SECRET_DOMAIN}
+      secretName: ${SECRET_DOMAIN/./-}-tls

@@ -1,0 +1,13 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: security
+resources:
+  - ./namespace.yaml
+  - ./externalsecret.yaml
+  - ./wazuh-repo.yaml
+  - ./wazuh-indexer.yaml
+  - ./wazuh-manager.yaml
+  - ./wazuh-dashboard.yaml
+  # - ./wazuh-agents.yaml  # Enable after core components stable

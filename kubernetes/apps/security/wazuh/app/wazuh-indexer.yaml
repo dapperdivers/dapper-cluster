@@ -1,0 +1,76 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-indexer
+  labels:
+    app: wazuh-indexer
+spec:
+  type: ClusterIP
+  ports:
+    - name: api
+      port: 9200
+      targetPort: 9200
+    - name: cluster
+      port: 9300
+      targetPort: 9300
+  selector:
+    app: wazuh-indexer
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wazuh-indexer
+spec:
+  serviceName: wazuh-indexer
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-indexer
+  template:
+    metadata:
+      labels:
+        app: wazuh-indexer
+    spec:
+      containers:
+        - name: wazuh-indexer
+          image: wazuh/wazuh-indexer:4.9.2
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 500m
+            limits:
+              memory: 2Gi
+          ports:
+            - containerPort: 9200
+              name: api
+            - containerPort: 9300
+              name: cluster
+          env:
+            - name: OPENSEARCH_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+            - name: bootstrap.memory_lock
+              value: "false"
+            - name: discovery.type
+              value: "single-node"
+            - name: plugins.security.disabled
+              value: "true"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/wazuh-indexer
+            - name: config
+              mountPath: /usr/share/wazuh-indexer/opensearch.yml
+              subPath: opensearch.yml
+      volumes:
+        - name: config
+          configMap:
+            name: wazuh-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: ceph-rbd
+        resources:
+          requests:
+            storage: 50Gi
