@@ -5,7 +5,7 @@ kind: Kustomization
 
 # Pull from official Wazuh Kubernetes repo
 resources:
-  - https://github.com/wazuh/wazuh-kubernetes//envs/local-env?ref=v4.9.2
+  - https://github.com/wazuh/wazuh-kubernetes//envs/local-env?ref=v4.14.2
 
 # Patch storage class to use ceph-rbd
 patches:
