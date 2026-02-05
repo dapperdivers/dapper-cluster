@@ -80,7 +80,6 @@ spec:
         host: wazuh.${SECRET_DOMAIN}
         annotations:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
         tls:
           - secretName: ${SECRET_DOMAIN/./-}-tls
             hosts:
