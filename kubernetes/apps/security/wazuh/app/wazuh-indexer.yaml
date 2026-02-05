@@ -91,7 +91,7 @@ spec:
             - name: data
               mountPath: /var/lib/wazuh-indexer
             - name: config
-              mountPath: /usr/share/wazuh-indexer/opensearch.yml
+              mountPath: /usr/share/wazuh-indexer/config/opensearch.yml
               subPath: opensearch.yml
             - name: certs
               mountPath: /usr/share/wazuh-indexer/config/certs
