@@ -1,9 +1,0 @@
----
-# Wazuh uses the security namespace alongside Authentik and Vaultwarden
-# Namespace already exists, this is just for documentation
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: security
-  labels:
-    app.kubernetes.io/name: wazuh

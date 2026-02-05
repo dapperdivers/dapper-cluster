@@ -1,0 +1,118 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wazuh
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: wazuh
+      version: 1.0.16
+      sourceRef:
+        kind: HelmRepository
+        name: wazuh
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+    createNamespace: true
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    # Use existing cert-manager, don't deploy new one
+    cert-manager:
+      enabled: false
+
+    # Use cert-manager for certificates with existing ClusterIssuer
+    certificates:
+      enabled: true
+      issuer:
+        name: letsencrypt-production
+        type: ClusterIssuer
+
+    # Indexer configuration
+    indexer:
+      enabled: true
+      replicas: 1  # Start with single replica
+      storageSize: 50Gi
+      storageClass: ceph-block
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: 2000m
+          memory: 2Gi
+      cred:
+        existingSecret: wazuh-passwords
+
+    # Dashboard configuration
+    dashboard:
+      enabled: true
+      replicas: 1
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+      cred:
+        existingSecret: wazuh-passwords
+      ingress:
+        enabled: true
+        className: internal
+        host: wazuh.${SECRET_DOMAIN}
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+        tls:
+          - secretName: ${SECRET_DOMAIN/./-}-tls
+            hosts:
+              - wazuh.${SECRET_DOMAIN}
+
+    # Wazuh Manager configuration
+    wazuh:
+      enabled: true
+      # API credentials for dashboard connection
+      apiCred:
+        existingSecret: wazuh-passwords
+      # Agent enrollment password
+      authd:
+        enabled: true
+        existingSecret: wazuh-passwords
+      # LoadBalancer for external agents (like OPNsense)
+      loadBalancer:
+        enabled: true
+        annotations:
+          io.cilium/lb-ipam-ips: "10.100.0.29"
+      master:
+        enabled: true
+        storageSize: 50Gi
+        storageClass: ceph-block
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+      worker:
+        enabled: false  # Disable workers for single-node setup
+        replicas: 0
+
+    # Deploy agents as DaemonSet on cluster nodes
+    agent:
+      enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
