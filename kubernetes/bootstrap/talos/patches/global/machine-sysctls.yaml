@@ -19,3 +19,4 @@ machine:
     net.ipv4.tcp_keepalive_probes: "6"
     # VM tuning
     vm.swappiness: "10"
+    vm.max_map_count: "262144"  # OpenSearch/Elasticsearch requirement
