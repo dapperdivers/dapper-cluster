@@ -51,9 +51,9 @@ spec:
           memory: 2Gi
       cred:
         existingSecret: wazuh-passwords
-      # Enable sysctl init container to set vm.max_map_count
+      # Sysctl set at Talos node level (machine-sysctls.yaml)
       sysctlImage:
-        enabled: true
+        enabled: false
 
     # Dashboard configuration
     dashboard:
