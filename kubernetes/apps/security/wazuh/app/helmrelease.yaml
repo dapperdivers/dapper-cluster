@@ -100,6 +100,9 @@ spec:
         enabled: true
         annotations:
           io.cilium/lb-ipam-ips: "10.100.0.29"
+      # Indexer credentials for filebeat
+      indexerCred:
+        existingSecret: wazuh-passwords
       master:
         enabled: true
         storageSize: 50Gi
