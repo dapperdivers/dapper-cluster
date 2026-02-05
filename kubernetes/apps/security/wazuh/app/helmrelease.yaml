@@ -28,12 +28,13 @@ spec:
     cert-manager:
       enabled: false
 
-    # Use cert-manager for certificates with existing ClusterIssuer
+    # Use cert-manager for internal certificates (self-signed CA)
+    # Let the chart create its own self-signed issuer for mTLS
     certificates:
       enabled: true
       issuer:
-        name: letsencrypt-production
-        type: ClusterIssuer
+        name: null  # Creates self-signed issuer for internal certs
+        type: issuer
 
     # Indexer configuration
     indexer:
