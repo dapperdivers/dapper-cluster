@@ -68,8 +68,8 @@ data:
       - default:
           url: https://wazuh-manager
           port: 55000
-          username: wazuh-wui
-          password: wazuh-wui
+          username: admin
+          password: admin
           run_as: false
 
   # Manager ossec.conf - Core configuration
