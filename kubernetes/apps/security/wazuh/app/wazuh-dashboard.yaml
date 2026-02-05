@@ -47,6 +47,22 @@ spec:
               readOnly: true
             - name: certs
               mountPath: /certs
+        - name: setup-wazuh-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              # Copy wazuh.yml to writable location (startup script modifies it)
+              mkdir -p /wazuh-config
+              cp /wazuh-config-source/wazuh.yml /wazuh-config/wazuh.yml
+              chown -R 1000:1000 /wazuh-config
+          volumeMounts:
+            - name: wazuh-config-source
+              mountPath: /wazuh-config-source
+              readOnly: true
+            - name: wazuh-config
+              mountPath: /wazuh-config
       containers:
         - name: wazuh-dashboard
           image: wazuh/wazuh-dashboard:4.14.2
@@ -90,8 +106,7 @@ spec:
               mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
               subPath: opensearch_dashboards.yml
             - name: wazuh-config
-              mountPath: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
-              subPath: wazuh.yml
+              mountPath: /usr/share/wazuh-dashboard/data/wazuh/config
             - name: certs
               mountPath: /usr/share/wazuh-dashboard/certs
               readOnly: true
@@ -99,9 +114,14 @@ spec:
         - name: config
           configMap:
             name: wazuh-config
-        - name: wazuh-config
+        - name: wazuh-config-source
           configMap:
             name: wazuh-config
+            items:
+              - key: wazuh.yml
+                path: wazuh.yml
+        - name: wazuh-config
+          emptyDir: {}
         - name: dashboard-certs
           secret:
             secretName: wazuh-dashboard-certs
