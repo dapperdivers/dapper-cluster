@@ -80,7 +80,6 @@ spec:
         host: wazuh.${SECRET_DOMAIN}
         annotations:
           external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
         tls:
           - secretName: ${SECRET_DOMAIN/./-}-tls
             hosts:
@@ -101,10 +100,21 @@ spec:
         enabled: true
         annotations:
           io.cilium/lb-ipam-ips: "10.100.0.29"
+      # Indexer credentials for filebeat
+      indexerCred:
+        existingSecret: wazuh-passwords
       master:
         enabled: true
         storageSize: 50Gi
         storageClass: ceph-rbd
+        extraEnvVars:
+          - name: INDEXER_USERNAME
+            value: "admin"
+          - name: AUTHD_PASS
+            valueFrom:
+              secretKeyRef:
+                name: wazuh-passwords
+                key: AUTHD_PASS
         resources:
           requests:
             cpu: 500m
