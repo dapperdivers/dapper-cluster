@@ -40,7 +40,7 @@ spec:
       enabled: true
       replicas: 1  # Start with single replica
       storageSize: 50Gi
-      storageClass: ceph-block
+      storageClass: ceph-rbd
       resources:
         requests:
           cpu: 500m
@@ -94,7 +94,7 @@ spec:
       master:
         enabled: true
         storageSize: 50Gi
-        storageClass: ceph-block
+        storageClass: ceph-rbd
         resources:
           requests:
             cpu: 500m
