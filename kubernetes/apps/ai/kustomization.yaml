@@ -16,6 +16,6 @@ resources:
   - ./speaches/ks.yaml
   - ./wyoming-whisper/ks.yaml
   
-  # LLM Inference Stack (suspended - GPU node needs more disk)
-  # - ./vllm/ks.yaml
-  # - ./litellm/ks.yaml
+  # LLM Inference Stack
+  - ./ollama/ks.yaml
+  - ./litellm/ks.yaml
