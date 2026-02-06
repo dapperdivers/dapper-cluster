@@ -18,7 +18,7 @@ spec:
       strategy: rollback
       retries: 5
   dependsOn:
-    - name: vllm
+    - name: ollama
       namespace: ai
 
   values:

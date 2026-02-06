@@ -3,25 +3,17 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app litellm
+  name: &app ollama
   namespace: flux-system
 spec:
-  suspend: false
   targetNamespace: ai
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: external-secrets-stores
-      namespace: external-secrets
-    # dragonfly-cluster kustomization is stuck but pods are running
-    # - name: dragonfly-cluster
-    #   namespace: database
-    - name: cloudnative-pg-cluster
-      namespace: database
-    - name: ollama
-      namespace: flux-system
-  path: ./kubernetes/apps/ai/litellm/app
+    - name: nvidia-device-plugin
+      namespace: kube-system
+  path: ./kubernetes/apps/ai/ollama/app
   prune: true
   sourceRef:
     kind: GitRepository

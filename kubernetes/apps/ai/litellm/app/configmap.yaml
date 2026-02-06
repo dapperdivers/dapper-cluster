@@ -6,32 +6,39 @@ metadata:
 data:
   config.yaml: |
     # LiteLLM Proxy Configuration
-    # Routes requests to local vLLM models with cloud fallback
+    # Routes requests to local Ollama models with cloud fallback
 
     model_list:
       # ============================================
-      # LOCAL MODELS (vLLM on P100 GPUs)
+      # LOCAL MODELS (Ollama on P100 GPUs)
       # ============================================
 
-      # Fast general model - Qwen 7B
-      - model_name: local/qwen-7b
+      # Fast general model - Qwen 14B
+      - model_name: local/qwen-14b
         litellm_params:
-          model: openai/qwen-7b
-          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
-          api_key: "not-needed"
+          model: ollama/qwen2.5:14b
+          api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Fast local 7B model for quick tasks"
+          description: "Local Qwen2.5 14B for general tasks"
           max_tokens: 8192
 
-      # Reasoning model - DeepSeek R1 14B
-      - model_name: local/deepseek-r1
+      # Fast small model - Qwen 7B
+      - model_name: local/qwen-7b
         litellm_params:
-          model: openai/deepseek-r1
-          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
-          api_key: "not-needed"
+          model: ollama/qwen2.5:7b
+          api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Local reasoning model for complex analysis"
-          max_tokens: 4096
+          description: "Local Qwen2.5 7B for quick tasks"
+          max_tokens: 8192
+
+      # Coding model
+      - model_name: local/qwen-coder
+        litellm_params:
+          model: ollama/qwen2.5-coder:14b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+        model_info:
+          description: "Local coding model"
+          max_tokens: 8192
 
       # ============================================
       # CLOUD FALLBACK MODELS
@@ -68,26 +75,24 @@ data:
           description: "OpenAI GPT-4o Mini for cost efficiency"
 
       # ============================================
-      # ALIASED ROUTING
+      # ALIASED ROUTING (catch OpenAI model names)
       # ============================================
 
-      # Default to local fast model
+      # gpt-3.5-turbo requests → local fast model
       - model_name: gpt-3.5-turbo
         litellm_params:
-          model: openai/qwen-7b
-          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
-          api_key: "not-needed"
+          model: ollama/qwen2.5:7b
+          api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Alias for local fast model"
+          description: "Alias → local Qwen 7B"
 
-      # GPT-4 requests go to local reasoning model first
+      # gpt-4 requests → local reasoning model
       - model_name: gpt-4
         litellm_params:
-          model: openai/deepseek-r1
-          api_base: http://vllm-router-service.ai.svc.cluster.local/v1
-          api_key: "not-needed"
+          model: ollama/qwen2.5:14b
+          api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Alias for local reasoning model"
+          description: "Alias → local Qwen 14B"
 
     # Router settings
     router_settings:
@@ -99,6 +104,8 @@ data:
       fallbacks:
         - gpt-4: [claude-sonnet, gpt-4o]
         - gpt-3.5-turbo: [claude-haiku, gpt-4o-mini]
+        - local/qwen-14b: [claude-sonnet]
+        - local/qwen-7b: [claude-haiku]
 
     # General settings
     general_settings:
