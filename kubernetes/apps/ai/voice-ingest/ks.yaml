@@ -11,7 +11,7 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: molt
+    - name: openclaw
   path: ./kubernetes/apps/ai/voice-ingest/app
   prune: true
   sourceRef:
