@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/voice-ingest
-              tag: sha-83810d9
+              tag: sha-d277e7f
             env:
               TZ: ${TIME_ZONE}
               WATCH_DIR: /data/voice
