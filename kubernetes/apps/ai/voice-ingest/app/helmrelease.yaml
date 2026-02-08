@@ -32,7 +32,7 @@ spec:
               WATCH_DIR: /data/voice
               STT_URL: https://speaches.chelonianlabs.com/v1/audio/transcriptions
               STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
-              OPENCLAW_URL: http://molt.ai.svc.cluster.local:18789
+              OPENCLAW_URL: http://molt-app.ai.svc.cluster.local:18789
               OPENCLAW_HOOK_PATH: /hooks/agent
               DELETE_AFTER_TRANSCRIBE: "true"
               MIN_FILE_AGE: "10"
