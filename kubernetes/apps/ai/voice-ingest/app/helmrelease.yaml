@@ -1,0 +1,74 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: voice-ingest
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      voice-ingest:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/dapperdivers/voice-ingest
+              tag: main
+            env:
+              TZ: ${TIME_ZONE}
+              WATCH_DIR: /data/voice
+              STT_URL: https://speaches.chelonianlabs.com/v1/audio/transcriptions
+              STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
+              OPENCLAW_URL: http://molt.ai.svc.cluster.local:18789
+              OPENCLAW_HOOK_PATH: /hooks/agent
+              DELETE_AFTER_TRANSCRIBE: "true"
+              MIN_FILE_AGE: "10"
+              LOG_LEVEL: INFO
+            envFrom:
+              - secretRef:
+                  name: voice-ingest-secret
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+    persistence:
+      voice:
+        existingClaim: molt-voice-recordings
+        globalMounts:
+          - path: /data/voice
+      state:
+        type: emptyDir
+        globalMounts:
+          - path: /data/state
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
