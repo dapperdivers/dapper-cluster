@@ -269,3 +269,13 @@ spec:
           syncthing:
             app:
               - path: /config
+      voice-recordings:
+        enabled: true
+        existingClaim: molt-voice-recordings
+        advancedMounts:
+          molt:
+            app:
+              - path: /home/node/voice-recordings
+          syncthing:
+            app:
+              - path: /data/voice_recordings
