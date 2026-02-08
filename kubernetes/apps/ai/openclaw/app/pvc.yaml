@@ -20,3 +20,14 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: ceph-rbd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: molt-voice-recordings
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: cephfs-shared
