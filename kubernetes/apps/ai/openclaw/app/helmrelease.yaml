@@ -226,6 +226,15 @@ spec:
           sync:
             port: 22000
             protocol: TCP
+      syncthing-lb:
+        controller: syncthing
+        type: LoadBalancer
+        annotations:
+          io.cilium/lb-ipam-ips: "10.100.0.30"
+        ports:
+          sync:
+            port: 22000
+            protocol: TCP
     ingress:
       app:
         annotations:
