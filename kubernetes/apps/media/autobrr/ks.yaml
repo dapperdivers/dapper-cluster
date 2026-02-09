@@ -7,12 +7,12 @@ metadata:
   namespace: &namespace media
 spec:
   targetNamespace: *namespace
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
   components:
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   dependsOn:
     - name: cloudnative-pg-cluster
       namespace: database

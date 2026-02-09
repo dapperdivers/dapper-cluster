@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/kustomization-kustomize-v1.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -7,21 +7,12 @@ metadata:
   namespace: &namespace selfhosted
 spec:
   targetNamespace: *namespace
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
   components:
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
-  interval: 30m
-  timeout: 10m
-  path: "./kubernetes/apps/selfhosted/searxng/app"
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-    namespace: flux-system
-  wait: true
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   dependsOn:
     - name: volsync
       namespace: storage
@@ -29,6 +20,16 @@ spec:
       namespace: database
     - name: external-secrets-stores
       namespace: external-secrets
+  path: "./kubernetes/apps/selfhosted/searxng/app"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
   postBuild:
     substitute:
       APP: *app

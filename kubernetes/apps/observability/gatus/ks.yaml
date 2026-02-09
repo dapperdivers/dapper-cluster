@@ -10,12 +10,12 @@ spec:
   components:
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
-  dependsOn:
-    - name: external-secrets-stores
-      namespace: external-secrets
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+  dependsOn:
+    - name: external-secrets-stores
+      namespace: external-secrets
   path: ./kubernetes/apps/observability/gatus/app
   prune: true
   sourceRef:

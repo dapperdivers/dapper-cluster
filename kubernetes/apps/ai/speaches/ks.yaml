@@ -1,19 +1,23 @@
 ---
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &appname speaches
+  name: &app speaches
   namespace: &namespace ai
 spec:
   targetNamespace: *namespace
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *appname
-  interval: 30m
   components:
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    - name: volsync
+      namespace: storage
+    - name: external-secrets-stores
+      namespace: external-secrets
   path: "./kubernetes/apps/ai/speaches/app"
   prune: true
   sourceRef:
@@ -21,12 +25,10 @@ spec:
     name: flux-system
     namespace: flux-system
   wait: false
-  dependsOn:
-    - name: volsync
-      namespace: storage
-    - name: external-secrets-stores
-      namespace: external-secrets
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
   postBuild:
     substitute:
-      APP: *appname
+      APP: *app
       VOLSYNC_CAPACITY: 20Gi

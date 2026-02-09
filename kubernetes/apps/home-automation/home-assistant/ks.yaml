@@ -7,13 +7,13 @@ metadata:
   namespace: &namespace home-automation
 spec:
   targetNamespace: *namespace
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
   components:
     - ../../../../flux/components/gatus/external
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   dependsOn:
     - name: volsync
       namespace: storage

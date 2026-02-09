@@ -7,13 +7,13 @@ metadata:
   namespace: &namespace ai
 spec:
   targetNamespace: *namespace
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
   components:
     - ../../../../flux/components/gatus/guarded
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   dependsOn:
     - name: volsync
       namespace: storage

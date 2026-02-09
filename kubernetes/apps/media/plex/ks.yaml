@@ -11,14 +11,14 @@ spec:
     - ../../../../flux/components/gatus/external
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   dependsOn:
     - name: volsync
       namespace: storage
     - name: external-secrets-stores
       namespace: external-secrets
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
   path: ./kubernetes/apps/media/plex/app
   prune: true
   sourceRef:
@@ -37,7 +37,6 @@ spec:
       VOLSYNC_CAPACITY: 120Gi
       VOLSYNC_CACHE_CAPACITY: 60Gi
       VOLSYNC_SCHEDULE: "0 */6 * * *"
-
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -46,10 +45,10 @@ metadata:
   name: &app plex-tools
   namespace: &namespace media
 spec:
+  targetNamespace: *namespace
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  targetNamespace: *namespace
   dependsOn:
     - name: plex
       namespace: media
