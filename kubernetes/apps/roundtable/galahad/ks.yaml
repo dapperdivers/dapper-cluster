@@ -18,8 +18,8 @@ spec:
       namespace: storage
     - name: external-secrets-stores
       namespace: external-secrets
-    - name: roundtable-nats
-      namespace: roundtable
+    - name: nats
+      namespace: database
   path: ./kubernetes/apps/roundtable/galahad/app
   prune: true
   sourceRef:

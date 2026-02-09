@@ -59,7 +59,7 @@ spec:
               repository: ghcr.io/dapperdivers/nats-bridge
               tag: latest
             env:
-              NATS_URL: nats://nats.roundtable.svc:4222
+              NATS_URL: nats://nats.database.svc:4222
               OPENCLAW_URL: http://localhost:18789
               KNIGHT_NAME: galahad
               FLEET_ID: fleet-a
