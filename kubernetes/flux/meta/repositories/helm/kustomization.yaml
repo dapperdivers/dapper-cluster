@@ -9,7 +9,6 @@ resources:
   - ./cloudnative-pg.yaml
   - ./controlplaneio.yaml
   - ./coredns.yaml
-  - ./csi-driver-nfs.yaml
   - ./dragonfly.yaml
   - ./dcgm-exporter.yaml
   - ./emberstack.yaml

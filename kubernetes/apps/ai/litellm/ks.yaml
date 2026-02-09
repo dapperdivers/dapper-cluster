@@ -20,7 +20,7 @@ spec:
     - name: cloudnative-pg-cluster
       namespace: database
     - name: ollama
-      namespace: flux-system
+      namespace: ai
   path: ./kubernetes/apps/ai/litellm/app
   prune: true
   sourceRef:

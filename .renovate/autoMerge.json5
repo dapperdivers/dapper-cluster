@@ -22,7 +22,7 @@
       description: "Disable automerge for storage packages",
       matchPackageNames: [
         "openebs",
-        "csi-driver-nfs",
+
         "volsync",
         "minio",
         "/openebs/",
@@ -53,7 +53,7 @@
         "/minio/",
         "/rook/",
         "/volsync/",
-        "/csi-driver-nfs/",
+
         // DapperDivers
         "/dapperdivers/"
       ],
