@@ -22,7 +22,7 @@ spec:
       namespace: database
   values:
     controllers:
-      paperless-ngx:
+      main:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -98,7 +98,7 @@ spec:
           - 1000
     service:
       app:
-        controller: paperless-ngx
+        controller: main
         ports:
           http:
             port: 8000
@@ -124,7 +124,7 @@ spec:
       data:
         existingClaim: paperless-ngx
         advancedMounts:
-          paperless-ngx:
+          main:
             app:
               - path: /data/local
       media:

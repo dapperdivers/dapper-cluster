@@ -19,7 +19,7 @@ spec:
       retries: 3
   values:
     controllers:
-      gotenberg:
+      main:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -38,7 +38,7 @@ spec:
                 drop: ["ALL"]
     service:
       app:
-        controller: gotenberg
+        controller: main
         ports:
           http:
             port: 3000
