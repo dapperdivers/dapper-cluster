@@ -34,7 +34,6 @@ spec:
             image:
               repository: fyb3roptik/threadfin
               tag: 1.2.37
-              pullPolicy: IfNotPresent
             env:
               TZ: ${TIME_ZONE}
               THREADFIN_BRANCH: main

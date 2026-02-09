@@ -6,7 +6,6 @@ metadata:
   name: vllm
 spec:
   interval: 30m
-  timeout: 30m
   chart:
     spec:
       chart: vllm-stack
@@ -15,6 +14,7 @@ spec:
         kind: HelmRepository
         name: vllm
         namespace: flux-system
+  timeout: 30m
   install:
     remediation:
       retries: 3
@@ -23,13 +23,6 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-
-  valuesFrom:
-    - kind: Secret
-      name: vllm-secret
-      valuesKey: HF_TOKEN
-      targetPath: servingEngineSpec.modelSpec[0].hf_token
-
   values:
     # Router configuration
     routerSpec:
@@ -105,3 +98,8 @@ spec:
         - hosts:
             - vllm.${SECRET_DOMAIN}
           secretName: ${SECRET_DOMAIN/./-}-tls
+  valuesFrom:
+    - kind: Secret
+      name: vllm-secret
+      valuesKey: HF_TOKEN
+      targetPath: servingEngineSpec.modelSpec[0].hf_token

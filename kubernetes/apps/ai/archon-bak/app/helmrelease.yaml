@@ -10,7 +10,6 @@ spec:
     kind: OCIRepository
     name: app-template
   install:
-    createNamespace: true
     remediation:
       retries: 3
   upgrade:
@@ -18,7 +17,6 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-
   values:
     controllers:
       archon:
@@ -211,7 +209,6 @@ spec:
               limits:
                 cpu: 1000m
                 memory: 2Gi
-
 
     defaultPodOptions:
       securityContext:

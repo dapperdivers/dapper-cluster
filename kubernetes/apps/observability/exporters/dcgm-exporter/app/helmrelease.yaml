@@ -1,13 +1,10 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: dcgm-exporter
-  namespace: observability
 spec:
-  dependsOn:
-    - name: nvidia-device-plugin
-      namespace: kube-system
   interval: 30m
   chart:
     spec:
@@ -17,16 +14,17 @@ spec:
         kind: HelmRepository
         name: dcgm-exporter
         namespace: flux-system
-
-  maxHistory: 2
   install:
-    createNamespace: true
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
+  dependsOn:
+    - name: nvidia-device-plugin
+      namespace: kube-system
   values:
     resources:
       requests:

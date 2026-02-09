@@ -5,21 +5,19 @@ kind: HelmRelease
 metadata:
   name: &app archon
 spec:
-  interval: 5m
-  timeout: 5m
+  interval: 30m
   chartRef:
     kind: OCIRepository
     name: archon
+  timeout: 5m
   install:
-    createNamespace: true
     remediation:
-      retries: 1
+      retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
       strategy: rollback
-      retries: 1
-
+      retries: 3
   values:
     # Global configuration
     global:

@@ -6,7 +6,6 @@ metadata:
   name: loki
 spec:
   interval: 30m
-  timeout: 15m
   chart:
     spec:
       chart: loki
@@ -15,13 +14,14 @@ spec:
         kind: HelmRepository
         name: grafana
         namespace: flux-system
+  timeout: 15m
   install:
     crds: Skip
     remediation:
       retries: 3
   upgrade:
-    cleanupOnFail: true
     crds: Skip
+    cleanupOnFail: true
     remediation:
       strategy: rollback
       retries: 3

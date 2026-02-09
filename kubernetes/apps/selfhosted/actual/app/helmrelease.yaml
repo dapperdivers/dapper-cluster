@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,7 +10,6 @@ spec:
     kind: OCIRepository
     name: app-template
   install:
-    createNamespace: true
     remediation:
       retries: 3
   upgrade:
@@ -17,7 +17,6 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-
   dependsOn:
     - name: volsync
       namespace: storage
