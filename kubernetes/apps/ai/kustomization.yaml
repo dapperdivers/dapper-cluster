@@ -11,12 +11,12 @@ resources:
   - ./munin/ks.yaml
   - ./openclaw/ks.yaml
   - ./outlook-bridge/ks.yaml
-  
+
   # Voice/Speech
   - ./speaches/ks.yaml
   - ./wyoming-whisper/ks.yaml
   - ./voice-ingest/ks.yaml
-  
+
   # LLM Inference Stack
   - ./ollama/ks.yaml
-  - ./litellm/ks.yaml
+  #  - ./litellm/ks.yaml
