@@ -6,4 +6,5 @@ namespace: roundtable
 components:
   - ../../flux/components/common
 resources:
+  - ./rbac/ks.yaml
   - ./galahad/ks.yaml

@@ -1,10 +1,10 @@
 ---
 # Allow molt (Tim) full access to roundtable namespace
-# Enables exec, logs, pod management, secrets, configmaps, etc.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: molt-roundtable-access
+  namespace: roundtable
 rules:
   - apiGroups: [""]
     resources: ["pods", "pods/exec", "pods/log", "services", "configmaps", "secrets", "persistentvolumeclaims", "events"]
@@ -23,6 +23,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: molt-roundtable-access
+  namespace: roundtable
 subjects:
   - kind: ServiceAccount
     name: default
