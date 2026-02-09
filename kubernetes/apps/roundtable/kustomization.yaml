@@ -2,11 +2,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: database
+namespace: roundtable
 components:
   - ../../flux/components/common
 resources:
-  - ./cloudnative-pg/ks.yaml
-  - ./emqx/ks.yaml
-  - ./dragonfly-redis/ks.yaml
-  - ./nats/ks.yaml
+  - ./galahad/ks.yaml

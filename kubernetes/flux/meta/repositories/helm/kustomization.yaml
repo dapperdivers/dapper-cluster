@@ -38,4 +38,5 @@ resources:
   - ./stakater.yaml
   - ./kestra.yaml
   - ./vllm.yaml
+  - ./nats.yaml
   - ./wazuh.yaml
