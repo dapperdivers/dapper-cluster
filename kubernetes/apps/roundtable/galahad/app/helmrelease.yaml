@@ -58,7 +58,7 @@ spec:
           nats-bridge:
             image:
               repository: ghcr.io/dapperdivers/nats-bridge
-              tag: latest
+              tag: latest@sha256:01c37d86b5339bea54466896647b985f4113718179a6e811d381e24389ec9327
             env:
               NATS_URL: nats://nats.database.svc:4222
               OPENCLAW_WEBHOOK_URL: http://127.0.0.1:18789/hooks/agent
