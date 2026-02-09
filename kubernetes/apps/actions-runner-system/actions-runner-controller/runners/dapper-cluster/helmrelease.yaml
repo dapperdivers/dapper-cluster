@@ -5,10 +5,89 @@ kind: OCIRepository
 metadata:
   name: gha-runner-scale-set
 spec:
-  interval: 30m
+  interval: 5m
   layerSelector:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
     tag: 0.13.1
   url: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app dapper-cluster-runner
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: gha-runner-scale-set
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: actions-runner-controller
+      namespace: actions-runner-system
+  valuesFrom:
+    - targetPath: githubConfigSecret.github_app_id
+      kind: Secret
+      name: actions-runner-controller-secret
+      valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_APP_ID
+    - targetPath: githubConfigSecret.github_app_installation_id
+      kind: Secret
+      name: actions-runner-controller-secret
+      valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_INSTALLATION_ID
+    - targetPath: githubConfigSecret.github_app_private_key
+      kind: Secret
+      name: actions-runner-controller-secret
+      valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_PRIVATE_KEY
+  values:
+    githubConfigUrl: https://github.com/dapperdivers/dapper-cluster
+    minRunners: 1
+    maxRunners: 6
+    containerMode:
+      type: kubernetes
+      kubernetesModeWorkVolumeClaim:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: cephfs-shared
+        resources:
+          requests:
+            storage: 25Gi
+    controllerServiceAccount:
+      name: actions-runner-controller
+      namespace: actions-runner-system
+    template:
+      spec:
+        initContainers:
+          - name: kube-init
+            image: ghcr.io/actions/actions-runner:latest
+            command: ["sudo", "chown", "-R", "1001:1001", "/home/runner/_work"]
+            volumeMounts:
+              - name: work
+                mountPath: /home/runner/_work
+        containers:
+          - name: runner
+            image: ghcr.io/home-operations/actions-runner:2.331.0@sha256:17e4be4e4664067b9a5f2e43d0e66e0a249654f3783a0a3f17448844a5422be5
+            command: ["/home/runner/run.sh"]
+            env:
+              - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+                value: "false"
+              - name: NODE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.hostIP
+            volumeMounts:
+              - mountPath: /var/run/secrets/talos.dev
+                name: talos
+                readOnly: true
+        serviceAccountName: *app
+        volumes:
+          - name: talos
+            secret:
+              secretName: *app
