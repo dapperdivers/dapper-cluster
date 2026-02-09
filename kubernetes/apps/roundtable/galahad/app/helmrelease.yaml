@@ -61,10 +61,15 @@ spec:
               tag: latest
             env:
               NATS_URL: nats://nats.database.svc:4222
-              OPENCLAW_URL: http://localhost:18789
-              KNIGHT_NAME: galahad
+              OPENCLAW_WEBHOOK_URL: http://localhost:18789/hooks/agent
+              AGENT_ID: galahad
               FLEET_ID: fleet-a
-              SUBSCRIBE_SUBJECTS: "fleet-a.tasks.security.>"
+              SUBSCRIBE_TOPICS: "fleet-a.tasks.security.>"
+              OPENCLAW_HOOK_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: galahad-secret
+                    key: OPENCLAW_HOOK_TOKEN
             resources:
               requests:
                 cpu: 25m
