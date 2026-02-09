@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: kube-system
 components:
   - ../../flux/components/common
+  - ../../flux/components/common/privileged-namespace
 resources:
   - ./cilium/ks.yaml
   - ./coredns/ks.yaml
@@ -16,15 +17,3 @@ resources:
   - ./node-feature-discovery/ks.yaml
   - ./nut-upsd/ks.yaml
   - ./reflector/ks.yaml
-patches:
-  - patch: |-
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: kube-system
-        labels:
-          pod-security.kubernetes.io/enforce: privileged
-          pod-security.kubernetes.io/audit: privileged
-          pod-security.kubernetes.io/warn: privileged
-    target:
-      kind: Namespace

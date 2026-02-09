@@ -5,21 +5,10 @@ kind: Kustomization
 namespace: home-automation
 components:
   - ../../flux/components/common
+  - ../../flux/components/common/privileged-namespace
 resources:
   - ./home-assistant/ks.yaml
   - ./node-red/ks.yaml
   - ./esphome/ks.yaml
   - ./zigbee2mqtt/ks.yaml
   - ./zigbee2mqtt-garage/ks.yaml
-patches:
-  - patch: |-
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: home-automation
-        labels:
-          pod-security.kubernetes.io/enforce: privileged
-          pod-security.kubernetes.io/audit: privileged
-          pod-security.kubernetes.io/warn: privileged
-    target:
-      kind: Namespace
