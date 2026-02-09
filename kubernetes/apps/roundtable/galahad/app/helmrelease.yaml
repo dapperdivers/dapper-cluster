@@ -34,15 +34,16 @@ spec:
               - /bin/sh
               - -c
               - |
+                mkdir -p /home/node/.local/bin
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
-                exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
+                exec node --max-old-space-size=1536 dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
               requests:
                 cpu: 100m
                 memory: 256Mi
               limits:
                 cpu: 1000m
-                memory: 1Gi
+                memory: 2Gi
             env:
               TZ: America/Chicago
               HOME: /home/node
