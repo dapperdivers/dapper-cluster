@@ -111,7 +111,7 @@ spec:
               GITSYNC_REPO: https://github.com/dapperdivers/roundtable-arsenal
               GITSYNC_REF: main
               GITSYNC_ROOT: /skills
-              GITSYNC_PERIOD: "300"
+              GITSYNC_PERIOD: "300s"
             resources:
               requests:
                 cpu: 10m
