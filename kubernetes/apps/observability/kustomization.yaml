@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: observability
 components:
   - ../../flux/components/common
+  - ../../flux/components/common/privileged-namespace
 resources:
   - ./blackbox-exporter/ks.yaml
   - ./exporters/dcgm-exporter/ks.yaml
