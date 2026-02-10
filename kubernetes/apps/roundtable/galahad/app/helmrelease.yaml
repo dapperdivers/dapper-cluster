@@ -57,8 +57,6 @@ spec:
                 cp /seed/openclaw.json "$CONFIG/openclaw.json"
                 echo "Updated openclaw.json"
 
-                # Ensure correct ownership
-                chown -R 1000:1000 /home/node
                 echo "Workspace ready"
         containers:
           # ── OpenClaw Gateway ────────────────────────────────────────
