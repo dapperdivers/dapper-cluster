@@ -24,6 +24,42 @@ spec:
       galahad:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          # ── Workspace Seeder ────────────────────────────────────────
+          # Seeds workspace files from ConfigMap on first deploy.
+          # Only writes files that don't already exist (preserves knight memory).
+          seed-workspace:
+            image:
+              repository: ghcr.io/openclaw/openclaw
+              tag: 2026.2.6-3@sha256:0ecbdbda258bc82eb3ab7f142dcfbbb2f309f21583489c0eb6a68a6debed1310
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                WORKSPACE=/home/node/galahad
+                CONFIG=/home/node/.openclaw
+
+                # Create directories
+                mkdir -p "$WORKSPACE/memory" "$CONFIG" /home/node/.local/bin
+
+                # Seed workspace files (only if missing — preserves knight edits)
+                for f in SOUL.md AGENTS.md TOOLS.md; do
+                  if [ ! -f "$WORKSPACE/$f" ]; then
+                    cp "/seed/$f" "$WORKSPACE/$f"
+                    echo "Seeded $f"
+                  else
+                    echo "$f already exists, skipping"
+                  fi
+                done
+
+                # Always update openclaw.json from ConfigMap (config is declarative)
+                cp /seed/openclaw.json "$CONFIG/openclaw.json"
+                echo "Updated openclaw.json"
+
+                # Ensure correct ownership
+                chown -R 1000:1000 /home/node
+                echo "Workspace ready"
         containers:
           # ── OpenClaw Gateway ────────────────────────────────────────
           app:
@@ -58,7 +94,7 @@ spec:
           nats-bridge:
             image:
               repository: ghcr.io/dapperdivers/nats-bridge
-              tag: latest@sha256:02199ff5352ebe11202ccb46303150f88c6698b31107c8b3085510add1167b34
+              tag: 5f9dd27b7b8ee734fccca2448e46659916c0cbde
             env:
               NATS_URL: nats://nats.database.svc:4222
               OPENCLAW_WEBHOOK_URL: http://127.0.0.1:18789/hooks/agent
@@ -166,8 +202,21 @@ spec:
         existingClaim: galahad
         advancedMounts:
           galahad:
+            seed-workspace:
+              - path: /home/node
             app:
               - path: /home/node
+
+      # ConfigMap with workspace seed files
+      seed:
+        enabled: true
+        type: configMap
+        name: galahad-config
+        advancedMounts:
+          galahad:
+            seed-workspace:
+              - path: /seed
+                readOnly: true
 
       # Git-synced skills from arsenal repo
       skills:
