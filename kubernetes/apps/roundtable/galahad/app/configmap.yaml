@@ -25,10 +25,6 @@ data:
           }
         }
       },
-      "hooks": {
-        "enabled": true,
-        "path": "/hooks"
-      },
       "agents": {
         "defaults": {
           "model": {

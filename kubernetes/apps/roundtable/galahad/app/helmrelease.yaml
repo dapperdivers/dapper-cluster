@@ -53,12 +53,14 @@ spec:
                   fi
                 done
 
-                # Always update openclaw.json from ConfigMap (config is declarative)
-                cp /seed/openclaw.json "$CONFIG/openclaw.json"
-                echo "Updated openclaw.json"
+                # Seed openclaw.json (only if missing — token is written at runtime)
+                if [ ! -f "$CONFIG/openclaw.json" ]; then
+                  cp /seed/openclaw.json "$CONFIG/openclaw.json"
+                  echo "Seeded openclaw.json"
+                else
+                  echo "openclaw.json already exists, skipping"
+                fi
 
-                # Ensure correct ownership
-                chown -R 1000:1000 /home/node
                 echo "Workspace ready"
         containers:
           # ── OpenClaw Gateway ────────────────────────────────────────
