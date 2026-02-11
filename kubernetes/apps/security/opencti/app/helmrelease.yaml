@@ -220,7 +220,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-mitre
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "mitre-001"
           CONNECTOR_NAME: "MITRE ATT&CK"
