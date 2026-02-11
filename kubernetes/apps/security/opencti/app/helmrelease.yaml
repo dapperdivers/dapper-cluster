@@ -177,7 +177,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-cisa-known-exploited-vulnerabilities
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "cisa-kev-001"
           CONNECTOR_NAME: "CISA Known Exploited Vulnerabilities"
