@@ -282,7 +282,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-threatfox
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "threatfox-001"
           CONNECTOR_NAME: "ThreatFox"
