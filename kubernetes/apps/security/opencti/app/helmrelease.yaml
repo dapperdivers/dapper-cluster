@@ -343,7 +343,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-alienvault
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "alienvault-001"
           CONNECTOR_NAME: "AlienVault OTX"
