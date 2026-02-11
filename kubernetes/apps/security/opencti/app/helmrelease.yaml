@@ -89,7 +89,7 @@ spec:
       envFromSecrets:
         OPENCTI_TOKEN:
           name: opencti-secrets
-          key: OPENCTI_ADMIN_TOKEN
+          key: OPENCTI_CONNECTOR_TOKEN
 
     # ===================
     # Ready checker — wait for deps before starting server
@@ -301,9 +301,8 @@ spec:
             memory: 512Mi
 
       # --- Abuse.ch Malware Bazaar Recent ---
-      # TODO: Needs API key from https://bazaar.abuse.ch/api/#auth_key - add to Infisical as OPENCTI_MALWAREBAZAAR_API_KEY
       - name: malwarebazaar
-        enabled: false
+        enabled: true
         image:
           repository: opencti/connector-malwarebazaar-recent-additions
           tag: 6.9.16
@@ -315,6 +314,10 @@ spec:
           CONNECTOR_DURATION_PERIOD: "PT2H"
           CONNECTOR_CONFIDENCE_LEVEL: "50"
           MALWAREBAZAAR_RECENT_ADDITIONS_API_URL: "https://mb-api.abuse.ch/api/v1/"
+        envFromSecrets:
+          MALWAREBAZAAR_RECENT_ADDITIONS_API_KEY:
+            name: opencti-secrets
+            key: OPENCTI_MALWAREBAZAAR_API_KEY
         resources:
           requests:
             cpu: 100m
