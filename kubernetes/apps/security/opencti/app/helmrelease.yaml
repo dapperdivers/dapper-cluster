@@ -53,6 +53,7 @@ spec:
       # RabbitMQ
       RABBITMQ__HOSTNAME: opencti-rabbitmq
       RABBITMQ__PORT: 5672
+      RABBITMQ__PORT_MANAGEMENT: 15672
       RABBITMQ__USERNAME: opencti
       RABBITMQ__PASSWORD: opencti-rabbitmq-pass
       # Redis — external Dragonfly
@@ -80,6 +81,24 @@ spec:
         memory: 2Gi
       limits:
         memory: 4Gi
+
+    # ===================
+    # Ready checker — wait for deps before starting server
+    # ===================
+    readyChecker:
+      enabled: true
+      retries: 60
+      timeout: 5
+      services:
+        - name: elasticsearch
+          port: 9200
+          address: opensearch-cluster-master
+        - name: minio
+          port: 9000
+          address: opencti-minio
+        - name: rabbitmq
+          port: 5672
+          address: opencti-rabbitmq
 
     ingress:
       enabled: true
