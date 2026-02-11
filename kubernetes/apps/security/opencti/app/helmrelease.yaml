@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: opencti
-      version: 0.18.0
+      version: 2.3.2
       sourceRef:
         kind: HelmRepository
         name: opencti
@@ -40,16 +40,20 @@ spec:
       APP__BASE_PATH: "/"
       NODE_OPTIONS: "--max-old-space-size=4096"
       PROVIDERS__LOCAL__STRATEGY: LocalStrategy
+      APP__TELEMETRY__METRICS__ENABLED: "true"
+      APP__HEALTH_ACCESS_KEY: "changeme-replaced-by-secret"
       # Redis — external Dragonfly
       REDIS__HOSTNAME: dragonfly.database.svc.cluster.local
       REDIS__PORT: "6379"
       REDIS__MODE: single
 
-    # Secret environment variables
     envFromSecrets:
-      opencti-secrets:
-        APP__ADMIN__PASSWORD: OPENCTI_ADMIN_PASSWORD
-        APP__ADMIN__TOKEN: OPENCTI_ADMIN_TOKEN
+      APP__ADMIN__PASSWORD:
+        name: opencti-secrets
+        key: OPENCTI_ADMIN_PASSWORD
+      APP__ADMIN__TOKEN:
+        name: opencti-secrets
+        key: OPENCTI_ADMIN_TOKEN
 
     resources:
       requests:
@@ -87,11 +91,11 @@ spec:
           memory: 1Gi
 
     # ===================
-    # Connectors
+    # Connectors (list format for chart v2.x)
     # ===================
     connectors:
       # --- CISA Known Exploited Vulnerabilities ---
-      cisa-kev:
+      - name: cisa-kev
         enabled: true
         image:
           repository: opencti/connector-cisa-known-exploited-vulnerabilities
@@ -111,7 +115,7 @@ spec:
             memory: 512Mi
 
       # --- CVE / NVD ---
-      cve:
+      - name: cve
         enabled: true
         image:
           repository: opencti/connector-cve
@@ -132,7 +136,7 @@ spec:
             memory: 512Mi
 
       # --- MITRE ATT&CK ---
-      mitre:
+      - name: mitre
         enabled: true
         image:
           repository: opencti/connector-mitre
@@ -155,7 +159,7 @@ spec:
             memory: 512Mi
 
       # --- EPSS Scores ---
-      epss:
+      - name: epss
         enabled: true
         image:
           repository: opencti/connector-first-epss-bulk
@@ -175,7 +179,7 @@ spec:
             memory: 512Mi
 
       # --- Abuse.ch URLhaus ---
-      urlhaus:
+      - name: urlhaus
         enabled: true
         image:
           repository: opencti/connector-urlhaus
@@ -197,7 +201,7 @@ spec:
             memory: 512Mi
 
       # --- Abuse.ch ThreatFox ---
-      threatfox:
+      - name: threatfox
         enabled: true
         image:
           repository: opencti/connector-threatfox
@@ -261,14 +265,13 @@ spec:
           memory: 1Gi
 
     # ===================
-    # Redis — use external Dragonfly
+    # Redis — disable subchart, use external Dragonfly
     # ===================
     redis:
       enabled: false
 
     # ===================
-    # MinIO — deploy dedicated instance
-    # Cluster MinIO may have different bucket/auth config
+    # MinIO — dedicated instance for OpenCTI
     # ===================
     minio:
       enabled: true
@@ -283,4 +286,8 @@ spec:
         limits:
           memory: 512Mi
 
-    # Redis env vars set in env: block above
+    # ===================
+    # ECK Stack — not needed
+    # ===================
+    eck-stack:
+      enabled: false
