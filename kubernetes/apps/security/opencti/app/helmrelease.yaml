@@ -40,11 +40,11 @@ spec:
       APP__BASE_PATH: "/"
       NODE_OPTIONS: "--max-old-space-size=4096"
       PROVIDERS__LOCAL__STRATEGY: LocalStrategy
-      APP__TELEMETRY__METRICS__ENABLED: "true"
+      APP__TELEMETRY__METRICS__ENABLED: true
       APP__HEALTH_ACCESS_KEY: "changeme-replaced-by-secret"
       # Redis — external Dragonfly
       REDIS__HOSTNAME: dragonfly.database.svc.cluster.local
-      REDIS__PORT: "6379"
+      REDIS__PORT: 6379
       REDIS__MODE: single
 
     envFromSecrets:
