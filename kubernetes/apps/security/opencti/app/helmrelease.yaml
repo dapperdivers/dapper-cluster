@@ -279,8 +279,9 @@ spec:
             memory: 512Mi
 
       # --- Abuse.ch SSL Blacklist ---
+      # DEPRECATED: abuse.ch SSL blacklist deprecated 2025-01-03 (see OpenCTI-Platform/connectors#3967)
       - name: abuse-ssl
-        enabled: true
+        enabled: false
         image:
           repository: opencti/connector-abuse-ssl
           tag: 6.9.16
