@@ -278,6 +278,83 @@ spec:
           limits:
             memory: 512Mi
 
+      # --- Abuse.ch SSL Blacklist ---
+      - name: abuse-ssl
+        enabled: true
+        image:
+          repository: opencti/connector-abuse-ssl
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "abuse-ssl-001"
+          CONNECTOR_NAME: "Abuse.ch SSL Blacklist"
+          CONNECTOR_SCOPE: "abusessl"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT2H"
+          CONNECTOR_CONFIDENCE_LEVEL: "40"
+          ABUSESSL_URL: "https://sslbl.abuse.ch/blacklist/sslblacklist.csv"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- Abuse.ch Malware Bazaar Recent ---
+      - name: malwarebazaar
+        enabled: true
+        image:
+          repository: opencti/connector-malwarebazaar-recent-additions
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "malwarebazaar-001"
+          CONNECTOR_NAME: "Malware Bazaar Recent Additions"
+          CONNECTOR_SCOPE: "malwarebazaar"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT2H"
+          CONNECTOR_CONFIDENCE_LEVEL: "50"
+          MALWAREBAZAAR_RECENT_ADDITIONS_API_URL: "https://mb-api.abuse.ch/api/v1/"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- AlienVault OTX ---
+      - name: alienvault
+        enabled: true
+        image:
+          repository: opencti/connector-alienvault
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "alienvault-001"
+          CONNECTOR_NAME: "AlienVault OTX"
+          CONNECTOR_SCOPE: "alienvault"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT6H"
+          CONNECTOR_CONFIDENCE_LEVEL: "50"
+          ALIENVAULT_BASE_URL: "https://otx.alienvault.com"
+          ALIENVAULT_TLP: "White"
+          ALIENVAULT_CREATE_OBSERVABLES: "true"
+          ALIENVAULT_CREATE_INDICATORS: "true"
+          ALIENVAULT_PULSE_START_TIMESTAMP: "2024-01-01T00:00:00"
+          ALIENVAULT_REPORT_TYPE: "threat-report"
+          ALIENVAULT_REPORT_STATUS: "New"
+          ALIENVAULT_GUESS_MALWARE: "false"
+          ALIENVAULT_GUESS_CVE: "false"
+          ALIENVAULT_EXCLUDED_PULSE_INDICATOR_TYPES: "FileHash-MD5,FileHash-SHA1"
+          ALIENVAULT_INTERVAL: 6
+        envFromSecrets:
+          ALIENVAULT_API_KEY:
+            name: opencti-secrets
+            key: OPENCTI_ALIENVAULT_API_KEY
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
     # ===================
     # OpenSearch (dedicated instance)
     # ===================
