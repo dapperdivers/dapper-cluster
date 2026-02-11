@@ -1,0 +1,286 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: opencti
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: opencti
+      version: 0.18.0
+      sourceRef:
+        kind: HelmRepository
+        name: opencti
+        namespace: flux-system
+      interval: 15m
+  maxHistory: 2
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    # ===================
+    # OpenCTI Platform
+    # ===================
+    fullnameOverride: opencti
+
+    env:
+      APP__ADMIN__EMAIL: "admin@chelonianlabs.com"
+      APP__ADMIN__PASSWORD: "changeme-replaced-by-secret"
+      APP__ADMIN__TOKEN: "changeme-replaced-by-secret"
+      APP__BASE_PATH: "/"
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      PROVIDERS__LOCAL__STRATEGY: LocalStrategy
+      # Redis — external Dragonfly
+      REDIS__HOSTNAME: dragonfly.database.svc.cluster.local
+      REDIS__PORT: "6379"
+      REDIS__MODE: single
+
+    # Secret environment variables
+    envFromSecrets:
+      opencti-secrets:
+        APP__ADMIN__PASSWORD: OPENCTI_ADMIN_PASSWORD
+        APP__ADMIN__TOKEN: OPENCTI_ADMIN_TOKEN
+
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        memory: 4Gi
+
+    ingress:
+      enabled: true
+      ingressClassName: internal-nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-production
+      hosts:
+        - host: opencti.${CLUSTER_DOMAIN}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - opencti.${CLUSTER_DOMAIN}
+          secretName: opencti-tls
+
+    # ===================
+    # Workers
+    # ===================
+    worker:
+      enabled: true
+      replicaCount: 3
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+
+    # ===================
+    # Connectors
+    # ===================
+    connectors:
+      # --- CISA Known Exploited Vulnerabilities ---
+      cisa-kev:
+        enabled: true
+        image:
+          repository: opencti/connector-cisa-known-exploited-vulnerabilities
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "cisa-kev-001"
+          CONNECTOR_NAME: "CISA Known Exploited Vulnerabilities"
+          CONNECTOR_SCOPE: "cisa"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT24H"
+          CONNECTOR_CONFIDENCE_LEVEL: "100"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- CVE / NVD ---
+      cve:
+        enabled: true
+        image:
+          repository: opencti/connector-cve
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "cve-001"
+          CONNECTOR_NAME: "Common Vulnerabilities and Exposures"
+          CONNECTOR_SCOPE: "identity,vulnerability"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT24H"
+          CONNECTOR_CONFIDENCE_LEVEL: "75"
+          CVE__NVD_DATA_FEED: "https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-recent.json.gz"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- MITRE ATT&CK ---
+      mitre:
+        enabled: true
+        image:
+          repository: opencti/connector-mitre
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "mitre-001"
+          CONNECTOR_NAME: "MITRE ATT&CK"
+          CONNECTOR_SCOPE: "tool,report,malware,identity,campaign,intrusion-set,attack-pattern,course-of-action,x-mitre-data-source,x-mitre-data-component,x-mitre-matrix,x-mitre-tactic,x-mitre-collection"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "P7D"
+          CONNECTOR_CONFIDENCE_LEVEL: "75"
+          MITRE_ENTERPRISE_FILE_URL: "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
+          MITRE_ICS_FILE_URL: "https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
+          MITRE_MOBILE_FILE_URL: "https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- EPSS Scores ---
+      epss:
+        enabled: true
+        image:
+          repository: opencti/connector-first-epss-bulk
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "epss-001"
+          CONNECTOR_NAME: "FIRST EPSS"
+          CONNECTOR_SCOPE: "vulnerability"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT24H"
+          CONNECTOR_CONFIDENCE_LEVEL: "75"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- Abuse.ch URLhaus ---
+      urlhaus:
+        enabled: true
+        image:
+          repository: opencti/connector-urlhaus
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "urlhaus-001"
+          CONNECTOR_NAME: "URLhaus"
+          CONNECTOR_SCOPE: "urlhaus"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT2H"
+          CONNECTOR_CONFIDENCE_LEVEL: "40"
+          URLHAUS_CSV_URL: "https://urlhaus.abuse.ch/downloads/csv_recent/"
+          URLHAUS_IMPORT_OFFLINE: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+      # --- Abuse.ch ThreatFox ---
+      threatfox:
+        enabled: true
+        image:
+          repository: opencti/connector-threatfox
+          tag: 6.9.16
+        env:
+          CONNECTOR_ID: "threatfox-001"
+          CONNECTOR_NAME: "ThreatFox"
+          CONNECTOR_SCOPE: "ThreatFox"
+          CONNECTOR_LOG_LEVEL: "info"
+          CONNECTOR_DURATION_PERIOD: "PT2H"
+          CONNECTOR_CONFIDENCE_LEVEL: "40"
+          THREATFOX_CSV_URL: "https://threatfox.abuse.ch/export/csv/recent/"
+          THREATFOX_IMPORT_OFFLINE: "true"
+          THREATFOX_CREATE_INDICATORS: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+    # ===================
+    # OpenSearch (dedicated instance)
+    # ===================
+    opensearch:
+      enabled: true
+      singleNode: true
+      replicas: 1
+      resources:
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+        limits:
+          memory: 4Gi
+      persistence:
+        enabled: true
+        size: 100Gi
+        storageClass: ceph-rbd
+      config:
+        opensearch.yml: |
+          cluster.name: opencti
+          network.host: 0.0.0.0
+          plugins.security.disabled: true
+      env:
+        OPENSEARCH_JAVA_OPTS: "-Xms2g -Xmx2g"
+
+    # ===================
+    # RabbitMQ
+    # ===================
+    rabbitmq:
+      enabled: true
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: ceph-rbd
+      resources:
+        requests:
+          cpu: 250m
+          memory: 1Gi
+        limits:
+          memory: 1Gi
+
+    # ===================
+    # Redis — use external Dragonfly
+    # ===================
+    redis:
+      enabled: false
+
+    # ===================
+    # MinIO — deploy dedicated instance
+    # Cluster MinIO may have different bucket/auth config
+    # ===================
+    minio:
+      enabled: true
+      persistence:
+        enabled: true
+        size: 20Gi
+        storageClass: ceph-rbd
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+
+    # Redis env vars set in env: block above

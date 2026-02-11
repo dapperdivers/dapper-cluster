@@ -9,3 +9,4 @@ resources:
   - ./vaultwarden/ks.yaml
   - ./authentik/ks.yaml
   - ./wazuh/ks.yaml  # Passwords auto-generated and pushed to Infisical
+  - ./opencti/ks.yaml
