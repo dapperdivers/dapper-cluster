@@ -305,7 +305,7 @@ spec:
         enabled: false
         image:
           repository: opencti/connector-abuse-ssl
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "abuse-ssl-001"
           CONNECTOR_NAME: "Abuse.ch SSL Blacklist"
