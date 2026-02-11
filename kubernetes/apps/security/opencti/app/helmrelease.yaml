@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: opencti
-      version: 0.1.0
+      version: 0.2.0
       sourceRef:
         kind: HelmRepository
         name: opencti
@@ -137,15 +137,8 @@ spec:
     # ===================
     # RabbitMQ subchart
     # ===================
-    global:
-      security:
-        allowInsecureImages: true
-
     rabbitmq:
       enabled: true
-      image:
-        registry: docker.io
-        repository: bitnamilegacy/rabbitmq
       auth:
         username: user
         password: ChangeMe
