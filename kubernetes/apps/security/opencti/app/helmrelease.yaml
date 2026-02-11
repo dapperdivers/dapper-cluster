@@ -130,6 +130,10 @@ spec:
     worker:
       enabled: true
       replicaCount: 3
+      envFromSecrets:
+        OPENCTI_TOKEN:
+          name: opencti-secrets
+          key: OPENCTI_ADMIN_TOKEN
       resources:
         requests:
           cpu: 250m
