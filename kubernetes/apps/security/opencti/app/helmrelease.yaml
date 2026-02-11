@@ -300,8 +300,9 @@ spec:
             memory: 512Mi
 
       # --- Abuse.ch Malware Bazaar Recent ---
+      # TODO: Needs API key from https://bazaar.abuse.ch/api/#auth_key - add to Infisical as OPENCTI_MALWAREBAZAAR_API_KEY
       - name: malwarebazaar
-        enabled: true
+        enabled: false
         image:
           repository: opencti/connector-malwarebazaar-recent-additions
           tag: 6.9.16
