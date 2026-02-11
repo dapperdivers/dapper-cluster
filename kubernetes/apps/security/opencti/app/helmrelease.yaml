@@ -54,8 +54,8 @@ spec:
       RABBITMQ__HOSTNAME: opencti-rabbitmq
       RABBITMQ__PORT: 5672
       RABBITMQ__PORT_MANAGEMENT: 15672
-      RABBITMQ__USERNAME: opencti
-      RABBITMQ__PASSWORD: opencti-rabbitmq-pass
+      RABBITMQ__USERNAME: user
+      RABBITMQ__PASSWORD: ChangeMe
       # Redis — external Dragonfly
       REDIS__HOSTNAME: dragonfly.database.svc.cluster.local
       REDIS__PORT: 6379
@@ -292,8 +292,8 @@ spec:
     rabbitmq:
       enabled: true
       auth:
-        username: opencti
-        password: opencti-rabbitmq-pass
+        username: user
+        password: ChangeMe
       persistence:
         enabled: true
         size: 10Gi
