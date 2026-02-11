@@ -319,7 +319,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-malwarebazaar-recent-additions
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "malwarebazaar-001"
           CONNECTOR_NAME: "Malware Bazaar Recent Additions"
