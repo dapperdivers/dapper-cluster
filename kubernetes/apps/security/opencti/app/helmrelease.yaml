@@ -196,7 +196,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-cve
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "cve-001"
           CONNECTOR_NAME: "Common Vulnerabilities and Exposures"
