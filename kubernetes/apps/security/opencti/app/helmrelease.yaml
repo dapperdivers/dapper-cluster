@@ -261,7 +261,7 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-urlhaus
-          tag: "6.9.16"
+          tag: "6.9.17"
         env:
           CONNECTOR_ID: "urlhaus-001"
           CONNECTOR_NAME: "URLhaus"
