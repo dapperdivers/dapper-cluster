@@ -10,13 +10,15 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  dependsOn:
-    - name: external-secrets-stores
-      namespace: external-secrets
-    - name: rook-ceph-cluster
-      namespace: rook-ceph
-    - name: dragonfly-cluster
-      namespace: database
+  # dependsOn temporarily removed — services are running but Kustomizations show not-ready
+  # TODO: restore when cluster dependency chain is healthy
+  # dependsOn:
+  #   - name: external-secrets-stores
+  #     namespace: external-secrets
+  #   - name: rook-ceph-cluster
+  #     namespace: rook-ceph
+  #   - name: dragonfly-cluster
+  #     namespace: database
   path: ./kubernetes/apps/security/opencti/app
   prune: true
   sourceRef:
