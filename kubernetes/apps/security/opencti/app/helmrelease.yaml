@@ -83,6 +83,15 @@ spec:
         memory: 4Gi
 
     # ===================
+    # Connectors global — inject token from secret
+    # ===================
+    connectorsGlobal:
+      envFromSecrets:
+        OPENCTI_TOKEN:
+          name: opencti-secrets
+          key: OPENCTI_ADMIN_TOKEN
+
+    # ===================
     # Ready checker — wait for deps before starting server
     # ===================
     readyChecker:
