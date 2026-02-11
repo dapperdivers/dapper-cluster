@@ -137,6 +137,10 @@ spec:
     # ===================
     # RabbitMQ subchart
     # ===================
+    global:
+      security:
+        allowInsecureImages: true
+
     rabbitmq:
       enabled: true
       image:
