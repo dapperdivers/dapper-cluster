@@ -177,7 +177,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-cisa-known-exploited-vulnerabilities
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "cisa-kev-001"
           CONNECTOR_NAME: "CISA Known Exploited Vulnerabilities"
@@ -196,7 +195,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-cve
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "cve-001"
           CONNECTOR_NAME: "Common Vulnerabilities and Exposures"
@@ -220,7 +218,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-mitre
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "mitre-001"
           CONNECTOR_NAME: "MITRE ATT&CK"
@@ -242,7 +239,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-first-epss-bulk
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "epss-001"
           CONNECTOR_NAME: "FIRST EPSS"
@@ -261,7 +257,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-urlhaus
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "urlhaus-001"
           CONNECTOR_NAME: "URLhaus"
@@ -282,7 +277,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-threatfox
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "threatfox-001"
           CONNECTOR_NAME: "ThreatFox"
@@ -305,7 +299,6 @@ spec:
         enabled: false
         image:
           repository: opencti/connector-abuse-ssl
-          tag: "6.9.17"
         env:
           CONNECTOR_ID: "abuse-ssl-001"
           CONNECTOR_NAME: "Abuse.ch SSL Blacklist"
@@ -319,7 +312,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-malwarebazaar-recent-additions
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "malwarebazaar-001"
           CONNECTOR_NAME: "Malware Bazaar Recent Additions"
@@ -343,7 +335,6 @@ spec:
         enabled: true
         image:
           repository: opencti/connector-alienvault
-          tag: "6.9.16"
         env:
           CONNECTOR_ID: "alienvault-001"
           CONNECTOR_NAME: "AlienVault OTX"
