@@ -139,6 +139,9 @@ spec:
     # ===================
     rabbitmq:
       enabled: true
+      image:
+        registry: docker.io
+        repository: bitnamilegacy/rabbitmq
       auth:
         username: user
         password: ChangeMe
