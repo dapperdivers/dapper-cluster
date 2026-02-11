@@ -176,7 +176,7 @@ spec:
           CONNECTOR_CONFIDENCE_LEVEL: "75"
           CVE__NVD_DATA_FEED: "https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-recent.json.gz"
         envFromSecrets:
-          CVE__API_KEY:
+          CVE_API_KEY:
             name: opencti-secrets
             key: OPENCTI_NVD_API_KEY
         resources:
