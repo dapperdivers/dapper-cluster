@@ -44,9 +44,9 @@ spec:
         key: OPENCTI_ADMIN_TOKEN
       basePath: "/"
       healthAccessKey: "opencti-health-check-key"
-      connectorTokenExistingSecret:
-        name: opencti-secrets
-        key: OPENCTI_CONNECTOR_TOKEN
+      # connectorTokenExistingSecret:  # TODO: recreate dedicated connector user, then re-enable
+      #   name: opencti-secrets
+      #   key: OPENCTI_CONNECTOR_TOKEN
       metrics:
         enabled: true
 
