@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: opencti
-      version: 2.3.2
+      version: 0.1.0
       sourceRef:
         kind: HelmRepository
         name: opencti
@@ -29,100 +29,63 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    # ===================
-    # OpenCTI Platform
-    # ===================
     fullnameOverride: opencti
 
-    env:
-      APP__ADMIN__EMAIL: "admin@chelonianlabs.com"
-      APP__ADMIN__PASSWORD: "changeme-replaced-by-secret"
-      APP__ADMIN__TOKEN: "changeme-replaced-by-secret"
-      APP__BASE_PATH: "/"
-      NODE_OPTIONS: "--max-old-space-size=4096"
-      PROVIDERS__LOCAL__STRATEGY: LocalStrategy
-      APP__TELEMETRY__METRICS__ENABLED: true
-      APP__HEALTH_ACCESS_KEY: "changeme-replaced-by-secret"
-      # OpenSearch
-      ELASTICSEARCH__URL: http://opensearch-cluster-master:9200
-      # MinIO (file storage)
-      MINIO__ENDPOINT: opencti-minio
-      MINIO__PORT: 9000
-      MINIO__USE_SSL: false
-      MINIO__BUCKET_NAME: opencti-bucket
-      # RabbitMQ
-      RABBITMQ__HOSTNAME: opencti-rabbitmq
-      RABBITMQ__PORT: 5672
-      RABBITMQ__PORT_MANAGEMENT: 15672
-      RABBITMQ__USERNAME: user
-      RABBITMQ__PASSWORD: ChangeMe
-      # Redis — external Dragonfly
-      REDIS__HOSTNAME: dragonfly.database.svc.cluster.local
-      REDIS__PORT: 6379
-      REDIS__MODE: single
-
-    envFromSecrets:
-      APP__ADMIN__PASSWORD:
+    # ===================
+    # Core OpenCTI Config (auto-propagated to server/workers/connectors)
+    # ===================
+    opencti:
+      adminEmail: admin@chelonianlabs.com
+      adminPasswordExistingSecret:
         name: opencti-secrets
         key: OPENCTI_ADMIN_PASSWORD
-      APP__ADMIN__TOKEN:
+      adminTokenExistingSecret:
         name: opencti-secrets
         key: OPENCTI_ADMIN_TOKEN
-      MINIO__ACCESS_KEY:
-        name: opencti-minio
-        key: rootUser
-      MINIO__SECRET_KEY:
-        name: opencti-minio
-        key: rootPassword
-
-    resources:
-      requests:
-        cpu: 1000m
-        memory: 2Gi
-      limits:
-        memory: 4Gi
+      basePath: "/"
+      healthAccessKey: "opencti-health-check-key"
+      connectorTokenExistingSecret:
+        name: opencti-secrets
+        key: OPENCTI_CONNECTOR_TOKEN
+      metrics:
+        enabled: true
 
     # ===================
-    # Connectors global — inject token from secret
-    # ===================
-    connectorsGlobal:
-      envFromSecrets:
-        OPENCTI_TOKEN:
-          name: opencti-secrets
-          key: OPENCTI_CONNECTOR_TOKEN
-
-    # ===================
-    # Ready checker — wait for deps before starting server
+    # Ready Checker
     # ===================
     readyChecker:
       enabled: true
       retries: 60
       timeout: 5
-      services:
-        - name: elasticsearch
-          port: 9200
-          address: opensearch-cluster-master
-        - name: minio
-          port: 9000
-          address: opencti-minio
-        - name: rabbitmq
-          port: 5672
-          address: opencti-rabbitmq
 
-    ingress:
-      enabled: true
-      ingressClassName: internal-nginx
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-production
-      hosts:
-        - host: opencti.chelonianlabs.com
-          paths:
-            - path: /
-              pathType: Prefix
-      tls:
-        - hosts:
-            - opencti.chelonianlabs.com
-          secretName: opencti-tls
+    # ===================
+    # Server
+    # ===================
+    server:
+      replicaCount: 1
+      nodeOptions: "--max-old-space-size=4096"
+
+      resources:
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+        limits:
+          memory: 4Gi
+
+      ingress:
+        enabled: true
+        className: internal-nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-production
+        hosts:
+          - host: opencti.chelonianlabs.com
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - opencti.chelonianlabs.com
+            secretName: opencti-tls
 
     # ===================
     # Workers
@@ -130,10 +93,6 @@ spec:
     worker:
       enabled: true
       replicaCount: 3
-      envFromSecrets:
-        OPENCTI_TOKEN:
-          name: opencti-secrets
-          key: OPENCTI_ADMIN_TOKEN
       resources:
         requests:
           cpu: 250m
@@ -142,15 +101,83 @@ spec:
           memory: 1Gi
 
     # ===================
-    # Connectors (list format for chart v2.x)
+    # External Redis — Dragonfly in database namespace
+    # ===================
+    externalRedis:
+      enabled: true
+      hostname: dragonfly.database.svc.cluster.local
+      port: 6379
+      mode: single
+
+    # ===================
+    # OpenSearch subchart
+    # ===================
+    opensearch:
+      enabled: true
+      replicas: 1
+      opensearchJavaOpts: "-Xms2g -Xmx2g"
+      resources:
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+        limits:
+          memory: 4Gi
+      persistence:
+        enabled: true
+        size: 100Gi
+        storageClass: ceph-rbd
+      securityConfig:
+        enabled: false
+      config:
+        opensearch.yml: |
+          cluster.name: opencti
+          network.host: 0.0.0.0
+          plugins.security.disabled: true
+
+    # ===================
+    # RabbitMQ subchart
+    # ===================
+    rabbitmq:
+      enabled: true
+      auth:
+        username: user
+        password: ChangeMe
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: ceph-rbd
+      resources:
+        requests:
+          cpu: 250m
+          memory: 1Gi
+        limits:
+          memory: 1Gi
+
+    # ===================
+    # MinIO subchart
+    # ===================
+    minio:
+      enabled: true
+      persistence:
+        enabled: true
+        size: 20Gi
+        storageClass: ceph-rbd
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+
+    # ===================
+    # Connectors
     # ===================
     connectors:
-      # --- CISA Known Exploited Vulnerabilities ---
-      - name: cisa-kev
+      cisa-kev:
         enabled: true
         image:
           repository: opencti/connector-cisa-known-exploited-vulnerabilities
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "cisa-kev-001"
           CONNECTOR_NAME: "CISA Known Exploited Vulnerabilities"
@@ -165,12 +192,11 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- CVE / NVD ---
-      - name: cve
+      cve:
         enabled: true
         image:
           repository: opencti/connector-cve
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "cve-001"
           CONNECTOR_NAME: "Common Vulnerabilities and Exposures"
@@ -190,12 +216,11 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- MITRE ATT&CK ---
-      - name: mitre
+      mitre:
         enabled: true
         image:
           repository: opencti/connector-mitre
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "mitre-001"
           CONNECTOR_NAME: "MITRE ATT&CK"
@@ -213,12 +238,11 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- EPSS Scores ---
-      - name: epss
+      epss:
         enabled: true
         image:
           repository: opencti/connector-first-epss-bulk
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "epss-001"
           CONNECTOR_NAME: "FIRST EPSS"
@@ -233,12 +257,11 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- Abuse.ch URLhaus ---
-      - name: urlhaus
+      urlhaus:
         enabled: true
         image:
           repository: opencti/connector-urlhaus
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "urlhaus-001"
           CONNECTOR_NAME: "URLhaus"
@@ -255,12 +278,11 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- Abuse.ch ThreatFox ---
-      - name: threatfox
+      threatfox:
         enabled: true
         image:
           repository: opencti/connector-threatfox
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "threatfox-001"
           CONNECTOR_NAME: "ThreatFox"
@@ -278,13 +300,12 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- Abuse.ch SSL Blacklist ---
-      # DEPRECATED: abuse.ch SSL blacklist deprecated 2025-01-03 (see OpenCTI-Platform/connectors#3967)
-      - name: abuse-ssl
+      # DEPRECATED: abuse.ch SSL blacklist deprecated 2025-01-03
+      abuse-ssl:
         enabled: false
         image:
           repository: opencti/connector-abuse-ssl
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "abuse-ssl-001"
           CONNECTOR_NAME: "Abuse.ch SSL Blacklist"
@@ -293,19 +314,12 @@ spec:
           CONNECTOR_DURATION_PERIOD: "PT2H"
           CONNECTOR_CONFIDENCE_LEVEL: "40"
           ABUSESSL_URL: "https://sslbl.abuse.ch/blacklist/sslblacklist.csv"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            memory: 512Mi
 
-      # --- Abuse.ch Malware Bazaar Recent ---
-      - name: malwarebazaar
+      malwarebazaar:
         enabled: true
         image:
           repository: opencti/connector-malwarebazaar-recent-additions
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "malwarebazaar-001"
           CONNECTOR_NAME: "Malware Bazaar Recent Additions"
@@ -325,12 +339,11 @@ spec:
           limits:
             memory: 512Mi
 
-      # --- AlienVault OTX ---
-      - name: alienvault
+      alienvault:
         enabled: true
         image:
           repository: opencti/connector-alienvault
-          tag: 6.9.16
+          tag: "6.9.16"
         env:
           CONNECTOR_ID: "alienvault-001"
           CONNECTOR_NAME: "AlienVault OTX"
@@ -348,7 +361,7 @@ spec:
           ALIENVAULT_GUESS_MALWARE: "false"
           ALIENVAULT_GUESS_CVE: "false"
           ALIENVAULT_EXCLUDED_PULSE_INDICATOR_TYPES: "FileHash-MD5,FileHash-SHA1"
-          ALIENVAULT_INTERVAL: 6
+          ALIENVAULT_INTERVAL: "6"
         envFromSecrets:
           ALIENVAULT_API_KEY:
             name: opencti-secrets
@@ -359,75 +372,3 @@ spec:
             memory: 256Mi
           limits:
             memory: 512Mi
-
-    # ===================
-    # OpenSearch (dedicated instance)
-    # ===================
-    opensearch:
-      enabled: true
-      singleNode: true
-      replicas: 1
-      resources:
-        requests:
-          cpu: 1000m
-          memory: 4Gi
-        limits:
-          memory: 4Gi
-      persistence:
-        enabled: true
-        size: 100Gi
-        storageClass: ceph-rbd
-      config:
-        opensearch.yml: |
-          cluster.name: opencti
-          network.host: 0.0.0.0
-          plugins.security.disabled: true
-      env:
-        OPENSEARCH_JAVA_OPTS: "-Xms2g -Xmx2g"
-
-    # ===================
-    # RabbitMQ
-    # ===================
-    rabbitmq:
-      enabled: true
-      auth:
-        username: user
-        password: ChangeMe
-      persistence:
-        enabled: true
-        size: 10Gi
-        storageClass: ceph-rbd
-      resources:
-        requests:
-          cpu: 250m
-          memory: 1Gi
-        limits:
-          memory: 1Gi
-
-    # ===================
-    # Redis — disable subchart, use external Dragonfly
-    # ===================
-    redis:
-      enabled: false
-
-    # ===================
-    # MinIO — dedicated instance for OpenCTI
-    # ===================
-    minio:
-      enabled: true
-      persistence:
-        enabled: true
-        size: 20Gi
-        storageClass: ceph-rbd
-      resources:
-        requests:
-          cpu: 100m
-          memory: 256Mi
-        limits:
-          memory: 512Mi
-
-    # ===================
-    # ECK Stack — not needed
-    # ===================
-    eck-stack:
-      enabled: false
