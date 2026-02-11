@@ -115,6 +115,8 @@ spec:
     opensearch:
       enabled: true
       replicas: 1
+      sysctlInit:
+        enabled: false
       opensearchJavaOpts: "-Xms2g -Xmx2g"
       resources:
         requests:
