@@ -42,6 +42,8 @@ spec:
       PROVIDERS__LOCAL__STRATEGY: LocalStrategy
       APP__TELEMETRY__METRICS__ENABLED: true
       APP__HEALTH_ACCESS_KEY: "changeme-replaced-by-secret"
+      # OpenSearch
+      ELASTICSEARCH__URL: http://opensearch-cluster-master:9200
       # Redis — external Dragonfly
       REDIS__HOSTNAME: dragonfly.database.svc.cluster.local
       REDIS__PORT: 6379
