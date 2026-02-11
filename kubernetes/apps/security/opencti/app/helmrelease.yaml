@@ -68,13 +68,13 @@ spec:
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-production
       hosts:
-        - host: opencti.${CLUSTER_DOMAIN}
+        - host: opencti.${SECRET_DOMAIN}
           paths:
             - path: /
               pathType: Prefix
       tls:
         - hosts:
-            - opencti.${CLUSTER_DOMAIN}
+            - opencti.${SECRET_DOMAIN}
           secretName: opencti-tls
 
     # ===================
