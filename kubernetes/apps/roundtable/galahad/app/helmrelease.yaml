@@ -30,21 +30,21 @@ spec:
           # Only writes files that don't already exist (preserves knight memory).
           seed-workspace:
             image:
-              repository: ghcr.io/openclaw/openclaw
-              tag: 2026.2.6-3@sha256:0ecbdbda258bc82eb3ab7f142dcfbbb2f309f21583489c0eb6a68a6debed1310
+              repository: busybox
+              tag: "1.37"
             command:
               - /bin/sh
               - -c
               - |
                 set -e
-                WORKSPACE=/home/node/galahad
-                CONFIG=/home/node/.openclaw
+                WORKSPACE=/workspace
 
                 # Create directories
-                mkdir -p "$WORKSPACE/memory" "$CONFIG" /home/node/.local/bin
+                mkdir -p "$WORKSPACE/memory" "$WORKSPACE/local-skills"
+                mkdir -p /home/knight/.local/bin
 
-                # Seed workspace files (only if missing — preserves knight edits)
-                for f in SOUL.md AGENTS.md TOOLS.md; do
+                # Seed workspace files from ConfigMap (only if missing)
+                for f in SOUL.md AGENTS.md IDENTITY.md TOOLS.md; do
                   if [ ! -f "$WORKSPACE/$f" ]; then
                     cp "/seed/$f" "$WORKSPACE/$f"
                     echo "Seeded $f"
@@ -53,67 +53,37 @@ spec:
                   fi
                 done
 
-                # Seed openclaw.json (only if missing — token is written at runtime)
-                if [ ! -f "$CONFIG/openclaw.json" ]; then
-                  cp /seed/openclaw.json "$CONFIG/openclaw.json"
-                  echo "Seeded openclaw.json"
-                else
-                  echo "openclaw.json already exists, skipping"
-                fi
-
                 echo "Workspace ready"
         containers:
-          # ── OpenClaw Gateway ────────────────────────────────────────
+          # ── Knight Agent ────────────────────────────────────────────
+          # Lightweight runtime: Claude Agent SDK + native NATS
           app:
             image:
-              repository: ghcr.io/openclaw/openclaw
-              tag: 2026.2.6-3@sha256:0ecbdbda258bc82eb3ab7f142dcfbbb2f309f21583489c0eb6a68a6debed1310
-            command:
-              - /bin/sh
-              - -c
-              - |
-                mkdir -p /home/node/.local/bin
-                ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
-                exec node --max-old-space-size=1536 dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
+              repository: ghcr.io/dapperdivers/knight-agent
+              tag: latest
+            env:
+              # Runtime
+              WORKSPACE_DIR: /workspace
+              MODEL: claude-sonnet-4-5-20250514
+              KNIGHT_NAME: Galahad
+              LOG_LEVEL: info
+              PORT: "18789"
+              TZ: America/Chicago
+              # NATS (native — no sidecar needed)
+              NATS_URL: nats://nats.database.svc:4222
+              FLEET_ID: fleet-a
+              AGENT_ID: galahad
+              SUBSCRIBE_TOPICS: "fleet-a.tasks.security.>"
+            envFrom:
+              - secretRef:
+                  name: galahad-secret
             resources:
               requests:
                 cpu: 100m
                 memory: 256Mi
               limits:
-                cpu: 1000m
-                memory: 2Gi
-            env:
-              TZ: America/Chicago
-              HOME: /home/node
-              TERM: xterm-256color
-              PATH: /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-              BROWSER_WS_ENDPOINT: "ws://localhost:9222"
-            envFrom:
-              - secretRef:
-                  name: galahad-secret
-
-          # ── NATS Bridge Sidecar ─────────────────────────────────────
-          nats-bridge:
-            image:
-              repository: ghcr.io/dapperdivers/nats-bridge
-              tag: 5f9dd27b7b8ee734fccca2448e46659916c0cbde
-            env:
-              NATS_URL: nats://nats.database.svc:4222
-              OPENCLAW_WEBHOOK_URL: http://127.0.0.1:18789/hooks/agent
-              AGENT_ID: galahad
-              FLEET_ID: fleet-a
-              SUBSCRIBE_TOPICS: "fleet-a.tasks.security.>"
-              OPENCLAW_HOOK_TOKEN:
-                valueFrom:
-                  secretKeyRef:
-                    name: galahad-secret
-                    key: OPENCLAW_HOOK_TOKEN
-            resources:
-              requests:
-                cpu: 25m
-                memory: 32Mi
-              limits:
-                memory: 64Mi
+                cpu: "1"
+                memory: 1Gi
             probes:
               liveness:
                 enabled: true
@@ -121,32 +91,21 @@ spec:
                 spec:
                   httpGet:
                     path: /healthz
-                    port: 8080
-                  initialDelaySeconds: 5
+                    port: 18789
+                  initialDelaySeconds: 15
                   periodSeconds: 30
-
-          # ── Chrome Sidecar ──────────────────────────────────────────
-          chrome:
-            image:
-              repository: zenika/alpine-chrome
-              tag: with-node
-            command:
-              - chromium-browser
-              - --headless=new
-              - --disable-gpu
-              - --remote-debugging-address=0.0.0.0
-              - --remote-debugging-port=9222
-              - --no-sandbox
-              - --disable-dev-shm-usage
-            resources:
-              requests:
-                cpu: 50m
-                memory: 128Mi
-              limits:
-                cpu: 500m
-                memory: 512Mi
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /readyz
+                    port: 18789
+                  initialDelaySeconds: 10
+                  periodSeconds: 15
 
           # ── Git-Sync Sidecar ────────────────────────────────────────
+          # Pulls skills from arsenal repo (shared + security tiers)
           git-sync:
             image:
               repository: registry.k8s.io/git-sync/git-sync
@@ -164,7 +123,6 @@ spec:
                 memory: 64Mi
 
     defaultPodOptions:
-      shareProcessNamespace: true
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -177,8 +135,6 @@ spec:
         ports:
           http:
             port: 18789
-          bridge-health:
-            port: 8080
 
     ingress:
       app:
@@ -199,15 +155,19 @@ spec:
 
     persistence:
       # Knight workspace (persistent across restarts)
-      config:
+      data:
         enabled: true
         existingClaim: galahad
         advancedMounts:
           galahad:
             seed-workspace:
-              - path: /home/node
+              - path: /workspace
+              - path: /home/knight
+                subPath: home
             app:
-              - path: /home/node
+              - path: /workspace
+              - path: /home/knight
+                subPath: home
 
       # ConfigMap with workspace seed files
       seed:
@@ -227,7 +187,7 @@ spec:
         advancedMounts:
           galahad:
             app:
-              - path: /home/node/galahad/skills
+              - path: /workspace/skills
                 readOnly: true
             git-sync:
               - path: /skills
