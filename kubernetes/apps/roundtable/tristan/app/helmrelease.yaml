@@ -218,7 +218,8 @@ spec:
             seed-workspace:
               - path: /seed
                 readOnly: true
-      skills:
+      # Raw arsenal repo (git-sync populates, skill-linker reads)
+      skills-repo:
         enabled: true
         type: emptyDir
         advancedMounts:
@@ -226,8 +227,19 @@ spec:
             skill-linker:
               - path: /skills-repo
             app:
-              - path: /workspace/skills
               - path: /skills-repo
                 readOnly: true
             git-sync:
               - path: /skills-repo
+
+      # Flat skill symlinks (skill-linker creates, app reads)
+      skills:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          tristan:
+            skill-linker:
+              - path: /workspace/skills
+            app:
+              - path: /workspace/skills
+                readOnly: true
