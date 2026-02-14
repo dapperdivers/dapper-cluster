@@ -10,3 +10,4 @@ resources:
   - ./galahad/ks.yaml
   - ./percival/ks.yaml
   - ./lancelot/ks.yaml
+  - ./tristan/ks.yaml
