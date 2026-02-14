@@ -11,3 +11,4 @@ resources:
   - ./percival/ks.yaml
   - ./lancelot/ks.yaml
   - ./tristan/ks.yaml
+  - ./bedivere/ks.yaml
