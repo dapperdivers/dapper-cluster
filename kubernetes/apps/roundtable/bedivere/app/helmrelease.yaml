@@ -46,11 +46,58 @@ spec:
                   fi
                 done
                 echo "Workspace ready"
+          # ── Skill Linker ─────────────────────────────────────────
+          # Links relevant skills from arsenal repo into flat /workspace/skills/
+          skill-linker:
+            image:
+              repository: alpine/git
+              tag: "2.47.2"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                REPO_DIR="/skills-repo/roundtable-arsenal"
+                TARGET="/workspace/skills"
+
+                # Bootstrap: clone if git-sync hasn't populated yet
+                if [ ! -d "$REPO_DIR" ]; then
+                  echo "Bootstrapping arsenal repo..."
+                  git clone --depth 1 --branch main \
+                    https://github.com/dapperdivers/roundtable-arsenal.git \
+                    "$REPO_DIR"
+                fi
+
+                # Create flat skill directory
+                rm -rf "$TARGET"
+                mkdir -p "$TARGET"
+
+                # Link shared skills (all knights)
+                for skill in "$REPO_DIR"/shared/*/; do
+                  [ -d "$skill" ] || continue
+                  name=$(basename "$skill")
+                  ln -sfn "$skill" "$TARGET/$name"
+                  echo "Linked shared/$name"
+                done
+
+                # Link domain skills
+                for category in $KNIGHT_SKILLS; do
+                  for skill in "$REPO_DIR"/$category/*/; do
+                    [ -d "$skill" ] || continue
+                    name=$(basename "$skill")
+                    ln -sfn "$skill" "$TARGET/$name"
+                    echo "Linked $category/$name"
+                  done
+                done
+
+                echo "Skills linked: $(ls "$TARGET" | wc -l) total"
+            env:
+              KNIGHT_SKILLS: "home"
         containers:
           app:
             image:
               repository: ghcr.io/dapperdivers/knight-agent
-              tag: 56c9702
+              tag: efc00b1
               pullPolicy: Always
             env:
               WORKSPACE_DIR: /workspace
@@ -110,7 +157,7 @@ spec:
             env:
               GITSYNC_REPO: https://github.com/dapperdivers/roundtable-arsenal
               GITSYNC_REF: main
-              GITSYNC_ROOT: /skills
+              GITSYNC_ROOT: /skills-repo
               GITSYNC_PERIOD: "300s"
             resources:
               requests:
@@ -156,6 +203,8 @@ spec:
               - path: /workspace
               - path: /home/knight
                 subPath: home
+            skill-linker:
+              - path: /workspace
             app:
               - path: /workspace
               - path: /home/knight
@@ -174,8 +223,11 @@ spec:
         type: emptyDir
         advancedMounts:
           bedivere:
+            skill-linker:
+              - path: /skills-repo
             app:
               - path: /workspace/skills
+              - path: /skills-repo
                 readOnly: true
             git-sync:
-              - path: /skills
+              - path: /skills-repo
