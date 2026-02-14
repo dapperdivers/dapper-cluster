@@ -107,7 +107,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/knight-agent
-              tag: efc00b1
+              tag: 7ff5424
               pullPolicy: Always
             env:
               # ── Runtime ──
