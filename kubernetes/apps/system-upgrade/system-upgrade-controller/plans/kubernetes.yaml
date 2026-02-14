@@ -6,7 +6,7 @@ metadata:
   name: kubernetes
 spec:
   # renovate: datasource=github-releases depName=kubernetes/kubernetes
-  version: v1.35.0
+  version: v1.35.1
   concurrency: 1
   jobActiveDeadlineSecs: 1200
   exclusive: true
