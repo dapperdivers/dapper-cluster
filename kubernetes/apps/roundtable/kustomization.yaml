@@ -12,3 +12,4 @@ resources:
   - ./lancelot/ks.yaml
   - ./tristan/ks.yaml
   - ./bedivere/ks.yaml
+  - ./kay/ks.yaml
