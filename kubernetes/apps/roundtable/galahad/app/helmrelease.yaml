@@ -54,60 +54,13 @@ spec:
                 done
 
                 echo "Workspace ready"
-          # ── Skill Linker ─────────────────────────────────────────
-          # Links relevant skills from arsenal repo into flat /workspace/skills/
-          skill-linker:
-            image:
-              repository: alpine/git
-              tag: "2.47.2"
-            command:
-              - /bin/sh
-              - -c
-              - |
-                set -e
-                REPO_DIR="/skills-repo/roundtable-arsenal"
-                TARGET="/workspace/skills"
-
-                # Bootstrap: clone if git-sync hasn't populated yet
-                if [ ! -d "$REPO_DIR" ]; then
-                  echo "Bootstrapping arsenal repo..."
-                  git clone --depth 1 --branch main \
-                    https://github.com/dapperdivers/roundtable-arsenal.git \
-                    "$REPO_DIR"
-                fi
-
-                # Create flat skill directory
-                find "$TARGET" -mindepth 1 -delete 2>/dev/null || true
-                mkdir -p "$TARGET"
-
-                # Link shared skills (all knights)
-                for skill in "$REPO_DIR"/shared/*/; do
-                  [ -d "$skill" ] || continue
-                  name=$(basename "$skill")
-                  ln -sfn "$skill" "$TARGET/$name"
-                  echo "Linked shared/$name"
-                done
-
-                # Link domain skills
-                for category in $KNIGHT_SKILLS; do
-                  for skill in "$REPO_DIR"/$category/*/; do
-                    [ -d "$skill" ] || continue
-                    name=$(basename "$skill")
-                    ln -sfn "$skill" "$TARGET/$name"
-                    echo "Linked $category/$name"
-                  done
-                done
-
-                echo "Skills linked: $(ls "$TARGET" | wc -l) total"
-            env:
-              KNIGHT_SKILLS: "security"
         containers:
           # ── Knight Agent ────────────────────────────────────────────
           # Lightweight runtime: Claude Agent SDK + native NATS
           app:
             image:
               repository: ghcr.io/dapperdivers/knight-agent
-              tag: 7ff5424
+              tag: 06d4a19
               pullPolicy: Always
             env:
               # ── Runtime ──
@@ -136,6 +89,7 @@ spec:
               FLEET_ID: fleet-a
               AGENT_ID: galahad
               SUBSCRIBE_TOPICS: "fleet-a.tasks.security.>"
+              KNIGHT_SKILLS: "security"
             envFrom:
               - secretRef:
                   name: galahad-secret
@@ -175,7 +129,7 @@ spec:
             env:
               GITSYNC_REPO: https://github.com/dapperdivers/roundtable-arsenal
               GITSYNC_REF: main
-              GITSYNC_ROOT: /skills-repo
+              GITSYNC_ROOT: /workspace/skills
               GITSYNC_PERIOD: "300s"
             resources:
               requests:
@@ -226,8 +180,6 @@ spec:
               - path: /workspace
               - path: /home/knight
                 subPath: home
-            skill-linker:
-              - path: /workspace
             app:
               - path: /workspace
               - path: /home/knight
@@ -244,28 +196,14 @@ spec:
               - path: /seed
                 readOnly: true
 
-      # Raw arsenal repo (git-sync populates, skill-linker reads)
-      skills-repo:
-        enabled: true
-        type: emptyDir
-        advancedMounts:
-          galahad:
-            skill-linker:
-              - path: /skills-repo
-            app:
-              - path: /skills-repo
-                readOnly: true
-            git-sync:
-              - path: /skills-repo
-
-      # Flat skill symlinks (skill-linker creates, app reads)
+      # Git-synced skills from arsenal repo
       skills:
         enabled: true
         type: emptyDir
         advancedMounts:
           galahad:
-            skill-linker:
-              - path: /workspace/skills
             app:
               - path: /workspace/skills
                 readOnly: true
+            git-sync:
+              - path: /workspace/skills
