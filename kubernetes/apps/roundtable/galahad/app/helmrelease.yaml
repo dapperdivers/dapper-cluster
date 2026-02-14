@@ -63,16 +63,28 @@ spec:
               tag: latest
               pullPolicy: Always
             env:
-              # Runtime
+              # ── Runtime ──
               WORKSPACE_DIR: /workspace
               KNIGHT_NAME: Galahad
               LOG_LEVEL: info
               PORT: "18789"
               TZ: America/Chicago
-              # Task execution
+              # ── Task Execution ──
               TASK_TIMEOUT_MS: "120000"
-              MAX_CONCURRENT_TASKS: "1"
-              # NATS (native — no sidecar needed)
+              MAX_CONCURRENT_TASKS: "2"
+              # ── Claude Code SDK ──
+              ANTHROPIC_SMALL_FAST_MODEL: claude-haiku-3-5-20241022
+              CLAUDE_CODE_SUBAGENT_MODEL: claude-sonnet-4-5-20250929
+              CLAUDE_CODE_MAX_RETRIES: "3"
+              CLAUDE_CODE_EFFORT_LEVEL: medium
+              CLAUDE_CODE_ENABLE_TASKS: "1"
+              # ── SDK Hardening (headless pod) ──
+              CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+              CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
+              CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+              DISABLE_TELEMETRY: "1"
+              DISABLE_AUTOUPDATER: "1"
+              # ── NATS (native — no sidecar needed) ──
               NATS_URL: nats://nats.database.svc:4222
               FLEET_ID: fleet-a
               AGENT_ID: galahad
