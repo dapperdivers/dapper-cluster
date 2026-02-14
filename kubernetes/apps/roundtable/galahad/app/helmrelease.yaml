@@ -61,14 +61,17 @@ spec:
             image:
               repository: ghcr.io/dapperdivers/knight-agent
               tag: latest
+              pullPolicy: Always
             env:
               # Runtime
               WORKSPACE_DIR: /workspace
-              MODEL: claude-sonnet-4-5-20250514
               KNIGHT_NAME: Galahad
               LOG_LEVEL: info
               PORT: "18789"
               TZ: America/Chicago
+              # Task execution
+              TASK_TIMEOUT_MS: "120000"
+              MAX_CONCURRENT_TASKS: "1"
               # NATS (native — no sidecar needed)
               NATS_URL: nats://nats.database.svc:4222
               FLEET_ID: fleet-a
