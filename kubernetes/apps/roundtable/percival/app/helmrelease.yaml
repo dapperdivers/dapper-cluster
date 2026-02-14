@@ -68,7 +68,7 @@ spec:
                 fi
 
                 # Create flat skill directory
-                rm -rf "$TARGET"
+                find "$TARGET" -mindepth 1 -delete 2>/dev/null || true
                 mkdir -p "$TARGET"
 
                 # Link shared skills (all knights)
