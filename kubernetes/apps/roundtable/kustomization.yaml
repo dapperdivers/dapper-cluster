@@ -8,3 +8,4 @@ components:
 resources:
   - ./rbac/ks.yaml
   - ./galahad/ks.yaml
+  - ./percival/ks.yaml
