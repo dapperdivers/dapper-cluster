@@ -70,7 +70,7 @@ spec:
               PORT: "18789"
               TZ: America/Chicago
               # ── Task Execution ──
-              TASK_TIMEOUT_MS: "120000"
+              TASK_TIMEOUT_MS: "300000"
               MAX_CONCURRENT_TASKS: "2"
               # ── Claude Code SDK ──
               ANTHROPIC_SMALL_FAST_MODEL: claude-haiku-3-5-20241022
