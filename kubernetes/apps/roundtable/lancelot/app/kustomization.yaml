@@ -2,11 +2,7 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: roundtable
-components:
-  - ../../flux/components/common
 resources:
-  - ./rbac/ks.yaml
-  - ./galahad/ks.yaml
-  - ./percival/ks.yaml
-  - ./lancelot/ks.yaml
+  - ./configmap.yaml
+  - ./externalsecret.yaml
+  - ./helmrelease.yaml
