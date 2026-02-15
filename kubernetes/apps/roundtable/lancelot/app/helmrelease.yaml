@@ -24,6 +24,7 @@ spec:
       lancelot:
         annotations:
           reloader.stakater.com/auto: "true"
+          reconcile.fluxcd.io/requestedAt: "1771191808"
         initContainers:
           seed-workspace:
             image:

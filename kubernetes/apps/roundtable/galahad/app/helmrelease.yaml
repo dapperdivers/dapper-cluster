@@ -24,6 +24,7 @@ spec:
       galahad:
         annotations:
           reloader.stakater.com/auto: "true"
+          reconcile.fluxcd.io/requestedAt: "1771191808"
         initContainers:
           # ── Workspace Seeder ────────────────────────────────────────
           # Seeds workspace files from ConfigMap on first deploy.
