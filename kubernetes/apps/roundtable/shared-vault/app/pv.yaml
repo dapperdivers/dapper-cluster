@@ -17,10 +17,8 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       mounter: kernel
-      pool: cephfs_data
-      subvolumeGroup: csi
-      subvolumeName: csi-vol-d5245e56-c0dc-4570-84b4-dda16112ba24
-      subvolumePath: /volumes/csi/csi-vol-d5245e56-c0dc-4570-84b4-dda16112ba24/0f2ad593-50f1-46fe-afe5-58453db2e72f
+      staticVolume: "true"
+      rootPath: /volumes/csi/csi-vol-d5245e56-c0dc-4570-84b4-dda16112ba24/0f2ad593-50f1-46fe-afe5-58453db2e72f
     nodeStageSecretRef:
       name: rook-csi-cephfs-node
       namespace: rook-ceph
