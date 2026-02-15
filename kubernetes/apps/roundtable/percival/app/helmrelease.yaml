@@ -180,3 +180,19 @@ spec:
                 readOnly: true
             git-sync:
               - path: /workspace/skills
+
+      # Shared Obsidian vault (read-only base, RW for Briefings + Roundtable)
+      vault:
+        enabled: true
+        existingClaim: roundtable-vault
+        advancedMounts:
+          percival:
+            app:
+              - path: /vault
+                readOnly: true
+              - path: /vault/Briefings
+                subPath: Briefings
+                readOnly: false
+              - path: /vault/Roundtable
+                subPath: Roundtable
+                readOnly: false

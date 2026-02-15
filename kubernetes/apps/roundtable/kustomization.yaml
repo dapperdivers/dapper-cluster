@@ -7,6 +7,7 @@ components:
   - ../../flux/components/common
 resources:
   - ./rbac/ks.yaml
+  - ./shared-vault/ks.yaml
   - ./galahad/ks.yaml
   - ./percival/ks.yaml
   - ./lancelot/ks.yaml

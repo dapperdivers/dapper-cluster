@@ -20,6 +20,8 @@ spec:
       namespace: external-secrets
     - name: nats
       namespace: database
+    - name: roundtable-shared-vault
+      namespace: roundtable
   path: ./kubernetes/apps/roundtable/kay/app
   prune: true
   sourceRef:

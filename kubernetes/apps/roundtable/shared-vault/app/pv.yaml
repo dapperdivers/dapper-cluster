@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: roundtable-vault
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: cephfs-shared
+  csi:
+    driver: rook-ceph.cephfs.csi.ceph.com
+    volumeHandle: roundtable-vault-static
+    volumeAttributes:
+      clusterID: rook-ceph
+      fsName: cephfs
+      mounter: kernel
+      pool: cephfs_data
+      subvolumeGroup: csi
+      subvolumeName: csi-vol-d5245e56-c0dc-4570-84b4-dda16112ba24
+      subvolumePath: /volumes/csi/csi-vol-d5245e56-c0dc-4570-84b4-dda16112ba24/0f2ad593-50f1-46fe-afe5-58453db2e72f
+    nodeStageSecretRef:
+      name: rook-csi-cephfs-node
+      namespace: rook-ceph

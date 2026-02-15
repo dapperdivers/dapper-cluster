@@ -18,6 +18,8 @@ spec:
       namespace: external-secrets
     - name: nats
       namespace: database
+    - name: roundtable-shared-vault
+      namespace: roundtable
   path: ./kubernetes/apps/roundtable/percival/app
   prune: true
   sourceRef:
