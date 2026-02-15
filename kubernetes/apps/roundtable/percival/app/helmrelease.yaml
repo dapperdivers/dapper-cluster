@@ -27,7 +27,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/knight-agent
-              tag: 06d4a19
+              tag: bd79a30
               pullPolicy: Always
             command:
               - /bin/sh
@@ -57,7 +57,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/knight-agent
-              tag: 06d4a19
+              tag: bd79a30
               pullPolicy: Always
             env:
               WORKSPACE_DIR: /workspace
