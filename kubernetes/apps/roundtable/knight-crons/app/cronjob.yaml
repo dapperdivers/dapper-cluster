@@ -1,0 +1,185 @@
+---
+# Daily CronJobs for the Knights of the Round Table
+# Each knight publishes a NATS message at 5:00 AM CST (11:00 UTC) to trigger their daily report.
+# Knights: Galahad (security), Kay (research), Bedivere (home),
+#          Tristan (infra), Percival (finance), Lancelot (career)
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-galahad
+  namespace: roundtable
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.security.daily-${TODAY}-galahad" \
+                    "{\"task_id\":\"daily-${TODAY}-galahad\",\"domain\":\"security\",\"description\":\"Generate your daily report following your report skill template. Today is ${TODAY}.\",\"run_id\":\"daily-${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-kay
+  namespace: roundtable
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.research.daily-${TODAY}-kay" \
+                    "{\"task_id\":\"daily-${TODAY}-kay\",\"domain\":\"research\",\"description\":\"Generate your daily report following your report skill template. Today is ${TODAY}.\",\"run_id\":\"daily-${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-bedivere
+  namespace: roundtable
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.home.daily-${TODAY}-bedivere" \
+                    "{\"task_id\":\"daily-${TODAY}-bedivere\",\"domain\":\"home\",\"description\":\"Generate your daily report following your report skill template. Today is ${TODAY}.\",\"run_id\":\"daily-${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-tristan
+  namespace: roundtable
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.infra.daily-${TODAY}-tristan" \
+                    "{\"task_id\":\"daily-${TODAY}-tristan\",\"domain\":\"infra\",\"description\":\"Generate your daily report following your report skill template. Today is ${TODAY}.\",\"run_id\":\"daily-${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-percival
+  namespace: roundtable
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.finance.daily-${TODAY}-percival" \
+                    "{\"task_id\":\"daily-${TODAY}-percival\",\"domain\":\"finance\",\"description\":\"Generate your daily report following your report skill template. Today is ${TODAY}.\",\"run_id\":\"daily-${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-lancelot
+  namespace: roundtable
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.career.daily-${TODAY}-lancelot" \
+                    "{\"task_id\":\"daily-${TODAY}-lancelot\",\"domain\":\"career\",\"description\":\"Generate your daily report following your report skill template. Today is ${TODAY}.\",\"run_id\":\"daily-${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
