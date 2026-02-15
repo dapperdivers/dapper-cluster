@@ -39,7 +39,7 @@ instance:
         target:
           kind: Deployment
           name: (kustomize-controller|helm-controller|source-controller)
-      - # Increase the memory limits
+      - # Increase the memory limits (base)
         patch: |
           apiVersion: apps/v1
           kind: Deployment
@@ -55,7 +55,24 @@ instance:
                         memory: 2Gi
         target:
           kind: Deployment
-          name: (kustomize-controller|helm-controller|source-controller)
+          name: (helm-controller|source-controller)
+      - # Kustomize controller needs more memory (in-memory builds + large cluster)
+        patch: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: all
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: manager
+                    resources:
+                      limits:
+                        memory: 4Gi
+        target:
+          kind: Deployment
+          name: kustomize-controller
       - # Enable in-memory kustomize builds
         patch: |
           - op: add
