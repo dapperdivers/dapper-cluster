@@ -23,12 +23,12 @@ spec:
       percival:
         annotations:
           reloader.stakater.com/auto: "true"
-          reconcile.fluxcd.io/requestedAt: "1771191808"
         initContainers:
           seed-workspace:
             image:
-              repository: busybox
-              tag: "1.37"
+              repository: ghcr.io/dapperdivers/knight-agent
+              tag: 06d4a19
+              pullPolicy: Always
             command:
               - /bin/sh
               - -c
@@ -37,12 +37,19 @@ spec:
                 WORKSPACE=/workspace
                 mkdir -p "$WORKSPACE/memory" "$WORKSPACE/local-skills"
                 mkdir -p /home/knight/.local/bin
-                for f in SOUL.md AGENTS.md IDENTITY.md TOOLS.md; do
-                  if [ ! -f "$WORKSPACE/$f" ]; then
+                if [ -d /app/defaults ]; then
+                  for f in /app/defaults/*.md; do
+                    fname=$(basename "$f")
+                    if [ ! -f "$WORKSPACE/$fname" ]; then
+                      cp "$f" "$WORKSPACE/$fname"
+                      echo "Seeded $fname from image defaults"
+                    fi
+                  done
+                fi
+                for f in SOUL.md IDENTITY.md TOOLS.md; do
+                  if [ ! -f "$WORKSPACE/$f" ] && [ -f "/seed/$f" ]; then
                     cp "/seed/$f" "$WORKSPACE/$f"
-                    echo "Seeded $f"
-                  else
-                    echo "$f already exists, skipping"
+                    echo "Seeded $f from ConfigMap"
                   fi
                 done
                 echo "Workspace ready"
