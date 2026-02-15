@@ -26,7 +26,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: nats-pub
-              image: natsio/nats-box:0.14.5
+              image: natsio/nats-box:0.19.3
               command:
                 - /bin/sh
                 - -c
@@ -56,7 +56,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: nats-pub
-              image: natsio/nats-box:0.14.5
+              image: natsio/nats-box:0.19.3
               command:
                 - /bin/sh
                 - -c
@@ -86,7 +86,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: nats-pub
-              image: natsio/nats-box:0.14.5
+              image: natsio/nats-box:0.19.3
               command:
                 - /bin/sh
                 - -c
@@ -116,7 +116,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: nats-pub
-              image: natsio/nats-box:0.14.5
+              image: natsio/nats-box:0.19.3
               command:
                 - /bin/sh
                 - -c
@@ -146,7 +146,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: nats-pub
-              image: natsio/nats-box:0.14.5
+              image: natsio/nats-box:0.19.3
               command:
                 - /bin/sh
                 - -c
@@ -176,7 +176,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: nats-pub
-              image: natsio/nats-box:0.14.5
+              image: natsio/nats-box:0.19.3
               command:
                 - /bin/sh
                 - -c
