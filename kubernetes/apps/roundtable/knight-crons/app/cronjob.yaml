@@ -4,6 +4,12 @@
 # Knights: Galahad (security), Kay (research), Bedivere (home),
 #          Tristan (infra), Percival (finance), Lancelot (career)
 #
+# Galahad has day-of-week aware scheduling:
+#   Mon: Weekend review (72h lookback)
+#   Tue-Thu: Standard daily brief (24h)
+#   Fri: Weekly summary with trend analysis
+#   Sat-Sun: Light weekend scan (critical-only)
+#
 # NOTE: $${VAR} syntax is required because Flux postBuild substitutions
 # would otherwise consume ${VAR} before the shell sees it.
 
@@ -32,10 +38,17 @@ spec:
                 - -c
                 - |
                   TODAY=$$(date +%Y-%m-%d)
+                  DOW=$$(date +%u)
+                  case $$DOW in
+                    1) MODE="weekend-review"; DESC="Generate a WEEKEND REVIEW covering the last 72 hours. Focus on attacks launched over the weekend, Friday evening vulnerability dumps, and Monday-morning-relevant advisories. Use your OpenCTI skills to pull recent indicators, CVEs, malware, and reports." ;;
+                    5) MODE="weekly-summary"; DESC="Generate a WEEKLY SUMMARY with trend analysis. Review the full week of threat intelligence. Include platform growth stats, top CVEs by severity, most active threat feeds, and whether threat volume is increasing or decreasing. Use your OpenCTI skills." ;;
+                    6|7) MODE="weekend-scan"; DESC="WEEKEND SCAN - light touch, critical items only. Quick check of OpenCTI for any critical CVEs or active exploitation. Keep it brief." ;;
+                    *) MODE="daily-brief"; DESC="Generate your daily threat intelligence briefing. Cover the last 24 hours of OpenCTI data including new indicators, vulnerabilities, malware, and reports. Use your OpenCTI skills." ;;
+                  esac
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
-                    "fleet-a.tasks.security.daily-$${TODAY}-galahad" \
-                    "{\"task_id\":\"daily-$${TODAY}-galahad\",\"domain\":\"security\",\"description\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+                    "fleet-a.tasks.security.$${MODE}-$${TODAY}-galahad" \
+                    "{\"task_id\":\"$${MODE}-$${TODAY}-galahad\",\"domain\":\"security\",\"description\":\"$${DESC} Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"$${MODE}\"}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -186,3 +199,100 @@ spec:
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.career.daily-$${TODAY}-lancelot" \
                     "{\"task_id\":\"daily-$${TODAY}-lancelot\",\"domain\":\"career\",\"description\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+---
+# Morning Intel CronJobs
+# These run before the Morning Summary (7 AM CST / 13:00 UTC) and write to the vault
+# so the herald agent can aggregate them into the daily briefing.
+#
+# Solar Weather Watch - 5:15 AM CST (11:15 UTC) → Kay
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: morning-solar-weather
+  namespace: roundtable
+spec:
+  schedule: "15 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.intel.solar-weather-$${TODAY}" \
+                    "{\"task_id\":\"solar-weather-$${TODAY}\",\"domain\":\"intel\",\"description\":\"Morning space weather briefing. Fetch current conditions from NOAA Space Weather Prediction Center: (1) curl https://services.swpc.noaa.gov/products/noaa-scales.json for R/S/G scales, (2) curl https://services.swpc.noaa.gov/products/solar-wind/mag-1-day.json for solar wind Bz, (3) curl https://services.swpc.noaa.gov/text/3-day-forecast.txt for 3-day forecast, (4) curl https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json for aurora/Kp forecast, (5) curl https://services.swpc.noaa.gov/text/discussion.txt for analyst discussion. Save to /vault/Briefings/Space Weather/$${TODAY} Solar Weather.md with current conditions, aurora forecast, and any active alerts. Derek is in Alabama (mid-latitude) - aurora visible during G3+ storms. Flag G1+ storms, R2+ blackouts, or strong negative Bz (< -5 nT). Today is $${TODAY}.\",\"run_id\":\"morning-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"morning-intel\"}}"
+---
+# Nerd News Digest - 5:20 AM CST (11:20 UTC) → Kay
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: morning-nerd-news
+  namespace: roundtable
+spec:
+  schedule: "20 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.research.nerd-news-$${TODAY}" \
+                    "{\"task_id\":\"nerd-news-$${TODAY}\",\"domain\":\"research\",\"description\":\"Morning nerd news digest. Search for interesting news using SearXNG (curl http://searxng.selfhosted.svc.cluster.local:8080/search?q=QUERY&format=json). Topics to cover: (1) Game of Thrones / House of the Dragon, (2) Fantasy/sci-fi movie and TV announcements, (3) Major streaming releases, (4) Self-hosted / homelab community highlights, (5) AI/LLM developments (non-security), (6) Cool tech projects. Pick 3-5 interesting items with brief summaries and links. Save to /vault/Briefings/Nerd News/$${TODAY}.md. Keep it fun - this is the 'and finally...' segment. Today is $${TODAY}.\",\"run_id\":\"morning-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"morning-intel\"}}"
+---
+# HomeLab Sentinel - 5:45 AM CST (11:45 UTC) → Tristan
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: morning-homelab
+  namespace: roundtable
+spec:
+  schedule: "45 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.14.5
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$$(date +%Y-%m-%d)
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.infra.homelab-$${TODAY}" \
+                    "{\"task_id\":\"homelab-$${TODAY}\",\"domain\":\"infra\",\"description\":\"Morning infrastructure check for dapper-cluster. Use gh CLI to check: (1) Open Renovate PRs on dapperdivers/dapper-cluster - list them with ages, (2) Failed GitHub Actions workflows, (3) Recent commits in the last 24h, (4) Any open issues. Save findings to /vault/Briefings/HomeLab/$${TODAY}.md. Flag security-related container image updates as high priority. All clear = 'The kingdom defenses hold strong.' Updates needed = 'The gatekeepers require your attention.' Problems = 'Trouble in the realm!' Today is $${TODAY}.\",\"run_id\":\"morning-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"morning-intel\"}}"
