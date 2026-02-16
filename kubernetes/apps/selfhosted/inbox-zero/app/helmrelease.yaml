@@ -39,6 +39,7 @@ spec:
               pullPolicy: Always
             env:
               TZ: ${TIME_ZONE}
+              HOSTNAME: localhost
               NEXT_PUBLIC_BASE_URL: "https://inbox.${SECRET_DOMAIN}"
               INTERNAL_API_URL: "http://localhost:3000"
               NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: "true"
