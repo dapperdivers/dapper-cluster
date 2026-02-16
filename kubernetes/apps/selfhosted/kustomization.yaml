@@ -14,5 +14,4 @@ resources:
   - ./searxng/ks.yaml
   - ./obsidian-couchdb/ks.yaml
   - ./resume/ks.yaml
-
-
+  - ./inbox-zero/ks.yaml
