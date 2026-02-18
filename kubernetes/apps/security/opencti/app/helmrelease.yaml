@@ -114,6 +114,7 @@ spec:
     # ===================
     opensearch:
       enabled: true
+      fullnameOverride: opensearch-cluster-master
       replicas: 1
       sysctlInit:
         enabled: false
