@@ -47,8 +47,8 @@ spec:
                   esac
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
-                    "fleet-a.tasks.security.$${MODE}-$${TODAY}-galahad" \
-                    "{\"task_id\":\"$${MODE}-$${TODAY}-galahad\",\"domain\":\"security\",\"description\":\"$${DESC} Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"$${MODE}\"}}"
+                    "fleet-a.tasks.security.daily-$${TODAY}-galahad" \
+                    "{\"task_id\":\"daily-$${TODAY}-galahad\",\"domain\":\"security\",\"description\":\"$${DESC} Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"$${MODE}\"}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
