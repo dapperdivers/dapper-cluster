@@ -14,4 +14,5 @@ resources:
   - ./tristan/ks.yaml
   - ./bedivere/ks.yaml
   - ./kay/ks.yaml
+  - ./patsy/ks.yaml
   - ./knight-crons/ks.yaml
