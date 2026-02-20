@@ -33,6 +33,11 @@ spec:
     replicaCount: 2
     networkPolicy:
       enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits: {}
     monitoring:
       podMonitorEnabled: true
       grafanaDashboard:

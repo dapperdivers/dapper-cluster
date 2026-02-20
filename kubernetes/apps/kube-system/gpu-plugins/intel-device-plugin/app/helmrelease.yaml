@@ -27,3 +27,9 @@ spec:
   dependsOn:
     - name: node-feature-discovery
       namespace: kube-system
+  values:
+    manager:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 100Mi

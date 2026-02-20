@@ -23,6 +23,10 @@ spec:
       strategy: rollback
       retries: 3
   values:
+    global:
+      dualStack:
+        enabled: false
+
     # Use existing cert-manager, don't deploy new one
     cert-manager:
       enabled: false
