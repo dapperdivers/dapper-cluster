@@ -1,0 +1,10 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./disable-automount-sa-token.yaml
+  - ./default-security-context.yaml
+  - ./restrict-latest-tag.yaml
+  - ./external-ingress-rate-limit.yaml
+  - ./require-probes.yaml

@@ -1,0 +1,43 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disable-automount-sa-token
+  annotations:
+    policies.kyverno.io/title: Disable Auto-Mount Service Account Token
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Automatically sets automountServiceAccountToken to false on all Pods
+      unless explicitly opted in. Most workloads don't need the Kubernetes
+      API token mounted, and leaving it mounted expands the blast radius
+      of container compromise.
+spec:
+  rules:
+    - name: disable-automount
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          # System namespaces where SA tokens are needed
+          - resources:
+              namespaces:
+                - kube-system
+                - cert-manager
+                - flux-system
+                - kyverno
+                - actions-runner-system
+                - external-secrets
+          # Pods that explicitly opt in
+          - resources:
+              annotations:
+                kyverno.io/automount-sa-token: "true"
+      mutate:
+        patchStrategicMerge:
+          spec:
+            +(automountServiceAccountToken): false
