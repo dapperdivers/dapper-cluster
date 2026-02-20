@@ -35,6 +35,7 @@ spec:
           secretKeyRef:
             name: external-dns-secret
             key: api-token
+    interval: 5m
     extraArgs:
       - --cloudflare-dns-records-per-page=1000
       - --cloudflare-proxied
@@ -43,7 +44,6 @@ spec:
       - --events
       - --ignore-ingress-tls-spec
       - --ingress-class=external
-      - --interval=5m
     policy: sync
     sources: ["crd", "ingress"]
     txtPrefix: k8s.
