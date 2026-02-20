@@ -24,6 +24,8 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
+  # Force reconciliation after rollback stall (2026-02-20)
+  suspend: false
   values:
     fullnameOverride: *app
     provider: cloudflare
