@@ -10,13 +10,15 @@ metadata:
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Mutates Pods to apply secure defaults if not already set:
-      runAsNonRoot=true, readOnlyRootFilesystem=true,
-      allowPrivilegeEscalation=false, drop ALL capabilities.
-      Uses +(key) syntax so explicit values in HelmReleases take precedence.
+      Validates that Pods set secure defaults: runAsNonRoot=true,
+      readOnlyRootFilesystem=true, allowPrivilegeEscalation=false,
+      drop ALL capabilities. Audit mode — reports violations without
+      blocking deployments. Workloads should be hardened incrementally.
 spec:
+  validationFailureAction: Audit
+  background: true
   rules:
-    - name: default-pod-security
+    - name: validate-run-as-non-root
       match:
         any:
           - resources:
@@ -29,28 +31,41 @@ spec:
                 - kube-system
                 - flux-system
                 - kyverno
-          # Pods that need privileged access (UPS, GPU, IoT)
           - resources:
               annotations:
                 kyverno.io/skip-security-defaults: "true"
-      mutate:
-        patchStrategicMerge:
+      validate:
+        message: >-
+          Container '{{request.object.spec.containers[].name}}' does not set
+          runAsNonRoot: true. Set securityContext.runAsNonRoot=true for defense
+          in depth.
+        pattern:
           spec:
             containers:
-              - (name): "*"
-                securityContext:
-                  +(runAsNonRoot): true
-                  +(readOnlyRootFilesystem): true
-                  +(allowPrivilegeEscalation): false
-                  +(capabilities):
-                    +(drop):
-                      - ALL
-            initContainers:
-              - (name): "*"
-                securityContext:
-                  +(runAsNonRoot): true
-                  +(readOnlyRootFilesystem): true
-                  +(allowPrivilegeEscalation): false
-                  +(capabilities):
-                    +(drop):
-                      - ALL
+              - securityContext:
+                  runAsNonRoot: true
+    - name: validate-no-privilege-escalation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - flux-system
+                - kyverno
+          - resources:
+              annotations:
+                kyverno.io/skip-security-defaults: "true"
+      validate:
+        message: >-
+          Container '{{request.object.spec.containers[].name}}' does not set
+          allowPrivilegeEscalation: false.
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false

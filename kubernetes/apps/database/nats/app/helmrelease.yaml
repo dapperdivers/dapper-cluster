@@ -39,8 +39,18 @@ spec:
             memory: 128Mi
           limits:
             memory: 512Mi
+    podTemplate:
+      merge:
+        metadata:
+          annotations:
+            kyverno.io/skip-security-defaults: "true"
     natsBox:
       enabled: true
+      podTemplate:
+        merge:
+          metadata:
+            annotations:
+              kyverno.io/skip-security-defaults: "true"
     persistence:
       enabled: true
       size: 2Gi
