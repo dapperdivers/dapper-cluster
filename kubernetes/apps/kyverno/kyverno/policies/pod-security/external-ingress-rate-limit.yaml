@@ -1,0 +1,42 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: external-ingress-rate-limit
+  annotations:
+    policies.kyverno.io/title: External Ingress Rate Limiting
+    policies.kyverno.io/category: Network Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    policies.kyverno.io/description: >-
+      Automatically adds rate limiting annotations to all Ingresses
+      using the external ingress class. Defaults to 20 req/s with
+      a burst of 40, scoped per-IP. Services can override with
+      explicit annotations.
+spec:
+  rules:
+    - name: add-rate-limit
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+              annotations:
+                # Match ingresses with external class
+                kubernetes.io/ingress.class: "external"
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.ingressClassName || '' }}"
+            operator: Equals
+            value: "external"
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              +(nginx.ingress.kubernetes.io/limit-rps): "20"
+              +(nginx.ingress.kubernetes.io/limit-burst-multiplier): "2"
+              +(nginx.ingress.kubernetes.io/limit-connections): "10"

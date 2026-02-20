@@ -6,3 +6,4 @@ resources:
   - ./ingress-authentik-annotation.yaml
   # - ./nfs-health-checks.yaml
   - ./postgres-init
+  - ./pod-security

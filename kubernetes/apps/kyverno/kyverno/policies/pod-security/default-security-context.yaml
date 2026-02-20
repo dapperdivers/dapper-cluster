@@ -1,0 +1,56 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: default-security-context
+  annotations:
+    policies.kyverno.io/title: Default Security Context
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Mutates Pods to apply secure defaults if not already set:
+      runAsNonRoot=true, readOnlyRootFilesystem=true,
+      allowPrivilegeEscalation=false, drop ALL capabilities.
+      Uses +(key) syntax so explicit values in HelmReleases take precedence.
+spec:
+  rules:
+    - name: default-pod-security
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - flux-system
+                - kyverno
+          # Pods that need privileged access (UPS, GPU, IoT)
+          - resources:
+              annotations:
+                kyverno.io/skip-security-defaults: "true"
+      mutate:
+        patchStrategicMerge:
+          spec:
+            containers:
+              - (name): "*"
+                securityContext:
+                  +(runAsNonRoot): true
+                  +(readOnlyRootFilesystem): true
+                  +(allowPrivilegeEscalation): false
+                  +(capabilities):
+                    +(drop):
+                      - ALL
+            initContainers:
+              - (name): "*"
+                securityContext:
+                  +(runAsNonRoot): true
+                  +(readOnlyRootFilesystem): true
+                  +(allowPrivilegeEscalation): false
+                  +(capabilities):
+                    +(drop):
+                      - ALL
