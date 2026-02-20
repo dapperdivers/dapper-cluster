@@ -16,6 +16,8 @@
     ":timezone(America/New_York)",
   ],
   platformAutomerge: true,
+  dependencyDashboardAutoclose: true,
+  prCreation: "immediate",
   dependencyDashboardTitle: "Renovate Dashboard 🤖",
   suppressNotifications: [
     "prEditedNotification",
