@@ -10,13 +10,15 @@ metadata:
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Automatically sets automountServiceAccountToken to false on all Pods
-      unless explicitly opted in. Most workloads don't need the Kubernetes
-      API token mounted, and leaving it mounted expands the blast radius
-      of container compromise.
+      Validates that Pods set automountServiceAccountToken to false.
+      Most workloads don't need the Kubernetes API token mounted, and
+      leaving it mounted expands the blast radius of container compromise.
+      Audit mode — reports violations without blocking deployments.
 spec:
+  validationFailureAction: Audit
+  background: true
   rules:
-    - name: disable-automount
+    - name: validate-no-automount
       match:
         any:
           - resources:
@@ -24,7 +26,6 @@ spec:
                 - Pod
       exclude:
         any:
-          # System namespaces where SA tokens are needed
           - resources:
               namespaces:
                 - kube-system
@@ -33,11 +34,14 @@ spec:
                 - kyverno
                 - actions-runner-system
                 - external-secrets
-          # Pods that explicitly opt in
           - resources:
               annotations:
                 kyverno.io/automount-sa-token: "true"
-      mutate:
-        patchStrategicMerge:
+      validate:
+        message: >-
+          Pod '{{request.object.metadata.name}}' has automountServiceAccountToken
+          enabled or unset. Set automountServiceAccountToken: false unless the
+          workload needs Kubernetes API access.
+        pattern:
           spec:
-            +(automountServiceAccountToken): false
+            automountServiceAccountToken: false
