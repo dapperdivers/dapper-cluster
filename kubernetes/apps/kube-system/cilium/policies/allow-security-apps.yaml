@@ -1,0 +1,58 @@
+---
+# Authentik needs to reach Postgres and Redis (covered by database policies)
+# Authentik also needs egress to LDAP/OAuth providers and external IdPs
+# This policy allows other namespaces to reach Authentik for SSO
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authentik-sso-clients
+  namespace: security
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+  ingress:
+    # Any namespace can reach Authentik for authentication
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: selfhosted
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+        - matchLabels:
+            io.kubernetes.pod.namespace: media
+        - matchLabels:
+            io.kubernetes.pod.namespace: home-automation
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+---
+# OpenCTI — allow AI namespace (knights query threat intel)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencti-clients
+  namespace: security
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: opencti
+  ingress:
+    - fromEndpoints:
+        # Galahad knight queries OpenCTI
+        - matchLabels:
+            io.kubernetes.pod.namespace: roundtable
+        # Tim (OpenClaw) queries OpenCTI
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# Vaultwarden — only accessible via ingress (no inter-namespace traffic needed)
+# Default deny + ingress controller allow covers this

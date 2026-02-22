@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # Default deny policies (baseline isolation)
+  - default-deny-database.yaml
+  - default-deny-security.yaml
+  - default-deny-home-automation.yaml
+  - default-deny-selfhosted.yaml
+  - default-deny-ai.yaml
+  - default-deny-roundtable.yaml
+  # App-specific allow policies
+  - allow-database-clients.yaml
+  - allow-security-apps.yaml
+  - allow-home-automation.yaml
+  - allow-selfhosted-apps.yaml
+  - allow-ai-apps.yaml
+  - allow-roundtable.yaml
+  # Cross-cutting
+  - allow-dns.yaml
+  - allow-ingress-controllers.yaml
+  - allow-monitoring.yaml
