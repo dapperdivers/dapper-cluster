@@ -1,0 +1,14 @@
+---
+# Default deny all ingress to roundtable namespace
+# Knights should only be reached via NATS (database ns)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: roundtable
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: roundtable
