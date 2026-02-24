@@ -29,7 +29,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: fdf6f2fd63d6db23889415628d5f05a6c49906ed
+              tag: ccc48634a31a46f3e0ebc19e9a2e66dd6e94e3b2
               pullPolicy: Always
             command:
               - /bin/sh
@@ -71,13 +71,12 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: fdf6f2fd63d6db23889415628d5f05a6c49906ed
+              tag: ccc48634a31a46f3e0ebc19e9a2e66dd6e94e3b2
               pullPolicy: Always
             env:
               # ── Knight Identity ──
               KNIGHT_NAME: Gawain
               KNIGHT_MODEL: "anthropic/claude-sonnet-4-5"
-              KNIGHT_SKILLS: "security"
               # ── NATS ──
               NATS_URL: nats://nats.database.svc:4222
               SUBSCRIBE_TOPICS: "fleet-a.tasks.security-pi.>"
