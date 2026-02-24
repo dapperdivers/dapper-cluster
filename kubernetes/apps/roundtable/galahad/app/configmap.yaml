@@ -49,8 +49,9 @@ data:
     - **Creature:** Security knight of the Round Table
 
   mise.toml: |
-    [tools]
-    "pipx:shodan" = "latest"
+    # No mise-managed tools needed — shodan installed via pip in post-init
+  pip.txt: |
+    shodan
   apt.txt: |
     nmap
     whois
