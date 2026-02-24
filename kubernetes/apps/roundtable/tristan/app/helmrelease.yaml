@@ -29,7 +29,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 1e5a98ce600fb9d1fc5647ca48b9ff20a5c479c1
+              tag: daf01ba40aba7650f5bc6ef496bb15d173dc597b
               pullPolicy: Always
             command:
               - /bin/sh
@@ -70,7 +70,7 @@ spec:
             dependsOn: seed-workspace
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 1e5a98ce600fb9d1fc5647ca48b9ff20a5c479c1
+              tag: daf01ba40aba7650f5bc6ef496bb15d173dc597b
               pullPolicy: Always
             command:
               - /bin/sh
@@ -81,7 +81,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 1e5a98ce600fb9d1fc5647ca48b9ff20a5c479c1
+              tag: daf01ba40aba7650f5bc6ef496bb15d173dc597b
               pullPolicy: Always
             env:
               # ── Knight Identity ──
