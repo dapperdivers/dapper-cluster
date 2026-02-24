@@ -118,7 +118,7 @@ data:
 
     For pulling content from company pages, job postings, LinkedIn profiles:
     ```bash
-    bash /workspace/skills/shared/web-fetch/scripts/fetch.sh "https://example.com"
+    bash /skills/shared/web-fetch/scripts/fetch.sh "https://example.com"
     ```
 
     ## GitHub
@@ -134,5 +134,5 @@ data:
 
     ## Skills
 
-    Shared skills from roundtable-arsenal are synced to `/workspace/skills/`.
+    Shared skills from roundtable-arsenal are synced to `/skills/`.
     Check each skill's `SKILL.md` before use.

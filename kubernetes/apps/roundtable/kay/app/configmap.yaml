@@ -122,7 +122,7 @@ data:
 
     For pulling full content from web pages:
     ```bash
-    bash /workspace/skills/shared/web-fetch/scripts/fetch.sh "https://example.com"
+    bash /skills/shared/web-fetch/scripts/fetch.sh "https://example.com"
     ```
 
     ## GitHub
@@ -152,5 +152,5 @@ data:
 
     ## Skills
 
-    Shared skills from roundtable-arsenal are synced to `/workspace/skills/`.
+    Shared skills from roundtable-arsenal are synced to `/skills/`.
     Check each skill's `SKILL.md` before use.

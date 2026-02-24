@@ -59,13 +59,18 @@ data:
   TOOLS.md: |
     # TOOLS.md — Galahad's Toolkit
 
-    ## Pre-installed
-    jq, yq, curl, wget, git, python3, pip, kubectl, gh, nats, rg, tree
+    ## Available CLI Tools
+    jq, curl, git, python3, pip, rg (ripgrep), shodan
+
+    ## Skills Location
+    All skills are mounted at `/skills/` (NOT /workspace/skills/).
+    - Security skills: `/skills/security/`
+    - Shared skills: `/skills/shared/`
 
     ## Web Search (SearXNG)
     ```bash
     # Quick search
-    bash /workspace/skills/shared/web-search/scripts/search.sh "query here"
+    bash /skills/shared/web-search/scripts/search.sh "query here"
 
     # Direct API
     curl -s "http://searxng.selfhosted.svc.cluster.local:8080/search?q=QUERY&format=json" | jq '.results[:5]'
@@ -73,38 +78,27 @@ data:
 
     ## Web Fetch
     ```bash
-    bash /workspace/skills/shared/web-fetch/scripts/fetch.sh "https://example.com"
+    bash /skills/shared/web-fetch/scripts/fetch.sh "https://example.com"
     ```
 
     ## OpenCTI
     ```bash
     # Platform stats
-    bash /workspace/skills/security/opencti-intel/scripts/platform-stats.sh
+    bash /skills/security/opencti-intel/scripts/platform-stats.sh
 
     # Daily briefing data
-    bash /workspace/skills/security/opencti-intel/scripts/daily-brief.sh
+    bash /skills/security/opencti-intel/scripts/daily-brief.sh
 
     # Custom GraphQL query
-    bash /workspace/skills/security/opencti-intel/scripts/opencti-query.sh '{about{version}}'
+    bash /skills/security/opencti-intel/scripts/opencti-query.sh '{about{version}}'
     ```
 
     Environment: OPENCTI_TOKEN is injected via secret.
     Endpoint: http://opencti-server.security.svc.cluster.local/graphql
 
-    ## Kubernetes (read-only)
+    ## Shodan
     ```bash
-    kubectl get pods -n roundtable
-    kubectl get pods -n security
-    ```
-
-    ## GitHub
-    ```bash
-    gh issue list --repo dapperdivers/dapper-cluster
-    gh pr list --repo dapperdivers/roundtable-arsenal
-    ```
-
-    ## NATS (direct queries)
-    ```bash
-    nats -s nats://nats.database.svc:4222 stream ls
-    nats -s nats://nats.database.svc:4222 stream info fleet_a_tasks
+    shodan info          # Check API credits
+    shodan host <IP>     # Host lookup
+    shodan search <query>  # Internet-wide search
     ```

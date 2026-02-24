@@ -158,7 +158,7 @@ data:
     jq, yq, curl, wget, git, python3, pip, kubectl, gh, nats, rg, tree
 
     ## Skills
-    Shared skills from roundtable-arsenal are synced to `/workspace/skills/`.
+    Shared skills from roundtable-arsenal are synced to `/skills/`.
     Check each skill's `SKILL.md` before use.
   mise.toml: |
     [tools]
