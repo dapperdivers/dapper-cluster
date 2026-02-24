@@ -25,19 +25,22 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
+          # ── Workspace Seeder ────────────────────────────────────────
           seed-workspace:
             image:
-              repository: ghcr.io/dapperdivers/knight-agent
-              tag: 7350b70
+              repository: ghcr.io/dapperdivers/pi-knight
+              tag: 3fe9b1438b15bbd84f9a21f8b81d916420fb1dfb
               pullPolicy: Always
             command:
               - /bin/sh
               - -c
               - |
                 set -e
-                WORKSPACE=/workspace
-                mkdir -p "$WORKSPACE/memory" "$WORKSPACE/local-skills"
-                mkdir -p /home/knight/.local/bin
+                WORKSPACE=/data
+
+                # Create directories
+                mkdir -p "$WORKSPACE/memory"
+
                 # Seed operational files from image defaults (only if missing on PVC)
                 if [ -d /app/defaults ]; then
                   for f in /app/defaults/*.md; do
@@ -45,45 +48,44 @@ spec:
                     if [ ! -f "$WORKSPACE/$fname" ]; then
                       cp "$f" "$WORKSPACE/$fname"
                       echo "Seeded $fname from image defaults"
+                    else
+                      echo "$fname already exists on PVC, skipping"
                     fi
                   done
                 fi
+
                 # Seed personality files from ConfigMap (only if missing on PVC)
                 for f in SOUL.md IDENTITY.md TOOLS.md; do
-                  if [ ! -f "$WORKSPACE/$f" ] && [ -f "/seed/$f" ]; then
-                    cp "/seed/$f" "$WORKSPACE/$f"
+                  if [ ! -f "$WORKSPACE/$f" ] && [ -f "/config/$f" ]; then
+                    cp "/config/$f" "$WORKSPACE/$f"
                     echo "Seeded $f from ConfigMap"
+                  else
+                    echo "$f already exists or not in ConfigMap, skipping"
                   fi
                 done
+
                 echo "Workspace ready"
         containers:
+          # ── Pi-Knight Agent ─────────────────────────────────────────
+          # Lightweight runtime: Pi SDK + native NATS
           app:
             image:
-              repository: ghcr.io/dapperdivers/knight-agent
-              tag: 7350b70
+              repository: ghcr.io/dapperdivers/pi-knight
+              tag: 3fe9b1438b15bbd84f9a21f8b81d916420fb1dfb
               pullPolicy: Always
             env:
-              WORKSPACE_DIR: /workspace
+              # ── Knight Identity ──
               KNIGHT_NAME: Kay
-              LOG_LEVEL: info
-              PORT: "18789"
-              TZ: America/Chicago
-              MAX_CONCURRENT_TASKS: "2"
-              ANTHROPIC_SMALL_FAST_MODEL: claude-haiku-3-5-20241022
-              CLAUDE_CODE_SUBAGENT_MODEL: claude-sonnet-4-5-20250929
-              CLAUDE_CODE_MAX_RETRIES: "3"
-              CLAUDE_CODE_EFFORT_LEVEL: medium
-              CLAUDE_CODE_ENABLE_TASKS: "1"
-              CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
-              CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
-              CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
-              DISABLE_TELEMETRY: "1"
-              DISABLE_AUTOUPDATER: "1"
+              KNIGHT_MODEL: "anthropic/claude-sonnet-4-5"
+              # ── NATS ──
               NATS_URL: nats://nats.database.svc:4222
-              FLEET_ID: fleet-a
-              AGENT_ID: kay
               SUBSCRIBE_TOPICS: "fleet-a.tasks.research.>,fleet-a.tasks.intel.>"
-              KNIGHT_SKILLS: "research intel"
+              # ── Runtime ──
+              TASK_TIMEOUT_MS: "1800000"
+              MAX_CONCURRENT_TASKS: "2"
+              METRICS_PORT: "3000"
+              LOG_LEVEL: info
+              TZ: America/Chicago
             envFrom:
               - secretRef:
                   name: kay-secret
@@ -100,8 +102,8 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /healthz
-                    port: 18789
+                    path: /health
+                    port: 3000
                   initialDelaySeconds: 15
                   periodSeconds: 30
               readiness:
@@ -109,10 +111,12 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /readyz
-                    port: 18789
+                    path: /ready
+                    port: 3000
                   initialDelaySeconds: 10
                   periodSeconds: 15
+
+          # ── Git-Sync Sidecar ────────────────────────────────────────
           git-sync:
             image:
               repository: registry.k8s.io/git-sync/git-sync
@@ -120,7 +124,7 @@ spec:
             env:
               GITSYNC_REPO: https://github.com/dapperdivers/roundtable-arsenal
               GITSYNC_REF: main
-              GITSYNC_ROOT: /workspace/skills
+              GITSYNC_ROOT: /arsenal
               GITSYNC_PERIOD: "300s"
             resources:
               requests:
@@ -128,18 +132,81 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 64Mi
+
+          # ── Skill Filter Sidecar ────────────────────────────────────
+          # Symlinks only the needed skill categories from the full
+          # arsenal into /skills so Pi SDK only discovers relevant ones.
+          skill-filter:
+            image:
+              repository: alpine
+              tag: "3.21"
+            env:
+              SKILL_CATEGORIES: "shared research intel"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                ARSENAL="/arsenal/roundtable-arsenal"
+                TARGET="/skills"
+                echo "Skill filter starting: categories=$SKILL_CATEGORIES"
+                # Fast initial loop until all categories are linked
+                LINKED=0
+                EXPECTED=$(echo $SKILL_CATEGORIES | wc -w)
+                while [ "$LINKED" -lt "$EXPECTED" ]; do
+                  LINKED=0
+                  if [ -d "$ARSENAL" ]; then
+                    for cat in $SKILL_CATEGORIES; do
+                      src="$ARSENAL/$cat"
+                      dst="$TARGET/$cat"
+                      if [ -d "$src" ] && [ ! -L "$dst" ]; then
+                        ln -sf "$src" "$dst"
+                        echo "Linked $cat"
+                      fi
+                      [ -L "$dst" ] && LINKED=$((LINKED + 1))
+                    done
+                  fi
+                  [ "$LINKED" -lt "$EXPECTED" ] && sleep 2
+                done
+                echo "All categories linked ($LINKED/$EXPECTED)"
+                # Slow maintenance loop — re-link if git-sync recreates worktree
+                while true; do
+                  if [ -d "$ARSENAL" ]; then
+                    for cat in $SKILL_CATEGORIES; do
+                      src="$ARSENAL/$cat"
+                      dst="$TARGET/$cat"
+                      # Re-link if symlink target changed (git-sync new worktree)
+                      if [ -d "$src" ]; then
+                        current=$(readlink "$dst" 2>/dev/null || echo "")
+                        if [ "$current" != "$src" ]; then
+                          ln -sf "$src" "$dst"
+                          echo "Re-linked $cat"
+                        fi
+                      fi
+                    done
+                  fi
+                  sleep 60
+                done
+            resources:
+              requests:
+                cpu: 5m
+                memory: 8Mi
+              limits:
+                memory: 16Mi
+
     defaultPodOptions:
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+
     service:
       app:
         controller: kay
         ports:
           http:
-            port: 18789
+            port: 3000
+
     ingress:
       app:
         annotations:
@@ -156,42 +223,61 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+
     persistence:
+      # Knight workspace (persistent across restarts)
       data:
         enabled: true
         existingClaim: kay
         advancedMounts:
           kay:
             seed-workspace:
-              - path: /workspace
-              - path: /home/knight
-                subPath: home
+              - path: /data
             app:
-              - path: /workspace
-              - path: /home/knight
-                subPath: home
-      seed:
+              - path: /data
+
+      # ConfigMap with personality files
+      config:
         enabled: true
         type: configMap
         name: kay-config
         advancedMounts:
           kay:
             seed-workspace:
-              - path: /seed
+              - path: /config
                 readOnly: true
-      # Git-synced skills from arsenal repo
+            app:
+              - path: /config
+                readOnly: true
+
+      # Raw arsenal repo (git-sync writes here)
+      arsenal:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          kay:
+            git-sync:
+              - path: /arsenal
+            skill-filter:
+              - path: /arsenal
+                readOnly: true
+            app:
+              - path: /arsenal
+                readOnly: true
+
+      # Filtered skills (only categories this knight needs)
       skills:
         enabled: true
         type: emptyDir
         advancedMounts:
           kay:
+            skill-filter:
+              - path: /skills
             app:
-              - path: /workspace/skills
+              - path: /skills
                 readOnly: true
-            git-sync:
-              - path: /workspace/skills
 
-      # Shared Obsidian vault (read-only base, RW for Briefings + Roundtable)
+      # Shared Obsidian vault
       vault:
         enabled: true
         existingClaim: roundtable-vault
