@@ -124,7 +124,7 @@ spec:
             env:
               GITSYNC_REPO: https://github.com/dapperdivers/roundtable-arsenal
               GITSYNC_REF: main
-              GITSYNC_ROOT: /skills
+              GITSYNC_ROOT: /arsenal
               GITSYNC_PERIOD: "300s"
             resources:
               requests:
@@ -132,6 +132,42 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 64Mi
+
+          # ── Skill Filter Sidecar ────────────────────────────────────
+          # Symlinks only the needed skill categories from the full
+          # arsenal into /skills so Pi SDK only discovers relevant ones.
+          skill-filter:
+            image:
+              repository: alpine
+              tag: "3.21"
+            env:
+              SKILL_CATEGORIES: "shared security"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                ARSENAL="/arsenal/roundtable-arsenal"
+                TARGET="/skills"
+                echo "Skill filter starting: categories=$SKILL_CATEGORIES"
+                while true; do
+                  if [ -d "$ARSENAL" ]; then
+                    for cat in $SKILL_CATEGORIES; do
+                      src="$ARSENAL/$cat"
+                      dst="$TARGET/$cat"
+                      if [ -d "$src" ] && [ ! -L "$dst" ]; then
+                        ln -sf "$src" "$dst"
+                        echo "Linked $cat"
+                      fi
+                    done
+                  fi
+                  sleep 30
+                done
+            resources:
+              requests:
+                cpu: 5m
+                memory: 8Mi
+              limits:
+                memory: 16Mi
 
     defaultPodOptions:
       securityContext:
@@ -190,17 +226,29 @@ spec:
               - path: /config
                 readOnly: true
 
-      # Git-synced skills from arsenal repo
+      # Raw arsenal repo (git-sync writes here)
+      arsenal:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          gawain:
+            git-sync:
+              - path: /arsenal
+            skill-filter:
+              - path: /arsenal
+                readOnly: true
+
+      # Filtered skills (only categories this knight needs)
       skills:
         enabled: true
         type: emptyDir
         advancedMounts:
           gawain:
+            skill-filter:
+              - path: /skills
             app:
               - path: /skills
                 readOnly: true
-            git-sync:
-              - path: /skills
 
       # Shared Obsidian vault
       vault:
