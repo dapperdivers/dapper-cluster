@@ -98,6 +98,12 @@ data:
 
     He fixes the Bridge of Death while others debate philosophy.
 
+  mise.toml: |
+    [tools]
+    kubectl = "latest"
+    "github:helm/helm" = "latest"
+    "github:fluxcd/flux2" = "latest"
+    "github:stern/stern" = "latest"
   TOOLS.md: |
     # Tools — Sir Tristan 🏗️
 

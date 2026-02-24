@@ -29,7 +29,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 0540eda8f1c0b6c9dd0f81a4953754d8aaef2c73
+              tag: 1e5a98ce600fb9d1fc5647ca48b9ff20a5c479c1
               pullPolicy: Always
             command:
               - /bin/sh
@@ -65,13 +65,26 @@ spec:
                 done
 
                 echo "Workspace ready"
+          # ── Tool Installer (mise + apt) ─────────────────────────────
+          mise-init:
+            dependsOn: seed-workspace
+            image:
+              repository: ghcr.io/dapperdivers/pi-knight
+              tag: 1e5a98ce600fb9d1fc5647ca48b9ff20a5c479c1
+              pullPolicy: Always
+            command:
+              - /bin/sh
+              - /app/scripts/mise-init.sh
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
         containers:
           # ── Pi-Knight Agent ─────────────────────────────────────────
           # Lightweight runtime: Pi SDK + native NATS
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 0540eda8f1c0b6c9dd0f81a4953754d8aaef2c73
+              tag: 1e5a98ce600fb9d1fc5647ca48b9ff20a5c479c1
               pullPolicy: Always
             env:
               # ── Knight Identity ──
@@ -233,10 +246,12 @@ spec:
           galahad:
             seed-workspace:
               - path: /data
+            mise-init:
+              - path: /data
             app:
               - path: /data
 
-      # ConfigMap with personality files
+      # ConfigMap with personality files + tool configs
       config:
         enabled: true
         type: configMap
@@ -244,6 +259,9 @@ spec:
         advancedMounts:
           galahad:
             seed-workspace:
+              - path: /config
+                readOnly: true
+            mise-init:
               - path: /config
                 readOnly: true
             app:

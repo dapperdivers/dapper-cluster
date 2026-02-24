@@ -48,6 +48,13 @@ data:
     - **Emoji:** 🛡️
     - **Creature:** Security knight of the Round Table
 
+  mise.toml: |
+    [tools]
+    "pipx:shodan" = "latest"
+  apt.txt: |
+    nmap
+    whois
+    dnsutils
   TOOLS.md: |
     # TOOLS.md — Galahad's Toolkit
 
