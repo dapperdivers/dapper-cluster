@@ -29,7 +29,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: ccc4863cc6f9a656b67d67804985f17d407c7a90
+              tag: f9cc2bf7e7b48810bd5c65747471876448873f8a
               pullPolicy: Always
             command:
               - /bin/sh
@@ -71,7 +71,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: ccc4863cc6f9a656b67d67804985f17d407c7a90
+              tag: f9cc2bf7e7b48810bd5c65747471876448873f8a
               pullPolicy: Always
             env:
               # ── Knight Identity ──
@@ -149,7 +149,11 @@ spec:
                 ARSENAL="/arsenal/roundtable-arsenal"
                 TARGET="/skills"
                 echo "Skill filter starting: categories=$SKILL_CATEGORIES"
-                while true; do
+                # Fast initial loop until all categories are linked
+                LINKED=0
+                EXPECTED=$(echo $SKILL_CATEGORIES | wc -w)
+                while [ "$LINKED" -lt "$EXPECTED" ]; do
+                  LINKED=0
                   if [ -d "$ARSENAL" ]; then
                     for cat in $SKILL_CATEGORIES; do
                       src="$ARSENAL/$cat"
@@ -158,9 +162,29 @@ spec:
                         ln -sf "$src" "$dst"
                         echo "Linked $cat"
                       fi
+                      [ -L "$dst" ] && LINKED=$((LINKED + 1))
                     done
                   fi
-                  sleep 30
+                  [ "$LINKED" -lt "$EXPECTED" ] && sleep 2
+                done
+                echo "All categories linked ($LINKED/$EXPECTED)"
+                # Slow maintenance loop — re-link if git-sync recreates worktree
+                while true; do
+                  if [ -d "$ARSENAL" ]; then
+                    for cat in $SKILL_CATEGORIES; do
+                      src="$ARSENAL/$cat"
+                      dst="$TARGET/$cat"
+                      # Re-link if symlink target changed (git-sync new worktree)
+                      if [ -d "$src" ]; then
+                        current=$(readlink "$dst" 2>/dev/null || echo "")
+                        if [ "$current" != "$src" ]; then
+                          ln -sf "$src" "$dst"
+                          echo "Re-linked $cat"
+                        fi
+                      fi
+                    done
+                  fi
+                  sleep 60
                 done
             resources:
               requests:
