@@ -261,6 +261,9 @@ spec:
             skill-filter:
               - path: /arsenal
                 readOnly: true
+            app:
+              - path: /arsenal
+                readOnly: true
 
       # Filtered skills (only categories this knight needs)
       skills:
