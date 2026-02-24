@@ -79,7 +79,7 @@ spec:
               KNIGHT_MODEL: "anthropic/claude-sonnet-4-5"
               # ── NATS ──
               NATS_URL: nats://nats.database.svc:4222
-              SUBSCRIBE_TOPICS: "fleet-a.tasks.security-pi.>"
+              SUBSCRIBE_TOPICS: "fleet-a.tasks.framework.>"
               # ── Runtime ──
               TASK_TIMEOUT_MS: "1800000"
               MAX_CONCURRENT_TASKS: "2"
@@ -141,7 +141,7 @@ spec:
               repository: alpine
               tag: "3.21"
             env:
-              SKILL_CATEGORIES: "shared security"
+              SKILL_CATEGORIES: "shared"
             command:
               - /bin/sh
               - -c
