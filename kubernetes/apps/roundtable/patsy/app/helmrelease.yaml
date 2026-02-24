@@ -65,6 +65,16 @@ spec:
                 done
 
                 echo "Workspace ready"
+          # ── Mise Tool Installer ─────────────────────────────────────
+          # Installs knight-specific CLI tools from ConfigMap mise.toml
+          mise-install:
+            image:
+              repository: ghcr.io/dapperdivers/pi-knight
+              tag: 0540eda8f1c0b6c9dd0f81a4953754d8aaef2c73
+              pullPolicy: Always
+            command:
+              - /bin/sh
+              - /app/scripts/mise-init.sh
         containers:
           # ── Pi-Knight Agent ─────────────────────────────────────────
           # Lightweight runtime: Pi SDK + native NATS
@@ -233,6 +243,8 @@ spec:
           patsy:
             seed-workspace:
               - path: /data
+            mise-install:
+              - path: /data
             app:
               - path: /data
 
@@ -244,6 +256,9 @@ spec:
         advancedMounts:
           patsy:
             seed-workspace:
+              - path: /config
+                readOnly: true
+            mise-install:
               - path: /config
                 readOnly: true
             app:

@@ -160,3 +160,7 @@ data:
     ## Skills
     Shared skills from roundtable-arsenal are synced to `/workspace/skills/`.
     Check each skill's `SKILL.md` before use.
+  mise.toml: |
+    [tools]
+    "github:sharkdp/fd" = "latest"
+    "github:chmln/sd" = "latest"
