@@ -131,7 +131,6 @@ data:
 
   mise.toml: |
     [tools]
-    "pipx:shodan" = "latest"
   apt.txt: |
     nmap
     sslscan
@@ -142,3 +141,4 @@ data:
   pip.txt: |
     python-nmap
     requests
+    shodan
