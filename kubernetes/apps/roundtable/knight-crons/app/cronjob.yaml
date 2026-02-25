@@ -4,6 +4,9 @@
 # Knights: Galahad (security), Kay (research), Bedivere (home),
 #          Tristan (infra), Percival (finance), Lancelot (career)
 #
+# OUTPUT CONTRACT: All knights MUST output JSON conforming to shared/daily-reports contract.
+# The Briefing Collector (11:45 UTC) parses these structured results.
+#
 # Galahad has day-of-week aware scheduling:
 #   Mon: Weekend review (72h lookback)
 #   Tue-Thu: Standard daily brief (24h)
@@ -12,6 +15,10 @@
 #
 # NOTE: $${VAR} syntax is required because Flux postBuild substitutions
 # would otherwise consume ${VAR} before the shell sees it.
+
+# --- Shared task suffix injected into every knight's task description ---
+# This enforces the daily-reports JSON contract across all knights.
+# CONTRACT_SUFFIX is defined inline per-knight since CronJob doesn't support shared env.
 
 apiVersion: batch/v1
 kind: CronJob
@@ -39,16 +46,17 @@ spec:
                 - |
                   TODAY=$$(date +%Y-%m-%d)
                   DOW=$$(date +%u)
+                  CONTRACT="IMPORTANT: Follow your daily-security-report skill. Your output MUST be valid JSON conforming to the shared/daily-reports contract schema. Include: knight, run_id (daily-$${TODAY}), report_type (daily-briefing), timestamp, summary, sections array (each with title/priority/content/data_sources/confidence), highlights array (3-5 bullets), follow_up_needed, follow_up_questions. Also render the markdown template to /vault/Briefings/Security/$${TODAY}.md"
                   case $$DOW in
-                    1) MODE="weekend-review"; TIMEOUT=3600000; DESC="Generate a WEEKEND REVIEW covering the last 72 hours. Focus on attacks launched over the weekend, Friday evening vulnerability dumps, and Monday-morning-relevant advisories. Use your OpenCTI skills to pull recent indicators, CVEs, malware, and reports." ;;
-                    5) MODE="weekly-summary"; TIMEOUT=3600000; DESC="Generate a WEEKLY SUMMARY with trend analysis. Review the full week of threat intelligence. Include platform growth stats, top CVEs by severity, most active threat feeds, and whether threat volume is increasing or decreasing. Use your OpenCTI skills." ;;
+                    1) MODE="weekend-review"; TIMEOUT=3600000; DESC="Generate a WEEKEND REVIEW covering the last 72 hours. Focus on attacks launched over the weekend, Friday evening vulnerability dumps, and Monday-morning-relevant advisories. Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/." ;;
+                    5) MODE="weekly-summary"; TIMEOUT=3600000; DESC="Generate a WEEKLY SUMMARY with trend analysis. Review the full week of threat intelligence. Include platform growth stats, top CVEs by severity, most active threat feeds, and whether threat volume is increasing or decreasing. Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/." ;;
                     6|7) MODE="weekend-scan"; TIMEOUT=600000; DESC="WEEKEND SCAN - light touch, critical items only. Quick check of OpenCTI for any critical CVEs or active exploitation. Keep it brief." ;;
-                    *) MODE="daily-brief"; TIMEOUT=1800000; DESC="Generate your daily threat intelligence briefing. Cover the last 24 hours of OpenCTI data including new indicators, vulnerabilities, malware, and reports. Use your OpenCTI skills." ;;
+                    *) MODE="daily-brief"; TIMEOUT=1800000; DESC="Generate your daily threat intelligence briefing. Cover the last 24 hours of OpenCTI data including new indicators, vulnerabilities, malware, and reports. Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/." ;;
                   esac
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.security.daily-$${TODAY}-galahad" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-galahad\",\"domain\":\"security\",\"task\":\"$${DESC} Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"$${MODE}\",\"timeout_ms\":$${TIMEOUT}}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-galahad\",\"domain\":\"security\",\"task\":\"$${DESC} $${CONTRACT} Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"$${MODE}\",\"timeout_ms\":$${TIMEOUT}}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -78,7 +86,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.research.daily-$${TODAY}-kay" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-kay\",\"domain\":\"research\",\"task\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-kay\",\"domain\":\"research\",\"task\":\"Follow your daily-intel-digest skill to generate today's intelligence digest. Your output MUST be valid JSON conforming to the shared/daily-reports contract schema. Include: knight (sir-kay), run_id (daily-$${TODAY}), report_type (daily-briefing), timestamp, summary, sections array (each with title/priority/content/data_sources/confidence), highlights array (3-5 bullets), follow_up_needed, follow_up_questions. Also render the markdown template to /vault/Briefings/Intel/$${TODAY}.md. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -108,7 +116,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.home.daily-$${TODAY}-bedivere" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-bedivere\",\"domain\":\"home\",\"task\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-bedivere\",\"domain\":\"home\",\"task\":\"Follow your daily-home-report skill to generate today's household briefing. Your output MUST be valid JSON conforming to the shared/daily-reports contract schema. Include: knight (sir-bedivere), run_id (daily-$${TODAY}), report_type (daily-briefing), timestamp, summary, sections array (each with title/priority/content/data_sources/confidence), highlights array (3-5 bullets), follow_up_needed, follow_up_questions. Also render the markdown template to /vault/Briefings/Home/$${TODAY}.md. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -138,7 +146,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.infra.daily-$${TODAY}-tristan" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-tristan\",\"domain\":\"infra\",\"task\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-tristan\",\"domain\":\"infra\",\"task\":\"Follow your daily-ops-report skill to generate today's infrastructure report. Use the cluster-health scripts at /skills/infra/daily-ops-report/scripts/ if available. Your output MUST be valid JSON conforming to the shared/daily-reports contract schema. Include: knight (sir-tristan), run_id (daily-$${TODAY}), report_type (daily-briefing), timestamp, summary, sections array (each with title/priority/content/data_sources/confidence), highlights array (3-5 bullets), follow_up_needed, follow_up_questions. Also render the markdown template to /vault/Briefings/HomeLab/$${TODAY}.md. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -168,7 +176,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.finance.daily-$${TODAY}-percival" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-percival\",\"domain\":\"finance\",\"task\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-percival\",\"domain\":\"finance\",\"task\":\"Follow your daily-finance-report skill to generate today's financial briefing. Your output MUST be valid JSON conforming to the shared/daily-reports contract schema. Include: knight (sir-percival), run_id (daily-$${TODAY}), report_type (daily-briefing), timestamp, summary, sections array (each with title/priority/content/data_sources/confidence), highlights array (3-5 bullets), follow_up_needed, follow_up_questions. Also render the markdown template to /vault/Briefings/Finance/$${TODAY}.md. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -198,8 +206,4 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.career.daily-$${TODAY}-lancelot" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-lancelot\",\"domain\":\"career\",\"task\":\"Generate your daily report following your report skill template. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
-# Morning Intel CronJobs REMOVED
-# Solar weather, nerd news, and homelab checks are already covered by
-# Kay's daily-intel-digest and Tristan's daily-ops-report skills.
-# Consolidating to avoid duplicate knight tasks.
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-lancelot\",\"domain\":\"career\",\"task\":\"Follow your daily-career-report skill to generate today's career briefing. Your output MUST be valid JSON conforming to the shared/daily-reports contract schema. Include: knight (sir-lancelot), run_id (daily-$${TODAY}), report_type (daily-briefing), timestamp, summary, sections array (each with title/priority/content/data_sources/confidence), highlights array (3-5 bullets), follow_up_needed, follow_up_questions. Also render the markdown template to /vault/Briefings/Career/$${TODAY}.md. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\"}}"
