@@ -134,13 +134,11 @@ data:
     "pipx:shodan" = "latest"
   apt.txt: |
     nmap
-    nikto
     sslscan
     dnsutils
     whois
-    dirb
-    gobuster
-    sqlmap
+    libnet-ssleay-perl
+    perl
   pip.txt: |
     python-nmap
     requests
