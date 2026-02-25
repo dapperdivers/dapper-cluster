@@ -103,11 +103,11 @@ spec:
                   name: mordred-secret
             resources:
               requests:
-                cpu: 100m
-                memory: 256Mi
+                cpu: 250m
+                memory: 512Mi
               limits:
-                cpu: "1"
-                memory: 2Gi
+                cpu: "4"
+                memory: 8Gi
             probes:
               liveness:
                 enabled: true
