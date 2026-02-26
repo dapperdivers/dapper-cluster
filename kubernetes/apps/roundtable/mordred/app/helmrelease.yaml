@@ -96,15 +96,23 @@ spec:
                 echo "Building Nix tool environment..."
                 FLAKE_DIR=$(mktemp -d)
                 cp "$FLAKE_FILE" "$FLAKE_DIR/flake.nix"
+
+                # IMPORTANT: must cd to flake dir — nix scans cwd and chokes on /dev/full
                 cd "$FLAKE_DIR"
 
+                # Build; separate stdout (store path) from stderr (progress)
                 STORE_PATH=$(nix build \
                   --extra-experimental-features "nix-command flakes" \
                   --no-link --print-out-paths \
-                  ".#default" 2>&1 | tail -1)
+                  ".#default" 2>/tmp/nix-build.log) || {
+                    echo "ERROR: Nix build failed:"
+                    cat /tmp/nix-build.log
+                    exit 1
+                  }
 
-                if [ ! -d "$STORE_PATH/bin" ]; then
-                  echo "ERROR: Build failed or no bin/ at $STORE_PATH"
+                if [ -z "$STORE_PATH" ] || [ ! -d "$STORE_PATH/bin" ]; then
+                  echo "ERROR: Build produced no bin/ at '$STORE_PATH'"
+                  cat /tmp/nix-build.log 2>/dev/null
                   exit 1
                 fi
 
