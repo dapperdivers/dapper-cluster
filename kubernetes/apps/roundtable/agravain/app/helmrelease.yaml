@@ -185,19 +185,8 @@ spec:
             secretName: ${SECRET_DOMAIN/./-}-tls
 
     persistence:
-      # ── Nix store (dedicated PVC) ──────────────────────────────────
-      # Entire /nix lives here. First boot bootstraps from cached tarball.
-      agravain-nix:
-        enabled: true
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 10Gi
-        advancedMounts:
-          agravain:
-            app:
-              - path: /nix
-
-      # ── Knight workspace ───────────────────────────────────────────
+      # ── Knight workspace + Nix store (single PVC, subPaths) ────────
+      # /data = workspace, /nix = Nix store (subPath isolates them)
       data:
         enabled: true
         existingClaim: agravain
@@ -205,6 +194,8 @@ spec:
           agravain:
             app:
               - path: /data
+              - path: /nix
+                subPath: nix-store
 
       config:
         enabled: true
