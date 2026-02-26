@@ -15,3 +15,6 @@ resources:
   - ./obsidian-couchdb/ks.yaml
   - ./resume/ks.yaml
   - ./inbox-zero/ks.yaml
+  - ./stalwart/ks.yaml
+  - ./email-oauth2-proxy/ks.yaml
+  - ./imapsync/ks.yaml

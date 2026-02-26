@@ -1,0 +1,239 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: stalwart
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: stalwart-mail
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    image:
+      tag: "v0.15.5"
+
+    # Use ExternalSecret instead of chart-managed secrets
+    secrets:
+      create: false
+
+    envFrom:
+      - secretRef:
+          name: stalwart-secret
+
+    config:
+      server:
+        listener:
+          smtp:
+            bind: ["[::]:25"]
+            protocol: "smtp"
+          submission:
+            bind: ["[::]:587"]
+            protocol: "smtp"
+          submissions:
+            bind: ["[::]:465"]
+            protocol: "smtp"
+            tls:
+              implicit: true
+          imap:
+            bind: ["[::]:143"]
+            protocol: "imap"
+          imaptls:
+            bind: ["[::]:993"]
+            protocol: "imap"
+            tls:
+              implicit: true
+          sieve:
+            bind: ["[::]:4190"]
+            protocol: "managesieve"
+          http:
+            protocol: "http"
+            bind: ["[::]:80"]
+        allowed-ip:
+          "10.0.0.0/8": ""
+          "172.16.0.0/12": ""
+          "192.168.0.0/16": ""
+
+      http:
+        use-x-forwarded: true
+
+      certificate:
+        default:
+          default: true
+          cert: "%{file:/opt/stalwart/etc/certs/tls.crt}%"
+          private-key: "%{file:/opt/stalwart/etc/certs/tls.key}%"
+
+      storage:
+        data: "rocksdb"
+        fts: "rocksdb"
+        blob: "rocksdb"
+        lookup: "rocksdb"
+        directory: "internal"
+
+      store:
+        rocksdb:
+          type: rocksdb
+          path: "/data"
+          compression: "lz4"
+          write-buffer-size: 268435456
+
+      directory:
+        internal:
+          type: "internal"
+          store: "rocksdb"
+
+      authentication:
+        fallback-admin:
+          user: "admin"
+          secret: "%{env:FALLBACK_ADMIN_SECRET}%"
+
+      # Spam filter -- raised threshold for pre-filtered mail
+      spam-filter:
+        score:
+          spam: 8
+          discard: 0
+          reject: 0
+        auto-update: true
+        header:
+          is-spam: "X-Spam-Status"
+        # Trust contacts in address book
+        dnsbl:
+          card-is-ham: true
+
+      metrics:
+        prometheus:
+          enable: true
+          auth:
+            username: "%{env:METRICS_USERNAME}%"
+            secret: "%{env:METRICS_SECRET}%"
+
+      # Per-sender outbound SMTP relay
+      queue:
+        outbound:
+          hostname: "mail.${SECRET_DOMAIN}"
+
+      # Relay routes
+      remote:
+        gmail-relay:
+          address: "smtp.gmail.com"
+          port: 587
+          protocol: "smtp"
+          tls:
+            implicit: false
+            start-tls: true
+          auth:
+            username: "%{env:GMAIL_ADDRESS}%"
+            secret: "%{env:GMAIL_SMTP_PASSWORD}%"
+        migadu-relay:
+          address: "smtp.migadu.com"
+          port: 587
+          protocol: "smtp"
+          tls:
+            implicit: false
+            start-tls: true
+          auth:
+            username: "%{env:MIGADU_ADDRESS}%"
+            secret: "%{env:MIGADU_SMTP_PASSWORD}%"
+        outlook-relay:
+          address: "smtp.office365.com"
+          port: 587
+          protocol: "smtp"
+          tls:
+            implicit: false
+            start-tls: true
+          auth:
+            username: "%{env:OUTLOOK_ADDRESS}%"
+            secret: "%{env:OUTLOOK_SMTP_PASSWORD}%"
+
+      tracer:
+        stdout:
+          enable: true
+          type: "stdout"
+          level: "info"
+          ansi: false
+        otel:
+          enable: false
+
+    # Disable POP3 and HTTPS listeners (unused)
+    service:
+      type: LoadBalancer
+      annotations:
+        lbipam.cilium.io/ips: ${MAIL_VIP_GATEWAY}
+        external-dns.alpha.kubernetes.io/hostname: mail.${SECRET_DOMAIN}
+      ports:
+        smtp: 25
+        submission: 587
+        submissions: 465
+        imap: 143
+        imaptls: 993
+        sieve: 4190
+        http: 80
+        # pop3 (110), pop3s (995), https (443) use chart defaults;
+        # listeners for these are not configured in config.server.listener above,
+        # so Stalwart will not actually listen on them even though the Service ports exist.
+
+    ingress:
+      enabled: true
+      className: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        authentik.home.arpa/internal: "true"
+      hosts:
+        - host: &host mail.${SECRET_DOMAIN}
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+      tls:
+        - hosts:
+            - *host
+          secretName: ${SECRET_DOMAIN/./-}-tls
+
+    certificate:
+      secretName: ${SECRET_DOMAIN/./-}-tls
+      certmanager:
+        enabled: false
+
+    persistence:
+      enabled: true
+      storageClass: ceph-rbd
+      accessMode: ReadWriteOnce
+      size: 50Gi
+
+    backup:
+      enabled: false
+
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+
+    livenessProbe:
+      httpGet:
+        path: /healthz/live
+        port: http
+        httpHeaders:
+          - name: "X-Forwarded-For"
+            value: "127.0.0.1"
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+    readinessProbe:
+      httpGet:
+        path: /healthz/ready
+        port: http
+        httpHeaders:
+          - name: "X-Forwarded-For"
+            value: "127.0.0.1"
+      initialDelaySeconds: 30
+      periodSeconds: 10
