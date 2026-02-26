@@ -24,64 +24,14 @@ spec:
       patsy:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          # ── Workspace Seeder ────────────────────────────────────────
-          seed-workspace:
-            image:
-              repository: ghcr.io/dapperdivers/pi-knight
-              tag: 9b79582c2fd1dbc5f4f71f8cee3f6201a836352a
-              pullPolicy: Always
-            command:
-              - /bin/sh
-              - -c
-              - |
-                set -e
-                WORKSPACE=/data
-
-                # Create directories
-                mkdir -p "$WORKSPACE/memory"
-
-                # Seed operational files from image defaults (only if missing on PVC)
-                if [ -d /app/defaults ]; then
-                  for f in /app/defaults/*.md; do
-                    fname=$(basename "$f")
-                    if [ ! -f "$WORKSPACE/$fname" ]; then
-                      cp "$f" "$WORKSPACE/$fname"
-                      echo "Seeded $fname from image defaults"
-                    else
-                      echo "$fname already exists on PVC, skipping"
-                    fi
-                  done
-                fi
-
-                # Seed personality files from ConfigMap (only if missing on PVC)
-                for f in SOUL.md IDENTITY.md TOOLS.md; do
-                  if [ ! -f "$WORKSPACE/$f" ] && [ -f "/config/$f" ]; then
-                    cp "/config/$f" "$WORKSPACE/$f"
-                    echo "Seeded $f from ConfigMap"
-                  else
-                    echo "$f already exists or not in ConfigMap, skipping"
-                  fi
-                done
-
-                echo "Workspace ready"
-          # ── Mise Tool Installer ─────────────────────────────────────
-          # Installs knight-specific CLI tools from ConfigMap mise.toml
-          mise-install:
-            image:
-              repository: ghcr.io/dapperdivers/pi-knight
-              tag: 9b79582c2fd1dbc5f4f71f8cee3f6201a836352a
-              pullPolicy: Always
-            command:
-              - /bin/sh
-              - /app/scripts/mise-init.sh
+        # NO init containers — entrypoint handles bootstrap
         containers:
           # ── Pi-Knight Agent ─────────────────────────────────────────
           # Lightweight runtime: Pi SDK + native NATS
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 9b79582c2fd1dbc5f4f71f8cee3f6201a836352a
+              tag: 0f8be779abb2e98e0c11ca80b2bf9d603776fe03
               pullPolicy: Always
             env:
               # ── Knight Identity ──
@@ -241,8 +191,6 @@ spec:
         existingClaim: patsy
         advancedMounts:
           patsy:
-            seed-workspace:
-              - path: /data
             mise-install:
               - path: /data
             app:
@@ -255,9 +203,6 @@ spec:
         name: patsy-config
         advancedMounts:
           patsy:
-            seed-workspace:
-              - path: /config
-                readOnly: true
             mise-install:
               - path: /config
                 readOnly: true
