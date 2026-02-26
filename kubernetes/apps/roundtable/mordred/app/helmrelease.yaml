@@ -27,14 +27,35 @@ spec:
           reloader.stakater.com/auto: "true"
         initContainers:
           # ── Workspace Seeder ────────────────────────────────────────
+          # ── Nix Seed — copy image's /nix to PVC (one-time) ─────────
+          nix-seed:
+            image:
+              repository: ghcr.io/dapperdivers/pi-knight
+              tag: 611410e094118e996e27cc382df43ae1a562dedd
+              pullPolicy: Always
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                # This container does NOT mount anything at /nix, so the
+                # image's Nix installation is visible. Copy it to the PVC
+                # on first run. Subsequent boots skip (cached on PVC).
+                mkdir -p /data/nix-store
+                if [ ! -f /nix-pvc/.seeded ]; then
+                  echo "Seeding Nix from image to PVC..."
+                  cp -a /nix/* /nix-pvc/
+                  touch /nix-pvc/.seeded
+                  echo "Nix seeded to PVC ✓ ($(du -sh /nix-pvc | cut -f1))"
+                else
+                  echo "Nix already seeded on PVC ✓"
+                fi
+          # ── Workspace Seeder + Tool Builder ─────────────────────────
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
               tag: 611410e094118e996e27cc382df43ae1a562dedd
               pullPolicy: Always
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
             command:
               - /bin/sh
               - -c
@@ -74,39 +95,14 @@ spec:
                 # One-time cleanup: remove root-owned files from 3-container era
                 echo "--- Cleaning legacy Nix artifacts ---"
                 rm -rf /data/nix-env.old* 2>/dev/null || true
-                rm -rf /data/nix-store 2>/dev/null || true
-                if [ -d /data/nix-env ] && ! rm -rf /data/nix-env 2>/dev/null; then
-                  # Root-owned — rename it out of the way
-                  mv /data/nix-env /data/nix-env.purge.$$ 2>/dev/null || true
-                fi
                 rm -f /data/.nix-flake-hash 2>/dev/null || true
 
-                echo "--- Nix bootstrap ---"
-                # /nix is PVC-backed (subPath: nix-store). On first run it's empty
-                # and the image's Nix install is hidden by the mount. Bootstrap once.
-                # Ensure subPath dir exists on PVC
-                mkdir -p /data/nix-store
-                if [ ! -f /nix/.bootstrapped ]; then
-                  echo "First run: installing Nix into PVC-backed /nix..."
-                  # Prep /nix for the installer (needs store, var, etc)
-                  mkdir -p /nix/store /nix/var/nix/db /nix/var/nix/profiles /nix/var/nix/gcroots
-                  chown -R 1000:1000 /nix
-                  # Nix installer refuses root with --no-daemon. Run as uid 1000.
-                  su -s /bin/sh node -c 'curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon --no-channel-add 2>&1 | tail -15'
-                  touch /nix/.bootstrapped
-                  echo "Nix bootstrapped to PVC ✓"
-                else
-                  echo "Nix already on PVC ✓"
-                fi
-
                 echo "--- Nix tool installation ---"
+                # /nix is now PVC-backed with the image's Nix install seeded by nix-seed
                 /app/scripts/nix-init.sh
 
                 echo "--- Mise/apt tool installation ---"
                 /app/scripts/mise-init.sh
-
-                # Ensure app container (uid 1000) can access everything
-                chown -R 1000:1000 /data
         containers:
           # ── Pi-Knight Agent ─────────────────────────────────────────
           app:
@@ -270,6 +266,10 @@ spec:
         existingClaim: mordred
         advancedMounts:
           mordred:
+            nix-seed:
+              - path: /data
+              - path: /nix-pvc
+                subPath: nix-store
             seed-workspace:
               - path: /data
               - path: /nix
