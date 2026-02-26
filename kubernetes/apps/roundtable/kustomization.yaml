@@ -17,4 +17,5 @@ resources:
   - ./patsy/ks.yaml
   - ./gawain/ks.yaml
   - ./mordred/ks.yaml
+  - ./agravain/ks.yaml
   - ./knight-crons/ks.yaml
