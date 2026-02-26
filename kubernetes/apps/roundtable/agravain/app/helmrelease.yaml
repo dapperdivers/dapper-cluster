@@ -32,7 +32,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 0f8be779abb2e98e0c11ca80b2bf9d603776fe03
+              tag: 3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681
               pullPolicy: Always
             env:
               # ── Knight Identity ──
