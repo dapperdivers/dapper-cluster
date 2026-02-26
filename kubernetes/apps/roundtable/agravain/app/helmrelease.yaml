@@ -187,7 +187,7 @@ spec:
     persistence:
       # ── Nix store (dedicated PVC) ──────────────────────────────────
       # Entire /nix lives here. First boot bootstraps from cached tarball.
-      nix:
+      agravain-nix:
         enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
