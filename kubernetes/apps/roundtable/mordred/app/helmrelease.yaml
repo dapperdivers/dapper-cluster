@@ -78,6 +78,21 @@ spec:
                 fi
                 rm -f /data/.nix-flake-hash 2>/dev/null || true
 
+                echo "--- Nix bootstrap ---"
+                # /nix is PVC-backed (subPath: nix-store). On first run it's empty
+                # and the image's Nix install is hidden by the mount. Bootstrap once.
+                if [ ! -f /nix/.bootstrapped ]; then
+                  echo "First run: installing Nix into PVC-backed /nix..."
+                  mkdir -p /etc/nix
+                  echo "build-users-group =" > /etc/nix/nix.conf
+                  echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+                  curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon 2>&1 | tail -10
+                  touch /nix/.bootstrapped
+                  echo "Nix bootstrapped to PVC ✓"
+                else
+                  echo "Nix already on PVC ✓"
+                fi
+
                 echo "--- Nix tool installation ---"
                 /app/scripts/nix-init.sh
 
@@ -248,8 +263,12 @@ spec:
           mordred:
             seed-workspace:
               - path: /data
+              - path: /nix
+                subPath: nix-store
             app:
               - path: /data
+              - path: /nix
+                subPath: nix-store
 
       config:
         enabled: true
@@ -288,16 +307,6 @@ spec:
             app:
               - path: /skills
                 readOnly: true
-
-      nix-store:
-        enabled: true
-        type: emptyDir
-        advancedMounts:
-          mordred:
-            seed-workspace:
-              - path: /nix
-            app:
-              - path: /nix
 
       vault:
         enabled: true
