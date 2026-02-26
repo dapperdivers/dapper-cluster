@@ -117,23 +117,70 @@ spec:
                   exit 1
                 fi
 
-                # Copy closure to PVC (Nix store is in container-local fs)
-                rm -rf "$NIX_ENV"
-                mkdir -p "$NIX_ENV"
-                cp -a "$STORE_PATH"/* "$NIX_ENV/"
+                # Nix binaries have hardcoded RPATHs to /nix/store/xxx/lib.
+                # We use patchelf to rewrite them, OR we mount the nix store
+                # at the same path in the app container.
+                #
+                # Strategy: copy closure to /data/nix-store/ and create a
+                # /nix → /data/nix-store symlink in the app container.
+                # Since init runs as root, we can create /nix symlink.
 
-                # Also copy shared libs from dependencies into lib/
-                mkdir -p "$NIX_ENV/lib"
-                CLOSURE=$(nix-store --query --requisites "$STORE_PATH" 2>/dev/null || echo "")
-                for p in $CLOSURE; do
-                  [ -d "$p/lib" ] && cp -a "$p/lib/"*.so* "$NIX_ENV/lib/" 2>/dev/null || true
-                  [ -d "$p/share/nmap" ] && cp -a "$p/share/nmap" "$NIX_ENV/share/" 2>/dev/null || true
-                  [ -d "$p/lib/perl5" ] && { mkdir -p "$NIX_ENV/lib/perl5"; cp -a "$p/lib/perl5/"* "$NIX_ENV/lib/perl5/" 2>/dev/null || true; }
+                echo "  Copying Nix closure to PVC..."
+                CLOSURE=$(nix-store --query --requisites "$STORE_PATH" 2>/dev/null)
+                CLOSURE_COUNT=$(echo "$CLOSURE" | wc -l)
+                echo "  Closure: $CLOSURE_COUNT store paths"
+
+                # Preserve exact /nix/store paths on PVC
+                rm -rf /data/nix-store
+                mkdir -p /data/nix-store
+                for p in $CLOSURE $STORE_PATH; do
+                  BASENAME=$(basename "$p")
+                  cp -a "$p" "/data/nix-store/$BASENAME"
                 done
+
+                # Create /data/nix-env with bin/ symlinks for PATH
+                rm -rf "$NIX_ENV"
+                mkdir -p "$NIX_ENV/bin"
+                STORE_BASENAME=$(basename "$STORE_PATH")
+                for bin in "/data/nix-store/$STORE_BASENAME/bin/"*; do
+                  bname=$(basename "$bin")
+                  ln -sf "$bin" "$NIX_ENV/bin/$bname"
+                done
+                # Copy share/ for nmap scripts etc
+                if [ -d "/data/nix-store/$STORE_BASENAME/share" ]; then
+                  cp -a "/data/nix-store/$STORE_BASENAME/share" "$NIX_ENV/share"
+                fi
+
+                CLOSURE_SIZE=$(du -sh /data/nix-store/ | cut -f1)
+                echo "  Closure size: $CLOSURE_SIZE"
 
                 echo "$NEW_HASH" > "$HASH_FILE"
                 echo "Nix env ready: $(ls "$NIX_ENV/bin/" | wc -l) tools"
                 ls "$NIX_ENV/bin/" | head -30
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+          # ── Nix Store Populator ────────────────────────────────────
+          # Copies the Nix store from /data/nix-store (PVC) to the
+          # nix-store emptyDir volume mounted at /nix/store in the
+          # app container. This ensures RPATHs resolve correctly.
+          nix-link:
+            dependsOn: nix-init
+            image:
+              repository: alpine
+              tag: "3.21"
+              pullPolicy: IfNotPresent
+            command:
+              - /bin/sh
+              - -c
+              - |
+                if [ -d /data/nix-store ] && [ "$(ls /data/nix-store/ 2>/dev/null | wc -l)" -gt 0 ]; then
+                  echo "Populating /nix/store from PVC..."
+                  cp -a /data/nix-store/* /nix/store/
+                  echo "Done: $(ls /nix/store/ | wc -l) store paths"
+                else
+                  echo "No Nix store on PVC — skipping"
+                fi
             securityContext:
               runAsUser: 0
               runAsGroup: 0
@@ -346,6 +393,18 @@ spec:
               - path: /skills
             app:
               - path: /skills
+                readOnly: true
+
+      nix-store:
+        enabled: true
+        type: emptyDir
+        sizeLimit: 2Gi
+        advancedMounts:
+          mordred:
+            nix-link:
+              - path: /nix/store
+            app:
+              - path: /nix/store
                 readOnly: true
 
       vault:
