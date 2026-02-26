@@ -353,6 +353,9 @@ spec:
               - path: /data
             nix-init:
               - path: /data
+            nix-link:
+              - path: /data
+                readOnly: true
             app:
               - path: /data
 
