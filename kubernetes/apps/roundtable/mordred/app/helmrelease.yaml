@@ -83,12 +83,10 @@ spec:
                 # and the image's Nix install is hidden by the mount. Bootstrap once.
                 if [ ! -f /nix/.bootstrapped ]; then
                   echo "First run: installing Nix into PVC-backed /nix..."
-                  # Configure nix before install — /etc/nix may not be writable (non-root)
-                  mkdir -p /nix/etc/nix
-                  echo "build-users-group =" > /nix/etc/nix/nix.conf
-                  echo "experimental-features = nix-command flakes" >> /nix/etc/nix/nix.conf
-                  export NIX_CONF_DIR=/nix/etc/nix
-                  curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon 2>&1 | tail -10
+                  # /etc/nix/nix.conf exists from image. /nix is PVC-backed (empty).
+                  # Install Nix as non-root with --no-daemon into PVC.
+                  export NIX_INSTALLER_NO_MODIFY_PROFILE=1
+                  curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon --no-channel-add 2>&1 | tail -15
                   touch /nix/.bootstrapped
                   echo "Nix bootstrapped to PVC ✓"
                 else
