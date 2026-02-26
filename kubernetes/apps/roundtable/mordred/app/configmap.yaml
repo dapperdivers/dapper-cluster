@@ -139,10 +139,9 @@ data:
 
       outputs = { self, nixpkgs }:
         let
-          system = "x86_64-linux";
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = import nixpkgs { system = "x86_64-linux"; };
         in {
-          packages.${system}.default = pkgs.buildEnv {
+          packages.x86_64-linux.default = pkgs.buildEnv {
             name = "mordred-tools";
             paths = with pkgs; [
               # Network scanning
