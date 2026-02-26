@@ -41,14 +41,35 @@ spec:
                 # This container does NOT mount anything at /nix, so the
                 # image's Nix installation is visible. Copy it to the PVC
                 # on first run. Subsequent boots skip (cached on PVC).
-                mkdir -p /data/nix-store
+                #
+                # Validate both /nix/store AND /nix/var exist — previous
+                # approaches only seeded store/, leaving nix binary missing.
+                NEEDS_SEED=false
                 if [ ! -f /nix-pvc/.seeded ]; then
+                  NEEDS_SEED=true
+                elif [ ! -d /nix-pvc/var/nix/profiles ]; then
+                  echo "Incomplete seed (missing var/) — re-seeding..."
+                  NEEDS_SEED=true
+                elif ! /nix-pvc/var/nix/profiles/default/bin/nix --version >/dev/null 2>&1; then
+                  echo "Nix binary broken — re-seeding..."
+                  NEEDS_SEED=true
+                fi
+
+                if [ "$NEEDS_SEED" = "true" ]; then
                   echo "Seeding Nix from image to PVC..."
                   cp -a /nix/* /nix-pvc/
-                  touch /nix-pvc/.seeded
-                  echo "Nix seeded to PVC ✓ ($(du -sh /nix-pvc | cut -f1))"
+                  # Verify the seed actually worked
+                  if [ -d /nix-pvc/var/nix/profiles ] && [ -d /nix-pvc/store ]; then
+                    touch /nix-pvc/.seeded
+                    echo "Nix seeded to PVC ✓ ($(du -sh /nix-pvc | cut -f1))"
+                  else
+                    echo "ERROR: Nix seed incomplete!"
+                    echo "  store: $(ls /nix-pvc/store 2>/dev/null | wc -l) entries"
+                    echo "  var: $(ls -la /nix-pvc/var/nix/profiles/ 2>/dev/null || echo MISSING)"
+                    exit 1
+                  fi
                 else
-                  echo "Nix already seeded on PVC ✓"
+                  echo "Nix already seeded on PVC ✓ ($(nix --version 2>/dev/null || /nix-pvc/var/nix/profiles/default/bin/nix --version 2>/dev/null))"
                 fi
           # ── Workspace Seeder + Tool Builder ─────────────────────────
           seed-workspace:
