@@ -18,3 +18,4 @@ resources:
   - ./gawain/ks.yaml
   - ./agravain/ks.yaml
   - ./knight-crons/ks.yaml
+  - ./operator
