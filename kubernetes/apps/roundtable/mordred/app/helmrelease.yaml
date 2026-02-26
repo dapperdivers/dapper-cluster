@@ -68,6 +68,16 @@ spec:
                 echo "Workspace ready"
 
                 # ── Tool installation (Nix first, then mise) ──
+                # One-time cleanup: remove root-owned files from 3-container era
+                echo "--- Cleaning legacy Nix artifacts ---"
+                rm -rf /data/nix-env.old* 2>/dev/null || true
+                rm -rf /data/nix-store 2>/dev/null || true
+                if [ -d /data/nix-env ] && ! rm -rf /data/nix-env 2>/dev/null; then
+                  # Root-owned — rename it out of the way
+                  mv /data/nix-env /data/nix-env.purge.$$ 2>/dev/null || true
+                fi
+                rm -f /data/.nix-flake-hash 2>/dev/null || true
+
                 echo "--- Nix tool installation ---"
                 /app/scripts/nix-init.sh
 
