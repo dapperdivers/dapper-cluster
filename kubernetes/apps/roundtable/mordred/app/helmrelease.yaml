@@ -289,6 +289,16 @@ spec:
               - path: /skills
                 readOnly: true
 
+      nix-store:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          mordred:
+            seed-workspace:
+              - path: /nix
+            app:
+              - path: /nix
+
       vault:
         enabled: true
         existingClaim: roundtable-vault

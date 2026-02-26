@@ -153,6 +153,8 @@ data:
               # Web vulnerability scanning
               nuclei
               nikto
+              gobuster
+              sqlmap
 
               # SSL/TLS
               openssl
