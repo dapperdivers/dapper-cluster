@@ -131,18 +131,42 @@ data:
 
   mise.toml: |
     [tools]
-  apt.txt: |
-    nmap
-    sslscan
-    dnsutils
-    whois
-    libnet-ssleay-perl
-    libjson-perl
-    libxml-writer-perl
-    perl
-    unzip
-  bins.txt: |
-    https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_amd64.zip
+  flake.nix: |
+    {
+      description = "Sir Mordred — Pentest Knight Arsenal";
+
+      inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+
+      outputs = { self, nixpkgs }:
+        let
+          system = "x86_64-linux";
+          pkgs = import nixpkgs { inherit system; };
+        in {
+          packages.${system}.default = pkgs.buildEnv {
+            name = "mordred-tools";
+            paths = with pkgs; [
+              # Network scanning
+              nmap
+              sslscan
+              dnsutils  # dig, nslookup, host
+              whois
+
+              # Web vulnerability scanning
+              nuclei
+              nikto
+
+              # SSL/TLS
+              openssl
+
+              # Utilities
+              unzip
+              curl
+              jq
+              perl
+            ];
+          };
+        };
+    }
   pip.txt: |
     python-nmap
     requests

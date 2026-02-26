@@ -29,7 +29,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 8ce5af51e17e703ced8760da5519e099664530a5
+              tag: 436d0adefd2a383872a1d019be547957e6daebcf
               pullPolicy: Always
             command:
               - /bin/sh
@@ -65,16 +65,65 @@ spec:
                 done
 
                 echo "Workspace ready"
-          # ── Tool Installer (mise + apt) ─────────────────────────────
-          mise-init:
+          # ── Nix Tool Installer ─────────────────────────────────────
+          nix-init:
             dependsOn: seed-workspace
             image:
-              repository: ghcr.io/dapperdivers/pi-knight
-              tag: 8ce5af51e17e703ced8760da5519e099664530a5
-              pullPolicy: Always
+              repository: nixos/nix
+              tag: "2.24.12"
+              pullPolicy: IfNotPresent
             command:
               - /bin/sh
-              - /app/scripts/mise-init.sh
+              - -c
+              - |
+                set -e
+                FLAKE_FILE="/config/flake.nix"
+                NIX_ENV="/data/nix-env"
+                HASH_FILE="/data/.nix-flake-hash"
+
+                if [ ! -f "$FLAKE_FILE" ]; then
+                  echo "No flake.nix found — skipping Nix tool install."
+                  exit 0
+                fi
+
+                # Content-addressed caching — skip if unchanged
+                NEW_HASH=$(sha256sum "$FLAKE_FILE" | cut -d' ' -f1)
+                if [ -f "$HASH_FILE" ] && [ "$(cat "$HASH_FILE")" = "$NEW_HASH" ] && [ -d "$NIX_ENV/bin" ]; then
+                  echo "Nix env cached ($(ls "$NIX_ENV/bin/" | wc -l) tools) — skipping."
+                  exit 0
+                fi
+
+                echo "Building Nix tool environment..."
+                FLAKE_DIR=$(mktemp -d)
+                cp "$FLAKE_FILE" "$FLAKE_DIR/flake.nix"
+
+                STORE_PATH=$(nix build \
+                  --extra-experimental-features "nix-command flakes" \
+                  --no-link --print-out-paths \
+                  "path:${FLAKE_DIR}#default" 2>&1 | tail -1)
+
+                if [ ! -d "$STORE_PATH/bin" ]; then
+                  echo "ERROR: Build failed or no bin/ at $STORE_PATH"
+                  exit 1
+                fi
+
+                # Copy closure to PVC (Nix store is in container-local fs)
+                rm -rf "$NIX_ENV"
+                mkdir -p "$NIX_ENV"
+                cp -a "$STORE_PATH"/* "$NIX_ENV/"
+
+                # Also copy shared libs from dependencies into lib/
+                mkdir -p "$NIX_ENV/lib"
+                CLOSURE=$(nix-store --query --requisites "$STORE_PATH" 2>/dev/null || echo "")
+                for p in $CLOSURE; do
+                  [ -d "$p/lib" ] && cp -a "$p/lib/"*.so* "$NIX_ENV/lib/" 2>/dev/null || true
+                  [ -d "$p/share/nmap" ] && cp -a "$p/share/nmap" "$NIX_ENV/share/" 2>/dev/null || true
+                  [ -d "$p/lib/perl5" ] && { mkdir -p "$NIX_ENV/lib/perl5"; cp -a "$p/lib/perl5/"* "$NIX_ENV/lib/perl5/" 2>/dev/null || true; }
+                done
+
+                echo "$NEW_HASH" > "$HASH_FILE"
+                echo "Nix env ready: $(ls "$NIX_ENV/bin/" | wc -l) tools"
+                ls "$NIX_ENV/bin/" | head -30
             securityContext:
               runAsUser: 0
               runAsGroup: 0
@@ -83,7 +132,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 8ce5af51e17e703ced8760da5519e099664530a5
+              tag: 436d0adefd2a383872a1d019be547957e6daebcf
               pullPolicy: Always
             env:
               # ── Knight Identity ──
@@ -98,6 +147,10 @@ spec:
               METRICS_PORT: "3000"
               LOG_LEVEL: info
               TZ: America/Chicago
+              # Nix tool environment
+              LD_LIBRARY_PATH: /data/nix-env/lib
+              PERL5LIB: /data/nix-env/lib/perl5
+              NMAP_DATADIR: /data/nix-env/share/nmap
             envFrom:
               - secretRef:
                   name: mordred-secret
@@ -239,7 +292,7 @@ spec:
           mordred:
             seed-workspace:
               - path: /data
-            mise-init:
+            nix-init:
               - path: /data
             app:
               - path: /data
@@ -253,7 +306,7 @@ spec:
             seed-workspace:
               - path: /config
                 readOnly: true
-            mise-init:
+            nix-init:
               - path: /config
                 readOnly: true
             app:
