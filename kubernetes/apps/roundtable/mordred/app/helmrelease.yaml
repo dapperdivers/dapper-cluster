@@ -96,11 +96,12 @@ spec:
                 echo "Building Nix tool environment..."
                 FLAKE_DIR=$(mktemp -d)
                 cp "$FLAKE_FILE" "$FLAKE_DIR/flake.nix"
+                cd "$FLAKE_DIR"
 
                 STORE_PATH=$(nix build \
                   --extra-experimental-features "nix-command flakes" \
                   --no-link --print-out-paths \
-                  "path:${FLAKE_DIR}#default" 2>&1 | tail -1)
+                  ".#default" 2>&1 | tail -1)
 
                 if [ ! -d "$STORE_PATH/bin" ]; then
                   echo "ERROR: Build failed or no bin/ at $STORE_PATH"
