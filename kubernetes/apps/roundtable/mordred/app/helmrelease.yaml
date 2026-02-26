@@ -87,10 +87,12 @@ spec:
                   exit 0
                 fi
 
-                # Content-addressed caching — skip if unchanged
+                # Content-addressed caching — skip if unchanged AND tools actually work
                 NEW_HASH=$(sha256sum "$FLAKE_FILE" | cut -d' ' -f1)
-                if [ -f "$HASH_FILE" ] && [ "$(cat "$HASH_FILE")" = "$NEW_HASH" ] && [ -d "$NIX_ENV/bin" ]; then
-                  echo "Nix env cached ($(ls "$NIX_ENV/bin/" | wc -l) tools) — skipping."
+                if [ -f "$HASH_FILE" ] && [ "$(cat "$HASH_FILE")" = "$NEW_HASH" ] \
+                   && [ -d "$NIX_ENV/bin" ] && [ -d "/data/nix-store" ] \
+                   && [ "$(ls /data/nix-store/ 2>/dev/null | wc -l)" -gt 0 ]; then
+                  echo "Nix env cached ($(ls "$NIX_ENV/bin/" | wc -l) tools, $(ls /data/nix-store/ | wc -l) store paths) — skipping."
                   exit 0
                 fi
 
