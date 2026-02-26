@@ -70,7 +70,7 @@ spec:
             dependsOn: seed-workspace
             image:
               repository: nixos/nix
-              tag: "2.24.12"
+              tag: "2.33.3"
               pullPolicy: IfNotPresent
             command:
               - /bin/sh
