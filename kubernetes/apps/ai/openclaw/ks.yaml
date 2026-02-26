@@ -34,4 +34,4 @@ spec:
       APP: molt
       GATUS_SUBDOMAIN: molt
       GATUS_DOMAIN: ${SECRET_DOMAIN}
-      VOLSYNC_CAPACITY: 5Gi
+      VOLSYNC_CAPACITY: 10Gi
