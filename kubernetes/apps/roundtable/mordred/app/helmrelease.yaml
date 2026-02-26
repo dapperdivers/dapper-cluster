@@ -57,7 +57,11 @@ spec:
 
                 if [ "$NEEDS_SEED" = "true" ]; then
                   echo "Seeding Nix from image to PVC..."
-                  cp -a /nix/* /nix-pvc/
+                  # Clean any stale root-owned remnants from previous approaches
+                  rm -rf /nix-pvc/store /nix-pvc/var /nix-pvc/.seeded 2>/dev/null || true
+                  # Use tar pipe to copy as current user (uid 1000), avoiding
+                  # permission issues with cp -a trying to preserve root ownership
+                  tar -C /nix -cf - . | tar -C /nix-pvc -xf -
                   # Verify the seed actually worked
                   if [ -d /nix-pvc/var/nix/profiles ] && [ -d /nix-pvc/store ]; then
                     touch /nix-pvc/.seeded
