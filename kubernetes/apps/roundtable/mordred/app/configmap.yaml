@@ -137,7 +137,12 @@ data:
     dnsutils
     whois
     libnet-ssleay-perl
+    libjson-perl
+    libxml-writer-perl
     perl
+    unzip
+  bins.txt: |
+    https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_amd64.zip
   pip.txt: |
     python-nmap
     requests
