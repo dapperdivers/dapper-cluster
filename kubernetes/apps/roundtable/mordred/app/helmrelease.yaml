@@ -14,9 +14,10 @@ spec:
       retries: 3
   upgrade:
     cleanupOnFail: true
+    force: true
     remediation:
-      strategy: rollback
-      retries: 3
+      strategy: uninstall
+      retries: 1
   uninstall:
     keepHistory: false
   values:
@@ -29,7 +30,7 @@ spec:
           seed-workspace:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 436d0adefd2a383872a1d019be547957e6daebcf
+              tag: 77382a9c9310a313f29c592f4c34f3ebd3e37040
               pullPolicy: Always
             command:
               - /bin/sh
@@ -65,132 +66,19 @@ spec:
                 done
 
                 echo "Workspace ready"
-          # ── Nix Tool Installer ─────────────────────────────────────
-          nix-init:
-            dependsOn: seed-workspace
-            image:
-              repository: nixos/nix
-              tag: "2.24.12"
-              pullPolicy: IfNotPresent
-            command:
-              - /bin/sh
-              - -c
-              - |
-                set -e
-                FLAKE_FILE="/config/flake.nix"
-                NIX_ENV="/data/nix-env"
-                HASH_FILE="/data/.nix-flake-hash"
 
-                if [ ! -f "$FLAKE_FILE" ]; then
-                  echo "No flake.nix found — skipping Nix tool install."
-                  exit 0
-                fi
+                # ── Tool installation (Nix first, then mise) ──
+                echo "--- Nix tool installation ---"
+                /app/scripts/nix-init.sh
 
-                # Content-addressed caching — skip if unchanged AND tools actually work
-                NEW_HASH=$(sha256sum "$FLAKE_FILE" | cut -d' ' -f1)
-                if [ -f "$HASH_FILE" ] && [ "$(cat "$HASH_FILE")" = "$NEW_HASH" ] \
-                   && [ -d "$NIX_ENV/bin" ] && [ -d "/data/nix-store" ] \
-                   && [ "$(ls /data/nix-store/ 2>/dev/null | wc -l)" -gt 0 ]; then
-                  echo "Nix env cached ($(ls "$NIX_ENV/bin/" | wc -l) tools, $(ls /data/nix-store/ | wc -l) store paths) — skipping."
-                  exit 0
-                fi
-
-                echo "Building Nix tool environment..."
-                FLAKE_DIR=$(mktemp -d)
-                cp "$FLAKE_FILE" "$FLAKE_DIR/flake.nix"
-
-                # IMPORTANT: must cd to flake dir — nix scans cwd and chokes on /dev/full
-                cd "$FLAKE_DIR"
-
-                # Build; separate stdout (store path) from stderr (progress)
-                STORE_PATH=$(nix build \
-                  --extra-experimental-features "nix-command flakes" \
-                  --no-link --print-out-paths \
-                  ".#default" 2>/tmp/nix-build.log) || {
-                    echo "ERROR: Nix build failed:"
-                    cat /tmp/nix-build.log
-                    exit 1
-                  }
-
-                if [ -z "$STORE_PATH" ] || [ ! -d "$STORE_PATH/bin" ]; then
-                  echo "ERROR: Build produced no bin/ at '$STORE_PATH'"
-                  cat /tmp/nix-build.log 2>/dev/null
-                  exit 1
-                fi
-
-                # Nix binaries have hardcoded RPATHs to /nix/store/xxx/lib.
-                # We use patchelf to rewrite them, OR we mount the nix store
-                # at the same path in the app container.
-                #
-                # Strategy: copy closure to /data/nix-store/ and create a
-                # /nix → /data/nix-store symlink in the app container.
-                # Since init runs as root, we can create /nix symlink.
-
-                echo "  Copying Nix closure to PVC..."
-                CLOSURE=$(nix-store --query --requisites "$STORE_PATH" 2>/dev/null)
-                CLOSURE_COUNT=$(echo "$CLOSURE" | wc -l)
-                echo "  Closure: $CLOSURE_COUNT store paths"
-
-                # Preserve exact /nix/store paths on PVC
-                rm -rf /data/nix-store
-                mkdir -p /data/nix-store
-                for p in $CLOSURE $STORE_PATH; do
-                  BASENAME=$(basename "$p")
-                  cp -a "$p" "/data/nix-store/$BASENAME"
-                done
-
-                # Create /data/nix-env with bin/ symlinks for PATH
-                rm -rf "$NIX_ENV"
-                mkdir -p "$NIX_ENV/bin"
-                STORE_BASENAME=$(basename "$STORE_PATH")
-                for bin in "/data/nix-store/$STORE_BASENAME/bin/"*; do
-                  bname=$(basename "$bin")
-                  ln -sf "$bin" "$NIX_ENV/bin/$bname"
-                done
-                # Copy share/ for nmap scripts etc
-                if [ -d "/data/nix-store/$STORE_BASENAME/share" ]; then
-                  cp -a "/data/nix-store/$STORE_BASENAME/share" "$NIX_ENV/share"
-                fi
-
-                CLOSURE_SIZE=$(du -sh /data/nix-store/ | cut -f1)
-                echo "  Closure size: $CLOSURE_SIZE"
-
-                echo "$NEW_HASH" > "$HASH_FILE"
-                echo "Nix env ready: $(ls "$NIX_ENV/bin/" | wc -l) tools"
-                ls "$NIX_ENV/bin/" | head -30
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-          # ── Nix Store Populator ────────────────────────────────────
-          # Copies the Nix store from /data/nix-store (PVC) to the
-          # nix-store emptyDir volume mounted at /nix/store in the
-          # app container. This ensures RPATHs resolve correctly.
-          nix-link:
-            dependsOn: nix-init
-            image:
-              repository: alpine
-              tag: "3.21"
-              pullPolicy: IfNotPresent
-            command:
-              - /bin/sh
-              - -c
-              - |
-                if [ -d /data/nix-store ] && [ "$(ls /data/nix-store/ 2>/dev/null | wc -l)" -gt 0 ]; then
-                  echo "Populating /nix/store from PVC..."
-                  cp -a /data/nix-store/* /nix/store/
-                  echo "Done: $(ls /nix/store/ | wc -l) store paths"
-                else
-                  echo "No Nix store on PVC — skipping"
-                fi
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
+                echo "--- Mise/apt tool installation ---"
+                /app/scripts/mise-init.sh
         containers:
           # ── Pi-Knight Agent ─────────────────────────────────────────
           app:
             image:
               repository: ghcr.io/dapperdivers/pi-knight
-              tag: 436d0adefd2a383872a1d019be547957e6daebcf
+              tag: 77382a9c9310a313f29c592f4c34f3ebd3e37040
               pullPolicy: Always
             env:
               # ── Knight Identity ──
@@ -350,11 +238,6 @@ spec:
           mordred:
             seed-workspace:
               - path: /data
-            nix-init:
-              - path: /data
-            nix-link:
-              - path: /data
-                readOnly: true
             app:
               - path: /data
 
@@ -365,9 +248,6 @@ spec:
         advancedMounts:
           mordred:
             seed-workspace:
-              - path: /config
-                readOnly: true
-            nix-init:
               - path: /config
                 readOnly: true
             app:
@@ -397,18 +277,6 @@ spec:
               - path: /skills
             app:
               - path: /skills
-                readOnly: true
-
-      nix-store:
-        enabled: true
-        type: emptyDir
-        sizeLimit: 2Gi
-        advancedMounts:
-          mordred:
-            nix-link:
-              - path: /nix/store
-            app:
-              - path: /nix/store
                 readOnly: true
 
       vault:
