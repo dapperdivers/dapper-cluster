@@ -21,3 +21,4 @@ resources:
   - ./knight-crons/ks.yaml
   - ./gareth/ks.yaml
   - ./operator/ks.yaml
+  - ./dashboard/ks.yaml
