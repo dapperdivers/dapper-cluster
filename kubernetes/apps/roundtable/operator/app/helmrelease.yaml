@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: cbe08da179c3897143fdcdbd3c45de7235b59b35
+      tag: 1044d6c7455155ace66b311214583be2141a0d76
       pullPolicy: Always
 
     resources:
@@ -37,10 +37,11 @@ spec:
           - security
           - shared
         tools:
-          mise:
+          nix:
             - nmap
             - whois
             - dnsutils
+          mise:
             - shodan
         nats:
           url: nats://nats.database.svc:4222
