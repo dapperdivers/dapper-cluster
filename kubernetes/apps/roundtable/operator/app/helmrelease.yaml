@@ -41,6 +41,9 @@ spec:
             - nmap
             - whois
             - dnsutils
+            - netcat-gnu
+            - file
+            - python3
           mise:
             - shodan
         nats:
@@ -85,6 +88,12 @@ spec:
           - shared
           - research
           - intel
+        tools:
+          nix:
+            - whois
+            - dnsutils
+            - wget
+            - lynx
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -126,6 +135,9 @@ spec:
         skills:
           - shared
           - home
+        tools:
+          nix:
+            - python3
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -166,6 +178,10 @@ spec:
         skills:
           - shared
           - career
+        tools:
+          nix:
+            - python3
+            - lynx
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -210,6 +226,10 @@ spec:
         tools:
           nix:
             - gnuplot
+            - bc
+            - sqlite
+            - units
+            - dateutils
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -256,6 +276,8 @@ spec:
             - kubernetes-helm
             - stern
             - k9s
+            - fluxcd
+            - nmap
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -296,6 +318,11 @@ spec:
         skills:
           - shared
           - vault
+        tools:
+          nix:
+            - tree
+            - bat
+            - delta
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -332,6 +359,11 @@ spec:
         image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
         skills:
           - shared
+        tools:
+          nix:
+            - nmap
+            - netcat-gnu
+            - yq
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -379,6 +411,12 @@ spec:
             - dnsutils
             - nikto
             - gobuster
+            - ffuf
+            - masscan
+            - testssl
+            - feroxbuster
+            - socat
+            - tcpdump
         nats:
           url: nats://nats.database.svc:4222
           subjects:
@@ -421,6 +459,10 @@ spec:
         tools:
           nix:
             - python3
+            - sqlite
+            - bc
+            - units
+            - pandoc
         nats:
           url: nats://nats.database.svc:4222
           subjects:
