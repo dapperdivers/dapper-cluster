@@ -19,7 +19,7 @@ spec:
       serviceAccountName: roundtable-dashboard
       containers:
         - name: dashboard
-          image: ghcr.io/dapperdivers/roundtable-ui:c4392a17f2af1af17d8074942d6c83db41136d65
+          image: ghcr.io/dapperdivers/roundtable-ui:ed22fb58e2abd0c66f382cf3e77e2399d19f705d
           ports:
             - name: http
               containerPort: 8080
@@ -103,6 +103,9 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["ai.roundtable.io"]
+    resources: ["chains", "missions", "roundtables", "knights"]
     verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
