@@ -22,3 +22,4 @@ resources:
   - ./gareth/ks.yaml
   - ./operator/ks.yaml
   - ./dashboard/ks.yaml
+  - ./chains/ks.yaml

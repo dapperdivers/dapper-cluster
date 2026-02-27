@@ -1,0 +1,57 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: morning-briefing
+  namespace: ai
+spec:
+  description: "Daily morning mission briefing — gather intel from all domains, synthesize, publish"
+  timeout: 600
+  retryPolicy:
+    maxRetries: 1
+    backoffSeconds: 30
+  steps:
+    - name: security-intel
+      knightRef: galahad
+      task: "Provide a brief security status: any active threats, new CVEs affecting our stack, or alerts from the last 24h. Keep it concise — 3 sentences max."
+      timeout: 120
+
+    - name: infra-status
+      knightRef: tristan
+      task: "Quick infrastructure status: cluster health, any pods failing, resource pressure, or deployment issues in the last 24h. 3 sentences max."
+      timeout: 120
+
+    - name: home-tasks
+      knightRef: bedivere
+      task: "What home/family tasks need attention today? Check nursery prep, baby shower items, any upcoming deadlines. 3 sentences max."
+      timeout: 120
+
+    - name: finance-check
+      knightRef: percival
+      task: "Any financial items needing immediate attention? Tax deadlines, bill due dates, budget alerts. 3 sentences max."
+      timeout: 120
+
+    - name: career-update
+      knightRef: lancelot
+      task: "Career status update: any pending applications, interview feedback expected, or action items. 3 sentences max."
+      timeout: 120
+
+    - name: synthesize
+      knightRef: gawain
+      task: |
+        Compile a morning mission briefing from these knight reports. Lead with ACTION ITEMS, then summarize each domain.
+
+        Security: {{ .Steps.security-intel.Output }}
+        Infrastructure: {{ .Steps.infra-status.Output }}
+        Home: {{ .Steps.home-tasks.Output }}
+        Finance: {{ .Steps.finance-check.Output }}
+        Career: {{ .Steps.career-update.Output }}
+
+        Write the briefing to /vault/Briefings/Daily/morning-briefing-latest.md
+      dependsOn:
+        - security-intel
+        - infra-status
+        - home-tasks
+        - finance-check
+        - career-update
+      timeout: 180
