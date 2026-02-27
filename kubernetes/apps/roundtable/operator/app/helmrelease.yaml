@@ -37,11 +37,10 @@ spec:
           - security
           - shared
         tools:
-          nix:
+          mise:
             - nmap
             - whois
             - dnsutils
-          mise:
             - shodan
         nats:
           url: nats://nats.database.svc:4222
