@@ -19,7 +19,7 @@ spec:
       serviceAccountName: roundtable-dashboard
       containers:
         - name: dashboard
-          image: ghcr.io/dapperdivers/roundtable-ui:ed22fb58e2abd0c66f382cf3e77e2399d19f705d
+          image: ghcr.io/dapperdivers/roundtable-ui:cedbd65c7ffc89b5517b90d446ba1a051b129396
           ports:
             - name: http
               containerPort: 8080
