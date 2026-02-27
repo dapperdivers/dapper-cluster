@@ -186,6 +186,37 @@ spec:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
+  name: daily-gawain-briefing
+  namespace: roundtable
+spec:
+  schedule: "45 11 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.19.3
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$$(date +%Y-%m-%d)
+                  VAULT_PATH="/vault/Briefings/Daily/$${TODAY}.md"
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.orchestration.morning-briefing-$${TODAY}" \
+                    "{\"from\":\"cron\",\"task_id\":\"morning-briefing-$${TODAY}\",\"domain\":\"orchestration\",\"task\":\"MORNING MISSION BRIEFING — You are the orchestrator. Collect, cross-reference, and synthesize all knight daily reports into one unified briefing.\n\nPhase 1: READ knight vault reports (they wrote these 45 min ago):\n- /vault/Briefings/Security/$${TODAY}.md (Galahad)\n- /vault/Briefings/Intel/$${TODAY}.md (Kay)\n- /vault/Briefings/HomeLab/$${TODAY}.md (Tristan)\n- /vault/Briefings/Finance/$${TODAY}.md (Percival)\n- /vault/Briefings/Career/$${TODAY}.md (Lancelot)\n- /vault/Briefings/Home/$${TODAY}.md (Bedivere)\nNote which knights reported and which are missing.\n\nPhase 2: CROSS-REFERENCE using nats_request:\n- If Galahad reported CVEs, ask Tristan: 'Check if our cluster runs [affected products]. Do not delegate.'\n- If Tristan reported anomalies, ask Galahad: 'Any known attack patterns match [anomalies]? Do not delegate.'\n- If Percival flagged bills due <48h, flag as action item.\n- Only chain if there's something worth cross-referencing. Don't chain for the sake of it.\n\nPhase 3: WRITE unified briefing to $${VAULT_PATH} with frontmatter (date, type: daily-briefing, knights_reported, etc).\n\nPhase 4: Your NATS result text becomes the Discord delivery. Structure as:\n1. Action Items (needs Derek's attention)\n2. Chain Insights (cross-reference findings)\n3. Knight Summaries (brief per-knight highlights)\n4. Status (reported/missing, total cost)\n\nLead with what MATTERS. Derek should know what to DO, not what to KNOW.\n\nDo not delegate to other knights except for cross-reference chains described above. Today is $${TODAY}.\",\"run_id\":\"morning-briefing-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"morning-briefing\",\"timeout_ms\":600000}}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
   name: daily-lancelot
   namespace: roundtable
 spec:
