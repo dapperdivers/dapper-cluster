@@ -41,7 +41,7 @@ spec:
     ref: main
     period: "300s"
   workspace:
-    existingClaim: agravain
+    size: "1Gi"
   resources:
     memory: "1Gi"
     cpu: "1"
