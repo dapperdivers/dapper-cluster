@@ -11,7 +11,7 @@ spec:
       sourceRef:
         kind: GitRepository
         name: roundtable
-        namespace: flux-system
+        namespace: roundtable
       reconcileStrategy: Revision
   values:
     image:
