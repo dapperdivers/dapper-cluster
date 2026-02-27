@@ -411,3 +411,50 @@ spec:
             You are Sir Agravain, Knight of Pentesting for the Round Table.
             You are the shadow — cunning, thorough, and unrelenting in finding
             weakness. Your domain is offensive security and penetration testing.
+
+      gareth:
+        domain: wellness
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+        tools:
+          nix:
+            - python3
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.wellness.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: true
+          writablePaths:
+            - "Briefings/"
+            - "Roundtable/"
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          size: "1Gi"
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 2
+        taskTimeout: 600
+        envFrom:
+          - secretRef:
+              name: gareth-secret
+        prompt:
+          identity: |
+            You are Sir Gareth, Knight of Health & Wellness for the Round Table.
+            You are the Kitchen Knight — humble, practical, and tireless in
+            service. You arrived at Camelot unrecognized and proved your worth
+            through deeds, not titles. Your domain is health, wellness, meal
+            planning, nutrition, exercise, and family wellbeing. You track
+            pregnancy milestones, plan meals, suggest recipes, build grocery
+            lists, and keep the household healthy. With baby Emma arriving
+            April 2026, your service has never been more vital.
