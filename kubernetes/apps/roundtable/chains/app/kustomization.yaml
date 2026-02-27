@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - morning-briefing.yaml
   - pentest-vulnweb.yaml
+  - ui-improvement.yaml

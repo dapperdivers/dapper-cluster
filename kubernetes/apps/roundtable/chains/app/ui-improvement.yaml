@@ -1,0 +1,67 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: ui-self-improvement
+  namespace: ai
+spec:
+  description: "Recursive self-improvement — knights analyze and fix the Round Table UI"
+  timeout: 1200
+  steps:
+    - name: ui-audit
+      knightRef: tristan
+      task: |
+        Analyze the Round Table UI codebase for shortcomings. The repo is at /vault/Roundtable/roundtable-ui/.
+        Check the Go API (api/main.go) and React frontend (ui/src/).
+        Focus on:
+        - Missing error handling
+        - Performance issues
+        - Missing features that would improve observability
+        - API endpoints that return incomplete data
+        - UI components that could be more useful
+        List the top 10 issues by impact.
+      timeout: 180
+
+    - name: security-review
+      knightRef: galahad
+      task: |
+        Security review the Round Table UI. Check for:
+        - Missing authentication/authorization
+        - CORS issues
+        - Input validation gaps
+        - Exposed sensitive data in API responses
+        - Missing rate limiting
+        List findings with severity.
+      timeout: 180
+
+    - name: ux-review
+      knightRef: kay
+      task: |
+        Review the Round Table UI from a UX perspective. It's an observability platform for an AI agent fleet.
+        Current pages: Fleet Status, Quests (task dispatch), Message Flow (network graph), Chronicles (briefings).
+        What's missing? What would make this genuinely useful for monitoring AI agents?
+        Think about: real-time feedback, cost visibility, error surfacing, session drill-down.
+        Give 10 concrete improvement suggestions ranked by value.
+      timeout: 180
+
+    - name: synthesize-plan
+      knightRef: gawain
+      task: |
+        You are the project manager. Compile these reviews into an actionable improvement plan:
+
+        Infrastructure/Code Audit: {{ .Steps.ui-audit.Output }}
+        Security Review: {{ .Steps.security-review.Output }}
+        UX Review: {{ .Steps.ux-review.Output }}
+
+        Create GitHub issues for the top improvements. Group them into:
+        1. Quick wins (< 1 hour each)
+        2. Medium effort (1-4 hours)
+        3. Major features (> 4 hours)
+
+        For each, write a clear issue title and description.
+        Create the issues in dapperdivers/roundtable-ui using the gh CLI.
+      dependsOn:
+        - ui-audit
+        - security-review
+        - ux-review
+      timeout: 300
