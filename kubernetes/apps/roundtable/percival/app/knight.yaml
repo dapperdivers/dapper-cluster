@@ -6,7 +6,7 @@ metadata:
 spec:
   domain: finance
   model: "anthropic/claude-sonnet-4-5"
-  image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+  image: "ghcr.io/dapperdivers/pi-knight:99ba67a6fd68349832233ed31d12e06219ee018f"
   skills:
     - shared
     - finance
