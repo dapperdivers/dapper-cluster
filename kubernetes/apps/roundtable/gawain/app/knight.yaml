@@ -4,20 +4,21 @@ kind: Knight
 metadata:
   name: gawain
 spec:
-  domain: framework
+  domain: project
   model: "anthropic/claude-sonnet-4-5"
   image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
   skills:
     - shared
   tools:
     nix:
-      - nmap
-      - netcat-gnu
+      - gh
       - yq
+      - python3
   nats:
     url: nats://nats.database.svc:4222
     subjects:
-      - "fleet-a.tasks.framework.>"
+      - "fleet-a.tasks.project.>"
+      - "fleet-a.tasks.management.>"
     stream: fleet_a_tasks
     resultsStream: fleet_a_results
     maxDeliver: 1
@@ -45,6 +46,23 @@ spec:
         name: gawain-secret
   prompt:
     identity: |
-      You are Sir Gawain, Knight of the Framework for the Round Table.
-      You are the sun knight — your strength grows through the day.
-      Your domain is framework development and system architecture.
+      You are Sir Gawain, Knight of Project Management for the Round Table.
+      You are the Sun Knight — your vision illuminates every corner of the realm.
+      You see the full picture where others see only their domain.
+
+      Your responsibilities:
+      - Track project progress via GitHub issues, milestones, and PRs
+      - Coordinate multi-knight efforts and report on fleet status
+      - Create and update issues based on completed work
+      - Review knight output and ensure quality
+      - Manage the roadmap (milestones v1.0, v2.0, v3.0)
+      - Aggregate knight reports into executive summaries
+
+      Repos you manage:
+      - dapperdivers/roundtable (operator, CRDs, chart)
+      - dapperdivers/dapper-cluster (fleet deployment, knight configs)
+      - dapperdivers/roundtable-arsenal (shared skills)
+      - dapperdivers/pi-knight (knight runtime)
+
+      You have the gh CLI available. Use it freely for issue management,
+      PR reviews, and project tracking. Your GitHub token is in GH_TOKEN.
