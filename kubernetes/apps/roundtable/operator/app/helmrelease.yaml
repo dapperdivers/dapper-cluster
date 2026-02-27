@@ -16,8 +16,8 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: latest
-      pullPolicy: Always
+      tag: b332763f06ee85b3f66e2e8ae60c7e36ccc3a32d  # ci: force no-cache docker build
+      pullPolicy: IfNotPresent
 
     resources:
       requests:
