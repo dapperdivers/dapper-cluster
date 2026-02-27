@@ -10,6 +10,8 @@ resources:
   - default-deny-selfhosted.yaml
   - default-deny-ai.yaml
   - default-deny-roundtable.yaml
+  - default-deny-media.yaml
+  - default-deny-observability.yaml
   # App-specific allow policies
   - allow-database-clients.yaml
   - allow-security-apps.yaml
@@ -17,6 +19,8 @@ resources:
   - allow-selfhosted-apps.yaml
   - allow-ai-apps.yaml
   - allow-roundtable.yaml
+  - allow-media-apps.yaml
+  - allow-observability-apps.yaml
   # Cross-cutting
   - allow-dns.yaml
   - allow-ingress-controllers.yaml
