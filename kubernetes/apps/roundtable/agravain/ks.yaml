@@ -6,6 +6,7 @@ metadata:
   name: &app agravain
   namespace: &namespace roundtable
 spec:
+  suspend: true
   targetNamespace: *namespace
   commonMetadata:
     labels:

@@ -158,3 +158,256 @@ spec:
             You are Sir Bedivere, Knight of the Household for the Round Table.
             You are the loyal marshal — practical, organized, and dependable.
             Your domain is home management, life admin, and household projects.
+
+      lancelot:
+        domain: career
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+          - career
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.career.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: true
+          writablePaths:
+            - "Briefings/"
+            - "Roundtable/"
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          existingClaim: lancelot
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 2
+        taskTimeout: 1800
+        envFrom:
+          - secretRef:
+              name: lancelot-secret
+        prompt:
+          identity: |
+            You are Sir Lancelot, Knight of Career for the Round Table.
+            You are the champion — bold, strategic, and relentless in pursuit
+            of excellence. Your domain is career development, interview prep,
+            and professional growth.
+
+      percival:
+        domain: finance
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+          - finance
+        tools:
+          nix:
+            - gnuplot
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.finance.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: true
+          writablePaths:
+            - "Briefings/"
+            - "Roundtable/"
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          existingClaim: percival
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 2
+        taskTimeout: 1800
+        envFrom:
+          - secretRef:
+              name: percival-secret
+        prompt:
+          identity: |
+            You are Sir Percival, Knight of Finance for the Round Table.
+            You are the seeker — methodical, trustworthy, and precise with
+            numbers. Your domain is financial planning, tax prep, and budgeting.
+
+      tristan:
+        domain: infra
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+          - infra
+        tools:
+          nix:
+            - kubectl
+            - kubernetes-helm
+            - stern
+            - k9s
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.infra.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: true
+          writablePaths:
+            - "Briefings/"
+            - "Roundtable/"
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          existingClaim: tristan
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 2
+        taskTimeout: 1800
+        envFrom:
+          - secretRef:
+              name: tristan-secret
+        prompt:
+          identity: |
+            You are Sir Tristan, Knight of Infrastructure for the Round Table.
+            You are the ranger — tireless, observant, and master of the wilds.
+            Your domain is HomeLab, Kubernetes, and cluster operations.
+
+      patsy:
+        domain: vault
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+          - vault
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.vault.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: false
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          existingClaim: patsy
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 2
+        taskTimeout: 1800
+        envFrom:
+          - secretRef:
+              name: patsy-secret
+        prompt:
+          identity: |
+            You are Patsy, the loyal coconut carrier of the Round Table.
+            You are NOT a knight — you are the curator, the organizer, the
+            one who cleans up after everyone. Full write access to the vault.
+
+      gawain:
+        domain: framework
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.framework.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: true
+          writablePaths:
+            - "Briefings/"
+            - "Roundtable/"
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          existingClaim: gawain
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 2
+        taskTimeout: 1800
+        envFrom:
+          - secretRef:
+              name: gawain-secret
+        prompt:
+          identity: |
+            You are Sir Gawain, Knight of the Framework for the Round Table.
+            You are the sun knight — your strength grows through the day.
+            Your domain is framework development and system architecture.
+
+      agravain:
+        domain: pentest
+        model: "anthropic/claude-sonnet-4-5"
+        image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+        skills:
+          - shared
+          - pentest
+        tools:
+          nix:
+            - nmap
+            - whois
+            - dnsutils
+            - nikto
+            - gobuster
+        nats:
+          url: nats://nats.database.svc:4222
+          subjects:
+            - "fleet-a.tasks.pentest.>"
+          stream: fleet_a_tasks
+          resultsStream: fleet_a_results
+          maxDeliver: 1
+        vault:
+          claimName: roundtable-vault
+          readOnly: true
+          writablePaths:
+            - "Briefings/"
+            - "Roundtable/"
+        arsenal:
+          repo: "https://github.com/dapperdivers/roundtable-arsenal"
+          ref: main
+          period: "300s"
+        workspace:
+          existingClaim: agravain
+        resources:
+          memory: "1Gi"
+          cpu: "1"
+        concurrency: 1
+        taskTimeout: 1800
+        envFrom:
+          - secretRef:
+              name: agravain-secret
+        prompt:
+          identity: |
+            You are Sir Agravain, Knight of Pentesting for the Round Table.
+            You are the shadow — cunning, thorough, and unrelenting in finding
+            weakness. Your domain is offensive security and penetration testing.

@@ -5,6 +5,7 @@ metadata:
   name: &app patsy
   namespace: &namespace roundtable
 spec:
+  suspend: true
   targetNamespace: *namespace
   commonMetadata:
     labels:
