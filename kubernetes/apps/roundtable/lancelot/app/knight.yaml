@@ -32,7 +32,7 @@ spec:
     ref: main
     period: "300s"
   workspace:
-    size: "1Gi"
+    existingClaim: lancelot
   resources:
     memory: "1Gi"
     cpu: "1"

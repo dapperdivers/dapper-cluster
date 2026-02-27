@@ -36,7 +36,7 @@ spec:
     ref: main
     period: "300s"
   workspace:
-    size: "1Gi"
+    existingClaim: tristan
   resources:
     memory: "1Gi"
     cpu: "1"
