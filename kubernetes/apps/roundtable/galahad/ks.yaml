@@ -6,6 +6,7 @@ metadata:
   name: &app galahad
   namespace: &namespace roundtable
 spec:
+  suspend: true  # MIGRATION: Operator-managed via roundtable-operator Knight CR
   targetNamespace: *namespace
   commonMetadata:
     labels:
