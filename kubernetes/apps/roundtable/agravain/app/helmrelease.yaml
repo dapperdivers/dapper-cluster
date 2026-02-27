@@ -235,6 +235,7 @@ spec:
       vault:
         enabled: true
         existingClaim: roundtable-vault
+        readOnly: false
         advancedMounts:
           agravain:
             app:
