@@ -12,6 +12,8 @@ spec:
   dependsOn:
     - name: external-secrets-stores
       namespace: external-secrets
+    - name: roundtable-secrets
+    - name: roundtable-operator
   path: ./kubernetes/apps/roundtable/gawain/app
   prune: true
   sourceRef:

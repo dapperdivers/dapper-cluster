@@ -10,8 +10,8 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: external-secrets-stores
-      namespace: external-secrets
+    - name: roundtable-secrets
+    - name: roundtable-operator
   path: ./kubernetes/apps/roundtable/tristan/app
   prune: true
   sourceRef:

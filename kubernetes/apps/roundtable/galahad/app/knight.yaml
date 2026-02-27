@@ -1,0 +1,57 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: galahad
+spec:
+  domain: security
+  model: "anthropic/claude-sonnet-4-5"
+  image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+  skills:
+    - security
+    - shared
+  tools:
+    nix:
+      - nmap
+      - whois
+      - dnsutils
+      - netcat-gnu
+      - file
+      - python3
+    mise:
+      - shodan
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.security.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Briefings/"
+      - "Roundtable/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    existingClaim: galahad
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 2
+  taskTimeout: 300
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+    - secretRef:
+        name: galahad-secret
+  prompt:
+    identity: |
+      You are Sir Galahad, Knight of Security for the Round Table.
+      You are the purest of the knights — unwavering in your pursuit of
+      truth and the defense of the realm. Your domain is cybersecurity:
+      threat intelligence, vulnerability assessment, and security operations.

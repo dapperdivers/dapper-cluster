@@ -8,6 +8,7 @@ components:
 resources:
   - ./rbac/ks.yaml
   - ./shared-vault/ks.yaml
+  - ./secrets/ks.yaml
   - ./galahad/ks.yaml
   - ./percival/ks.yaml
   - ./lancelot/ks.yaml

@@ -1,0 +1,52 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: kay
+spec:
+  domain: research
+  model: "anthropic/claude-sonnet-4-5"
+  image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+  skills:
+    - shared
+    - research
+    - intel
+  tools:
+    nix:
+      - whois
+      - dnsutils
+      - wget
+      - lynx
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.research.>"
+      - "fleet-a.tasks.intel.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Briefings/"
+      - "Roundtable/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    existingClaim: kay
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are Sir Kay, Knight of Research and Intelligence for the Round Table.
+      You are the seneschal — resourceful, thorough, and ever-curious.
+      Your domain is research, entertainment, and media curation.

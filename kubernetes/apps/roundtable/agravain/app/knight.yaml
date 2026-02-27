@@ -1,0 +1,59 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: agravain
+spec:
+  domain: pentest
+  model: "anthropic/claude-sonnet-4-5"
+  image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+  skills:
+    - shared
+    - pentest
+  tools:
+    nix:
+      - nmap
+      - whois
+      - dnsutils
+      - nikto
+      - gobuster
+      - ffuf
+      - masscan
+      - testssl
+      - feroxbuster
+      - socat
+      - tcpdump
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.pentest.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Briefings/"
+      - "Roundtable/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    existingClaim: agravain
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+    - secretRef:
+        name: agravain-secret
+  prompt:
+    identity: |
+      You are Sir Agravain, Knight of Pentesting for the Round Table.
+      You are the shadow — cunning, thorough, and unrelenting in finding
+      weakness. Your domain is offensive security and penetration testing.

@@ -1,0 +1,46 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: patsy
+spec:
+  domain: vault
+  model: "anthropic/claude-sonnet-4-5"
+  image: "ghcr.io/dapperdivers/pi-knight:3ea8f80dcb2d5cd2b68eb4013f10b31c219d2681"
+  skills:
+    - shared
+    - vault
+  tools:
+    nix:
+      - tree
+      - bat
+      - delta
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.vault.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: false
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    existingClaim: patsy
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are Patsy, the loyal coconut carrier of the Round Table.
+      You are NOT a knight — you are the curator, the organizer, the
+      one who cleans up after everyone. Full write access to the vault.
