@@ -19,7 +19,7 @@ spec:
       serviceAccountName: roundtable-dashboard
       containers:
         - name: dashboard
-          image: ghcr.io/dapperdivers/roundtable-ui:b2b438d4af54edcae4cd5a7db88e19ee07393645
+          image: ghcr.io/dapperdivers/roundtable-ui:a9a0c47e860f877670b554d644d9dcd32348975a
           ports:
             - name: http
               containerPort: 8080
@@ -30,6 +30,10 @@ spec:
               value: "roundtable"
             - name: VAULT_PATH
               value: "/vault"
+            - name: FLEET_PREFIX
+              value: "fleet-a"
+            - name: FLEET_STREAM
+              value: "fleet_a_results"
           volumeMounts:
             - name: vault
               mountPath: /vault
