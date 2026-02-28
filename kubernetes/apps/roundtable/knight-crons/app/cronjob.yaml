@@ -1,8 +1,8 @@
 ---
 # Daily CronJobs for the Knights of the Round Table
-# Each knight publishes a NATS message at 5:00 AM CST (11:00 UTC) to trigger their daily report.
-# Knights: Galahad (security), Kay (research), Bedivere (home),
-#          Tristan (infra), Percival (finance), Lancelot (career)
+# Knights staggered 3 min apart starting 5:00 AM CST (11:00 UTC) to avoid API thundering herd.
+# Schedule: Galahad 11:00, Kay 11:03, Tristan 11:06, Percival 11:09,
+#           Bedivere 11:12, Lancelot 11:15, Gawain briefing 11:50
 #
 # ARCHITECTURE:
 #   CronJob → NATS pub (task) → pi-knight processes → writes vault file + publishes result
@@ -65,7 +65,7 @@ metadata:
   name: daily-kay
   namespace: roundtable
 spec:
-  schedule: "0 11 * * *"
+  schedule: "3 11 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -96,7 +96,7 @@ metadata:
   name: daily-bedivere
   namespace: roundtable
 spec:
-  schedule: "0 11 * * *"
+  schedule: "12 11 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -127,7 +127,7 @@ metadata:
   name: daily-tristan
   namespace: roundtable
 spec:
-  schedule: "0 11 * * *"
+  schedule: "6 11 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -158,7 +158,7 @@ metadata:
   name: daily-percival
   namespace: roundtable
 spec:
-  schedule: "0 11 * * *"
+  schedule: "9 11 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -189,7 +189,7 @@ metadata:
   name: daily-gawain-briefing
   namespace: roundtable
 spec:
-  schedule: "45 11 * * *"
+  schedule: "50 11 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -220,7 +220,7 @@ metadata:
   name: daily-lancelot
   namespace: roundtable
 spec:
-  schedule: "0 11 * * *"
+  schedule: "15 11 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
