@@ -5,7 +5,7 @@ metadata:
   name: &app roundtable-chains
   namespace: roundtable
 spec:
-  targetNamespace: ai
+  targetNamespace: roundtable
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app

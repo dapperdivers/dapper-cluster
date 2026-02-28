@@ -3,7 +3,7 @@ apiVersion: ai.roundtable.io/v1alpha1
 kind: Chain
 metadata:
   name: morning-briefing
-  namespace: ai
+  namespace: roundtable
 spec:
   description: "Daily morning mission briefing — gather intel from all domains, synthesize, publish"
   timeout: 600
