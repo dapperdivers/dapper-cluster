@@ -26,3 +26,25 @@ spec:
       limits:
         cpu: 200m
         memory: 128Mi
+
+    # Centralized image tags — bump here, everything updates
+    images:
+      piKnight:
+        repository: ghcr.io/dapperdivers/pi-knight
+        tag: 63affd54c0004f7282c62bc2c832d0dc9a2436e6
+      dashboard:
+        repository: ghcr.io/dapperdivers/roundtable-ui
+        tag: 6bc6f4aba6e1e19db98b50f19e0aabecbe2a24e5
+
+    # Dashboard — Round Table observability platform
+    dashboard:
+      enabled: true
+      ingress:
+        enabled: true
+        className: internal
+        host: "roundtable.${SECRET_DOMAIN}"
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      vault:
+        enabled: true
+        claimName: roundtable-vault
