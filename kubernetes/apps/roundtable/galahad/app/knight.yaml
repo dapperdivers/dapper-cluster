@@ -18,8 +18,7 @@ spec:
       - netcat-gnu
       - file
       - python3
-    mise:
-      - shodan
+    # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222
     subjects:
