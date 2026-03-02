@@ -6,7 +6,6 @@ metadata:
 spec:
   domain: pentest
   model: "anthropic/claude-sonnet-4-5"
-  image: "ghcr.io/dapperdivers/pi-knight:63affd54c0004f7282c62bc2c832d0dc9a2436e6"
   skills:
     - shared
     - pentest
