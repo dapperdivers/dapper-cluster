@@ -1,8 +1,8 @@
 ---
 # Daily CronJobs for the Knights of the Round Table
-# Knights staggered 3 min apart starting 5:00 AM CST (11:00 UTC) to avoid API thundering herd.
-# Schedule: Galahad 11:00, Kay 11:03, Tristan 11:06, Percival 11:09,
-#           Bedivere 11:12, Lancelot 11:15, Gawain briefing 11:50
+# Each knight publishes a NATS message at 5:00 AM CST (11:00 UTC) to trigger their daily report.
+# Knights: Galahad (security), Kay (research), Bedivere (home),
+#          Tristan (infra), Percival (finance), Lancelot (career)
 #
 # ARCHITECTURE:
 #   CronJob → NATS pub (task) → pi-knight processes → writes vault file + publishes result
@@ -26,7 +26,7 @@ metadata:
   name: daily-galahad
   namespace: roundtable
 spec:
-  schedule: "0 11 * * *"
+  schedule: "0 11 * * *"  # 5:00 AM CST
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -47,7 +47,7 @@ spec:
                   TODAY=$$(date +%Y-%m-%d)
                   DOW=$$(date +%u)
                   VAULT_PATH="/vault/Briefings/Security/$${TODAY}.md"
-                  CONTRACT="VAULT WRITE STATUS: /vault/Briefings/ IS WRITABLE. If you previously encountered read-only errors, that has been fixed. Always attempt vault writes — do NOT skip based on prior session memory. MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). Verify the write succeeded (ls -la the file). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message."
+                  CONTRACT="MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message."
                   case $$DOW in
                     1) MODE="weekend-review"; TIMEOUT=3600000; DESC="Generate a WEEKEND REVIEW covering the last 72 hours. Focus on attacks launched over the weekend, Friday evening vulnerability dumps, and Monday-morning-relevant advisories. Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/." ;;
                     5) MODE="weekly-summary"; TIMEOUT=3600000; DESC="Generate a WEEKLY SUMMARY with trend analysis. Review the full week of threat intelligence. Include platform growth stats, top CVEs by severity, most active threat feeds, and whether threat volume is increasing or decreasing. Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/." ;;
@@ -65,7 +65,7 @@ metadata:
   name: daily-kay
   namespace: roundtable
 spec:
-  schedule: "3 11 * * *"
+  schedule: "3 11 * * *"  # 5:03 AM CST
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -88,7 +88,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.research.daily-$${TODAY}-kay" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-kay\",\"domain\":\"research\",\"task\":\"VAULT WRITE STATUS: /vault/Briefings/ IS WRITABLE. If you previously encountered read-only errors, that has been fixed. Always attempt vault writes. MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). Verify the write succeeded (ls -la the file). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-intel-digest skill to generate today's intelligence digest. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":900000}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-kay\",\"domain\":\"research\",\"task\":\"MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-intel-digest skill to generate today's intelligence digest. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":900000}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -96,7 +96,7 @@ metadata:
   name: daily-bedivere
   namespace: roundtable
 spec:
-  schedule: "12 11 * * *"
+  schedule: "6 11 * * *"  # 5:06 AM CST
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -119,7 +119,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.home.daily-$${TODAY}-bedivere" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-bedivere\",\"domain\":\"home\",\"task\":\"VAULT WRITE STATUS: /vault/Briefings/ IS WRITABLE. If you previously encountered read-only errors, that has been fixed. Always attempt vault writes. MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). Verify the write succeeded (ls -la the file). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-home-report skill to generate today's household briefing. Keep the report focused and concise — do not spend excessive time gathering data. If a data source is unavailable, note it and move on. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-bedivere\",\"domain\":\"home\",\"task\":\"MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-home-report skill to generate today's household briefing. Keep the report focused and concise — do not spend excessive time gathering data. If a data source is unavailable, note it and move on. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -127,7 +127,7 @@ metadata:
   name: daily-tristan
   namespace: roundtable
 spec:
-  schedule: "6 11 * * *"
+  schedule: "9 11 * * *"  # 5:09 AM CST
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -150,7 +150,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.infra.daily-$${TODAY}-tristan" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-tristan\",\"domain\":\"infra\",\"task\":\"VAULT WRITE STATUS: /vault/Briefings/ IS WRITABLE. If you previously encountered read-only errors, that has been fixed. Always attempt vault writes. MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). Verify the write succeeded (ls -la the file). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-ops-report skill to generate today's infrastructure report. Use the cluster-health scripts at /skills/infra/daily-ops-report/scripts/ if available. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-tristan\",\"domain\":\"infra\",\"task\":\"MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-ops-report skill to generate today's infrastructure report. Use the cluster-health scripts at /skills/infra/daily-ops-report/scripts/ if available. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -158,7 +158,7 @@ metadata:
   name: daily-percival
   namespace: roundtable
 spec:
-  schedule: "9 11 * * *"
+  schedule: "12 11 * * *"  # 5:12 AM CST
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -181,38 +181,7 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.finance.daily-$${TODAY}-percival" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-percival\",\"domain\":\"finance\",\"task\":\"VAULT WRITE STATUS: /vault/Briefings/ IS WRITABLE. If you previously encountered read-only errors, that has been fixed. Always attempt vault writes. MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). Verify the write succeeded (ls -la the file). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-finance-report skill to generate today's financial briefing. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: daily-gawain-briefing
-  namespace: roundtable
-spec:
-  schedule: "50 11 * * *"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
-  jobTemplate:
-    spec:
-      backoffLimit: 2
-      ttlSecondsAfterFinished: 86400
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-            - name: nats-pub
-              image: natsio/nats-box:0.19.3
-              command:
-                - /bin/sh
-                - -c
-                - |
-                  TODAY=$$(date +%Y-%m-%d)
-                  VAULT_PATH="/vault/Briefings/Daily/$${TODAY}.md"
-                  nats pub \
-                    --server=nats://nats.database.svc:4222 \
-                    "fleet-a.tasks.orchestration.morning-briefing-$${TODAY}" \
-                    "{\"from\":\"cron\",\"task_id\":\"morning-briefing-$${TODAY}\",\"domain\":\"orchestration\",\"task\":\"MORNING MISSION BRIEFING — You are the orchestrator. Collect, cross-reference, and synthesize all knight daily reports into one unified briefing.\n\nPhase 1: READ knight vault reports (they wrote these 45 min ago):\n- /vault/Briefings/Security/$${TODAY}.md (Galahad)\n- /vault/Briefings/Intel/$${TODAY}.md (Kay)\n- /vault/Briefings/HomeLab/$${TODAY}.md (Tristan)\n- /vault/Briefings/Finance/$${TODAY}.md (Percival)\n- /vault/Briefings/Career/$${TODAY}.md (Lancelot)\n- /vault/Briefings/Home/$${TODAY}.md (Bedivere)\nNote which knights reported and which are missing.\n\nPhase 2: CROSS-REFERENCE using nats_request:\n- If Galahad reported CVEs, ask Tristan: 'Check if our cluster runs [affected products]. Do not delegate.'\n- If Tristan reported anomalies, ask Galahad: 'Any known attack patterns match [anomalies]? Do not delegate.'\n- If Percival flagged bills due <48h, flag as action item.\n- Only chain if there's something worth cross-referencing. Don't chain for the sake of it.\n\nPhase 3: WRITE unified briefing to $${VAULT_PATH} with frontmatter (date, type: daily-briefing, knights_reported, etc).\n\nPhase 4: Your NATS result text becomes the Discord delivery. Structure as:\n1. Action Items (needs Derek's attention)\n2. Chain Insights (cross-reference findings)\n3. Knight Summaries (brief per-knight highlights)\n4. Status (reported/missing, total cost)\n\nLead with what MATTERS. Derek should know what to DO, not what to KNOW.\n\nDo not delegate to other knights except for cross-reference chains described above. Today is $${TODAY}.\",\"run_id\":\"morning-briefing-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"morning-briefing\",\"timeout_ms\":600000}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-percival\",\"domain\":\"finance\",\"task\":\"MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-finance-report skill to generate today's financial briefing. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -220,7 +189,7 @@ metadata:
   name: daily-lancelot
   namespace: roundtable
 spec:
-  schedule: "15 11 * * *"
+  schedule: "15 11 * * *"  # 5:15 AM CST
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -243,4 +212,40 @@ spec:
                   nats pub \
                     --server=nats://nats.database.svc:4222 \
                     "fleet-a.tasks.career.daily-$${TODAY}-lancelot" \
-                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-lancelot\",\"domain\":\"career\",\"task\":\"VAULT WRITE STATUS: /vault/Briefings/ IS WRITABLE. If you previously encountered read-only errors, that has been fixed. Always attempt vault writes. MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). Verify the write succeeded (ls -la the file). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-career-report skill to generate today's career briefing. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
+                    "{\"from\":\"cron\",\"task_id\":\"daily-$${TODAY}-lancelot\",\"domain\":\"career\",\"task\":\"MANDATORY DELIVERABLES: 1) Write your full report as a markdown file to $${VAULT_PATH} — this is the PRIMARY output that Tim reads. Create the directory if needed (mkdir -p). 2) Follow the shared/daily-reports JSON contract for structuring your analysis. 3) Your final chat message should be a single status line like: Report written to $${VAULT_PATH} (X sections, Y highlights). Do NOT write a prose summary as your final message. Follow your daily-career-report skill to generate today's career briefing. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"daily\",\"timeout_ms\":600000}}"
+---
+# ── Gawain Morning Briefing Synthesis ──────────────────────────────
+# Runs 50 minutes after the first knight, reads vault files written by
+# all 6 domain knights, and produces a cross-referenced daily briefing.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: morning-briefing-synthesis
+  namespace: roundtable
+spec:
+  schedule: "50 11 * * *"  # 5:50 AM CST — after all knights finish
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: nats-pub
+              image: natsio/nats-box:0.19.3
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  TODAY=$$(date +%Y-%m-%d)
+                  DOW=$$(date +%u)
+                  VAULT_PATH="/vault/Briefings/Daily/$${TODAY}.md"
+                  SOURCES="Security: /vault/Briefings/Security/$${TODAY}.md | Intel: /vault/Briefings/Intel/$${TODAY}.md | HomeLab: /vault/Briefings/HomeLab/$${TODAY}.md | Finance: /vault/Briefings/Finance/$${TODAY}.md | Career: /vault/Briefings/Career/$${TODAY}.md | Home: /vault/Briefings/Home/$${TODAY}.md"
+                  nats pub \
+                    --server=nats://nats.database.svc:4222 \
+                    "fleet-a.tasks.orchestration.morning-briefing-$${TODAY}" \
+                    "{\"from\":\"cron\",\"task_id\":\"morning-briefing-$${TODAY}\",\"domain\":\"orchestration\",\"task\":\"MORNING BRIEFING SYNTHESIS — You are assembling today's Daily Briefing from 6 knight reports. Read each vault file and produce a cross-referenced synthesis. SOURCE FILES: $${SOURCES} — INSTRUCTIONS: 1) Read each source file that exists. Skip any that are missing (note which knights didn't report). 2) Extract the TOP 3 action items across ALL domains. Lead with these. 3) Cross-reference findings: Does a security CVE affect our infrastructure? Does a financial deadline impact family plans? Connect the dots between domains. 4) Flag any items that need Tim or Derek's immediate attention. 5) Write the synthesis to $${VAULT_PATH} with sections: ## Action Items, ## Cross-Domain Connections, ## Domain Summaries (one paragraph each), ## Missing Reports, ## Cost Summary. 6) Keep it under 500 lines. This is a BRIEFING not a novel. 7) Your final message should be: Briefing written to $${VAULT_PATH}. Today is $${TODAY}.\",\"run_id\":\"daily-$${TODAY}\",\"metadata\":{\"type\":\"scheduled\",\"schedule\":\"synthesis\",\"timeout_ms\":600000}}"
