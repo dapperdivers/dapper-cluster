@@ -6,19 +6,7 @@ namespace: roundtable
 components:
   - ../../flux/components/common
 resources:
-  - ./rbac/ks.yaml
-  - ./shared-vault/ks.yaml
-  - ./secrets/ks.yaml
-  - ./galahad/ks.yaml
-  - ./percival/ks.yaml
-  - ./lancelot/ks.yaml
-  - ./tristan/ks.yaml
-  - ./bedivere/ks.yaml
-  - ./kay/ks.yaml
-  - ./patsy/ks.yaml
-  - ./gawain/ks.yaml
-  - ./agravain/ks.yaml
-  - ./gareth/ks.yaml
-  - ./operator/ks.yaml
-  - ./chains/ks.yaml
-  # dashboard now managed by operator Helm chart (v0.2.0)
+  - ./infrastructure/ks.yaml   # RBAC, secrets, shared vault PV/PVC
+  - ./operator/ks.yaml         # Roundtable operator (manages Knight CRDs)
+  - ./knights/ks.yaml          # All 10 Knight CRs + per-knight secrets
+  - ./chains/ks.yaml           # Chain CRs (morning briefing, pentest, etc.)

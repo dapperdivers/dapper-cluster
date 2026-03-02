@@ -1,0 +1,21 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # Knight CRs
+  - galahad.yaml
+  - kay.yaml
+  - tristan.yaml
+  - bedivere.yaml
+  - percival.yaml
+  - lancelot.yaml
+  - patsy.yaml
+  - gawain.yaml
+  - agravain.yaml
+  - gareth.yaml
+  # Per-knight secrets (only knights with extra credentials)
+  - galahad-secret.yaml
+  - gawain-secret.yaml
+  - percival-secret.yaml
+  - bedivere-secret.yaml
+  - agravain-secret.yaml

@@ -2,19 +2,19 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app percival
-  namespace: &namespace roundtable
+  name: roundtable-knights
+  namespace: roundtable
 spec:
-  targetNamespace: *namespace
+  targetNamespace: roundtable
   commonMetadata:
     labels:
-      app.kubernetes.io/name: *app
+      app.kubernetes.io/name: roundtable-knights
   dependsOn:
-    - name: roundtable-secrets
+    - name: roundtable-infrastructure
     - name: roundtable-operator
     - name: external-secrets-stores
       namespace: external-secrets
-  path: ./kubernetes/apps/roundtable/percival/app
+  path: ./kubernetes/apps/roundtable/knights/app
   prune: true
   sourceRef:
     kind: GitRepository
