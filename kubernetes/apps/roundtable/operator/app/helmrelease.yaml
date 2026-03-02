@@ -31,10 +31,10 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/dapperdivers/pi-knight
-        tag: 63affd54c0004f7282c62bc2c832d0dc9a2436e6
+        tag: 76aecc045efbdf7b08daefcf6ca9281da0dc62f1
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
-        tag: 6bc6f4a0c3e957e379ad302b8f31eb248a52d2b4
+        tag: 1e2005fba740587085c3d77fafd6a6bd2dd63af0
 
     # Dashboard — Round Table observability platform
     dashboard:
