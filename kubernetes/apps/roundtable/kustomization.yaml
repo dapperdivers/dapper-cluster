@@ -18,7 +18,6 @@ resources:
   - ./patsy/ks.yaml
   - ./gawain/ks.yaml
   - ./agravain/ks.yaml
-  - ./knight-crons/ks.yaml
   - ./gareth/ks.yaml
   - ./operator/ks.yaml
   - ./chains/ks.yaml

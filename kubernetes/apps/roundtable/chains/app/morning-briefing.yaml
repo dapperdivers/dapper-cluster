@@ -5,53 +5,105 @@ metadata:
   name: morning-briefing
   namespace: roundtable
 spec:
-  description: "Daily morning mission briefing — gather intel from all domains, synthesize, publish"
-  timeout: 600
+  description: "Daily morning mission briefing — full domain reports, cross-referenced synthesis"
+  schedule: "0 11 * * *"  # 5:00 AM CST daily
+  timeout: 3600
   retryPolicy:
     maxRetries: 1
-    backoffSeconds: 30
+    backoffSeconds: 60
   steps:
+    # ── Phase 1: Parallel domain reports (all run simultaneously) ──
     - name: security-intel
       knightRef: galahad
-      task: "Provide a brief security status: any active threats, new CVEs affecting our stack, or alerts from the last 24h. Keep it concise — 3 sentences max."
-      timeout: 120
+      task: |
+        Generate your daily threat intelligence briefing. Cover the last 24 hours
+        of OpenCTI data including new indicators, vulnerabilities, malware, and reports.
+        Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/ if available.
+        Write your full report to /vault/Briefings/Security/ with today's date.
+        Return a concise summary via NATS with key findings and action items.
+      timeout: 600
+
+    - name: intel-digest
+      knightRef: kay
+      task: |
+        Generate today's intelligence digest. Research current events, technology news,
+        and anything relevant to Derek's interests (security, AI, homelab, career).
+        Write your full report to /vault/Briefings/Intel/ with today's date.
+        Return a concise summary via NATS with key findings.
+      timeout: 600
 
     - name: infra-status
       knightRef: tristan
-      task: "Quick infrastructure status: cluster health, any pods failing, resource pressure, or deployment issues in the last 24h. 3 sentences max."
-      timeout: 120
+      task: |
+        Generate today's infrastructure report. Check cluster health, node status,
+        failing pods, resource pressure, Flux reconciliation state, and any deployment
+        issues. Use the cluster-health scripts at /skills/infra/daily-ops-report/scripts/
+        if available.
+        Write your full report to /vault/Briefings/HomeLab/ with today's date.
+        Return a concise summary via NATS with key findings and action items.
+      timeout: 300
 
     - name: home-tasks
       knightRef: bedivere
-      task: "What home/family tasks need attention today? Check nursery prep, baby shower items, any upcoming deadlines. 3 sentences max."
-      timeout: 120
+      task: |
+        Generate today's household briefing. Check family calendar, upcoming events,
+        nursery prep status, baby countdown, and any home tasks needing attention.
+        Keep the report focused — if a data source is unavailable, note it and move on.
+        Write your full report to /vault/Briefings/Home/ with today's date.
+        Return a concise summary via NATS with action items.
+      timeout: 300
 
     - name: finance-check
       knightRef: percival
-      task: "Any financial items needing immediate attention? Tax deadlines, bill due dates, budget alerts. 3 sentences max."
-      timeout: 120
+      task: |
+        Generate today's financial briefing. Check for bill due dates, budget alerts,
+        tax deadlines, and any financial items needing immediate attention.
+        Write your full report to /vault/Briefings/Finance/ with today's date.
+        Return a concise summary via NATS with action items.
+      timeout: 300
 
     - name: career-update
       knightRef: lancelot
-      task: "Career status update: any pending applications, interview feedback expected, or action items. 3 sentences max."
-      timeout: 120
+      task: |
+        Generate today's career briefing. Check pending applications, interview
+        feedback expected, networking opportunities, and career action items.
+        Write your full report to /vault/Briefings/Career/ with today's date.
+        Return a concise summary via NATS with action items.
+      timeout: 300
 
+    # ── Phase 2: Gawain synthesizes all reports ──
     - name: synthesize
       knightRef: gawain
       task: |
-        Compile a morning mission briefing from these knight reports. Lead with ACTION ITEMS, then summarize each domain.
+        MORNING BRIEFING SYNTHESIS — Assemble today's Daily Briefing from 6 knight reports.
 
-        Security: {{ .Steps.security-intel.Output }}
-        Infrastructure: {{ .Steps.infra-status.Output }}
-        Home: {{ .Steps.home-tasks.Output }}
-        Finance: {{ .Steps.finance-check.Output }}
-        Career: {{ .Steps.career-update.Output }}
+        Knight summaries:
+        Security (Galahad): {{ .Steps.security-intel.Output }}
+        Intel (Kay): {{ .Steps.intel-digest.Output }}
+        Infrastructure (Tristan): {{ .Steps.infra-status.Output }}
+        Home (Bedivere): {{ .Steps.home-tasks.Output }}
+        Finance (Percival): {{ .Steps.finance-check.Output }}
+        Career (Lancelot): {{ .Steps.career-update.Output }}
 
-        Write the briefing to /vault/Briefings/Daily/morning-briefing-latest.md
+        Also read the full vault reports if they exist for additional detail:
+        /vault/Briefings/Security/, /vault/Briefings/Intel/, /vault/Briefings/HomeLab/,
+        /vault/Briefings/Home/, /vault/Briefings/Finance/, /vault/Briefings/Career/
+
+        INSTRUCTIONS:
+        1) Extract the TOP 3 action items across ALL domains. Lead with these.
+        2) Cross-reference findings: Does a security CVE affect our infrastructure?
+           Does a financial deadline impact family plans? Connect the dots.
+        3) Flag any items needing Tim or Derek's immediate attention.
+        4) Write the synthesis to /vault/Briefings/Daily/ with today's date.
+        5) Sections: ## Action Items, ## Cross-Domain Connections, ## Domain Summaries,
+           ## Missing Reports, ## Cost Summary.
+        6) Keep it under 500 lines. This is a BRIEFING not a novel.
+        7) Return a concise summary via NATS for Tim to relay to Derek.
       dependsOn:
         - security-intel
+        - intel-digest
         - infra-status
         - home-tasks
         - finance-check
         - career-update
-      timeout: 180
+      timeout: 300
