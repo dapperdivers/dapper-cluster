@@ -37,10 +37,8 @@ spec:
         tag: 6bc6f4aba6e1e19db98b50f19e0aabecbe2a24e5
 
     # Dashboard — Round Table observability platform
-    # DISABLED: GHCR package is private — Derek needs to make ghcr.io/dapperdivers/roundtable-ui public
-    # or add imagePullSecret. Re-enable once image is accessible.
     dashboard:
-      enabled: false
+      enabled: true
       ingress:
         enabled: true
         className: internal
