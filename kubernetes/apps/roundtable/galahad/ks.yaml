@@ -9,16 +9,11 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  components:
-    - ../../../../flux/components/volsync/repository
-    - ../../../../flux/components/volsync/operations
   dependsOn:
-    - name: volsync
-      namespace: storage
-    - name: external-secrets-stores
-      namespace: external-secrets
     - name: roundtable-secrets
     - name: roundtable-operator
+    - name: external-secrets-stores
+      namespace: external-secrets
   path: ./kubernetes/apps/roundtable/galahad/app
   prune: true
   sourceRef:
@@ -29,7 +24,3 @@ spec:
   interval: 30m
   retryInterval: 1m
   timeout: 5m
-  postBuild:
-    substitute:
-      APP: galahad
-      VOLSYNC_CAPACITY: 1Gi

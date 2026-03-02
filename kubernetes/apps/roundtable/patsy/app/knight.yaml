@@ -30,7 +30,7 @@ spec:
     ref: main
     period: "300s"
   workspace:
-    existingClaim: patsy
+    size: "1Gi"
   resources:
     memory: "1Gi"
     cpu: "1"
