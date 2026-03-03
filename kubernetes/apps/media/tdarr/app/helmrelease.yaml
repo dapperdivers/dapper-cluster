@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: ghcr.io/haveagitgat/tdarr
-              tag: 2.53.01@sha256:7ad37551996d25cf610da36810c10c5108c9496ad5b51a0982621967daca91d4
+              tag: 2.58.02@sha256:20a5656c4af4854e1877046294f77113f949d27e35940a9a65f231423d063207
             env:
               TZ: ${TIME_ZONE}
               PGID: 140
