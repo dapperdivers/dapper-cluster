@@ -10,7 +10,6 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: roundtable-crds
     - name: roundtable-operator
   path: ./kubernetes/apps/roundtable/chains/app
   prune: true

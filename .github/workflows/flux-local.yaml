@@ -42,9 +42,6 @@ jobs:
 
       - name: Run flux-local test
         uses: docker://ghcr.io/allenporter/flux-local:v8.1.0
-        # roundtable-operator HelmRelease chart is in external GitRepository;
-        # flux-local can't resolve it, causing 1 expected failure (208/209 pass).
-        continue-on-error: true
         with:
           args: >-
             test
