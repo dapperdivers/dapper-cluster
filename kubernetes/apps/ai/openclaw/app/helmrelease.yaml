@@ -132,7 +132,7 @@ spec:
           ha-mcp:
             image:
               repository: ghcr.io/homeassistant-ai/ha-mcp
-              tag: 6.5.0
+              tag: 6.7.1
             args:
               - fastmcp
               - run
