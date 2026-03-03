@@ -5,6 +5,7 @@ metadata:
   name: bedivere
 spec:
   domain: home
+  image: ""
   model: "anthropic/claude-sonnet-4-5"
   skills:
     - shared

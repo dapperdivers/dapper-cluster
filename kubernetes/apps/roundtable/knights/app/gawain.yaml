@@ -5,6 +5,7 @@ metadata:
   name: gawain
 spec:
   domain: project
+  image: ""
   model: "anthropic/claude-sonnet-4-5"
   skills:
     - shared

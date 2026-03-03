@@ -5,6 +5,7 @@ metadata:
   name: tristan
 spec:
   domain: infra
+  image: ""
   model: "anthropic/claude-sonnet-4-5"
   skills:
     - shared
