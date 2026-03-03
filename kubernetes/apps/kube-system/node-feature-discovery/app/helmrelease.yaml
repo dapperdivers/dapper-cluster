@@ -25,6 +25,13 @@ spec:
       strategy: rollback
       retries: 3
   values:
+    master:
+      config:
+        extraLabelNs:
+          - nvidia.feature.node.kubernetes.io
+          - ups.feature.node.kubernetes.io
+      extraArgs:
+        - -enable-leader-election=false
     worker:
       config:
         core:
