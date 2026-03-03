@@ -1,5 +1,8 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  // Use image creation date when releaseTimestamp is missing (common for GHCR images).
+  // Without this, minimumReleaseAge stays PENDING forever for images without timestamps.
+  minimumReleaseAgeBehaviour: "creation-date-only",
   packageRules: [
     // Exclude networking and storage packages from automerge
     {
