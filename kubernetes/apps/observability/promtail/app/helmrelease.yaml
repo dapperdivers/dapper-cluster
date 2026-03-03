@@ -35,7 +35,7 @@ spec:
         memory: 300Mi
       limits:
         cpu: 250m
-        memory: 400Mi
+        memory: 1Gi
     config:
       clients:
         - url: http://loki-headless.observability.svc.cluster.local:3100/loki/api/v1/push
