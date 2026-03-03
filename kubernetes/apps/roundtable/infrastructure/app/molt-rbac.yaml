@@ -1,0 +1,34 @@
+---
+# Allow molt (Tim) full access to roundtable namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: molt-knight-admin
+  namespace: roundtable
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec", "pods/log", "services", "configmaps", "secrets", "persistentvolumeclaims", "events"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: ["ai.roundtable.io"]
+    resources: ["knights", "chains", "missions", "roundtables"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: molt-knight-admin
+  namespace: roundtable
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: ai
+roleRef:
+  kind: Role
+  name: molt-knight-admin
+  apiGroup: rbac.authorization.k8s.io
