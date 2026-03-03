@@ -5,7 +5,6 @@ metadata:
   name: roundtable-infrastructure
   namespace: roundtable
 spec:
-  targetNamespace: roundtable
   commonMetadata:
     labels:
       app.kubernetes.io/name: roundtable-infrastructure
