@@ -32,6 +32,7 @@ spec:
     substitute:
       APP: *app
       VOLSYNC_CAPACITY: 5Gi
+      VOLSYNC_SCHEDULE: "15 * * * *"
       VOLSYNC_STORAGECLASS: cephfs-shared
       VOLSYNC_SNAPSHOTCLASS: cephfs-snapshot
       VOLSYNC_ACCESSMODES: ReadWriteMany
