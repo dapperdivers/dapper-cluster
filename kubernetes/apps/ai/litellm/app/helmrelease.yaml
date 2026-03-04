@@ -47,6 +47,7 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               STORE_MODEL_IN_DB: "True"
+              PRISMA_HOME: /tmp/prisma
             envFrom:
               - secretRef:
                   name: litellm-secret
@@ -127,6 +128,10 @@ spec:
           - path: /app/config.yaml
             subPath: config.yaml
             readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
 
     serviceMonitor:
       app:
