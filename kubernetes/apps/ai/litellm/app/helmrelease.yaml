@@ -49,6 +49,8 @@ spec:
               STORE_MODEL_IN_DB: "True"
               HOME: /tmp
               PRISMA_HOME: /tmp/prisma
+              PRISMA_BINARY_CACHE_DIR: /tmp/prisma
+              PRISMA_ENGINES_DIR: /tmp/prisma/engines
             envFrom:
               - secretRef:
                   name: litellm-secret
