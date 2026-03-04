@@ -13,9 +13,11 @@ resources:
   - gawain.yaml
   - agravain.yaml
   - gareth.yaml
+  - dagonet.yaml
   # Per-knight secrets (only knights with extra credentials)
   - galahad-secret.yaml
   - gawain-secret.yaml
   - percival-secret.yaml
   - bedivere-secret.yaml
   - agravain-secret.yaml
+  - dagonet-secret.yaml

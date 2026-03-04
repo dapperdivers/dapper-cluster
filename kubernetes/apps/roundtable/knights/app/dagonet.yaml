@@ -1,0 +1,31 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: dagonet
+spec:
+  domain: local-ai
+  image: ""
+  taskTimeout: 300
+  topics:
+    - "fleet-a.tasks.local.>"
+    - "fleet-a.tasks.general.>"
+  env:
+    # Point Anthropic SDK at LiteLLM proxy (translates to Ollama/qwen3:30b)
+    - name: ANTHROPIC_BASE_URL
+      value: "http://litellm.ai.svc.cluster.local:4000"
+    # Override the API key from roundtable-secret with LiteLLM master key
+    - name: ANTHROPIC_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: dagonet-secret
+          key: LITELLM_MASTER_KEY
+    # Use local model via LiteLLM routing
+    - name: ANTHROPIC_MODEL
+      value: "local/qwen3-30b"
+    - name: ANTHROPIC_SMALL_FAST_MODEL
+      value: "local/qwen3-30b"
+  workspace:
+    storageSize: 1Gi
+  arsenal:
+    skills: []
