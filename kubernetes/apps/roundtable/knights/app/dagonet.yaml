@@ -5,26 +5,21 @@ metadata:
   name: dagonet
 spec:
   domain: local-ai
-  image: ""
-  model: "anthropic/claude-sonnet-4-20250514"
+  image: "ghcr.io/dapperdivers/pi-knight:2cff18d3a7d93d3bf2b7de5e849dd4797ed119e8"
+  model: "openai/local-qwen3-30b"
   taskTimeout: 300
   skills:
     - shared
   env:
-    # Point Anthropic SDK at LiteLLM proxy (translates to Ollama/qwen3:30b)
-    - name: ANTHROPIC_BASE_URL
-      value: "http://litellm.ai.svc.cluster.local:4000"
-    # Override the API key from roundtable-secret with LiteLLM master key
-    - name: ANTHROPIC_API_KEY
+    # Route through OpenAI client → LiteLLM → Ollama/qwen3:30b
+    # (Anthropic Messages API translation loses content; OpenAI format works)
+    - name: OPENAI_BASE_URL
+      value: "http://litellm.ai.svc.cluster.local:4000/v1"
+    - name: OPENAI_API_KEY
       valueFrom:
         secretKeyRef:
           name: dagonet-secret
           key: LITELLM_MASTER_KEY
-    # Use local model via LiteLLM routing
-    - name: ANTHROPIC_MODEL
-      value: "local/qwen3-30b"
-    - name: ANTHROPIC_SMALL_FAST_MODEL
-      value: "local/qwen3-30b"
   nats:
     url: nats://nats.database.svc:4222
     subjects:
