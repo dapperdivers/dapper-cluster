@@ -47,6 +47,7 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               STORE_MODEL_IN_DB: "True"
+              HOME: /tmp
               PRISMA_HOME: /tmp/prisma
             envFrom:
               - secretRef:
