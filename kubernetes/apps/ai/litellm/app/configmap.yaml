@@ -7,6 +7,7 @@ data:
   config.yaml: |
     # LiteLLM Proxy Configuration
     # Local-only: routes all requests to Ollama Qwen3 30B MoE
+    # No database — static config, no spend tracking
 
     model_list:
       # Primary local model - Qwen3 30B MoE (3B active per token)
@@ -23,48 +24,36 @@ data:
         litellm_params:
           model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
-        model_info:
-          description: "Alias → local Qwen3 30B MoE"
 
       - model_name: gpt-4
         litellm_params:
           model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
-        model_info:
-          description: "Alias → local Qwen3 30B MoE"
 
       # Anthropic-compatible aliases (for pi-knight SDK)
       - model_name: claude-3-5-sonnet-20241022
         litellm_params:
           model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
-        model_info:
-          description: "Alias → local Qwen3 30B MoE"
 
       - model_name: claude-sonnet-4-20250514
         litellm_params:
           model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
-        model_info:
-          description: "Alias → local Qwen3 30B MoE"
 
-    # Router settings
     router_settings:
-      routing_strategy: least-busy
-      enable_pre_call_checks: true
+      routing_strategy: simple-shuffle
       num_retries: 2
       timeout: 120
       retry_after: 5
 
-    # General settings
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY
 
-    # Logging
     litellm_settings:
-      success_callback: ["prometheus"]
-      failure_callback: ["prometheus"]
-      service_callback: ["prometheus"]
+      set_verbose: false
+      json_logs: true
+      request_timeout: 600
       cache: true
       cache_params:
         type: redis

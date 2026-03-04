@@ -27,15 +27,6 @@ spec:
           reloader.stakater.com/auto: "true"
         replicas: 1
 
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/home-operations/postgres-init
-              tag: 18.2@sha256:ae89578925b480f5972f237dda2f7a37efe36aff500d3e7bd1d3a6a3181e4191
-            envFrom:
-              - secretRef:
-                  name: litellm-postgres-secret
-
         containers:
           app:
             image:
@@ -46,16 +37,11 @@ spec:
               - "/app/config.yaml"
             env:
               TZ: ${TIME_ZONE}
-              STORE_MODEL_IN_DB: "True"
               HOME: /tmp
-              PRISMA_HOME: /tmp/prisma
-              PRISMA_BINARY_CACHE_DIR: /tmp/prisma
-              PRISMA_ENGINES_DIR: /tmp/prisma/engines
+              LITELLM_LOG: ERROR
             envFrom:
               - secretRef:
                   name: litellm-secret
-              - secretRef:
-                  name: litellm-postgres-secret
             ports:
               - name: http
                 containerPort: &port 4000
@@ -67,7 +53,7 @@ spec:
                   httpGet:
                     path: /health/liveliness
                     port: *port
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 15
                   periodSeconds: 10
               readiness:
                 enabled: true
@@ -76,15 +62,15 @@ spec:
                   httpGet:
                     path: /health/readiness
                     port: *port
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 15
                   periodSeconds: 10
             resources:
               requests:
-                cpu: 500m
-                memory: 512Mi
+                cpu: 200m
+                memory: 256Mi
               limits:
-                cpu: 2
-                memory: 2Gi
+                cpu: 1
+                memory: 1Gi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
