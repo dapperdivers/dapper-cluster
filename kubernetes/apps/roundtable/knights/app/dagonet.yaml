@@ -6,7 +6,7 @@ metadata:
 spec:
   domain: local-ai
   image: ""
-  model: "local/qwen3-30b"
+  model: "anthropic/claude-sonnet-4-20250514"
   taskTimeout: 300
   skills:
     - shared
