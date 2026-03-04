@@ -13,32 +13,14 @@ data:
       # LOCAL MODELS (Ollama on P100 GPUs)
       # ============================================
 
-      # Fast general model - Qwen 14B
-      - model_name: local/qwen-14b
+      # Primary local model - Qwen3 30B MoE (3B active per token)
+      - model_name: local/qwen3-30b
         litellm_params:
-          model: ollama/qwen2.5:14b
+          model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Local Qwen2.5 14B for general tasks"
-          max_tokens: 8192
-
-      # Fast small model - Qwen 7B
-      - model_name: local/qwen-7b
-        litellm_params:
-          model: ollama/qwen2.5:7b
-          api_base: http://ollama.ai.svc.cluster.local:11434
-        model_info:
-          description: "Local Qwen2.5 7B for quick tasks"
-          max_tokens: 8192
-
-      # Coding model
-      - model_name: local/qwen-coder
-        litellm_params:
-          model: ollama/qwen2.5-coder:14b
-          api_base: http://ollama.ai.svc.cluster.local:11434
-        model_info:
-          description: "Local coding model"
-          max_tokens: 8192
+          description: "Local Qwen3 30B MoE - reasoning + coding + general"
+          max_tokens: 32768
 
       # ============================================
       # CLOUD FALLBACK MODELS
@@ -78,21 +60,21 @@ data:
       # ALIASED ROUTING (catch OpenAI model names)
       # ============================================
 
-      # gpt-3.5-turbo requests → local fast model
+      # gpt-3.5-turbo requests → local model
       - model_name: gpt-3.5-turbo
         litellm_params:
-          model: ollama/qwen2.5:7b
+          model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Alias → local Qwen 7B"
+          description: "Alias → local Qwen3 30B MoE"
 
-      # gpt-4 requests → local reasoning model
+      # gpt-4 requests → local model
       - model_name: gpt-4
         litellm_params:
-          model: ollama/qwen2.5:14b
+          model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
         model_info:
-          description: "Alias → local Qwen 14B"
+          description: "Alias → local Qwen3 30B MoE"
 
     # Router settings
     router_settings:
@@ -104,8 +86,7 @@ data:
       fallbacks:
         - gpt-4: [claude-sonnet, gpt-4o]
         - gpt-3.5-turbo: [claude-haiku, gpt-4o-mini]
-        - local/qwen-14b: [claude-sonnet]
-        - local/qwen-7b: [claude-haiku]
+        - local/qwen3-30b: [claude-sonnet]
 
     # General settings
     general_settings:
