@@ -50,6 +50,8 @@ spec:
             envFrom:
               - secretRef:
                   name: litellm-secret
+              - secretRef:
+                  name: litellm-postgres-secret
             ports:
               - name: http
                 containerPort: &port 4000

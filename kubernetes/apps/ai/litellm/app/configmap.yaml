@@ -6,13 +6,9 @@ metadata:
 data:
   config.yaml: |
     # LiteLLM Proxy Configuration
-    # Routes requests to local Ollama models with cloud fallback
+    # Local-only: routes all requests to Ollama Qwen3 30B MoE
 
     model_list:
-      # ============================================
-      # LOCAL MODELS (Ollama on P100 GPUs)
-      # ============================================
-
       # Primary local model - Qwen3 30B MoE (3B active per token)
       - model_name: local/qwen3-30b
         litellm_params:
@@ -22,45 +18,7 @@ data:
           description: "Local Qwen3 30B MoE - reasoning + coding + general"
           max_tokens: 32768
 
-      # ============================================
-      # CLOUD FALLBACK MODELS
-      # ============================================
-
-      # Claude for complex tasks
-      - model_name: claude-sonnet
-        litellm_params:
-          model: anthropic/claude-sonnet-4-20250514
-          api_key: os.environ/ANTHROPIC_API_KEY
-        model_info:
-          description: "Claude Sonnet 4 for complex reasoning"
-
-      - model_name: claude-haiku
-        litellm_params:
-          model: anthropic/claude-3-5-haiku-20241022
-          api_key: os.environ/ANTHROPIC_API_KEY
-        model_info:
-          description: "Claude Haiku for fast cloud responses"
-
-      # OpenAI for compatibility
-      - model_name: gpt-4o
-        litellm_params:
-          model: openai/gpt-4o
-          api_key: os.environ/OPENAI_API_KEY
-        model_info:
-          description: "OpenAI GPT-4o"
-
-      - model_name: gpt-4o-mini
-        litellm_params:
-          model: openai/gpt-4o-mini
-          api_key: os.environ/OPENAI_API_KEY
-        model_info:
-          description: "OpenAI GPT-4o Mini for cost efficiency"
-
-      # ============================================
-      # ALIASED ROUTING (catch OpenAI model names)
-      # ============================================
-
-      # gpt-3.5-turbo requests → local model
+      # Aliased routing — catch common model names
       - model_name: gpt-3.5-turbo
         litellm_params:
           model: ollama/qwen3:30b
@@ -68,8 +26,22 @@ data:
         model_info:
           description: "Alias → local Qwen3 30B MoE"
 
-      # gpt-4 requests → local model
       - model_name: gpt-4
+        litellm_params:
+          model: ollama/qwen3:30b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+        model_info:
+          description: "Alias → local Qwen3 30B MoE"
+
+      # Anthropic-compatible aliases (for pi-knight SDK)
+      - model_name: claude-3-5-sonnet-20241022
+        litellm_params:
+          model: ollama/qwen3:30b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+        model_info:
+          description: "Alias → local Qwen3 30B MoE"
+
+      - model_name: claude-sonnet-4-20250514
         litellm_params:
           model: ollama/qwen3:30b
           api_base: http://ollama.ai.svc.cluster.local:11434
@@ -83,15 +55,10 @@ data:
       num_retries: 2
       timeout: 120
       retry_after: 5
-      fallbacks:
-        - gpt-4: [claude-sonnet, gpt-4o]
-        - gpt-3.5-turbo: [claude-haiku, gpt-4o-mini]
-        - local/qwen3-30b: [claude-sonnet]
 
     # General settings
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY
-      database_url: os.environ/DATABASE_URL
 
     # Logging
     litellm_settings:
