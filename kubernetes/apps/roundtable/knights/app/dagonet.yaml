@@ -5,7 +5,7 @@ metadata:
   name: dagonet
 spec:
   domain: local-ai
-  image: "ghcr.io/dapperdivers/pi-knight:2cff18d3a7d93d3bf2b7de5e849dd4797ed119e8"
+  image: "ghcr.io/dapperdivers/pi-knight:221cc94366f415b15cf407ae9b710cbcae5d8e9f"
   model: "openai/local-qwen3-30b"
   taskTimeout: 300
   skills:
