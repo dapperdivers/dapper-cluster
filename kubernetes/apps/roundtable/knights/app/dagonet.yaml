@@ -7,6 +7,8 @@ spec:
   domain: local-ai
   image: ""
   taskTimeout: 300
+  skills:
+    - shared
   env:
     # Point Anthropic SDK at LiteLLM proxy (translates to Ollama/qwen3:30b)
     - name: ANTHROPIC_BASE_URL
