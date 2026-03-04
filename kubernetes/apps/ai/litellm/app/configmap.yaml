@@ -60,6 +60,7 @@ data:
       set_verbose: false
       json_logs: true
       request_timeout: 600
+      drop_params: true
       cache: true
       cache_params:
         type: redis
