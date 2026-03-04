@@ -31,6 +31,4 @@ spec:
     resultsStream: fleet_a_results
     maxDeliver: 1
   workspace:
-    storageSize: 1Gi
-  arsenal:
-    skills: []
+    size: 1Gi
