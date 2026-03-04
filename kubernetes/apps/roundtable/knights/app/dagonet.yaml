@@ -10,6 +10,11 @@ spec:
   taskTimeout: 300
   skills:
     - shared
+  arsenal:
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    period: "300s"
+    image: registry.k8s.io/git-sync/git-sync:v4.4.0
   env:
     # Route through OpenAI client → LiteLLM → Ollama/qwen3:30b
     # (Anthropic Messages API translation loses content; OpenAI format works)
