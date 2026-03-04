@@ -7,9 +7,6 @@ spec:
   domain: local-ai
   image: ""
   taskTimeout: 300
-  topics:
-    - "fleet-a.tasks.local.>"
-    - "fleet-a.tasks.general.>"
   env:
     # Point Anthropic SDK at LiteLLM proxy (translates to Ollama/qwen3:30b)
     - name: ANTHROPIC_BASE_URL
@@ -25,6 +22,14 @@ spec:
       value: "local/qwen3-30b"
     - name: ANTHROPIC_SMALL_FAST_MODEL
       value: "local/qwen3-30b"
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.local.>"
+      - "fleet-a.tasks.general.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
   workspace:
     storageSize: 1Gi
   arsenal:
