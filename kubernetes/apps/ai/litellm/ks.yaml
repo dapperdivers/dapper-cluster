@@ -10,7 +10,7 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  suspend: true
+  suspend: false
   dependsOn:
     - name: external-secrets-stores
       namespace: external-secrets

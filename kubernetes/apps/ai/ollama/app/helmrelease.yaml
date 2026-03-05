@@ -40,9 +40,9 @@ spec:
               # Enable flash attention where supported
               OLLAMA_FLASH_ATTENTION: "1"
               # Number of parallel requests
-              OLLAMA_NUM_PARALLEL: "2"
-              # Allow large MoE models to use system RAM for layers that don't fit in VRAM
-              OLLAMA_MAX_LOADED_MODELS: "2"
+              OLLAMA_NUM_PARALLEL: "1"
+              # Single model deployment
+              OLLAMA_MAX_LOADED_MODELS: "1"
             ports:
               - name: http
                 containerPort: &port 11434
@@ -67,13 +67,13 @@ spec:
                   periodSeconds: 10
             resources:
               requests:
-                cpu: 2
-                memory: 16Gi
-                nvidia.com/gpu: 4
+                cpu: 1
+                memory: 8Gi
+                nvidia.com/gpu: 2
               limits:
-                cpu: 14
-                memory: 96Gi
-                nvidia.com/gpu: 4
+                cpu: 8
+                memory: 32Gi
+                nvidia.com/gpu: 2
 
     defaultPodOptions:
       nodeSelector:
