@@ -28,7 +28,7 @@ spec:
           app:
             image:
               repository: docker.io/ollama/ollama
-              tag: 0.17.5
+              tag: 0.17.6
             env:
               TZ: ${TIME_ZONE}
               # Store models on PVC
