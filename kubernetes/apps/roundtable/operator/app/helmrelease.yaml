@@ -7,12 +7,12 @@ spec:
   interval: 30m
   chart:
     spec:
-      chart: charts/roundtable-operator
+      chart: roundtable-operator
+      version: ">=0.2.0-0"
       sourceRef:
-        kind: GitRepository
+        kind: HelmRepository
         name: roundtable
         namespace: flux-system
-      reconcileStrategy: Revision
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable

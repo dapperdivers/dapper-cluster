@@ -31,15 +31,14 @@ spec:
           app:
             image:
               repository: ghcr.io/speaches-ai/speaches
-              tag: latest-cuda
+              tag: 0.8.3-cuda-12.6.3
             env:
               TZ: ${TIME_ZONE}
               # Use default to let CTranslate2 choose the best compute type for the GPU
               WHISPER__COMPUTE_TYPE: default
               WHISPER__INFERENCE_DEVICE: cuda
-              # Keep models loaded in memory (no unload delay)
-              STT_MODEL_TTL: "-1"
-              TTS_MODEL_TTL: "-1"
+              # Keep whisper model loaded in memory indefinitely (-1 = never unload)
+              WHISPER__TTL: "-1"
               # Preload STT (Whisper) and TTS (Kokoro) models at startup
               PRELOAD_MODELS: '["deepdml/faster-whisper-large-v3-turbo-ct2", "speaches-ai/Kokoro-82M-v1.0-ONNX"]'
               # Disable UI to reduce overhead

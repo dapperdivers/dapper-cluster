@@ -7,33 +7,37 @@ metadata:
 spec:
   description: "Daily morning mission briefing — full domain reports, cross-referenced synthesis"
   schedule: "0 11 * * *"  # 5:00 AM CST daily
-  timeout: 3600
+  timeout: 2400  # 40 min total (was 3600 — tighter but sufficient)
   retryPolicy:
     maxRetries: 1
     backoffSeconds: 60
   steps:
     # ── Phase 1: Parallel domain reports (all run simultaneously) ──
+    # continueOnFailure: true — synthesis must run even if a knight is slow/down
     - name: security-intel
       knightRef: galahad
+      continueOnFailure: true
       task: |
         Generate your daily threat intelligence briefing. Cover the last 24 hours
         of OpenCTI data including new indicators, vulnerabilities, malware, and reports.
         Use your opencti-intel scripts at /skills/security/opencti-intel/scripts/ if available.
         Write your full report to /vault/Briefings/Security/ with today's date.
         Return a concise summary via NATS with key findings and action items.
-      timeout: 600
+      timeout: 900
 
     - name: intel-digest
       knightRef: kay
+      continueOnFailure: true
       task: |
         Generate today's intelligence digest. Research current events, technology news,
         and anything relevant to Derek's interests (security, AI, homelab, career).
         Write your full report to /vault/Briefings/Intel/ with today's date.
         Return a concise summary via NATS with key findings.
-      timeout: 600
+      timeout: 900
 
     - name: infra-status
       knightRef: tristan
+      continueOnFailure: true
       task: |
         Generate today's infrastructure report. Check cluster health, node status,
         failing pods, resource pressure, Flux reconciliation state, and any deployment
@@ -41,35 +45,38 @@ spec:
         if available.
         Write your full report to /vault/Briefings/HomeLab/ with today's date.
         Return a concise summary via NATS with key findings and action items.
-      timeout: 300
+      timeout: 900
 
     - name: home-tasks
       knightRef: bedivere
+      continueOnFailure: true
       task: |
         Generate today's household briefing. Check family calendar, upcoming events,
         nursery prep status, baby countdown, and any home tasks needing attention.
         Keep the report focused — if a data source is unavailable, note it and move on.
         Write your full report to /vault/Briefings/Home/ with today's date.
         Return a concise summary via NATS with action items.
-      timeout: 300
+      timeout: 900
 
     - name: finance-check
       knightRef: percival
+      continueOnFailure: true
       task: |
         Generate today's financial briefing. Check for bill due dates, budget alerts,
         tax deadlines, and any financial items needing immediate attention.
         Write your full report to /vault/Briefings/Finance/ with today's date.
         Return a concise summary via NATS with action items.
-      timeout: 300
+      timeout: 900
 
     - name: career-update
       knightRef: lancelot
+      continueOnFailure: true
       task: |
         Generate today's career briefing. Check pending applications, interview
         feedback expected, networking opportunities, and career action items.
         Write your full report to /vault/Briefings/Career/ with today's date.
         Return a concise summary via NATS with action items.
-      timeout: 300
+      timeout: 900
 
     # ── Phase 2: Gawain synthesizes all reports ──
     - name: synthesize
@@ -77,7 +84,7 @@ spec:
       task: |
         MORNING BRIEFING SYNTHESIS — Assemble today's Daily Briefing from 6 knight reports.
 
-        Knight summaries:
+        Knight summaries (some may be empty if a knight timed out — note missing reports):
         Security (Galahad): {{ .Steps.security-intel.Output }}
         Intel (Kay): {{ .Steps.intel-digest.Output }}
         Infrastructure (Tristan): {{ .Steps.infra-status.Output }}
@@ -106,4 +113,4 @@ spec:
         - home-tasks
         - finance-check
         - career-update
-      timeout: 300
+      timeout: 600

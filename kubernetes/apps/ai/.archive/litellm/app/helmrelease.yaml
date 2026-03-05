@@ -29,7 +29,7 @@ spec:
           init-db:
             image:
               repository: ghcr.io/home-operations/postgres-init
-              tag: 18.0@sha256:12df386a1609aada0f9c19bdcb8a59db7e2c08b5a91757f7115cce8c3d502568
+              tag: 18.2@sha256:ae89578925b480f5972f237dda2f7a37efe36aff500d3e7bd1d3a6a3181e4191
             envFrom:
               - secretRef:
                   name: litellm-postgres-secret
@@ -37,7 +37,7 @@ spec:
           litellm:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: v1.80.5-stable@sha256:e9711f484c7c8462c028803130afef546aa54c8d2fc11120242c01bbadc12e65
+              tag: v1.81.14-stable@sha256:a3ce130137752e6b085de521b773eacbb641c8b6322c6f538453e860e7b9cf43
             ports:
               - containerPort: &port 4000
             env:

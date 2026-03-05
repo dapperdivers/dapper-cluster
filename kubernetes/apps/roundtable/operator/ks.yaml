@@ -1,28 +1,4 @@
 ---
-# CRDs must be installed before the operator starts
-# Helm only installs CRDs on initial install, not upgrades
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: roundtable-crds
-  namespace: roundtable
-spec:
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: roundtable-crds
-  dependsOn:
-    - name: nats
-      namespace: database
-  path: ./config/crd/bases
-  prune: false  # never delete CRDs automatically
-  sourceRef:
-    kind: GitRepository
-    name: roundtable
-    namespace: flux-system
-  wait: true
-  interval: 30m
-  timeout: 2m
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -34,7 +10,6 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: roundtable-crds
     - name: nats
       namespace: database
   path: ./kubernetes/apps/roundtable/operator/app

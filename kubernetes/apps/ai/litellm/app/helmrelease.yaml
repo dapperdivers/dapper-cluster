@@ -25,28 +25,20 @@ spec:
       litellm:
         annotations:
           reloader.stakater.com/auto: "true"
-        replicas: 1
-
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/home-operations/postgres-init
-              tag: 18.0@sha256:12df386a1609aada0f9c19bdcb8a59db7e2c08b5a91757f7115cce8c3d502568
-            envFrom:
-              - secretRef:
-                  name: litellm-postgres-secret
+        replicas: 0
 
         containers:
           app:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: v1.80.5-stable@sha256:e9711f484c7c8462c028803130afef546aa54c8d2fc11120242c01bbadc12e65
+              tag: v1.81.14-stable@sha256:a3ce130137752e6b085de521b773eacbb641c8b6322c6f538453e860e7b9cf43
             args:
               - "--config"
               - "/app/config.yaml"
             env:
               TZ: ${TIME_ZONE}
-              STORE_MODEL_IN_DB: "True"
+              HOME: /tmp
+              LITELLM_LOG: ERROR
             envFrom:
               - secretRef:
                   name: litellm-secret
@@ -61,7 +53,7 @@ spec:
                   httpGet:
                     path: /health/liveliness
                     port: *port
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 15
                   periodSeconds: 10
               readiness:
                 enabled: true
@@ -70,15 +62,15 @@ spec:
                   httpGet:
                     path: /health/readiness
                     port: *port
-                  initialDelaySeconds: 30
+                  initialDelaySeconds: 15
                   periodSeconds: 10
             resources:
               requests:
-                cpu: 500m
-                memory: 512Mi
+                cpu: 200m
+                memory: 256Mi
               limits:
-                cpu: 2
-                memory: 2Gi
+                cpu: 1
+                memory: 1Gi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -125,6 +117,10 @@ spec:
           - path: /app/config.yaml
             subPath: config.yaml
             readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
 
     serviceMonitor:
       app:

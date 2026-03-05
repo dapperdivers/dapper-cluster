@@ -29,7 +29,7 @@ spec:
           init-db:
             image:
               repository: ghcr.io/home-operations/postgres-init
-              tag: 18.0@sha256:12df386a1609aada0f9c19bdcb8a59db7e2c08b5a91757f7115cce8c3d502568
+              tag: 18.2@sha256:ae89578925b480f5972f237dda2f7a37efe36aff500d3e7bd1d3a6a3181e4191
             envFrom: &envFrom
               - secretRef:
                   name: autobrr-secret
@@ -37,7 +37,7 @@ spec:
           app:
             image:
               repository: ghcr.io/autobrr/autobrr
-              tag: v1.71.0@sha256:db9794958a0f9db93059c1e9f06193a063ce3846d346d7a7c9eca607c6617c51
+              tag: v1.73.0@sha256:6b0e57048087e5b7b626b0f02d39e91c8287d32691c26c709b3957227df12f7c
             env:
               AUTOBRR__CHECK_FOR_UPDATES: "false"
               AUTOBRR__HOST: 0.0.0.0
