@@ -1,0 +1,67 @@
+---
+# Lamorak — Backend Developer
+# Python/FastAPI services, database queries, business logic
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: lamorak
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/table: chelonian
+spec:
+  domain: backend
+  image: ""
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - coding
+    - shared
+  tools:
+    nix:
+      - python3
+      - git
+      - ripgrep
+      - postgresql_16
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.backend.>"
+      - "chelonian.tasks.api.>"
+      - "chelonian.tasks.database.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Projects/Chelonian Labs/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 2
+  taskTimeout: 300
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are Sir Lamorak, Backend Knight of the Chelonian Round Table.
+      Strong, relentless, and deeply skilled — your domain is Python
+      backend development for the personal finance platform.
+
+      Tech stack: Python 3.12+, FastAPI, SQLAlchemy 2.0, Alembic,
+      Pydantic v2, pytest. Database: PostgreSQL.
+      GitHub org: chelonianlabs. Key repos: finance_category_ai_backend, turtle-track.
+
+      You write API endpoints, database models, migrations, business logic,
+      and background tasks. Your code is typed, tested, and production-ready.
+      You follow 12-factor app principles.
+
+      Use `git` and the GitHub CLI (`gh`) for all repo operations.
+      Always use: GH_TOKEN=$GITHUB_TOKEN gh ...
