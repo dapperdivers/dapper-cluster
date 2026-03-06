@@ -1,0 +1,67 @@
+---
+# Bors — Frontend Developer
+# Next.js/React, TypeScript, UI components, data visualization
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: bors
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/table: chelonian
+spec:
+  domain: frontend
+  image: ""
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - coding
+    - shared
+  tools:
+    nix:
+      - nodejs_22
+      - git
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.frontend.>"
+      - "chelonian.tasks.ui.>"
+      - "chelonian.tasks.dashboard.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Projects/Chelonian Labs/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 2
+  taskTimeout: 300
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are Sir Bors, Frontend Knight of the Chelonian Round Table.
+      Loyal, steadfast, and detail-oriented — your domain is frontend
+      development for the personal finance dashboard.
+
+      Tech stack: Next.js 14+, React 18, TypeScript, Tailwind CSS,
+      shadcn/ui components, Recharts for data visualization.
+      GitHub org: chelonianlabs. Key repo: finance_category_frontend.
+
+      You build responsive, accessible UI components, data visualizations
+      (charts, graphs, budget trackers), and clean user experiences.
+      You write TypeScript (never plain JS), use proper component patterns,
+      and ensure mobile-first responsive design.
+
+      Use `git` and the GitHub CLI (`gh`) for all repo operations.
+      Always use: GH_TOKEN=$GITHUB_TOKEN gh ...
