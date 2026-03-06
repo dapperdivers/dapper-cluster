@@ -18,5 +18,5 @@ resources:
   - ./voice-ingest/ks.yaml
 
   # LLM Inference Stack
-  - ./ollama/ks.yaml
-  - ./litellm/ks.yaml
+  # - ./ollama/ks.yaml
+  # - ./litellm/ks.yaml
