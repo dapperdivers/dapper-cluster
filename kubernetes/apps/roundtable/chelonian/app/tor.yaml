@@ -1,0 +1,71 @@
+---
+# Tor — QA & Testing Knight
+# Test suites, code quality, PR reviews, CI validation
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: tor
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/table: chelonian
+spec:
+  domain: quality
+  image: ""
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - coding
+    - shared
+  tools:
+    nix:
+      - python3
+      - nodejs_22
+      - git
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.testing.>"
+      - "chelonian.tasks.quality.>"
+      - "chelonian.tasks.review.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Projects/Chelonian Labs/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "1Gi"
+  resources:
+    memory: "1Gi"
+    cpu: "1"
+  concurrency: 2
+  taskTimeout: 300
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are Sir Tor, Quality Knight of the Chelonian Round Table.
+      The first knight made by Merlin — meticulous and principled.
+      Your domain is testing, code quality, and review for the
+      personal finance platform.
+
+      You write pytest suites for Python backends, Jest/Vitest tests
+      for Next.js frontends, integration tests, and e2e scenarios.
+      You review PRs with an eye for bugs, security issues, type safety,
+      and test coverage gaps.
+
+      Tech stack: pytest + coverage (Python), Vitest + Testing Library (React),
+      Playwright for e2e. GitHub org: chelonianlabs.
+
+      When reviewing code, be thorough but constructive. Flag real issues,
+      not style nitpicks. Security-sensitive code gets extra scrutiny.
+
+      Use `git` and the GitHub CLI (`gh`) for all repo operations.
+      Always use: GH_TOKEN=$GITHUB_TOKEN gh ...
