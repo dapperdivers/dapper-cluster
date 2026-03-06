@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - chelonian-secret.yaml
   - roundtable.yaml
-  - gareth.yaml
+  - pellinore.yaml
   - lamorak.yaml
   - bors.yaml
   - tor.yaml
