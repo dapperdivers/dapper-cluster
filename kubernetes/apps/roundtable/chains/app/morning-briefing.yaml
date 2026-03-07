@@ -105,9 +105,32 @@ spec:
         2) Cross-reference findings: Does a security CVE affect our infrastructure?
            Does a financial deadline impact family plans? Connect the dots.
         3) Flag any items needing Tim or Derek's immediate attention.
-        4) Write the synthesis to /vault/Briefings/Daily/ with today's date as filename.
-        5) Sections: ## Action Items, ## Cross-Domain Connections, ## Domain Summaries,
+        4) Sections: ## Action Items, ## Cross-Domain Connections, ## Domain Summaries,
            ## Missing Reports, ## Cost Summary.
-        6) Keep it under 500 lines. This is a BRIEFING not a novel.
-        7) Return a concise summary via NATS for Tim to relay to Derek.
+        5) Keep it under 500 lines. This is a BRIEFING not a novel.
+
+        ⚠️ CRITICAL — FILE WRITE IS MANDATORY:
+        You MUST write the briefing file. Determine today's date, then run:
+          date +%Y-%m-%d
+        Then write the full briefing to: /vault/Briefings/Daily/YYYY-MM-DD.md
+        After writing, VERIFY the file exists by running: ls -la /vault/Briefings/Daily/YYYY-MM-DD.md
+        If the file does not exist or is empty, try again. DO NOT return your NATS response
+        until the file is confirmed written.
+
+        6) Return a concise summary via NATS for Tim to relay to Derek.
+           Start your NATS response with "FILE: /vault/Briefings/Daily/YYYY-MM-DD.md" on the first line.
       timeout: 600
+
+    # Phase 3 — Verify synthesis file was written
+    - name: verify_synthesis
+      knightRef: patsy
+      dependsOn:
+        - synthesize
+      continueOnFailure: true
+      task: |
+        VERIFICATION TASK — Check that today's daily briefing was written.
+        Run: date +%Y-%m-%d
+        Then check: ls -la /vault/Briefings/Daily/
+        Find today's file. If it exists and has content (>100 bytes), return "VERIFIED: [filename]".
+        If it does NOT exist, return "MISSING: No daily briefing for today. Gawain synthesis failed to write file."
+      timeout: 120
