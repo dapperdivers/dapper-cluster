@@ -75,6 +75,20 @@ spec:
         Return a concise summary via NATS (5-10 bullet points).
       timeout: 1200
 
+    - name: wellness_check
+      knightRef: gareth
+      continueOnFailure: true
+      task: |
+        Generate today's wellness briefing. Emma's due date is April 29, 2026.
+        Calculate the current pregnancy week. Report on:
+        - Current week milestones and baby development
+        - Nutrition focus for this week
+        - Any upcoming appointments or prep tasks
+        Read /vault/Personal/Family/Emma.md and /vault/Briefings/Home/ for context.
+        Write your full report to /vault/Briefings/Home/wellness-YYYY-MM-DD.md
+        Return a concise summary via NATS (3-5 bullet points).
+      timeout: 600
+
     # Phase 2 — Gawain synthesizes all reports
     - name: synthesize
       knightRef: gawain
@@ -85,6 +99,7 @@ spec:
         - home_tasks
         - finance_check
         - career_update
+        - wellness_check
       task: |
         MORNING BRIEFING SYNTHESIS — Assemble today's Daily Briefing.
 
@@ -95,6 +110,7 @@ spec:
         Home (Bedivere): {{ .Steps.home_tasks.Output }}
         Finance (Percival): {{ .Steps.finance_check.Output }}
         Career (Lancelot): {{ .Steps.career_update.Output }}
+        Wellness (Gareth): {{ .Steps.wellness_check.Output }}
 
         Also read the full vault reports for additional detail:
         /vault/Briefings/Security/, /vault/Briefings/Intel/, /vault/Briefings/HomeLab/,
