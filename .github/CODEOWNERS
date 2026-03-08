@@ -1,2 +1,9 @@
 # Ref: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+# Default — all changes require Derek's review
 * @dapperdivers
+
+# Infrastructure — critical path, always requires review
+kubernetes/flux/ @dapperdivers
+kubernetes/infrastructure/ @dapperdivers
+talos/ @dapperdivers
