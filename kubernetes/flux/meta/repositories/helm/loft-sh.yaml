@@ -1,0 +1,9 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: loft-sh
+spec:
+  interval: 2h
+  type: default
+  url: https://charts.loft.sh
