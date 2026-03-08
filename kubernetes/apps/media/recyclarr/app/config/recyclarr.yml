@@ -16,32 +16,11 @@ sonarr:
         anime: default
     quality_definition:
       type: series
-    include:
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-1080p
-      - template: sonarr-v4-custom-formats-web-1080p
+    quality_profiles:
+      - trash_id: 3aa7bbc78bec0629c2ef29f2c09c1aa1 # WEB-1080p
+        reset_unmatched_scores:
+          enabled: true
 
-    custom_formats:
-      # Optional
-      - trash_ids:
-          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
-          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
-          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
-          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
-          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
-        assign_scores_to:
-          - name: WEB-1080p
-
-      - trash_ids:
-          # Uncomment to allow x265 HD releases with HDR/DV
-          # - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
-        # assign_scores_to:
-        #   - name: WEB-1080p
-        #     score: 0
-        # - trash_ids:
-          # - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
-        assign_scores_to:
-          - name: WEB-1080p
   sonarr-uhd:
     base_url: http://sonarr-uhd.media.svc.cluster.local
     api_key: !env_var SONARR_UHD_API_KEY
@@ -57,13 +36,11 @@ sonarr:
         anime: default
     quality_definition:
       type: series
-    include:
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-2160p
-      - template: sonarr-v4-custom-formats-web-2160p
-
-    # Additional custom profile with Blu-ray + WEB
     quality_profiles:
+      - trash_id: 788a70d60bd4ab2e89c7a9e4c06a1fef # WEB-2160p
+        reset_unmatched_scores:
+          enabled: true
+      # Additional custom profile with Blu-ray + WEB
       - name: Bluray + WEB 2160p
         reset_unmatched_scores:
           enabled: true
@@ -90,17 +67,6 @@ sonarr:
           - name: WEB-2160p
           - name: Bluray + WEB 2160p
 
-      # Optional
-      - trash_ids:
-          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
-          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
-          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
-          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
-          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
-        assign_scores_to:
-          - name: WEB-2160p
-          - name: Bluray + WEB 2160p
-
       - trash_ids:
           - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
         assign_scores_to:
@@ -120,6 +86,7 @@ sonarr:
         assign_scores_to:
           - name: WEB-2160p
           - name: Bluray + WEB 2160p
+
 radarr:
   radarr:
     base_url: http://radarr.media.svc.cluster.local
@@ -133,13 +100,11 @@ radarr:
         standard: standard
     quality_definition:
       type: movie
-    include:
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-hd-bluray-web
-      - template: radarr-custom-formats-hd-bluray-web
-
-    # Additional custom profile
     quality_profiles:
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+      # Additional custom profile
       - name: Bluray + WEB 1080p
         reset_unmatched_scores:
           enabled: true
@@ -171,31 +136,6 @@ radarr:
           - name: HD Bluray + WEB
           - name: Bluray + WEB 1080p
 
-      # Optional
-      - trash_ids:
-          # - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
-          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
-          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
-          # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
-          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
-          # - f537cf427b64c38c8e36298f657e4828 # Scene
-        assign_scores_to:
-          - name: HD Bluray + WEB
-          - name: Bluray + WEB 1080p
-
-      - trash_ids:
-          # Uncomment to allow x265 HD releases with HDR/DV
-          # - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
-        # assign_scores_to:
-        #   - name: HD Bluray + WEB
-        #     score: 0
-        #   - name: Bluray + WEB 1080p
-        #     score: 0
-        # - trash_ids:
-          # - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
-        assign_scores_to:
-          - name: HD Bluray + WEB
-          - name: Bluray + WEB 1080p
   radarr-uhd:
     base_url: http://radarr-uhd.media.svc.cluster.local
     api_key: !env_var RADARR_UHD_API_KEY
@@ -208,13 +148,11 @@ radarr:
         standard: standard
     quality_definition:
       type: movie
-    include:
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-uhd-bluray-web
-      - template: radarr-custom-formats-uhd-bluray-web
-
-    # Additional custom profile
     quality_profiles:
+      - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+      # Additional custom profile
       - name: Bluray + WEB 2160p
         reset_unmatched_scores:
           enabled: true
@@ -262,18 +200,6 @@ radarr:
           # - 957d0f44b592285f26449575e8b1167e # Special Edition
           # - eecf3a857724171f968a66cb5719e152 # IMAX
           # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
-        assign_scores_to:
-          - name: UHD Bluray + WEB
-          - name: Bluray + WEB 2160p
-
-      # Optional
-      - trash_ids:
-          # - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
-          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
-          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
-          # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
-          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
-          # - f537cf427b64c38c8e36298f657e4828 # Scene
         assign_scores_to:
           - name: UHD Bluray + WEB
           - name: Bluray + WEB 2160p
