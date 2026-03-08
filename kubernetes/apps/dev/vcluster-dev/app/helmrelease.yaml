@@ -28,7 +28,7 @@ spec:
         k3s:
           enabled: true
       backingStore:
-        etcd:
+        database:
           embedded:
             enabled: true
       statefulSet:
