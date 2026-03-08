@@ -1,11 +1,12 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/latest/config-schema.json
 sonarr:
   sonarr:
     base_url: http://sonarr.media.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
+    media_management:
+      propers_and_repacks: do_not_prefer
     media_naming:
       series: default
       season: default
@@ -20,12 +21,22 @@ sonarr:
       - trash_id: 3aa7bbc78bec0629c2ef29f2c09c1aa1 # WEB-1080p
         reset_unmatched_scores:
           enabled: true
+    custom_formats:
+      - # Unwanted
+        trash_ids:
+          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          - 06d66ab109d4d2eddb2794d21526d140 # Retags
+        assign_scores_to:
+          - trash_id: 3aa7bbc78bec0629c2ef29f2c09c1aa1 # WEB-1080p
 
   sonarr-uhd:
     base_url: http://sonarr-uhd.media.svc.cluster.local
     api_key: !env_var SONARR_UHD_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
+    media_management:
+      propers_and_repacks: do_not_prefer
     media_naming:
       series: default
       season: default
@@ -56,7 +67,6 @@ sonarr:
             qualities:
               - WEBDL-2160p
               - WEBRip-2160p
-
     custom_formats:
       # HDR Formats
       - trash_ids:
@@ -66,7 +76,6 @@ sonarr:
         assign_scores_to:
           - name: WEB-2160p
           - name: Bluray + WEB 2160p
-
       - trash_ids:
           - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
         assign_scores_to:
@@ -79,10 +88,18 @@ sonarr:
         assign_scores_to:
           - name: WEB-2160p
           - name: Bluray + WEB 2160p
-
       # Block SDR releases for 4K
       - trash_ids:
           - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: Bluray + WEB 2160p
+      - # Unwanted
+        trash_ids:
+          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          - 06d66ab109d4d2eddb2794d21526d140 # Retags
         assign_scores_to:
           - name: WEB-2160p
           - name: Bluray + WEB 2160p
@@ -92,7 +109,8 @@ radarr:
     base_url: http://radarr.media.svc.cluster.local
     api_key: !env_var RADARR_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
+    media_management:
+      propers_and_repacks: do_not_prefer
     media_naming:
       folder: default
       movie:
@@ -120,18 +138,15 @@ radarr:
             qualities:
               - WEBDL-1080p
               - WEBRip-1080p
-
     custom_formats:
-      # Movie Versions
-      - trash_ids:
-          # - 570bc9ebecd92723d2d21500f4be314c # Remaster
-          # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
-          # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
-          # - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
-          # - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
-          # - 957d0f44b592285f26449575e8b1167e # Special Edition
-          # - eecf3a857724171f968a66cb5719e152 # IMAX
-          # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+      - # Unwanted
+        trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          - f537cf427b64c38c8e36298f657e4828 # Scene
         assign_scores_to:
           - name: HD Bluray + WEB
           - name: Bluray + WEB 1080p
@@ -140,7 +155,8 @@ radarr:
     base_url: http://radarr-uhd.media.svc.cluster.local
     api_key: !env_var RADARR_UHD_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
+    media_management:
+      propers_and_repacks: do_not_prefer
     media_naming:
       folder: default
       movie:
@@ -168,9 +184,8 @@ radarr:
             qualities:
               - WEBDL-2160p
               - WEBRip-2160p
-
     custom_formats:
-      # Audio
+      # Audio scoring
       - trash_ids:
           - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
           - 2f22d89048b01681dde8afe203bf2e95 # DTS X
@@ -189,21 +204,13 @@ radarr:
         assign_scores_to:
           - name: UHD Bluray + WEB
           - name: Bluray + WEB 2160p
-
-      # Movie Versions
+      # HDR Formats
       - trash_ids:
-          # - 570bc9ebecd92723d2d21500f4be314c # Remaster
-          # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
-          # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
-          # - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
-          # - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
-          # - 957d0f44b592285f26449575e8b1167e # Special Edition
-          # - eecf3a857724171f968a66cb5719e152 # IMAX
-          # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
         assign_scores_to:
           - name: UHD Bluray + WEB
           - name: Bluray + WEB 2160p
-
       - trash_ids:
           - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
         assign_scores_to:
@@ -216,18 +223,20 @@ radarr:
         assign_scores_to:
           - name: UHD Bluray + WEB
           - name: Bluray + WEB 2160p
-
-      - trash_ids:
-          # - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
-          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
-          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
-        assign_scores_to:
-          - name: UHD Bluray + WEB
-          - name: Bluray + WEB 2160p
-
       # Block SDR releases for 4K
       - trash_ids:
           - 9c38ebb7384dada637be8899efa68e6f # SDR
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+          - name: Bluray + WEB 2160p
+      - # Unwanted
+        trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          - f537cf427b64c38c8e36298f657e4828 # Scene
         assign_scores_to:
           - name: UHD Bluray + WEB
           - name: Bluray + WEB 2160p
