@@ -18,7 +18,7 @@ sonarr:
     quality_definition:
       type: series
     quality_profiles:
-      - trash_id: 3aa7bbc78bec0629c2ef29f2c09c1aa1 # WEB-1080p
+      - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
         reset_unmatched_scores:
           enabled: true
     custom_formats:
@@ -29,7 +29,7 @@ sonarr:
           - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
           - 06d66ab109d4d2eddb2794d21526d140 # Retags
         assign_scores_to:
-          - trash_id: 3aa7bbc78bec0629c2ef29f2c09c1aa1 # WEB-1080p
+          - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
 
   sonarr-uhd:
     base_url: http://sonarr-uhd.media.svc.cluster.local
@@ -48,7 +48,7 @@ sonarr:
     quality_definition:
       type: series
     quality_profiles:
-      - trash_id: 788a70d60bd4ab2e89c7a9e4c06a1fef # WEB-2160p
+      - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
         reset_unmatched_scores:
           enabled: true
       # Additional custom profile with Blu-ray + WEB
@@ -142,7 +142,6 @@ radarr:
       - # Unwanted
         trash_ids:
           - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
-          - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
           - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
           - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
           - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
@@ -232,7 +231,6 @@ radarr:
       - # Unwanted
         trash_ids:
           - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
-          - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
           - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
           - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
           - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
