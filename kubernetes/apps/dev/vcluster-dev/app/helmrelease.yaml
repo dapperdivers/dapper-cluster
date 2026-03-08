@@ -40,8 +40,6 @@ spec:
             runAsUser: 0
             runAsNonRoot: false
             allowPrivilegeEscalation: true
-        pod:
-          automountServiceAccountToken: true
         resources:
           limits:
             cpu: "1"
