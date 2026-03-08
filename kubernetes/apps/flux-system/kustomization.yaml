@@ -7,4 +7,3 @@ components:
   - ../../flux/components/common
 resources:
   - ./flux-operator/ks.yaml
-  - ../../components/alerts
