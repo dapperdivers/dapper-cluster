@@ -25,6 +25,7 @@ resources:
   - ./kubernetes-sigs-nfd.yaml
   - ./headlamp.yaml
   - ./kyverno.yaml
+  - ./loft-sh.yaml
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
   - ./nvidia.yaml
