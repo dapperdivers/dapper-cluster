@@ -11,6 +11,7 @@ spec:
   retryPolicy:
     maxRetries: 1
     backoffSeconds: 60
+  outputKnight: gawain
   steps:
     # Phase 1 — Domain knights run in parallel (no dependencies)
     # Each writes a full report to /vault/Briefings/<domain>/
@@ -92,6 +93,7 @@ spec:
     # Phase 2 — Gawain synthesizes all reports
     - name: synthesize
       knightRef: gawain
+      outputPath: "/vault/Briefings/Daily/{{ .Date }}.md"
       dependsOn:
         - security_intel
         - intel_digest
@@ -124,29 +126,6 @@ spec:
         4) Sections: ## Action Items, ## Cross-Domain Connections, ## Domain Summaries,
            ## Missing Reports, ## Cost Summary.
         5) Keep it under 500 lines. This is a BRIEFING not a novel.
-
-        ⚠️ CRITICAL — FILE WRITE IS MANDATORY:
-        You MUST write the briefing file. Determine today's date, then run:
-          date +%Y-%m-%d
-        Then write the full briefing to: /vault/Briefings/Daily/YYYY-MM-DD.md
-        After writing, VERIFY the file exists by running: ls -la /vault/Briefings/Daily/YYYY-MM-DD.md
-        If the file does not exist or is empty, try again. DO NOT return your NATS response
-        until the file is confirmed written.
-
-        6) Return a concise summary via NATS for Tim to relay to Derek.
-           Start your NATS response with "FILE: /vault/Briefings/Daily/YYYY-MM-DD.md" on the first line.
+        6) Return the full briefing as your NATS response — the controller will
+           write it to the vault automatically via outputPath.
       timeout: 600
-
-    # Phase 3 — Verify synthesis file was written
-    - name: verify_synthesis
-      knightRef: patsy
-      dependsOn:
-        - synthesize
-      continueOnFailure: true
-      task: |
-        VERIFICATION TASK — Check that today's daily briefing was written.
-        Run: date +%Y-%m-%d
-        Then check: ls -la /vault/Briefings/Daily/
-        Find today's file. If it exists and has content (>100 bytes), return "VERIFIED: [filename]".
-        If it does NOT exist, return "MISSING: No daily briefing for today. Gawain synthesis failed to write file."
-      timeout: 120
