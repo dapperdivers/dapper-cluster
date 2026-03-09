@@ -117,9 +117,48 @@ jobs:
             ${{ steps.diff.outputs.diff }}
             ```
 
+  kubeconform:
+    if: ${{ needs.filter.outputs.changed-files != '[]' }}
+    needs: filter
+    name: Flux Local - Kubeconform
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install kubeconform
+        run: |
+          curl -fsSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | \
+            tar xz -C /usr/local/bin kubeconform
+
+      - name: Run flux-local build
+        uses: docker://ghcr.io/allenporter/flux-local:v8.1.0
+        with:
+          args: >-
+            build
+            --all-namespaces
+            --enable-helm
+            --path /github/workspace/kubernetes/flux/cluster
+            --sources "flux-system"
+            --output /github/workspace/build-output
+
+      - name: Validate with kubeconform
+        run: |
+          kubeconform \
+            -schema-location default \
+            -schema-location 'https://dapperdivers.github.io/dapper-cluster/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            -summary \
+            -ignore-missing-schemas \
+            -output json \
+            build-output/*.yaml || true
+
   success:
     if: ${{ !cancelled() }}
-    needs: ["test", "diff"]
+    needs: ["test", "diff", "kubeconform"]
     name: Flux Local - Success
     runs-on: ubuntu-latest
     permissions:
