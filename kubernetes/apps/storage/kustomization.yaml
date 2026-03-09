@@ -6,6 +6,7 @@ namespace: storage
 components:
   - ../../flux/components/common
 resources:
+  - ./namespace.yaml
   - ./snapshot-controller/ks.yaml
   - ./volsync/ks.yaml
   - ./minio/ks.yaml

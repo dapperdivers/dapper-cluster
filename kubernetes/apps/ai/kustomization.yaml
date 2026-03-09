@@ -6,6 +6,7 @@ namespace: ai
 components:
   - ../../flux/components/common
 resources:
+  - ./namespace.yaml
   # Core AI Agents
   - ./archon/ks.yaml
   - ./munin/ks.yaml

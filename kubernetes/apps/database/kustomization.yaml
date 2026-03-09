@@ -6,6 +6,7 @@ namespace: database
 components:
   - ../../flux/components/common
 resources:
+  - ./namespace.yaml
   - ./cloudnative-pg/ks.yaml
   - ./emqx/ks.yaml
   - ./dragonfly-redis/ks.yaml

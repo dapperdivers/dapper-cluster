@@ -6,4 +6,5 @@ namespace: actions-runner-system
 components:
   - ../../flux/components/common
 resources:
+  - ./namespace.yaml
   - ./actions-runner-controller/ks.yaml

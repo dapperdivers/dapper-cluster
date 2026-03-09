@@ -5,4 +5,5 @@ namespace: dev
 components:
   - ../../flux/components/common
 resources:
+  - ./namespace.yaml
   - ./vcluster-dev/ks.yaml

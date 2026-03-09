@@ -5,7 +5,7 @@ kind: Kustomization
 namespace: rook-ceph
 components:
   - ../../flux/components/common
-  - ../../flux/components/common/privileged-namespace
 resources:
+  - ./namespace.yaml
   - ./rook-ceph-operator/ks.yaml
   - ./rook-ceph-cluster/ks.yaml
