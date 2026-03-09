@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-logs
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: victoria-logs
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: rook-ceph-operator
+      namespace: rook-ceph
+  values:
+    fullnameOverride: victoria-logs
+    server:
+      retentionPeriod: 14d
+      persistentVolume:
+        enabled: true
+        storageClassName: ceph-rbd
+        size: 20Gi
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+      serviceMonitor:
+        enabled: true
+    dashboards:
+      enabled: true

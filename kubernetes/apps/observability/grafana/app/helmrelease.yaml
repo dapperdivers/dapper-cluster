@@ -69,6 +69,11 @@ spec:
             url: http://loki-headless.observability.svc.cluster.local:3100
             jsonData:
               maxLines: 250
+          - name: VictoriaLogs
+            type: victoriametrics-logs-datasource
+            uid: victoria-logs
+            access: proxy
+            url: http://victoria-logs-server.observability.svc.cluster.local:9428
           - name: Alertmanager
             type: alertmanager
             uid: alertmanager
@@ -319,6 +324,7 @@ spec:
       - grafana-worldmap-panel
       - natel-discrete-panel
       - pr0ps-trackmap-panel
+      - victoriametrics-logs-datasource
       - vonage-status-panel
     resources:
       requests:

@@ -20,4 +20,6 @@ resources:
   - ./kube-prometheus-stack/ks.yaml
   - ./loki/ks.yaml
   - ./silence-operator/ks.yaml
+  - ./victoria-logs/ks.yaml
+  - ./victoria-logs-collector/ks.yaml
   - ./vpa/ks.yaml
