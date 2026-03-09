@@ -186,7 +186,7 @@ spec:
     # Phase 2 — Gawain aggregates and creates PR
     - name: aggregate_and_pr
       knightRef: gawain
-      outputPath: "/vault/Fleet/improvement-requests/{{ .Date }}.md"
+      outputPath: "/vault/Roundtable/Improvement-Requests/{{ .Date }}.md"
       dependsOn:
         - galahad_assess
         - tristan_assess
