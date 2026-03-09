@@ -63,11 +63,3 @@ configMapGenerator:
       labels:
         grafana_dashboard: "1"
       disableNameSuffixHash: true
-  - name: grafana-dashboard-smartctl
-    namespace: observability
-    files:
-      - smartctl.json=dashboards/smartctl.json
-    options:
-      labels:
-        grafana_dashboard: "1"
-      disableNameSuffixHash: true
