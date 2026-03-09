@@ -15,3 +15,59 @@ configMapGenerator:
       labels:
         grafana_dashboard: "1"
       disableNameSuffixHash: true
+  - name: grafana-dashboard-node-exporter
+    namespace: observability
+    files:
+      - node-exporter.json=dashboards/node-exporter.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-k8s-cluster
+    namespace: observability
+    files:
+      - k8s-cluster.json=dashboards/k8s-cluster.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-flux
+    namespace: observability
+    files:
+      - flux.json=dashboards/flux.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-ceph
+    namespace: observability
+    files:
+      - ceph.json=dashboards/ceph.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-cert-manager
+    namespace: observability
+    files:
+      - cert-manager.json=dashboards/cert-manager.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-ingress-nginx
+    namespace: observability
+    files:
+      - ingress-nginx.json=dashboards/ingress-nginx.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-smartctl
+    namespace: observability
+    files:
+      - smartctl.json=dashboards/smartctl.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
