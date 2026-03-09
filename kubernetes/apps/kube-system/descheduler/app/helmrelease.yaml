@@ -51,11 +51,11 @@ spec:
             balance:
               enabled:
                 - LowNodeUtilization
+                - RemovePodsViolatingTopologySpreadConstraint
             deschedule:
               enabled:
                 - RemovePodsViolatingNodeAffinity
                 - RemovePodsViolatingInterPodAntiAffinity
-                - RemovePodsViolatingTopologySpreadConstraint
     service:
       enabled: true
     serviceMonitor:
