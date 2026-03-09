@@ -5,3 +5,4 @@ resources:
   - morning-briefing.yaml
   - pentest-vulnweb.yaml
   - ui-improvement.yaml
+  - fleet-self-improvement.yaml
