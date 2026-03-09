@@ -1,0 +1,238 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: fleet-self-improvement
+  namespace: roundtable
+spec:
+  description: "Weekly fleet self-improvement — knights report tool/skill gaps, Gawain PRs the fixes"
+  schedule: "0 14 * * 1"
+  timeout: 3600
+  outputKnight: gawain
+  retryPolicy:
+    maxRetries: 1
+    backoffSeconds: 60
+  steps:
+    # Phase 1 — Each knight self-assesses (parallel, no dependencies)
+    - name: galahad_assess
+      knightRef: galahad
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: security
+        - Skills: security, shared
+        - Nix tools: (check your environment)
+
+        Review your recent tasks and experiences. Report:
+        1. **Missing tools** — CLI tools you tried to use but weren't available (e.g., nikto, nuclei, semgrep)
+        2. **Missing skills** — capabilities you wish you had (specific skill folders or scripts)
+        3. **Broken tools** — anything installed but not working correctly
+        4. **Efficiency gaps** — tasks that took too long because of missing automation
+        5. **Skill improvements** — existing skills that need updates or fixes
+
+        Format your response as structured YAML:
+        ```yaml
+        knight: galahad
+        domain: security
+        missing_tools:
+          - name: tool_name
+            reason: "why you need it"
+            nix_package: "nixpkgs.package_name"  # if you know it
+        missing_skills:
+          - name: skill_name
+            description: "what it should do"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "what's slow or manual"
+        skill_improvements:
+          - skill: existing_skill_name
+            issue: "what needs fixing"
+        ```
+
+    - name: tristan_assess
+      knightRef: tristan
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: infra
+        - Skills: shared, infra
+        - Nix tools: (check your environment)
+
+        Review your recent tasks. What tools or skills are you missing?
+        What's broken? What's slow? Format as structured YAML:
+        ```yaml
+        knight: tristan
+        domain: infra
+        missing_tools:
+          - name: tool_name
+            reason: "why"
+            nix_package: "nixpkgs.package_name"
+        missing_skills:
+          - name: skill_name
+            description: "what it should do"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "what's slow"
+        skill_improvements:
+          - skill: existing_skill_name
+            issue: "what needs fixing"
+        ```
+
+    - name: kay_assess
+      knightRef: kay
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: research
+        - Skills: shared, research, intel
+        - Nix tools: (check your environment)
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    - name: bedivere_assess
+      knightRef: bedivere
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: home
+        - Skills: shared, home
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    - name: percival_assess
+      knightRef: percival
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: finance
+        - Skills: shared, finance
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    - name: lancelot_assess
+      knightRef: lancelot
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: career
+        - Skills: shared, career
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    - name: agravain_assess
+      knightRef: agravain
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: pentest
+        - Skills: shared, pentest
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    - name: gareth_assess
+      knightRef: gareth
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: wellness
+        - Skills: shared, wellness
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    - name: patsy_assess
+      knightRef: patsy
+      continueOnFailure: true
+      timeout: 300
+      task: |
+        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+
+        Your current config:
+        - Domain: vault
+        - Skills: shared, vault
+
+        Review your recent tasks. What tools or skills are you missing?
+        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+
+    # Phase 2 — Gawain aggregates and creates PR
+    - name: aggregate_and_pr
+      knightRef: gawain
+      outputPath: "/vault/Fleet/improvement-requests/{{ .Date }}.md"
+      dependsOn:
+        - galahad_assess
+        - tristan_assess
+        - kay_assess
+        - bedivere_assess
+        - percival_assess
+        - lancelot_assess
+        - agravain_assess
+        - gareth_assess
+        - patsy_assess
+      timeout: 600
+      task: |
+        FLEET SELF-IMPROVEMENT AGGREGATION
+
+        Knight self-assessments (some may be empty if a knight timed out):
+
+        Galahad (security): {{ .Steps.galahad_assess.Output }}
+        Tristan (infra): {{ .Steps.tristan_assess.Output }}
+        Kay (research): {{ .Steps.kay_assess.Output }}
+        Bedivere (home): {{ .Steps.bedivere_assess.Output }}
+        Percival (finance): {{ .Steps.percival_assess.Output }}
+        Lancelot (career): {{ .Steps.lancelot_assess.Output }}
+        Agravain (pentest): {{ .Steps.agravain_assess.Output }}
+        Gareth (wellness): {{ .Steps.gareth_assess.Output }}
+        Patsy (vault): {{ .Steps.patsy_assess.Output }}
+
+        INSTRUCTIONS:
+        1) Parse all YAML responses. Aggregate across knights.
+        2) Deduplicate — if multiple knights request the same tool, note that.
+        3) Prioritize by impact (tools requested by multiple knights > single requests).
+        4) For each APPROVED change, prepare the actual update:
+           - **Nix tools**: Update the Knight CR YAML in dapper-cluster
+           - **Skills**: Note what needs to be created in roundtable-arsenal
+        5) Create a PR to `dapperdivers/dapper-cluster` with the Knight CR changes.
+           Use `gh` CLI. Branch name: `fleet-improvement/YYYY-MM-DD`.
+           Target: the Knight YAML files under `kubernetes/apps/roundtable/knights/`.
+        6) If new skills are needed, create an issue on `dapperdivers/roundtable-arsenal`.
+
+        IMPORTANT:
+        - Only add tools that are real Nix packages (verify with `nix-env -qaP | grep`)
+        - Don't remove existing tools — only ADD
+        - Don't change domains, models, or NATS config
+        - Keep PRs focused — one PR per improvement cycle
+
+        Return a markdown summary of:
+        - What changes were made (PR link if created)
+        - What was deferred and why
+        - Total requests vs approved
+        - Any new arsenal issues created
