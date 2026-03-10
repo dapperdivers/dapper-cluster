@@ -1,0 +1,152 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: phase3a-cost-and-results
+  namespace: roundtable
+spec:
+  description: "Phase 3a: Per-mission cost tracking (#23) + result preservation (#26)"
+  timeout: 3600
+  outputKnight: gawain
+  retryPolicy:
+    maxRetries: 0
+  steps:
+    # ═══════════════════════════════════════════════════════
+    # PHASE 1 — Setup (fast)
+    # ═══════════════════════════════════════════════════════
+
+    - name: setup
+      knightRef: tristan
+      timeout: 120
+      task: |
+        TASK: Set up the working branch with latest main.
+
+        ```bash
+        cd /shared/repos/roundtable
+        git fetch origin && git checkout main && git pull
+        git checkout -b phase3a/cost-tracking-and-results
+        ```
+
+        Also read the current mission_controller.go and summarize what cost/result
+        code already exists (from PR #31). Write a quick summary to
+        /shared/chains/phase3a-cost-results/current-state.md
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 2 — Implement both features (PARALLEL)
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_cost_tracking
+      knightRef: gawain
+      timeout: 900
+      dependsOn:
+        - setup
+      task: |
+        TASK: Implement per-mission cost tracking with budget enforcement (#23).
+
+        Work in /shared/repos/roundtable on branch phase3a/cost-tracking-and-results.
+        Read /shared/chains/phase3a-cost-results/current-state.md for context.
+
+        IMPLEMENT in internal/controller/mission_controller.go:
+
+        1. **Cost aggregation** — On each reconcile during Active phase:
+           - List all Knight CRs owned by this mission
+           - Sum their status.costUSD fields
+           - Update mission.status.totalCostUSD
+           - Update mission.status.costBreakdown (per-knight costs)
+
+        2. **Budget enforcement** — When spec.costBudgetUSD > 0:
+           - Compare totalCostUSD against budget
+           - If exceeded: set mission phase to Failed, reason "BudgetExceeded"
+           - Suspend all mission-owned chains
+
+        3. **Add status fields if missing** in api/v1alpha1/mission_types.go:
+           - totalCostUSD string
+           - costBreakdown []MissionKnightCost (knight name + cost)
+
+        Run `CGO_ENABLED=0 go build ./...` after changes.
+        Commit: `git add -A && git commit -m "feat(mission): per-mission cost tracking with budget enforcement"`
+
+    - name: implement_results
+      knightRef: tristan
+      timeout: 600
+      dependsOn:
+        - setup
+      task: |
+        TASK: Implement mission result preservation in ConfigMap (#26).
+
+        Work in /shared/repos/roundtable on branch phase3a/cost-tracking-and-results.
+        NOTE: Gawain may be working on the same branch concurrently — coordinate via git.
+
+        Wait 30 seconds then pull any changes: `git pull origin phase3a/cost-tracking-and-results 2>/dev/null || true`
+
+        IMPLEMENT in internal/controller/mission_controller.go:
+
+        1. **Result ConfigMap creation** — When mission succeeds and spec.retainResults=true:
+           - Create a ConfigMap named `mission-{name}-results`
+           - Include: chain outputs, knight statuses, cost breakdown, timeline
+           - Do NOT set ownerReference (ConfigMap should persist after mission deletion)
+           - Set mission.status.resultsConfigMap to the ConfigMap name
+
+        2. **ConfigMap structure:**
+           ```
+           data:
+             summary.json: '{"mission":"name","phase":"Succeeded","duration":"5m","totalCost":"0.50"}'
+             chain-{name}.json: '{"steps":[...],"output":"..."}'
+             timeline.json: '{"started":"...","completed":"...","phases":[...]}'
+           ```
+
+        Run `CGO_ENABLED=0 go build ./...` after changes.
+        Commit: `git add -A && git commit -m "feat(mission): preserve results in ConfigMap"`
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 3 — Merge + Test + PR
+    # ═══════════════════════════════════════════════════════
+
+    - name: merge_and_test
+      knightRef: tristan
+      timeout: 600
+      dependsOn:
+        - implement_cost_tracking
+        - implement_results
+      task: |
+        TASK: Merge both implementations, test, and create PR.
+
+        ```bash
+        cd /shared/repos/roundtable
+
+        # Ensure we have both commits
+        git log --oneline main..HEAD
+
+        # Build
+        CGO_ENABLED=0 go build ./...
+
+        # Generate manifests if types changed
+        make manifests 2>/dev/null || true
+        rm -f charts/roundtable-operator/crds/kustomization.yaml
+        cp config/crd/bases/ai.roundtable.io_*.yaml charts/roundtable-operator/crds/ 2>/dev/null || true
+        git add -A && git commit -m "chore: regenerate CRD manifests" --allow-empty
+
+        # Push
+        git push origin phase3a/cost-tracking-and-results --force
+
+        # Create PR
+        gh pr create \
+          --title "feat(mission): cost tracking and result preservation" \
+          --body "## Summary
+        Two features for mission lifecycle:
+
+        ### Per-Mission Cost Tracking (#23)
+        - Aggregate knight costs on each reconcile
+        - Budget enforcement with BudgetExceeded failure
+        - Cost breakdown in mission status
+
+        ### Result Preservation (#26)
+        - ConfigMap created on mission success (when retainResults=true)
+        - Includes chain outputs, costs, timeline
+        - NOT owned by mission (persists after cleanup)
+
+        Closes #23, closes #26" \
+          --base main
+        ```
+
+        OUTPUT: PR URL.
