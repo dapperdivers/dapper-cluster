@@ -3,9 +3,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - morning-briefing.yaml
-  - pentest-vulnweb.yaml
-  - ui-improvement.yaml
   - fleet-self-improvement.yaml
-  - phase3a-nats-library.yaml
-  - phase3a-crd-types.yaml
   - workspace-setup.yaml
+  - phase3a-nats-library-extract.yaml

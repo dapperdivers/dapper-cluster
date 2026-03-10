@@ -1,0 +1,193 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: phase3a-nats-library-extract
+  namespace: roundtable
+spec:
+  description: "Phase 3a PR1: Extract shared NATS client library from controller duplication (Issue #16)"
+  timeout: 3600
+  outputKnight: gawain
+  retryPolicy:
+    maxRetries: 0
+  steps:
+    # ═══════════════════════════════════════════════════════
+    # PHASE 1 — Analyze current duplication (PARALLEL)
+    # ═══════════════════════════════════════════════════════
+
+    - name: analyze_duplication
+      knightRef: kay
+      timeout: 300
+      task: |
+        TASK: Analyze NATS code duplication across the operator controllers.
+
+        Read these files from /shared/repos/roundtable (run `git pull` first):
+        - internal/controller/chain_controller.go
+        - internal/controller/knight_controller.go
+        - internal/controller/roundtable_controller.go
+
+        For each controller, extract:
+        1. How it connects to NATS (ensureNATS, nats.Connect, etc.)
+        2. What JetStream operations it performs (publish, subscribe, stream create, consumer manage)
+        3. What structs/types it defines for NATS payloads
+        4. Error handling patterns (reconnection, timeouts)
+
+        Write a detailed analysis to /shared/chains/phase3a-nats-extract/duplication-analysis.md
+        Include exact function names, line numbers, and code snippets.
+
+    - name: setup_branch
+      knightRef: tristan
+      timeout: 120
+      task: |
+        TASK: Set up the working branch for the NATS library extraction.
+
+        ```bash
+        cd /shared/repos/roundtable
+        git fetch origin && git checkout main && git pull
+        git checkout -b phase3a/shared-nats-library
+        mkdir -p pkg/nats
+        ```
+
+        OUTPUT: Branch name and current HEAD.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 2 — Design + Implement (sequential, needs analysis)
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_library
+      knightRef: gawain
+      timeout: 900
+      dependsOn:
+        - analyze_duplication
+        - setup_branch
+      task: |
+        TASK: Extract duplicated NATS code into a shared pkg/nats library.
+
+        Read Kay's analysis: /shared/chains/phase3a-nats-extract/duplication-analysis.md
+
+        Work in /shared/repos/roundtable on branch phase3a/shared-nats-library.
+
+        CREATE these files in pkg/nats/:
+
+        1. **client.go** — Core client interface + implementation:
+           - `type Client interface` with methods: Connect, Close, Publish, Subscribe, CreateStream, DeleteStream, EnsureConsumer, DeleteConsumer
+           - `type JetStreamClient struct` implementing Client
+           - Connection management with reconnection
+           - Thread-safe (sync.Mutex)
+           - Uses logr for logging
+
+        2. **config.go** — Configuration types:
+           - `type Config struct` (URL, connection options)
+           - `type StreamConfig struct` (name, subjects, retention policy)
+           - `type ConsumerConfig struct` (durable name, filter subject, ack policy)
+
+        3. **payload.go** — Shared payload types:
+           - Move TaskPayload and TaskResult from chain_controller.go
+           - Keep the dual-format getters (GetTaskID, GetOutput, GetError)
+
+        THEN refactor the controllers to use the shared library:
+        - chain_controller.go: replace ensureNATS(), publishTask(), pollResult() internals
+        - knight_controller.go: replace any NATS connection code
+        - roundtable_controller.go: replace stream creation code
+
+        RULES:
+        - Run `CGO_ENABLED=0 go build ./...` after EACH file change
+        - Fix any compilation errors before moving on
+        - Keep all existing behavior — this is a REFACTOR not a feature change
+        - Commit incrementally: one commit per file/refactor step
+
+        OUTPUT: `git log --oneline` showing your commits and final `go build` result.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 3 — Test + Review (PARALLEL)
+    # ═══════════════════════════════════════════════════════
+
+    - name: write_tests
+      knightRef: tristan
+      timeout: 600
+      dependsOn:
+        - implement_library
+      task: |
+        TASK: Write unit tests for the shared NATS library.
+
+        Work in /shared/repos/roundtable on branch phase3a/shared-nats-library.
+
+        Create pkg/nats/client_test.go with tests for:
+        1. Config validation (missing URL, invalid options)
+        2. Publish with nil connection (should error gracefully)
+        3. StreamConfig builder patterns
+        4. TaskPayload/TaskResult serialization (both formats)
+        5. GetTaskID/GetOutput/GetError dual-format getters
+
+        Use standard Go testing. Mock the NATS connection where needed.
+        Run: `CGO_ENABLED=0 go test ./pkg/nats/... -v`
+
+        Commit: `git add -A && git commit -m "test(pkg/nats): add unit tests for shared NATS client"`
+
+        OUTPUT: Test results.
+
+    - name: security_review
+      knightRef: galahad
+      timeout: 300
+      continueOnFailure: true
+      dependsOn:
+        - implement_library
+      task: |
+        TASK: Security review of the shared NATS library.
+
+        Run: `cd /shared/repos/roundtable && git diff main..HEAD -- pkg/nats/`
+
+        Review for:
+        1. Credential handling — are NATS credentials exposed in logs?
+        2. Connection security — TLS support? Auth token handling?
+        3. Input validation — can malformed subjects cause injection?
+        4. Resource leaks — are connections/subscriptions properly closed?
+        5. Concurrent access — proper mutex usage?
+
+        Write to /shared/chains/phase3a-nats-extract/security-review.md
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 4 — Push + PR
+    # ═══════════════════════════════════════════════════════
+
+    - name: create_pr
+      knightRef: tristan
+      timeout: 300
+      dependsOn:
+        - write_tests
+        - security_review
+      task: |
+        TASK: Push and create the PR.
+
+        ```bash
+        cd /shared/repos/roundtable
+
+        # Final build + test check
+        CGO_ENABLED=0 go build ./...
+        CGO_ENABLED=0 go test ./pkg/nats/... 2>&1 || true
+
+        # Push
+        git push origin phase3a/shared-nats-library --force
+
+        # Create PR
+        gh pr create \
+          --title "refactor(pkg/nats): extract shared NATS client library" \
+          --body "## Summary
+        Extract duplicated NATS connection/publish/subscribe code from 3 controllers
+        into a shared \`pkg/nats\` library.
+
+        ### Changes
+        - New: \`pkg/nats/client.go\` — Client interface + JetStream implementation
+        - New: \`pkg/nats/config.go\` — Configuration types
+        - New: \`pkg/nats/payload.go\` — Shared TaskPayload/TaskResult types
+        - New: \`pkg/nats/client_test.go\` — Unit tests
+        - Refactored: chain_controller.go, knight_controller.go, roundtable_controller.go
+
+        ### Security Review
+        $(head -30 /shared/chains/phase3a-nats-extract/security-review.md 2>/dev/null || echo 'See PR comments')
+
+        Closes #16" \
+          --base main
+        ```
+
+        OUTPUT: PR URL.
