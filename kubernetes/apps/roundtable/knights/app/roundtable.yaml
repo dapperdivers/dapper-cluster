@@ -21,6 +21,9 @@ spec:
     image: ""
     taskTimeout: 600
     concurrency: 2
+    resources:
+      memory: "512Mi"
+      cpu: "200m"
   policies:
     costBudgetUSD: "0"
     maxConcurrentTasks: 0
