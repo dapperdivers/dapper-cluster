@@ -25,6 +25,8 @@ spec:
       - gnumake
       - gh
       - jq
+      - tree
+      - curl
   nats:
     url: nats://nats.database.svc:4222
     subjects:
