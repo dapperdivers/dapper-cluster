@@ -17,6 +17,9 @@ spec:
       - gh
       - yq
       - python3
+      - go
+      - gnumake
+      - jq
   nats:
     url: nats://nats.database.svc:4222
     subjects:

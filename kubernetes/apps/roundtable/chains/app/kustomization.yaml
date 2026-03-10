@@ -8,3 +8,4 @@ resources:
   - fleet-self-improvement.yaml
   - phase3a-nats-library.yaml
   - phase3a-crd-types.yaml
+  - workspace-setup.yaml
