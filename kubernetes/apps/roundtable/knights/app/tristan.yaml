@@ -41,7 +41,7 @@ spec:
   workspace:
     size: "1Gi"
   resources:
-    memory: "1Gi"
+    memory: "2Gi"
     cpu: "1"
   concurrency: 2
   taskTimeout: 1800
