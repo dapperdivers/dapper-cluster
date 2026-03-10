@@ -6,3 +6,4 @@ resources:
   - fleet-self-improvement.yaml
   - workspace-setup.yaml
   - phase3a-nats-library-extract.yaml
+  - phase3a-mission-controller.yaml
