@@ -2,6 +2,8 @@
 apiVersion: ai.roundtable.io/v1alpha1
 kind: Knight
 metadata:
+  labels:
+    ai.roundtable.io/table: personal
   name: gareth
 spec:
   domain: wellness
