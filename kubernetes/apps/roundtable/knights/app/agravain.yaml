@@ -45,9 +45,6 @@ spec:
     period: "300s"
   workspace:
     size: "1Gi"
-  resources:
-    memory: "2Gi"
-    cpu: "1"
   concurrency: 1
   taskTimeout: 1800
   envFrom:
