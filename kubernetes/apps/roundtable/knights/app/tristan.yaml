@@ -36,6 +36,8 @@ spec:
       - gnumake        # make for CRD generation
       - gh             # GitHub CLI for PR creation
       - jq             # JSON processing
+      - tree
+      - curl
   nats:
     url: nats://nats.database.svc:4222
     subjects:
