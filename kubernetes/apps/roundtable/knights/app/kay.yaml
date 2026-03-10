@@ -18,6 +18,10 @@ spec:
       - wget
       - lynx
       - newsboat
+      # Added 2026-03-09 - Fleet self-improvement assessment
+      - bat              # Enhanced file preview with syntax highlighting
+      - fd               # Fast file discovery (alternative to find)
+      - eza              # Modern ls replacement
   nats:
     url: nats://nats.database.svc:4222
     subjects:

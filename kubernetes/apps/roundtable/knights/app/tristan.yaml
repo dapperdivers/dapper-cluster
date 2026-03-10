@@ -21,6 +21,14 @@ spec:
       - talosctl
       - cilium-cli
       - yq-go
+      # Added 2026-03-09 - Fleet self-improvement assessment
+      - procps         # ps, top, free, vmstat - CRITICAL for process visibility
+      - bind           # dig, host, nslookup - CRITICAL for DNS debugging
+      - iputils        # ping - CRITICAL for network connectivity testing
+      - traceroute     # Network path debugging
+      - htop           # Interactive process monitor
+      - iftop          # Network bandwidth monitor
+      - netcat-gnu     # Network testing (nc)
   nats:
     url: nats://nats.database.svc:4222
     subjects:
