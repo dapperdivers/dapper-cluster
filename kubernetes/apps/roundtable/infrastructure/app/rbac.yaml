@@ -1,4 +1,11 @@
 ---
+# ServiceAccount for Tristan — only knight that needs cluster-wide read access
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tristan
+  namespace: roundtable
+---
 # Tristan — Cluster-wide read access for infrastructure monitoring
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -56,7 +63,7 @@ metadata:
   name: tristan-cluster-reader
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: tristan
     namespace: roundtable
 roleRef:
   kind: ClusterRole
