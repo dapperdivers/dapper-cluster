@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roundtable-workspace
+  namespace: roundtable
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cephfs-shared
+  resources:
+    requests:
+      storage: 10Gi

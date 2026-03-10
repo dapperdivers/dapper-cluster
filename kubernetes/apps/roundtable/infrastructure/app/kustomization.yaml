@@ -7,3 +7,4 @@ resources:
   - roundtable-secret.yaml
   - vault-pv.yaml
   - vault-pvc.yaml
+  - shared-workspace-pvc.yaml

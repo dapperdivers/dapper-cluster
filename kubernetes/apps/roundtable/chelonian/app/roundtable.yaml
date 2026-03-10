@@ -34,4 +34,7 @@ spec:
     writablePaths:
       - "Projects/Chelonian Labs/"
       - "Briefings/"
+  sharedWorkspace:
+    claimName: roundtable-workspace
+    mountPath: /shared
   suspended: false
