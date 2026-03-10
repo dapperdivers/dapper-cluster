@@ -1,0 +1,108 @@
+---
+# Allow known clients to reach PostgreSQL (CloudNative-PG)
+# Port 5432 — apps that use Postgres databases
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-postgres-clients
+  namespace: database
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: postgres
+  ingress:
+    - fromEndpoints:
+        # security namespace (authentik, opencti, vaultwarden)
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+        # selfhosted namespace (atuin, inbox-zero, miniflux, paperless-ngx)
+        - matchLabels:
+            io.kubernetes.pod.namespace: selfhosted
+        # ai namespace (litellm)
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+        # media namespace (autobrr)
+        - matchLabels:
+            io.kubernetes.pod.namespace: media
+        # observability (grafana)
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+        # kyverno (postgres-init policy)
+        - matchLabels:
+            io.kubernetes.pod.namespace: kyverno
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+# Allow known clients to reach Dragonfly (Redis) — port 6379
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dragonfly-clients
+  namespace: database
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: dragonfly
+  ingress:
+    - fromEndpoints:
+        # security (authentik, opencti)
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+        # selfhosted (paperless-ngx, searxng)
+        - matchLabels:
+            io.kubernetes.pod.namespace: selfhosted
+        # media (various *arr apps)
+        - matchLabels:
+            io.kubernetes.pod.namespace: media
+        # ai namespace
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+# Allow known clients to reach NATS — port 4222
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-nats-clients
+  namespace: database
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: nats
+  ingress:
+    - fromEndpoints:
+        # roundtable knights (all communicate via NATS)
+        - matchLabels:
+            io.kubernetes.pod.namespace: roundtable
+        # ai namespace (openclaw dispatches tasks via NATS)
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "4222"
+              protocol: TCP
+---
+# Allow EMQX MQTT clients — port 1883
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-emqx-clients
+  namespace: database
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: emqx
+  ingress:
+    - fromEndpoints:
+        # home-automation (zigbee2mqtt)
+        - matchLabels:
+            io.kubernetes.pod.namespace: home-automation
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
