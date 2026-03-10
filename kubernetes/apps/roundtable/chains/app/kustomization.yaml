@@ -7,3 +7,4 @@ resources:
   - workspace-setup.yaml
   - phase3a-nats-library-extract.yaml
   - phase3a-mission-controller.yaml
+  - phase3a-cost-and-results.yaml
