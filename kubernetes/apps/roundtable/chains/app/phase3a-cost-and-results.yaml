@@ -17,7 +17,7 @@ spec:
 
     - name: setup
       knightRef: tristan
-      timeout: 120
+      timeout: 300
       task: |
         TASK: Set up the working branch with latest main.
 
