@@ -223,7 +223,12 @@ spec:
         5) Create a PR to `dapperdivers/dapper-cluster` with the Knight CR changes.
            Use `gh` CLI. Branch name: `fleet-improvement/YYYY-MM-DD`.
            Target: the Knight YAML files under `kubernetes/apps/roundtable/knights/`.
-        6) If new skills are needed, create an issue on `dapperdivers/roundtable-arsenal`.
+        6) Before creating ANY issue on `dapperdivers/roundtable-arsenal`:
+           - Run `gh issue list --repo dapperdivers/roundtable-arsenal --state open --limit 50`
+           - Search for existing issues covering the same topic
+           - If an existing issue already covers this need, SKIP creating a new one
+           - Only create issues for genuinely NEW skill/tool gaps not already tracked
+           - Reference existing issue numbers in your summary if relevant
 
         IMPORTANT:
         - Only add tools that are real Nix packages (verify with `nix-env -qaP | grep`)
