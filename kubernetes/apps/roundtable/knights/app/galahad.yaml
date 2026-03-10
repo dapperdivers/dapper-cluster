@@ -21,19 +21,14 @@ spec:
       - nuclei
       - trivy
       - yara
-      # Added 2026-03-09 - Fleet self-improvement assessment
-      - semgrep        # Static code analysis for vulnerability detection
-      - gitleaks       # Scan git repositories for exposed secrets
-      - trufflehog     # Advanced secret scanning across git history
-      - grype          # Vulnerability scanner for container images (Anchore)
-      - syft           # SBOM generation for containers and filesystems
-      - tcpdump        # Packet capture and analysis
-      - wireshark-cli  # Terminal-based Wireshark (tshark)
-      - amass          # OWASP subdomain enumeration
-      - subfinder      # Fast passive subdomain discovery
-      - httpx          # Fast HTTP toolkit (ProjectDiscovery)
-      - dnsx           # Fast DNS toolkit (ProjectDiscovery)
-      - osv-scanner    # Google's OSV vulnerability scanner
+      # OSINT & threat intel
+      - gitleaks       # Secret scanning
+      - grype          # Container image vuln scanner
+      - syft           # SBOM generation
+      - subfinder      # Passive subdomain discovery
+      - httpx          # Fast HTTP probing
+      - dnsx           # DNS toolkit
+      - osv-scanner    # Google OSV vuln scanner
     # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222
