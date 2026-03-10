@@ -37,4 +37,7 @@ spec:
       - "Projects/HomeLab/"
       - "Briefings/"
       - "Work/"
+  sharedWorkspace:
+    claimName: roundtable-workspace
+    mountPath: /shared
   suspended: false
