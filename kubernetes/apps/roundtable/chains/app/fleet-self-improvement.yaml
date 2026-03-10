@@ -230,6 +230,9 @@ spec:
         - Don't remove existing tools — only ADD
         - Don't change domains, models, or NATS config
         - Keep PRs focused — one PR per improvement cycle
+        - **NEVER include PII in PRs or commits** — no real names, account numbers, balances,
+          addresses, or personal financial data. Config files are TEMPLATES only.
+          Real data belongs in the vault (mounted at runtime), not in git repos.
 
         Return a markdown summary of:
         - What changes were made (PR link if created)
