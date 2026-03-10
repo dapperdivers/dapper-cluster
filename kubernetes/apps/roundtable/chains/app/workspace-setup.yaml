@@ -1,0 +1,43 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: workspace-setup
+  namespace: roundtable
+spec:
+  description: "Initialize shared workspace with repo clones for development chains"
+  timeout: 600
+  retryPolicy:
+    maxRetries: 1
+    backoffSeconds: 30
+  steps:
+    - name: clone_repos
+      knightRef: tristan
+      timeout: 300
+      task: |
+        TASK: Set up the shared development workspace at /shared.
+
+        Create the following directory structure and clone repos:
+
+        ```
+        /shared/
+        ├── repos/
+        │   ├── roundtable/          # operator + CRDs
+        │   └── roundtable-arsenal/  # skills + tools
+        └── chains/                  # chain working directories (created by chains)
+        ```
+
+        Commands:
+        1. mkdir -p /shared/repos /shared/chains
+        2. If /shared/repos/roundtable/.git exists, run `git pull` in it
+           Otherwise: git clone https://github.com/dapperdivers/roundtable.git /shared/repos/roundtable
+        3. If /shared/repos/roundtable-arsenal/.git exists, run `git pull` in it
+           Otherwise: git clone https://github.com/dapperdivers/roundtable-arsenal.git /shared/repos/roundtable-arsenal
+        4. Set git config in each repo:
+           git config user.email "knights@roundtable.ai"
+           git config user.name "Round Table Knights"
+
+        Use GITHUB_TOKEN or GH_TOKEN from environment for auth if needed:
+        git clone https://${GH_TOKEN}@github.com/dapperdivers/roundtable.git
+
+        OUTPUT: List of repos cloned/updated with their current HEAD commits.

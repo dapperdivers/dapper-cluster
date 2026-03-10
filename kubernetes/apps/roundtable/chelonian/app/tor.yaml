@@ -21,6 +21,10 @@ spec:
       - nodejs_22
       - git
       - ripgrep
+      - go
+      - gnumake
+      - gh
+      - jq
   nats:
     url: nats://nats.database.svc:4222
     subjects:

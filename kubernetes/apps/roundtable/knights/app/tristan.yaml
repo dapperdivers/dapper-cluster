@@ -32,6 +32,10 @@ spec:
       - htop           # Interactive process monitor
       - iftop          # Network bandwidth monitor
       - netcat-gnu     # Network testing (nc)
+      - go             # Go compiler for operator development
+      - gnumake        # make for CRD generation
+      - gh             # GitHub CLI for PR creation
+      - jq             # JSON processing
   nats:
     url: nats://nats.database.svc:4222
     subjects:
