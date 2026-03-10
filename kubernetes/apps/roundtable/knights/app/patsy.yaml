@@ -15,6 +15,7 @@ spec:
       - tree
       - bat
       - delta
+      - sqlite
   nats:
     url: nats://nats.database.svc:4222
     subjects:

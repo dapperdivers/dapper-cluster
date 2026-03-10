@@ -18,6 +18,9 @@ spec:
       - netcat-gnu
       - file
       - python3
+      - nuclei
+      - trivy
+      - yara
     # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222

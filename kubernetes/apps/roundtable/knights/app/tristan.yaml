@@ -18,6 +18,9 @@ spec:
       - k9s
       - fluxcd
       - nmap
+      - talosctl
+      - cilium-cli
+      - yq-go
   nats:
     url: nats://nats.database.svc:4222
     subjects:

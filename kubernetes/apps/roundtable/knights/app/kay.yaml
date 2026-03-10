@@ -17,6 +17,7 @@ spec:
       - dnsutils
       - wget
       - lynx
+      - newsboat
   nats:
     url: nats://nats.database.svc:4222
     subjects:
