@@ -9,6 +9,6 @@ resources:
   - ./namespace.yaml
   - ./infrastructure/ks.yaml   # RBAC, secrets, shared vault PV/PVC
   - ./operator/ks.yaml         # Roundtable operator (manages Knight CRDs)
-  - ./knights/ks.yaml          # All 10 Knight CRs + per-knight secrets
+  - ./knights/ks.yaml          # Personal RoundTable + 10 Knight CRs + per-knight secrets
   - ./chains/ks.yaml           # Chain CRs (morning briefing, pentest, etc.)
   - ./chelonian/ks.yaml        # Chelonian Labs coding Round Table

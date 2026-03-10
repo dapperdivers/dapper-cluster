@@ -1,0 +1,37 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: RoundTable
+metadata:
+  name: personal
+  namespace: roundtable
+spec:
+  description: "Derek's personal fleet — security, finance, career, home, research, and infrastructure knights"
+  nats:
+    url: nats://nats.database.svc:4222
+    subjectPrefix: fleet-a
+    tasksStream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    createStreams: true
+    streamRetention: WorkQueue
+  knightSelector:
+    matchLabels:
+      ai.roundtable.io/table: personal
+  defaults:
+    model: "anthropic/claude-sonnet-4-5"
+    image: ""
+    taskTimeout: 600
+    concurrency: 2
+  policies:
+    costBudgetUSD: "0"
+    maxConcurrentTasks: 0
+    maxKnights: 15
+    maxMissions: 10
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Personal/"
+      - "Projects/HomeLab/"
+      - "Briefings/"
+      - "Work/"
+  suspended: false
