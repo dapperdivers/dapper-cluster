@@ -21,6 +21,9 @@ spec:
     image: ""
     taskTimeout: 300
     concurrency: 2
+    resources:
+      memory: "512Mi"
+      cpu: "200m"
   policies:
     costBudgetUSD: "25"
     costResetSchedule: "0 0 1 * *"
