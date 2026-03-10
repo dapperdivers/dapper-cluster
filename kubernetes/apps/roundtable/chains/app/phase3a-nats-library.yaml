@@ -1,0 +1,116 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: phase3a-nats-library
+  namespace: roundtable
+spec:
+  description: "Phase 3a PR1: Extract shared NATS client library from operator controllers"
+  timeout: 3600
+  roundTableRef: chelonian
+  outputKnight: gawain
+  retryPolicy:
+    maxRetries: 0
+  steps:
+    # Step 1 — Pellinore designs the library API
+    - name: design_api
+      knightRef: pellinore
+      timeout: 600
+      task: |
+        TASK: Design a shared NATS client library for the roundtable-operator.
+
+        CONTEXT:
+        The roundtable-operator has 3 controllers that each manage their own NATS connections:
+        - ChainReconciler (chain_controller.go)
+        - KnightReconciler (knight_controller.go)
+        - RoundTableReconciler (roundtable_controller.go)
+
+        Each duplicates connection management, stream creation, and publish/subscribe logic.
+        We need a shared `pkg/nats` library that all controllers import.
+
+        The repo is at https://github.com/dapperdivers/roundtable (Go, kubebuilder).
+
+        REQUIREMENTS:
+        1. Define the package API: `pkg/nats/client.go`
+        2. Core interface: `Client` with methods for Connect, Publish, Subscribe, CreateStream, EnsureConsumer
+        3. Must support multiple simultaneous stream configurations (different tables)
+        4. Must handle reconnection gracefully
+        5. Must be testable (interface-based for mocking)
+
+        OUTPUT: A complete Go interface definition and package structure.
+        Include the full `client.go` file content ready to commit.
+
+    # Step 2 — Lamorak implements the library
+    - name: implement_library
+      knightRef: lamorak
+      timeout: 900
+      dependsOn:
+        - design_api
+      task: |
+        TASK: Implement the shared NATS client library based on Pellinore's design.
+
+        DESIGN:
+        {{ .Steps.design_api.Output }}
+
+        REQUIREMENTS:
+        1. Implement all interfaces defined in the design
+        2. Use nats.go v1.x client library (already in go.mod)
+        3. Include proper error handling and logging (use logr)
+        4. Add reconnection with exponential backoff
+        5. Thread-safe (multiple controllers will share the client)
+        6. Include `pkg/nats/client.go` (interface), `pkg/nats/jetstream.go` (implementation)
+
+        OUTPUT: Complete Go source files ready to commit. Include package declaration,
+        imports, and all method implementations.
+
+    # Step 3 — Tor writes tests
+    - name: write_tests
+      knightRef: tor
+      timeout: 600
+      dependsOn:
+        - implement_library
+      task: |
+        TASK: Write unit tests for the shared NATS client library.
+
+        IMPLEMENTATION:
+        {{ .Steps.implement_library.Output }}
+
+        REQUIREMENTS:
+        1. Test all public methods
+        2. Use a mock NATS server or interface mocks
+        3. Test reconnection behavior
+        4. Test concurrent access safety
+        5. Test error paths (connection failure, publish failure, etc.)
+        6. Follow Go testing conventions: `pkg/nats/client_test.go`
+
+        OUTPUT: Complete test file(s) ready to commit.
+
+    # Step 4 — Ector creates the PR
+    - name: create_pr
+      knightRef: ector
+      timeout: 600
+      dependsOn:
+        - implement_library
+        - write_tests
+      task: |
+        TASK: Create a PR on the roundtable-operator repo with the shared NATS library.
+
+        LIBRARY CODE:
+        {{ .Steps.implement_library.Output }}
+
+        TESTS:
+        {{ .Steps.write_tests.Output }}
+
+        INSTRUCTIONS:
+        1. Clone https://github.com/dapperdivers/roundtable
+        2. Create branch: `phase3a/shared-nats-library`
+        3. Create files under `pkg/nats/`
+        4. Run `go build ./...` to verify compilation
+        5. Run `go test ./pkg/nats/...` to verify tests pass
+        6. Commit and push
+        7. Create PR targeting `main` with title: "feat(pkg): extract shared NATS client library"
+        8. Reference issue #16
+
+        Use `gh` CLI for PR creation. Use git credentials from environment.
+
+        OUTPUT: PR URL and summary of changes.
