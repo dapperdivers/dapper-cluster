@@ -139,7 +139,7 @@ jobs:
         uses: docker://ghcr.io/allenporter/flux-local:v8.1.0
         with:
           args: >-
-            build
+            build all
             --all-namespaces
             --enable-helm
             --path /github/workspace/kubernetes/flux/cluster
