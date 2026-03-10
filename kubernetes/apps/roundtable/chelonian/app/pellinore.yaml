@@ -24,8 +24,8 @@ spec:
     url: nats://nats.database.svc:4222
     subjects:
       - "chelonian.tasks.architecture.>"
-      - "chelonian.tasks.review.>"
       - "chelonian.tasks.planning.>"
+      - "chelonian.tasks.design.>"
     stream: chelonian_tasks
     resultsStream: chelonian_results
     maxDeliver: 1
