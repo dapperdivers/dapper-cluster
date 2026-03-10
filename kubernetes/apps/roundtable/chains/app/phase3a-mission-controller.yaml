@@ -1,0 +1,197 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: phase3a-mission-controller
+  namespace: roundtable
+spec:
+  description: "Phase 3a PR7: Mission controller - chain copies and active phase (Issue #22)"
+  timeout: 3600
+  outputKnight: gawain
+  retryPolicy:
+    maxRetries: 0
+  steps:
+    # ═══════════════════════════════════════════════════════
+    # PHASE 1 — Research (PARALLEL)
+    # ═══════════════════════════════════════════════════════
+
+    - name: analyze_current
+      knightRef: kay
+      timeout: 300
+      task: |
+        TASK: Analyze the current mission controller and what needs to change.
+
+        Read from /shared/repos/roundtable (run `cd /shared/repos/roundtable && git checkout main && git pull` first):
+        - internal/controller/mission_controller.go (current implementation)
+        - api/v1alpha1/mission_types.go (types we just added in PR #29)
+        - internal/controller/chain_controller.go (chain patterns to follow)
+        - pkg/nats/ (shared NATS library we just extracted)
+
+        Also read the Phase 3 design doc: /vault/Projects/Round Table/Phase 3 - Dynamic Mission Tables.md
+        Focus on: Section 4 "Mission Controller" and the sequence diagram.
+
+        Document:
+        1. What the mission controller currently does (it's partially implemented)
+        2. What's stubbed out / TODO
+        3. The lifecycle: Pending → Provisioning → Assembling → Briefing → Active → Succeeded/Failed
+        4. How chain copies should work (create Chain CRs scoped to mission's RoundTable)
+        5. How the controller should use pkg/nats for NATS operations
+
+        Write to /shared/chains/phase3a-mission-ctrl/analysis.md
+
+    - name: setup_branch
+      knightRef: tristan
+      timeout: 120
+      task: |
+        TASK: Set up the working branch.
+
+        ```bash
+        cd /shared/repos/roundtable
+        git fetch origin && git checkout main && git pull
+        git checkout -b phase3a/mission-controller-active
+        ```
+
+        OUTPUT: Branch name and HEAD sha.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 2 — Implement (Gawain, the heavy lift)
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_controller
+      knightRef: gawain
+      timeout: 1200
+      dependsOn:
+        - analyze_current
+        - setup_branch
+      task: |
+        TASK: Implement the mission controller's chain copy and active phase logic.
+
+        Read Kay's analysis: /shared/chains/phase3a-mission-ctrl/analysis.md
+
+        Work in /shared/repos/roundtable on branch phase3a/mission-controller-active.
+
+        IMPLEMENT these capabilities in internal/controller/mission_controller.go:
+
+        1. **Pending → Provisioning transition:**
+           - Validate all knightRefs exist (or have templates)
+           - If recruitExisting=true, verify referenced knights are Ready
+           - Create the mission-scoped RoundTable if roundTableTemplate is set
+
+        2. **Chain copy creation (Active phase):**
+           - For each chain in spec.chains[], create a Chain CR copy:
+             - Name: `mission-{missionName}-{chainName}`
+             - Set chain.spec.missionRef = mission name
+             - Set chain.spec.roundTableRef = mission's RoundTable
+             - Set ownerReference to the Mission CR (for garbage collection)
+           - Update mission.status.chainStatuses with each chain's CR name
+
+        3. **Active phase monitoring:**
+           - Poll chain statuses on each reconcile
+           - Aggregate: all succeeded → mission succeeded, any failed → mission failed
+           - Track cost from knight status if costBudgetUSD is set
+           - If budget exceeded → fail mission
+
+        4. **Result collection:**
+           - When mission succeeds and retainResults=true:
+             - Create a ConfigMap with aggregated chain outputs
+             - Set mission.status.resultsConfigMap
+
+        USE the shared pkg/nats library for any NATS operations.
+        USE controllerutil.SetOwnerReference for garbage collection.
+
+        RULES:
+        - Run `CGO_ENABLED=0 go build ./...` after each significant change
+        - Commit incrementally with descriptive messages
+        - Follow existing controller patterns (look at chain_controller.go)
+        - Add proper RBAC markers for any new resources accessed
+
+        OUTPUT: `git log --oneline main..HEAD` and final build result.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 3 — Test + Review (PARALLEL)
+    # ═══════════════════════════════════════════════════════
+
+    - name: write_tests
+      knightRef: tristan
+      timeout: 600
+      dependsOn:
+        - implement_controller
+      task: |
+        TASK: Write unit tests for the mission controller changes.
+
+        Work in /shared/repos/roundtable on branch phase3a/mission-controller-active.
+
+        Create/update internal/controller/mission_controller_test.go:
+        1. Test chain copy creation (correct names, ownerRefs, missionRef)
+        2. Test status aggregation (all succeed, one fails, mixed)
+        3. Test budget enforcement (under budget, over budget)
+        4. Test result ConfigMap creation
+        5. Test phase transitions (Pending → Provisioning → Active → Succeeded)
+
+        Use the controller-runtime envtest or fake client pattern.
+        Run: `CGO_ENABLED=0 go test ./internal/controller/... -run Mission -v`
+
+        Commit: `git add -A && git commit -m "test: add mission controller unit tests"`
+
+    - name: security_review
+      knightRef: galahad
+      timeout: 300
+      continueOnFailure: true
+      dependsOn:
+        - implement_controller
+      task: |
+        TASK: Security review of mission controller changes.
+
+        Run: `cd /shared/repos/roundtable && git diff main..HEAD`
+
+        Review for:
+        1. Chain copy isolation — can a mission's chain access resources outside its scope?
+        2. OwnerReference correctness — will garbage collection cascade properly?
+        3. Cost tracking bypass — can a mission exceed budget between reconcile cycles?
+        4. ConfigMap data exposure — are results properly scoped?
+        5. RBAC markers — does the controller request minimum necessary permissions?
+
+        Write to /shared/chains/phase3a-mission-ctrl/security-review.md
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 4 — PR
+    # ═══════════════════════════════════════════════════════
+
+    - name: create_pr
+      knightRef: tristan
+      timeout: 300
+      dependsOn:
+        - write_tests
+        - security_review
+      task: |
+        TASK: Push and create the PR.
+
+        ```bash
+        cd /shared/repos/roundtable
+
+        CGO_ENABLED=0 go build ./...
+        CGO_ENABLED=0 go test ./internal/controller/... -run Mission 2>&1 || true
+
+        git push origin phase3a/mission-controller-active --force
+
+        gh pr create \
+          --title "feat(mission): implement chain copies and active phase monitoring" \
+          --body "## Summary
+        Implement the mission controller's core active-phase logic:
+        - Chain CR copy creation with mission scoping
+        - Active phase monitoring with status aggregation
+        - Cost budget enforcement
+        - Result retention via ConfigMap
+        - Proper ownerReferences for garbage collection
+
+        ### Phase Transitions
+        Pending → Provisioning → Assembling → Briefing → Active → Succeeded/Failed
+
+        ### Security Review
+        $(head -40 /shared/chains/phase3a-mission-ctrl/security-review.md 2>/dev/null || echo 'See PR comments')
+
+        Closes #22" \
+          --base main
+        ```
+
+        OUTPUT: PR URL.
