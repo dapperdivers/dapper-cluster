@@ -11,120 +11,190 @@ spec:
   retryPolicy:
     maxRetries: 0
   steps:
-    # Step 1 — Kay researches the current types and Phase 3 design doc
-    - name: research_types
+    # ═══════════════════════════════════════════════════════
+    # PHASE 1 — Research + Setup (PARALLEL, no dependencies)
+    # ═══════════════════════════════════════════════════════
+
+    - name: research_design
       knightRef: kay
-      timeout: 600
+      timeout: 300
+      continueOnFailure: false
       task: |
-        TASK: Research the current CRD types and Phase 3 design document.
+        TASK: Extract the exact CRD changes needed from the Phase 3 design doc.
 
-        Read these files from the vault:
-        1. /vault/Projects/Round Table/Phase 3 - Dynamic Mission Tables.md — Section 3 "CRD Changes"
+        Read /vault/Projects/Round Table/Phase 3 - Dynamic Mission Tables.md
+        Focus on Section 3 "CRD Changes" — extract EVERY new field, type, and enum.
 
-        Also check the roundtable-operator repo at https://github.com/dapperdivers/roundtable
-        Look at:
-        - api/v1alpha1/mission_types.go (current Mission CRD)
-        - api/v1alpha1/roundtable_types.go (current RoundTable CRD)
-        - api/v1alpha1/chain_types.go (current Chain CRD)
+        Write a structured spec to /shared/chains/phase3a-crd-types/design-spec.md:
+        ```
+        ## mission_types.go
+        ### New Phase Constants
+        - Pending, Provisioning
+        ### New Fields on MissionSpec
+        - fieldName: type // description
+        ### New Types
+        - TypeName { fields... }
+        ## roundtable_types.go
+        ### New Fields
+        - ...
+        ## chain_types.go
+        ### New Fields
+        - ...
+        ```
 
-        OUTPUT: A complete summary of:
-        1. What types/fields ALREADY exist
-        2. What NEW types/fields need to be added per the Phase 3 design
-        3. Any conflicts or design questions
+    - name: read_current_types
+      knightRef: tristan
+      timeout: 300
+      continueOnFailure: false
+      task: |
+        TASK: Copy the current CRD type files from the shared repo for reference.
 
-        Write the full research to /shared/phase3a-crd-types/research.md
+        The repo is pre-cloned at /shared/repos/roundtable. Run:
+        ```bash
+        cd /shared/repos/roundtable && git pull
+        mkdir -p /shared/chains/phase3a-crd-types/current
+        cp api/v1alpha1/mission_types.go /shared/chains/phase3a-crd-types/current/
+        cp api/v1alpha1/roundtable_types.go /shared/chains/phase3a-crd-types/current/
+        cp api/v1alpha1/chain_types.go /shared/chains/phase3a-crd-types/current/
+        cp api/v1alpha1/knight_types.go /shared/chains/phase3a-crd-types/current/
+        ```
 
-    # Step 2 — Gawain generates the actual Go code
+        Also create the working branch:
+        ```bash
+        cd /shared/repos/roundtable
+        git checkout -b phase3a/crd-type-changes main
+        ```
+
+        OUTPUT: List the files copied and current HEAD sha.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 2 — Code Generation (after both Phase 1 steps)
+    # ═══════════════════════════════════════════════════════
+
     - name: generate_code
       knightRef: gawain
-      timeout: 900
+      timeout: 600
       dependsOn:
-        - research_types
+        - research_design
+        - read_current_types
       task: |
-        TASK: Generate the Go type changes for Phase 3 dynamic missions.
+        TASK: Implement the CRD type changes for Phase 3 dynamic missions.
 
-        Read Kay's research: /shared/phase3a-crd-types/research.md
+        INPUTS:
+        - Design spec: /shared/chains/phase3a-crd-types/design-spec.md
+        - Current types: /shared/chains/phase3a-crd-types/current/*.go
 
-        Then read the current source files from the roundtable-operator repo:
-        https://github.com/dapperdivers/roundtable — branch main
+        WORK DIRECTLY in the repo at /shared/repos/roundtable (branch phase3a/crd-type-changes).
+        Edit the files IN PLACE:
         - api/v1alpha1/mission_types.go
         - api/v1alpha1/roundtable_types.go
         - api/v1alpha1/chain_types.go
 
-        CHANGES NEEDED (all additive, no breaking changes):
+        RULES:
+        1. ALL changes are ADDITIVE — do NOT remove or modify existing fields
+        2. Use proper kubebuilder markers (+kubebuilder:validation, +optional, +kubebuilder:default)
+        3. Add godoc comments on every new field and type
+        4. Follow existing code style exactly
+        5. After editing, run: `cd /shared/repos/roundtable && go build ./...`
+        6. If build fails, FIX the errors and try again
+        7. Commit your changes: `git add -A && git commit -m "feat(api): add Phase 3 dynamic mission types"`
 
-        mission_types.go:
-        - Add MissionPhase constants: Pending, Provisioning (before Assembling)
-        - Add to MissionSpec: knightTemplates, costBudgetUSD, secrets, recruitExisting,
-          roundTableTemplate, retainResults
-        - Add new types: MissionKnightTemplate, MissionRoundTableTemplate
-        - Add KnightSpecOverrides to MissionKnight
-        - Add MissionChainStatus to MissionStatus
+        OUTPUT: The `go build` output (should be clean) and `git diff --stat` of changes.
 
-        roundtable_types.go:
-        - Add to RoundTableSpec: ephemeral (bool), missionRef (string)
+    # ═══════════════════════════════════════════════════════
+    # PHASE 3 — Review + Test (PARALLEL, both need Phase 2)
+    # ═══════════════════════════════════════════════════════
 
-        chain_types.go:
-        - Add to ChainSpec: missionRef (string)
-
-        OUTPUT: Write the complete updated Go files to:
-        - /shared/phase3a-crd-types/mission_types.go
-        - /shared/phase3a-crd-types/roundtable_types.go
-        - /shared/phase3a-crd-types/chain_types.go
-
-        Include ALL existing code plus the new additions. Use proper kubebuilder markers.
-
-    # Step 3 — Galahad reviews for security implications
     - name: security_review
       knightRef: galahad
       timeout: 300
+      continueOnFailure: true
       dependsOn:
         - generate_code
       task: |
-        TASK: Security review of the new CRD types.
+        TASK: Security review of the CRD type changes.
 
-        Read the generated types at:
-        - /shared/phase3a-crd-types/mission_types.go
-        - /shared/phase3a-crd-types/roundtable_types.go
-        - /shared/phase3a-crd-types/chain_types.go
+        Review the changes in /shared/repos/roundtable (branch phase3a/crd-type-changes).
+        Run: `cd /shared/repos/roundtable && git diff main..HEAD`
 
-        Review for:
-        1. Any fields that could enable privilege escalation
-        2. Missing validation markers (MinLength, Maximum, etc.)
-        3. Secret handling — are secrets referenced safely?
-        4. RBAC implications of new fields
-        5. Default values that could be dangerous
+        Check for:
+        1. Fields enabling privilege escalation (secret refs, SA names, resource overrides)
+        2. Missing validation markers (unbounded strings, missing min/max)
+        3. Unsafe defaults (e.g., overly permissive booleans)
+        4. RBAC implications
 
-        Write your review to /shared/phase3a-crd-types/security-review.md
+        Write findings to /shared/chains/phase3a-crd-types/security-review.md
+        Mark issues as CRITICAL / HIGH / MEDIUM / LOW.
 
-    # Step 4 — Tristan creates the PR
+    - name: generate_manifests
+      knightRef: tristan
+      timeout: 300
+      continueOnFailure: true
+      dependsOn:
+        - generate_code
+      task: |
+        TASK: Generate CRD manifests and run validation.
+
+        ```bash
+        cd /shared/repos/roundtable
+        # Generate CRD YAML from Go types
+        make manifests
+        # Copy CRDs to chart
+        cp config/crd/bases/ai.roundtable.io_*.yaml charts/roundtable-operator/crds/
+        # Remove any stray kustomization.yaml (known gotcha!)
+        rm -f charts/roundtable-operator/crds/kustomization.yaml
+        # Verify build still clean
+        go build ./...
+        # Commit manifest changes
+        git add -A && git commit -m "chore: regenerate CRD manifests" --allow-empty
+        ```
+
+        OUTPUT: List of updated CRD files and any warnings.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 4 — Create PR (after review + manifests)
+    # ═══════════════════════════════════════════════════════
+
     - name: create_pr
       knightRef: tristan
-      timeout: 600
+      timeout: 300
       dependsOn:
-        - generate_code
         - security_review
+        - generate_manifests
       task: |
-        TASK: Create a PR on the roundtable-operator repo with the CRD type changes.
+        TASK: Push the branch and create a PR.
 
-        The generated files are at:
-        - /shared/phase3a-crd-types/mission_types.go
-        - /shared/phase3a-crd-types/roundtable_types.go
-        - /shared/phase3a-crd-types/chain_types.go
+        ```bash
+        cd /shared/repos/roundtable
 
-        Security review is at /shared/phase3a-crd-types/security-review.md
+        # Apply any critical security fixes from Galahad's review
+        REVIEW="/shared/chains/phase3a-crd-types/security-review.md"
+        if [ -f "$REVIEW" ]; then
+          echo "Security review exists — check for CRITICAL items"
+          cat "$REVIEW"
+        fi
 
-        INSTRUCTIONS:
-        1. Clone https://github.com/dapperdivers/roundtable
-        2. Create branch: phase3a/crd-type-changes
-        3. Copy the generated files to api/v1alpha1/
-        4. Run `go build ./...` to verify compilation
-        5. If Galahad flagged issues, fix them first
-        6. Run `make manifests` to regenerate CRD YAML (if available)
-        7. Commit with message: "feat(api): add Phase 3 mission types"
-        8. Push and create PR targeting main
-        9. Reference issue #17
+        # Push branch
+        git push origin phase3a/crd-type-changes --force
 
-        Use `gh` CLI. Return the PR URL.
+        # Create PR
+        gh pr create \
+          --title "feat(api): add Phase 3 dynamic mission types" \
+          --body "## Summary
+        Add CRD type changes for Phase 3 dynamic missions.
 
-        Write a summary to /shared/phase3a-crd-types/pr-summary.md
+        All changes are additive (no breaking changes):
+        - Mission: knightTemplates, costBudgetUSD, secrets, recruitExisting, roundTableTemplate, retainResults
+        - Mission phases: Pending, Provisioning
+        - RoundTable: ephemeral, missionRef
+        - Chain: missionRef
+
+        Closes #17
+
+        ## Security Review
+        $(cat /shared/chains/phase3a-crd-types/security-review.md 2>/dev/null | head -50 || echo 'No review available')
+        " \
+          --base main
+        ```
+
+        OUTPUT: The PR URL.
