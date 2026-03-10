@@ -56,6 +56,9 @@ spec:
     size: "1Gi"
   concurrency: 2
   taskTimeout: 300
+  env:
+    - name: OPENCTI_URL
+      value: "http://opencti-server.security.svc:80"
   envFrom:
     - secretRef:
         name: roundtable-secret
