@@ -27,21 +27,13 @@ spec:
       - trufflehog     # Advanced secret scanning across git history
       - grype          # Vulnerability scanner for container images (Anchore)
       - syft           # SBOM generation for containers and filesystems
-      - sqlmap         # SQL injection detection and exploitation
-      - nikto          # Web server vulnerability scanner
-      - gobuster       # Directory/file brute-forcing for web recon
-      - ffuf           # Fast web fuzzer
-      - masscan        # Ultra-fast port scanner
       - tcpdump        # Packet capture and analysis
       - wireshark-cli  # Terminal-based Wireshark (tshark)
-      - thc-hydra      # Network auth brute-forcing
-      - john           # Password hash cracking
       - amass          # OWASP subdomain enumeration
       - subfinder      # Fast passive subdomain discovery
       - httpx          # Fast HTTP toolkit (ProjectDiscovery)
       - dnsx           # Fast DNS toolkit (ProjectDiscovery)
       - osv-scanner    # Google's OSV vulnerability scanner
-      - go             # Required for building/running security tool extensions
     # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222

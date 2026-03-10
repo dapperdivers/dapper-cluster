@@ -19,8 +19,6 @@ spec:
       - lynx
       - newsboat
       # Added 2026-03-09 - Fleet self-improvement assessment
-      - kubernetes-helm   # Kubernetes package manager
-      - fluxcd           # GitOps toolkit for K8s
       - bat              # Enhanced file preview with syntax highlighting
       - fd               # Fast file discovery (alternative to find)
       - eza              # Modern ls replacement

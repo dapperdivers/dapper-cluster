@@ -29,9 +29,6 @@ spec:
       - htop           # Interactive process monitor
       - iftop          # Network bandwidth monitor
       - netcat-gnu     # Network testing (nc)
-      - docker         # Container operations and debugging
-      - terraform      # Infrastructure as Code management
-      - ansible        # Configuration management and orchestration
   nats:
     url: nats://nats.database.svc:4222
     subjects:
