@@ -1,0 +1,155 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: phase3a-e2e-tests
+  namespace: roundtable
+spec:
+  description: "Phase 3a PR12: E2E integration tests for mission lifecycle (Issue #27)"
+  timeout: 3600
+  outputKnight: gawain
+  retryPolicy:
+    maxRetries: 0
+  steps:
+    # ═══════════════════════════════════════════════════════
+    # PHASE 1 — Analyze + Setup (PARALLEL)
+    # ═══════════════════════════════════════════════════════
+
+    - name: analyze_testable
+      knightRef: kay
+      timeout: 300
+      task: |
+        TASK: Analyze what needs E2E testing in the mission lifecycle.
+
+        Read from /shared/repos/roundtable (run `cd /shared/repos/roundtable && git checkout main && git pull`):
+        - internal/controller/mission_controller.go
+        - internal/controller/mission_controller_test.go (existing unit tests)
+        - internal/controller/chain_controller.go
+        - pkg/nats/client.go
+        - api/v1alpha1/mission_types.go
+
+        Identify:
+        1. What unit tests already exist vs what's missing
+        2. Integration test scenarios needed (multi-controller interactions)
+        3. E2E scenarios: Mission CR → chain copies → execution → results
+        4. Edge cases: timeout, budget exceeded, partial failure, retry
+
+        Write test plan to /shared/chains/phase3a-e2e/test-plan.md
+
+    - name: setup_branch
+      knightRef: tristan
+      timeout: 300
+      task: |
+        TASK: Set up branch and test infrastructure.
+
+        ```bash
+        cd /shared/repos/roundtable
+        git fetch origin && git checkout main && git pull
+        git checkout -b phase3a/e2e-integration-tests
+        ```
+
+        Check if there's an existing test suite setup:
+        ```bash
+        find . -name "*_test.go" -path "*/controller/*" | head -20
+        ls internal/controller/suite_test.go 2>/dev/null
+        cat internal/controller/suite_test.go 2>/dev/null | head -30
+        ```
+
+        Write findings to /shared/chains/phase3a-e2e/test-infra.md
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 2 — Implement Tests
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_tests
+      knightRef: gawain
+      timeout: 1200
+      dependsOn:
+        - analyze_testable
+        - setup_branch
+      task: |
+        TASK: Write E2E integration tests for the mission lifecycle.
+
+        Read:
+        - /shared/chains/phase3a-e2e/test-plan.md
+        - /shared/chains/phase3a-e2e/test-infra.md
+
+        Work in /shared/repos/roundtable on branch phase3a/e2e-integration-tests.
+
+        CREATE internal/controller/mission_integration_test.go with tests:
+
+        1. **TestMissionLifecycleHappyPath**
+           - Create Mission CR with chains and recruitExisting=true
+           - Verify phase transitions: Pending → Active → Succeeded
+           - Verify chain copies created with correct ownerRefs
+           - Verify status aggregation
+
+        2. **TestMissionBudgetEnforcement**
+           - Create Mission with costBudgetUSD="1.00"
+           - Simulate knight cost exceeding budget
+           - Verify mission fails with BudgetExceeded reason
+
+        3. **TestMissionResultPreservation**
+           - Create Mission with retainResults=true
+           - Complete mission successfully
+           - Verify ConfigMap created without ownerRef
+           - Verify ConfigMap contains expected data
+
+        4. **TestMissionChainCopyNaming**
+           - Verify chain copies named mission-{name}-{chain}
+           - Verify missionRef and roundTableRef set correctly
+
+        5. **TestMissionPartialFailure**
+           - One chain succeeds, one fails
+           - Verify mission fails
+           - Verify all chain statuses recorded
+
+        Use controller-runtime's envtest or fake client.
+        Use testify for assertions if available, otherwise standard testing.
+
+        Run: `CGO_ENABLED=0 go test ./internal/controller/... -run Mission -v -count=1`
+        Fix any failures before committing.
+
+        Commit incrementally with descriptive messages.
+
+    # ═══════════════════════════════════════════════════════
+    # PHASE 3 — Review + PR
+    # ═══════════════════════════════════════════════════════
+
+    - name: review_and_pr
+      knightRef: tristan
+      timeout: 300
+      dependsOn:
+        - implement_tests
+      task: |
+        TASK: Run final tests, review, and create PR.
+
+        ```bash
+        cd /shared/repos/roundtable
+
+        # Run all tests
+        CGO_ENABLED=0 go test ./internal/controller/... -v -count=1 2>&1 | tail -30
+        CGO_ENABLED=0 go test ./pkg/nats/... -v -count=1 2>&1 | tail -10
+
+        # Build check
+        CGO_ENABLED=0 go build ./...
+
+        git push origin phase3a/e2e-integration-tests --force
+
+        gh pr create \
+          --title "test: add E2E integration tests for mission lifecycle" \
+          --body "## Summary
+        Comprehensive integration tests for the mission controller:
+        - Happy path lifecycle (Pending → Active → Succeeded)
+        - Budget enforcement (BudgetExceeded failure)
+        - Result preservation (ConfigMap without ownerRef)
+        - Chain copy naming and scoping
+        - Partial failure handling
+
+        This completes Phase 3a. 🏰
+
+        Closes #27" \
+          --base main
+        ```
+
+        OUTPUT: PR URL and test results summary.
