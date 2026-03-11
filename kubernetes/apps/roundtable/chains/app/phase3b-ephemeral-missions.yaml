@@ -17,7 +17,7 @@ spec:
 
     - name: research_spec
       knightRef: kay
-      timeout: 300
+      timeout: 600
       continueOnFailure: false
       task: |
         TASK: Read the Phase 3 design doc and extract a detailed implementation spec for the 5 Phase 3b issues.
