@@ -379,4 +379,4 @@ spec:
 
         OUTPUT: PR URL if successful, or failure details.
 
-  suspended: true
+  suspended: false
