@@ -15,6 +15,9 @@ resources:
   - gawain.yaml
   - agravain.yaml
   - gareth.yaml
+  # Generic coding knights
+  - coder-1.yaml
+  - coder-2.yaml
   # Per-knight secrets (only knights with extra credentials)
   - galahad-secret.yaml
   - gawain-secret.yaml
