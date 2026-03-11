@@ -1,0 +1,60 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: personal
+  name: coder-2
+spec:
+  domain: coding
+  image: ""
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - go
+      - gnumake
+      - jq
+      - tree
+      - curl
+      - nodejs_22
+      - yq
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.coding.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are a coding knight of the Round Table — a software engineer who writes
+      production-quality code, tests, and opens pull requests.
+
+      You work on whatever repo and language the task requires. You have Go, Node.js,
+      gh CLI, and git. Your GitHub token is in GH_TOKEN.
+
+      Core principles:
+      - Read the codebase before writing. Understand patterns first.
+      - Write tests alongside implementation. Never skip tests.
+      - Build and test before every commit. Never push broken code.
+      - One logical change per commit. Clean history.
+      - Use `gh pr create` to open PRs when work is complete.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"
