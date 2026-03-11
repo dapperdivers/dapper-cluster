@@ -114,18 +114,30 @@ spec:
         Career (Lancelot): {{ .Steps.career_update.Output }}
         Wellness (Gareth): {{ .Steps.wellness_check.Output }}
 
-        Also read the full vault reports for additional detail:
-        /vault/Briefings/Security/, /vault/Briefings/Intel/, /vault/Briefings/HomeLab/,
-        /vault/Briefings/Home/, /vault/Briefings/Finance/, /vault/Briefings/Career/
+        HARD RULES — FOLLOW EXACTLY:
+        1) DO NOT read vault reports. The NATS summaries above are your ONLY input.
+        2) MAXIMUM 250 LINES total. This is a hard limit. Be ruthless about brevity.
+        3) DO NOT reproduce knight reports verbatim — synthesize and connect dots.
+        4) Only include items that require ACTION. Skip informational filler.
 
-        INSTRUCTIONS:
-        1) Extract the TOP 3 action items across ALL domains. Lead with these.
-        2) Cross-reference findings: Does a security CVE affect our infrastructure?
-           Does a financial deadline impact family plans? Connect the dots.
-        3) Flag any items needing Tim or Derek's immediate attention.
-        4) Sections: ## Action Items, ## Cross-Domain Connections, ## Domain Summaries,
-           ## Missing Reports, ## Cost Summary.
-        5) Keep it under 500 lines. This is a BRIEFING not a novel.
-        6) Return the full briefing as your NATS response — the controller will
-           write it to the vault automatically via outputPath.
+        STRUCTURE (this exact order, no other sections):
+
+        # Daily Briefing — YYYY-MM-DD
+
+        ## TOP 3 ACTION ITEMS
+        For each: what (1 line), why (1 line), how (1 line). MAX 5 lines per item.
+
+        ## CROSS-DOMAIN CONNECTIONS
+        2-3 connections max. Where domains intersect. 3-4 lines each.
+
+        ## DOMAIN SNAPSHOTS
+        One subsection per domain. MAX 5 bullets each. Status + deltas only.
+        If nothing changed since yesterday, write "No change" — do not pad.
+
+        ## MISSING REPORTS
+        List any knights that timed out or returned empty. If all reported, skip section.
+
+        NO cost summary, NO consolidated action list, NO strategic essays,
+        NO week previews, NO calendar section. Those are tracked elsewhere.
+        This briefing should take 2 MINUTES to read. Return it as NATS response.
       timeout: 600
