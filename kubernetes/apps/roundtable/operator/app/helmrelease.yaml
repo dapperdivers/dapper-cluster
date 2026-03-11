@@ -5,6 +5,10 @@ metadata:
   name: roundtable-operator
 spec:
   interval: 30m
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   chart:
     spec:
       chart: roundtable-operator
