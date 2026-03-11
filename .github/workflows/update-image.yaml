@@ -1,0 +1,100 @@
+---
+# Receives repository_dispatch events from sub-repos after they push new images.
+# Creates a PR to update the image tag in the roundtable operator HelmRelease.
+#
+# Dispatch payload:
+#   { "image": "roundtable|pi-knight|roundtable-ui", "tag": "<sha>", "repo": "<owner/repo>" }
+name: Update Image Tag
+
+on:
+  repository_dispatch:
+    types: [image-update]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Determine values path
+        id: path
+        run: |
+          IMAGE="${{ github.event.client_payload.image }}"
+          TAG="${{ github.event.client_payload.tag }}"
+          REPO="${{ github.event.client_payload.repo }}"
+          FILE="kubernetes/apps/roundtable/operator/app/helmrelease.yaml"
+
+          case "$IMAGE" in
+            roundtable)
+              # operator image: .spec.values.image.tag
+              KEY="image.tag"
+              PATTERN="^      tag:"
+              ;;
+            pi-knight)
+              # pi-knight image: .spec.values.images.piKnight.tag
+              KEY="images.piKnight.tag"
+              PATTERN="piKnight:" # find piKnight section, then tag
+              ;;
+            roundtable-ui)
+              # dashboard image: .spec.values.images.dashboard.tag
+              KEY="images.dashboard.tag"
+              PATTERN="dashboard:" # find dashboard section, then tag
+              ;;
+            *)
+              echo "Unknown image: $IMAGE"
+              exit 1
+              ;;
+          esac
+
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+          echo "key=$KEY" >> $GITHUB_OUTPUT
+
+      - name: Update image tag
+        run: |
+          IMAGE="${{ steps.path.outputs.image }}"
+          TAG="${{ steps.path.outputs.tag }}"
+          FILE="${{ steps.path.outputs.file }}"
+
+          case "$IMAGE" in
+            roundtable)
+              # First tag: line under image.repository
+              sed -i "0,/^      tag: /{s/^      tag: .*/      tag: ${TAG}/}" "$FILE"
+              ;;
+            pi-knight)
+              # Tag under piKnight.repository
+              sed -i "/piKnight:/{n;n;s/tag: .*/tag: ${TAG}/}" "$FILE"
+              ;;
+            roundtable-ui)
+              # Tag under dashboard.repository
+              sed -i "/dashboard:/{n;n;s/tag: .*/tag: ${TAG}/}" "$FILE"
+              ;;
+          esac
+
+          echo "Updated $IMAGE to $TAG"
+          git diff
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(roundtable): update ${{ steps.path.outputs.image }} to ${{ steps.path.outputs.tag }}"
+          title: "chore(roundtable): update ${{ steps.path.outputs.image }} image"
+          body: |
+            Automated image tag update from [${{ steps.path.outputs.repo }}](https://github.com/${{ steps.path.outputs.repo }}).
+
+            **Image:** `ghcr.io/dapperdivers/${{ steps.path.outputs.image }}`
+            **Tag:** `${{ steps.path.outputs.tag }}`
+            **Commit:** https://github.com/${{ steps.path.outputs.repo }}/commit/${{ steps.path.outputs.tag }}
+          branch: "auto/update-${{ steps.path.outputs.image }}"
+          labels: |
+            roundtable
+            automerge
+          delete-branch: true
