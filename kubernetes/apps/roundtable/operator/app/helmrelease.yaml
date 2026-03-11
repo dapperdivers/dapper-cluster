@@ -38,7 +38,7 @@ spec:
         tag: 7bc5c44eeddd8517d28dc6dd955c2c159090c764
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
-        tag: 857532b9030b820ece9791ee46d90d65f238179b
+        tag: 184ee6e46a4f88b1e05b2c68f26cce5be124cb55
 
     # Dashboard — Round Table observability platform
     dashboard:
