@@ -1,0 +1,382 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: phase3b-ephemeral-missions
+  namespace: roundtable
+spec:
+  description: "Phase 3b: Implement ephemeral missions — dynamic knight creation, provisioning, and teardown"
+  timeout: 10800
+  outputKnight: coder-1
+  retryPolicy:
+    maxRetries: 0
+  steps:
+    # ═══════════════════════════════════════════════════════
+    # STEP 1 — Research: Extract implementation spec from design doc
+    # ═══════════════════════════════════════════════════════
+
+    - name: research_spec
+      knightRef: kay
+      timeout: 300
+      continueOnFailure: false
+      task: |
+        TASK: Read the Phase 3 design doc and extract a detailed implementation spec for the 5 Phase 3b issues.
+
+        Read: /vault/Projects/Round Table/Phase 3 - Dynamic Mission Tables.md
+
+        Focus on extracting EXACTLY what code needs to change for each issue:
+
+        **Issue #18 — RoundTable controller: filter ephemeral tables**
+        - How discoverKnights() should filter out ephemeral knights
+        - What labels ephemeral knights/tables will have
+        - How to prevent ephemeral knight pollution of fleet-wide health
+
+        **Issue #20 — Mission controller: provisioning phase**
+        - Pending→Provisioning→Assembling flow
+        - Creating ephemeral RoundTable CR with WorkQueue retention
+        - Creating mission-scoped NATS streams
+        - Naming convention: mission-{name}-{uid[:8]}
+        - Recording stream names in Mission status
+
+        **Issue #21 — Mission controller: ephemeral knight creation**
+        - Assembling phase: resolve specs from ephemeralSpec or templateRef
+        - Creating Knight CRs with owner references to Mission
+        - Injecting mission NATS config into knight env
+        - Assembly timeout at Timeout/3
+
+        **Issue #25 — Mission-scoped NetworkPolicies and ServiceAccounts**
+        - Per-mission ServiceAccount with no RBAC
+        - NetworkPolicy: ephemeral knight egress limited to NATS + DNS only
+        - Both owned by Mission for cascade delete
+
+        **Issue #24 — Mission cleanup with NATS stream teardown**
+        - CleaningUp phase: delete consumers, streams, RoundTable
+        - Scale knights to 0 before deleting
+        - Self-delete Mission on TTL if cleanupPolicy=Delete
+        - Retry with backoff if NATS unreachable
+
+        Write the spec to /shared/chains/phase3b/implementation-spec.md
+        Include exact function signatures, struct fields, and label conventions.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 2 — Setup: Prepare repo and branch
+    # ═══════════════════════════════════════════════════════
+
+    - name: setup_repo
+      knightRef: coder-2
+      timeout: 300
+      continueOnFailure: false
+      task: |
+        TASK: Prepare the roundtable repo for Phase 3b development.
+
+        ```bash
+        cd /shared/repos/roundtable
+        git fetch origin
+        git checkout main
+        git pull origin main
+        git checkout -b phase3b/ephemeral-missions
+
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"
+        ```
+
+        Also copy the current source files for reference:
+        ```bash
+        mkdir -p /shared/chains/phase3b/current
+        cp internal/controller/mission_controller.go /shared/chains/phase3b/current/
+        cp internal/controller/roundtable_controller.go /shared/chains/phase3b/current/
+        cp api/v1alpha1/mission_types.go /shared/chains/phase3b/current/
+        cp api/v1alpha1/roundtable_types.go /shared/chains/phase3b/current/
+        cp api/v1alpha1/knight_types.go /shared/chains/phase3b/current/
+        cp pkg/nats/client.go /shared/chains/phase3b/current/
+        cp internal/controller/mission_controller_test.go /shared/chains/phase3b/current/ 2>/dev/null || true
+        ```
+
+        OUTPUT: Branch created, current HEAD SHA, files copied.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 3 — Issue #18: RoundTable filter ephemeral knights
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_rt_filter
+      knightRef: coder-1
+      timeout: 1200
+      dependsOn:
+        - research_spec
+        - setup_repo
+      continueOnFailure: false
+      task: |
+        TASK: Implement Issue #18 — Update RoundTable controller to filter ephemeral knights.
+
+        Read the implementation spec at /shared/chains/phase3b/implementation-spec.md
+        Read the current code at /shared/repos/roundtable/internal/controller/roundtable_controller.go
+
+        REQUIREMENTS:
+        1. Update discoverKnights() to exclude knights with label `ai.roundtable.io/ephemeral: "true"`
+        2. Ephemeral knights belong to their mission's RoundTable only, not the fleet-wide table
+        3. Add a constant for the ephemeral label key in the API package
+
+        RULES:
+        - Write tests for the filter logic in roundtable_controller_test.go
+        - After making changes, run:
+          ```bash
+          cd /shared/repos/roundtable
+          go build ./...
+          go vet ./...
+          go test ./internal/controller/... -v -run TestRoundTable
+          ```
+        - ALL tests must pass before committing
+        - Commit with: `git commit -am "feat(roundtable): filter ephemeral knights from fleet discovery (#18)"`
+
+        OUTPUT: What changed, test results, commit SHA.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 4 — Issue #20: Mission provisioning phase
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_provisioning
+      knightRef: coder-1
+      timeout: 2400
+      dependsOn:
+        - implement_rt_filter
+      continueOnFailure: false
+      task: |
+        TASK: Implement Issue #20 — Mission controller provisioning phase.
+
+        Read the implementation spec at /shared/chains/phase3b/implementation-spec.md
+        Read the current mission controller at /shared/repos/roundtable/internal/controller/mission_controller.go
+
+        REQUIREMENTS:
+        1. Update reconcileProvisioning() to actually create an ephemeral RoundTable CR:
+           - Name: mission-{missionName}-{uid[:8]}
+           - Labels: ai.roundtable.io/ephemeral: "true", ai.roundtable.io/mission: {missionName}
+           - Owner reference to the Mission CR
+           - Apply roundTableTemplate overrides from MissionSpec if present
+        2. Create mission-scoped NATS streams via r.natsClient:
+           - Task stream: mission-{name}-tasks (WorkQueue retention)
+           - Results stream: mission-{name}-results (WorkQueue retention)
+        3. Record stream names and RoundTable name in Mission status
+        4. Only transition to Assembling when the RoundTable reports Ready
+        5. Handle the case where NATS client is nil (graceful degradation)
+
+        RULES:
+        - Write tests for provisioning logic
+        - After making changes, run:
+          ```bash
+          cd /shared/repos/roundtable
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
+          controller-gen object paths="./api/..."
+          go build ./...
+          go vet ./...
+          go test ./internal/controller/... -v -run TestMission
+          ```
+        - ALL tests must pass before committing
+        - Commit with: `git commit -am "feat(mission): implement provisioning phase with ephemeral RoundTable (#20)"`
+
+        OUTPUT: What changed, test results, commit SHA.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 5 — Issue #21: Ephemeral knight creation
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_knight_creation
+      knightRef: coder-1
+      timeout: 2400
+      dependsOn:
+        - implement_provisioning
+      continueOnFailure: false
+      task: |
+        TASK: Implement Issue #21 — Ephemeral knight creation in Assembling phase.
+
+        Read the implementation spec at /shared/chains/phase3b/implementation-spec.md
+        Read the current mission controller at /shared/repos/roundtable/internal/controller/mission_controller.go
+
+        REQUIREMENTS:
+        1. Update reconcileAssembling() to create ephemeral Knight CRs:
+           - For each MissionKnight with ephemeral=true:
+             a. If ephemeralSpec is set, use it directly as the Knight spec
+             b. If templateRef is set, resolve from mission.Spec.KnightTemplates
+             c. Apply any overrides from the MissionKnight
+           - Set labels: ai.roundtable.io/ephemeral: "true", ai.roundtable.io/mission: {missionName}
+           - Set owner reference to Mission CR
+           - Inject mission NATS config (stream names, subjects) into knight env
+        2. Watch owned Knights and re-reconcile on status changes
+        3. Assembly timeout: mission.Spec.Timeout / 3
+        4. Transition to Briefing when all ephemeral + existing knights are Ready
+        5. Update MissionKnightStatus for each knight with Ready state
+
+        RULES:
+        - Write tests for knight creation and assembly logic
+        - After making changes, run:
+          ```bash
+          cd /shared/repos/roundtable
+          controller-gen object paths="./api/..."
+          go build ./...
+          go test ./internal/controller/... -v -run TestMission
+          ```
+        - ALL tests must pass before committing
+        - Commit with: `git commit -am "feat(mission): implement ephemeral knight creation in assembling phase (#21)"`
+
+        OUTPUT: What changed, test results, commit SHA.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 6 — Issue #25: NetworkPolicies and ServiceAccounts
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_netpol
+      knightRef: coder-2
+      timeout: 1200
+      dependsOn:
+        - implement_provisioning
+      continueOnFailure: false
+      task: |
+        TASK: Implement Issue #25 — Mission-scoped NetworkPolicies and ServiceAccounts.
+
+        Read the implementation spec at /shared/chains/phase3b/implementation-spec.md
+        Read the current mission controller at /shared/repos/roundtable/internal/controller/mission_controller.go
+
+        REQUIREMENTS:
+        1. During Provisioning phase, create:
+           a. A ServiceAccount named mission-{name} with no RBAC bindings
+           b. A NetworkPolicy that restricts ephemeral knight egress to:
+              - NATS (port 4222, nats.database.svc)
+              - DNS (port 53, UDP+TCP)
+              - Deny all other egress
+        2. Both resources must have:
+           - Owner reference to Mission CR (cascade delete)
+           - Labels: ai.roundtable.io/ephemeral: "true", ai.roundtable.io/mission: {missionName}
+        3. Set the ServiceAccount name on ephemeral Knight CRs (spec.serviceAccountName)
+        4. Record the SA name in Mission status
+
+        IMPORTANT: This step modifies provisioning code. Read the CURRENT state of
+        mission_controller.go from /shared/repos/roundtable (not /shared/chains/phase3b/current/)
+        since previous steps may have modified it.
+
+        RULES:
+        - Write tests for SA and NetworkPolicy creation
+        - After making changes, run:
+          ```bash
+          cd /shared/repos/roundtable
+          go build ./...
+          go test ./internal/controller/... -v -run TestMission
+          ```
+        - ALL tests must pass before committing
+        - Commit with: `git commit -am "feat(mission): add mission-scoped NetworkPolicy and ServiceAccount (#25)"`
+
+        OUTPUT: What changed, test results, commit SHA.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 7 — Issue #24: Cleanup with NATS stream teardown
+    # ═══════════════════════════════════════════════════════
+
+    - name: implement_cleanup
+      knightRef: coder-1
+      timeout: 2400
+      dependsOn:
+        - implement_knight_creation
+        - implement_netpol
+      continueOnFailure: false
+      task: |
+        TASK: Implement Issue #24 — Mission cleanup with NATS stream teardown.
+
+        Read the implementation spec at /shared/chains/phase3b/implementation-spec.md
+        Read the current mission controller at /shared/repos/roundtable/internal/controller/mission_controller.go
+
+        REQUIREMENTS:
+        1. Update reconcileCleaningUp() to perform full teardown:
+           a. Run any teardown chains (if specified in mission spec)
+           b. Scale ephemeral knight deployments to 0 replicas
+           c. Wait for pods to terminate
+           d. Delete NATS consumers for mission streams
+           e. Delete mission task stream
+           f. Delete mission results stream
+           g. Delete ephemeral Knight CRs (owned, so may cascade)
+           h. Delete ephemeral RoundTable CR
+        2. Handle NATS client being nil (skip stream cleanup gracefully)
+        3. Retry with backoff if NATS is unreachable (use existing retryPolicy)
+        4. If cleanupPolicy=Delete, set a TTL finalizer that self-deletes the Mission CR
+        5. Streams should have MaxAge = 2 * mission TTL as safety net
+        6. Add NATS stream/consumer deletion methods to pkg/nats/client.go if needed
+
+        IMPORTANT: Read the CURRENT state of all files from /shared/repos/roundtable/
+        since previous steps have modified them.
+
+        RULES:
+        - Write tests for cleanup logic
+        - After making changes, run:
+          ```bash
+          cd /shared/repos/roundtable
+          go build ./...
+          go test ./internal/controller/... -v -run TestMission
+          go test ./pkg/nats/... -v
+          ```
+        - ALL tests must pass before committing
+        - Commit with: `git commit -am "feat(mission): implement cleanup with NATS stream teardown (#24)"`
+
+        OUTPUT: What changed, test results, commit SHA.
+
+    # ═══════════════════════════════════════════════════════
+    # STEP 8 — Final: Full test suite + open PR
+    # ═══════════════════════════════════════════════════════
+
+    - name: final_test_and_pr
+      knightRef: coder-1
+      timeout: 600
+      dependsOn:
+        - implement_cleanup
+      continueOnFailure: false
+      task: |
+        TASK: Run the full test suite, generate CRDs, and open the PR.
+
+        ```bash
+        cd /shared/repos/roundtable
+
+        # Generate everything
+        go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
+        controller-gen object paths="./api/..."
+        controller-gen crd rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+        # Copy CRDs to chart
+        for f in config/crd/bases/ai.roundtable.io_*.yaml; do
+          cp "$f" charts/roundtable-operator/crds/
+        done
+
+        # Full build + test
+        go build ./...
+        go vet ./...
+        go test ./... -v
+        ```
+
+        If ALL tests pass, push and open the PR:
+        ```bash
+        git push origin phase3b/ephemeral-missions
+
+        gh pr create \
+          --title "feat: Phase 3b — ephemeral missions with dynamic knight creation" \
+          --body "## Phase 3b: Dynamic Mission Tables
+
+        Implements the core ephemeral mission lifecycle:
+
+        ### Changes
+        - **#18** — RoundTable controller filters ephemeral knights from fleet discovery
+        - **#20** — Mission provisioning: creates ephemeral RoundTable + NATS streams
+        - **#21** — Mission assembling: creates ephemeral Knight CRs from specs/templates
+        - **#25** — Mission-scoped NetworkPolicies and ServiceAccounts
+        - **#24** — Full cleanup: NATS stream teardown, knight deletion, RoundTable removal
+
+        ### How it works
+        1. Create a Mission CR with ephemeral knight specs
+        2. Controller creates an isolated RoundTable with dedicated NATS streams
+        3. Ephemeral Knights are created with owner references and mission NATS config
+        4. Mission executes chains against the ephemeral team
+        5. On completion, everything tears down: streams, consumers, knights, RoundTable
+
+        Closes #18, #20, #21, #24, #25" \
+          --base main
+        ```
+
+        If tests FAIL, report which tests failed and why. Do NOT push broken code.
+
+        OUTPUT: PR URL if successful, or failure details.
+
+  suspended: true

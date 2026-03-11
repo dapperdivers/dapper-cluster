@@ -9,3 +9,4 @@ resources:
   - phase3a-mission-controller.yaml
   - phase3a-cost-and-results.yaml
   - phase3a-e2e-tests.yaml
+  - phase3b-ephemeral-missions.yaml
