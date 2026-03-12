@@ -12,3 +12,4 @@ resources:
   - phase3b-ephemeral-missions.yaml
   - scout-task.yaml
   - roadmap-issues.yaml
+  - bridge-chain-resilience.yaml
