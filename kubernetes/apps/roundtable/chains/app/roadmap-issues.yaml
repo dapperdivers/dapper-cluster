@@ -1,0 +1,82 @@
+---
+apiVersion: roundtable.dapperdivers.com/v1alpha1
+kind: Chain
+metadata:
+  name: roadmap-issues
+  namespace: roundtable
+spec:
+  timeout: 3600
+  suspended: true
+  steps:
+    - name: draft_issues
+      knight: kay
+      domain: research
+      timeout: 600
+      task: |
+        You are drafting GitHub issues for the Round Table operator roadmap.
+        The project lives at https://github.com/dapperdivers/roundtable
+
+        For EACH of the following 9 features, write a complete GitHub issue in this exact JSON format.
+        Output ONLY a JSON array, no other text:
+
+        [
+          {
+            "title": "feat: <concise title>",
+            "labels": ["enhancement", "<phase-label>"],
+            "milestone": "<milestone>",
+            "body": "<full markdown body>"
+          }
+        ]
+
+        Labels to use: "enhancement", and one of: "phase-4", "phase-5", "phase-6"
+        Milestones: "Phase 4: Self-Organization", "Phase 5: Resilience", "Phase 6: Integration"
+
+        Each issue body should include:
+        - ## Summary (2-3 sentences)
+        - ## Motivation (why this matters, what it unblocks)
+        - ## Design Notes (key technical considerations, affected components)
+        - ## Acceptance Criteria (checkboxes)
+        - ## Complexity (T-shirt size: S/M/L/XL with explanation)
+        - ## Dependencies (other issues that must come first)
+
+        THE 9 FEATURES:
+
+        Phase 4 — Self-Organization:
+        1. Knight Learning Loop — Knights analyze their failures and propose new skills to Arsenal. Closes the feedback loop. XL complexity. Depends on: Approval Gates.
+        2. Approval Gates — Human-in-the-loop safety mechanism. Before any autonomous resource creation (knights, chains, missions), require human approval via NATS request/reply or webhook. M complexity. Foundation for all autonomy features.
+        3. Capability Marketplace — Knights publish what they can do, missions discover available capabilities. Knights register skills, missions auto-match to available talent. L complexity.
+
+        Phase 5 — Resilience & Observability:
+        4. Chain Checkpoints and Resume — Save execution state after each step to NATS KV. On failure, resume from last checkpoint instead of re-running everything. M complexity. Already have NATS KV infrastructure (chain-outputs bucket).
+        5. Conditional Chain Steps — Steps that run based on previous step output (if/else branching, skip conditions). M complexity.
+        6. OpenTelemetry Tracing — Distributed tracing across operator, chains, knights, NATS. Trace a mission from creation through every step to completion. L complexity.
+        7. Cost Forecasting — Predict mission costs before execution based on historical data. Knights already report cost per task. M complexity.
+
+        Phase 6 — Integration & DX:
+        8. Webhook Triggers — External events (GitHub webhooks, alerts, CI) trigger missions automatically. M complexity.
+        9. Local Dev Mode — Run chains locally without a K8s cluster. Mock NATS, simulate knights, test chain logic. L complexity.
+
+        Write thorough, professional issues. Reference the existing codebase: operator is Go, uses controller-runtime, NATS JetStream, CRDs (Knight, Chain, Mission, RoundTable). Dashboard is Go API + React/TypeScript frontend.
+
+        OUTPUT ONLY THE JSON ARRAY.
+
+    - name: create_issues
+      knight: coder-1
+      domain: coding
+      timeout: 600
+      dependsOn:
+        - draft_issues
+      task: |
+        You have the output from the previous step in this chain — it's a JSON array of GitHub issue definitions.
+
+        Read the file at /shared/chains/roadmap-issues/draft_issues.output (or check NATS KV key chain-outputs/roadmap-issues.draft_issues) to get the JSON array.
+
+        For each issue in the array:
+        1. First, create any milestones that don't exist yet using: gh api repos/dapperdivers/roundtable/milestones -f title="TITLE" -f state=open -f description="DESCRIPTION"
+        2. Create labels that don't exist: gh label create "LABEL" --repo dapperdivers/roundtable --color COLOR (phase-4=orange, phase-5=red, phase-6=purple)
+        3. Create the issue: gh issue create --repo dapperdivers/roundtable --title "TITLE" --body "BODY" --label "LABEL1,LABEL2" --milestone "MILESTONE"
+
+        Report what you created with EXACT format per line:
+        CREATED: #NUMBER — TITLE
+
+        This format is critical — Tim will parse it to add issues to the GitHub Project board.
