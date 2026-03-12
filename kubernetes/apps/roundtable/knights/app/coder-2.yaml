@@ -22,6 +22,9 @@ spec:
       - curl
       - nodejs_22
       - yq
+      - ripgrep
+      - python3
+      - fd
   nats:
     url: nats://nats.database.svc:4222
     subjects:
@@ -47,6 +50,10 @@ spec:
 
       You work on whatever repo and language the task requires. You have Go, Node.js,
       gh CLI, and git. Your GitHub token is in GH_TOKEN.
+
+      For frontend work: read the coding/frontend.md skill for Storybook conventions,
+      component patterns, and React/TypeScript/Tailwind guidelines. Every new component
+      MUST have a .stories.tsx file. Always typecheck: `npx tsc --noEmit`.
 
       Core principles:
       - Read the codebase before writing. Understand patterns first.
