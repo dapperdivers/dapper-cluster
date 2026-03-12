@@ -1,0 +1,83 @@
+---
+# Receives repository_dispatch events from sub-repos after they push new images.
+# Creates a PR to update the image tag in the roundtable operator HelmRelease.
+#
+# Dispatch payload:
+#   { "image": "roundtable|pi-knight|roundtable-ui", "tag": "<sha>", "repo": "<owner/repo>" }
+name: Update Roundtable Image Tag
+
+on:
+  repository_dispatch:
+    types: [image-update]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Determine values path
+        id: path
+        run: |
+          IMAGE="${{ github.event.client_payload.image }}"
+          TAG="${{ github.event.client_payload.tag }}"
+          REPO="${{ github.event.client_payload.repo }}"
+          FILE="kubernetes/apps/roundtable/operator/app/helmrelease.yaml"
+
+          case "$IMAGE" in
+            roundtable|pi-knight|roundtable-ui)
+              echo "Processing $IMAGE update"
+              ;;
+            *)
+              echo "Unknown image: $IMAGE"
+              exit 1
+              ;;
+          esac
+
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+
+      - name: Update image tag
+        run: |
+          IMAGE="${{ steps.path.outputs.image }}"
+          TAG="${{ steps.path.outputs.tag }}"
+          FILE="${{ steps.path.outputs.file }}"
+
+          # Use yq for reliable YAML editing instead of fragile sed
+          case "$IMAGE" in
+            roundtable)
+              yq -i '.spec.values.image.tag = "'"${TAG}"'"' "$FILE"
+              ;;
+            pi-knight)
+              yq -i '.spec.values.images.piKnight.tag = "'"${TAG}"'"' "$FILE"
+              ;;
+            roundtable-ui)
+              yq -i '.spec.values.images.dashboard.tag = "'"${TAG}"'"' "$FILE"
+              ;;
+          esac
+
+          echo "Updated $IMAGE to $TAG"
+          git diff
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(roundtable): update ${{ steps.path.outputs.image }} to ${{ steps.path.outputs.tag }}"
+          title: "chore(roundtable): update ${{ steps.path.outputs.image }} image tag"
+          body: |
+            Automated image tag update from [${{ steps.path.outputs.repo }}](https://github.com/${{ steps.path.outputs.repo }}).
+
+            **Image:** `ghcr.io/dapperdivers/${{ steps.path.outputs.image }}`
+            **Tag:** `${{ steps.path.outputs.tag }}`
+            **Commit:** https://github.com/${{ steps.path.outputs.repo }}/commit/${{ steps.path.outputs.tag }}
+          branch: "auto/update-${{ steps.path.outputs.image }}"
+          labels: |
+            roundtable
+          delete-branch: true
