@@ -1,0 +1,15 @@
+---
+apiVersion: roundtable.dapperdivers.com/v1alpha1
+kind: Chain
+metadata:
+  name: scout-task
+  namespace: roundtable
+spec:
+  timeout: 300
+  suspended: true
+  steps:
+    - name: recon
+      knight: scout-1
+      domain: research
+      timeout: 120
+      task: "You are an ephemeral knight created for a test mission. Report: 1) Your knight name 2) Your domain 3) What skills you see 4) Current date/time. Keep it brief."
