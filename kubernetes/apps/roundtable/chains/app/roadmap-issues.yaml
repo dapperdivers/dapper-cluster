@@ -1,5 +1,5 @@
 ---
-apiVersion: roundtable.dapperdivers.com/v1alpha1
+apiVersion: ai.roundtable.io/v1alpha1
 kind: Chain
 metadata:
   name: roadmap-issues
