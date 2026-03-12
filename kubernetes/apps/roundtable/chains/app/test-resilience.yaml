@@ -15,13 +15,13 @@ spec:
       timeout: 120
       task: "Reply with exactly: STEP_1_OK"
 
-    # Step 2: Will fail (references non-existent knight) but has continueOnFailure — chain should continue
+    # Step 2: Will time out (10s timeout, complex task) but has continueOnFailure — chain should continue
     - name: step_fail_continue
-      knightRef: ghost-knight-does-not-exist
-      timeout: 15
+      knightRef: gawain
+      timeout: 10
       continueOnFailure: true
       dependsOn: ["step_success"]
-      task: "This task is sent to a non-existent knight. It should time out and fail."
+      task: "Write a 2000-word essay analyzing the complete history of the Knights of the Round Table from Arthurian legend, covering every knight's origin story, their individual quests, the search for the Holy Grail, and the fall of Camelot. Include detailed analysis of each knight's moral failures and virtues. Be extremely thorough and do not summarize."
 
     # Step 3: Has retry configured — tests retry mechanism
     - name: step_with_retry
