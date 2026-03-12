@@ -1,0 +1,138 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: bridge-chain-resilience
+  namespace: roundtable
+spec:
+  description: "Bridge work: implement chain step resilience (issue #48) — continueOnFailure, retry with backoff, resume from KV"
+  timeout: 3600
+  suspended: true
+  steps:
+    - name: research
+      knightRef: coder-1
+      timeout: 600
+      task: |
+        You are working on the roundtable operator (Go, controller-runtime).
+        Clone the repo: git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+
+        Analyze the chain controller implementation:
+        1. Read `internal/controller/chain_controller.go` — focus on `reconcileRunning()` and step execution logic
+        2. Read `api/v1alpha1/chain_types.go` — the ChainStep struct and ChainStatus
+        3. Read `pkg/nats/client.go` — KV get/put methods
+
+        Produce a detailed analysis:
+        - How steps currently execute (sequential, parallel via dependsOn)
+        - Where failure handling happens (what happens when a step times out or returns error)
+        - How step outputs are stored in NATS KV (key format, bucket name)
+        - How Go templates inject prior step outputs
+        - Specific code locations (file:line) where changes are needed for:
+          a) Adding `continueOnFailure` field to ChainStep
+          b) Adding `retry` struct (maxAttempts, backoffSeconds) to ChainStep
+          c) Checking KV for existing outputs on chain restart (resume logic)
+          d) Adding PartiallySucceeded phase
+
+        Be thorough. This analysis feeds into the implementation step.
+
+    - name: implement
+      knightRef: coder-2
+      timeout: 900
+      dependsOn: ["research"]
+      task: |
+        You are implementing chain step resilience for the roundtable operator (Go, controller-runtime).
+        Clone the repo: git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+
+        Based on the research analysis:
+        {{ .Steps.research.Output }}
+
+        Implement these changes:
+
+        1. **CRD types** (`api/v1alpha1/chain_types.go`):
+           - Add `ContinueOnFailure bool` field to ChainStep (json:"continueOnFailure,omitempty", kubebuilder:default=false)
+           - Add `Retry *StepRetry` field to ChainStep (json:"retry,omitempty")
+           - Add `StepRetry` struct: MaxAttempts int32, BackoffSeconds int32
+           - Add `ChainPhasePartiallySucceeded` constant
+
+        2. **Chain controller** (`internal/controller/chain_controller.go`):
+           - In step failure handling: if `continueOnFailure=true`, mark step as failed but continue to next step
+           - In step execution: if `retry` is set, retry failed steps up to maxAttempts with backoff
+           - On chain start/restart: check NATS KV for existing step outputs, skip completed steps
+           - Terminal state: if all steps done but some failed with continueOnFailure, set PartiallySucceeded
+
+        3. **Generate CRD manifests**: run `make generate manifests` (or `go generate ./...` then `controller-gen`)
+
+        After implementing, run: CGO_ENABLED=0 go build ./cmd/...
+        If build fails, fix the errors.
+
+        Create a branch and commit: git checkout -b feat/chain-resilience-48
+        Commit message: "feat: chain step resilience — continueOnFailure, retry, KV resume (#48)"
+
+        Output the full `git diff --stat` and key code snippets for review.
+
+    - name: test_resilience
+      knightRef: coder-1
+      timeout: 900
+      dependsOn: ["implement"]
+      task: |
+        You are writing tests for chain step resilience in the roundtable operator.
+        Clone the repo and checkout the branch:
+        git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+        git fetch origin feat/chain-resilience-48 && git checkout feat/chain-resilience-48
+
+        Based on the implementation:
+        {{ .Steps.implement.Output }}
+
+        Write tests in `internal/controller/chain_controller_test.go`:
+
+        1. **continueOnFailure tests**:
+           - Step with continueOnFailure=true fails → chain continues to next step
+           - Step with continueOnFailure=false fails → chain fails (existing behavior)
+           - All steps done, some failed with continueOnFailure → PartiallySucceeded
+
+        2. **Retry tests**:
+           - Step fails once, retry succeeds → step marked succeeded
+           - Step fails maxAttempts times → step marked failed
+           - Backoff timing is respected between retries
+
+        3. **KV resume tests**:
+           - Chain restarts with existing KV outputs → skips completed steps
+           - Chain restarts with partial KV outputs → runs remaining steps
+
+        Follow the existing test patterns (Ginkgo/Gomega, envtest).
+        Run: CGO_ENABLED=0 go test ./internal/controller/ -count=1
+
+        Commit the tests to the branch and push.
+
+    - name: create_pr
+      knightRef: coder-2
+      timeout: 300
+      dependsOn: ["test_resilience"]
+      task: |
+        You are creating a PR for chain step resilience.
+        Clone the repo and checkout the branch:
+        git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+        git fetch origin feat/chain-resilience-48 && git checkout feat/chain-resilience-48
+
+        Previous step results:
+        Research: {{ .Steps.research.Output }}
+        Tests: {{ .Steps.test_resilience.Output }}
+
+        Push the branch and create a PR:
+        git push origin feat/chain-resilience-48
+        gh pr create --title "feat: chain step resilience — continueOnFailure, retry, KV resume (#48)" \
+          --body "## Summary
+        Implements chain step resilience (closes #48):
+
+        ### Changes
+        - **continueOnFailure**: Steps can be marked to continue chain execution even on failure
+        - **retry**: Steps can specify maxAttempts and backoffSeconds for automatic retry
+        - **KV resume**: Chains check NATS KV for existing step outputs on restart, skipping completed steps
+        - **PartiallySucceeded**: New terminal phase when some steps failed with continueOnFailure
+
+        ### Testing
+        - Added Ginkgo tests for all three features
+        - All existing tests pass
+
+        Closes #48"
+
+        Output the PR URL.
