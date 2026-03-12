@@ -20,11 +20,14 @@ spec:
       knightRef: galahad
       continueOnFailure: true
       task: |
-        Generate your daily threat intelligence briefing. Cover the last 24 hours:
-        new indicators, vulnerabilities, malware, and reports.
+        Generate your daily threat intelligence briefing.
+        Check /vault/Briefings/Security/ for yesterday's report and note deltas.
+        Review cluster security posture: expiring certs, failed security pods,
+        Kyverno violations, CVEs in running images.
         Write your full report to /vault/Briefings/Security/ with today's date.
-        Return a concise summary via NATS (5-10 bullet points, key findings and action items only).
-      timeout: 1200
+        Return a concise summary via NATS (5-8 bullet points MAX, action items only).
+        If nothing changed since yesterday, say "No significant changes."
+      timeout: 900
 
     - name: intel_digest
       knightRef: kay
@@ -34,7 +37,7 @@ spec:
         and anything relevant to Derek's interests (security, AI, homelab, career).
         Write your full report to /vault/Briefings/Intel/ with today's date.
         Return a concise summary via NATS (5-10 bullet points, key findings only).
-      timeout: 1200
+      timeout: 900
 
     - name: infra_status
       knightRef: tristan
@@ -44,7 +47,7 @@ spec:
         failing pods, resource pressure, Flux reconciliation state, and any deployment issues.
         Write your full report to /vault/Briefings/HomeLab/ with today's date.
         Return a concise summary via NATS (5-10 bullet points, key findings and action items).
-      timeout: 1200
+      timeout: 900
 
     - name: home_tasks
       knightRef: bedivere
@@ -54,7 +57,7 @@ spec:
         nursery prep status, baby countdown, and any home tasks needing attention.
         Write your full report to /vault/Briefings/Home/ with today's date.
         Return a concise summary via NATS (5-10 bullet points).
-      timeout: 1200
+      timeout: 900
 
     - name: finance_check
       knightRef: percival
@@ -64,7 +67,7 @@ spec:
         budget status, investment updates, and any items needing immediate attention.
         Write your full report to /vault/Briefings/Finance/ with today's date.
         Return a concise summary via NATS (5-10 bullet points).
-      timeout: 1200
+      timeout: 900
 
     - name: career_update
       knightRef: lancelot
@@ -74,7 +77,7 @@ spec:
         job market updates, and any action items.
         Write your full report to /vault/Briefings/Career/ with today's date.
         Return a concise summary via NATS (5-10 bullet points).
-      timeout: 1200
+      timeout: 900
 
     - name: wellness_check
       knightRef: gareth
@@ -114,30 +117,30 @@ spec:
         Career (Lancelot): {{ .Steps.career_update.Output }}
         Wellness (Gareth): {{ .Steps.wellness_check.Output }}
 
-        HARD RULES — FOLLOW EXACTLY:
+        HARD RULES — VIOLATION = FAILURE:
         1) DO NOT read vault reports. The NATS summaries above are your ONLY input.
-        2) MAXIMUM 250 LINES total. This is a hard limit. Be ruthless about brevity.
-        3) DO NOT reproduce knight reports verbatim — synthesize and connect dots.
-        4) Only include items that require ACTION. Skip informational filler.
+        2) MAXIMUM 150 LINES. Count them. If you exceed 150, the briefing FAILS.
+        3) DO NOT copy knight text verbatim — synthesize and connect dots.
+        4) Only ACTION items. Zero informational filler.
+        5) If a domain has no changes, give it ONE line: "🟢 No change."
 
-        STRUCTURE (this exact order, no other sections):
+        STRUCTURE (exactly this, no additions):
 
         # Daily Briefing — YYYY-MM-DD
 
-        ## TOP 3 ACTION ITEMS
-        For each: what (1 line), why (1 line), how (1 line). MAX 5 lines per item.
+        ## 🚨 TOP 3 ACTION ITEMS
+        Each: what + why + deadline. MAX 3 lines per item. Total: ~12 lines.
 
-        ## CROSS-DOMAIN CONNECTIONS
-        2-3 connections max. Where domains intersect. 3-4 lines each.
+        ## 🔗 CROSS-DOMAIN CONNECTIONS
+        2-3 connections where domains intersect. 2 lines each. Total: ~8 lines.
 
-        ## DOMAIN SNAPSHOTS
-        One subsection per domain. MAX 5 bullets each. Status + deltas only.
-        If nothing changed since yesterday, write "No change" — do not pad.
+        ## 📊 DOMAIN SNAPSHOTS
+        One line per domain with status emoji. Expand ONLY if action needed (3 bullets max).
+        Static domains get one line. Total: ~30 lines.
 
-        ## MISSING REPORTS
-        List any knights that timed out or returned empty. If all reported, skip section.
+        ## ❌ MISSING REPORTS
+        List timeouts. Skip if all reported. Total: ~3 lines.
 
-        NO cost summary, NO consolidated action list, NO strategic essays,
-        NO week previews, NO calendar section. Those are tracked elsewhere.
-        This briefing should take 2 MINUTES to read. Return it as NATS response.
+        NO cost summary. NO week preview. NO calendar. NO essays. NO padding.
+        Target: 80-120 lines. 2-minute read. Return as NATS response.
       timeout: 600
