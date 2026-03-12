@@ -1,0 +1,49 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: test-resilience
+  namespace: roundtable
+spec:
+  description: "Test chain resilience features: continueOnFailure, retry, and KV resume"
+  timeout: 600
+  suspended: true
+  steps:
+    # Step 1: Should succeed normally
+    - name: step_success
+      knightRef: gawain
+      timeout: 120
+      task: "Reply with exactly: STEP_1_OK"
+
+    # Step 2: Will fail but has continueOnFailure — chain should continue
+    - name: step_fail_continue
+      knightRef: gawain
+      timeout: 30
+      continueOnFailure: true
+      dependsOn: ["step_success"]
+      task: "This is a deliberate failure test. Reply with exactly: INTENTIONAL_FAILURE. Note: The step timeout is very short (30s) to test failure handling."
+
+    # Step 3: Has retry configured — tests retry mechanism
+    - name: step_with_retry
+      knightRef: gawain
+      timeout: 120
+      dependsOn: ["step_fail_continue"]
+      retry:
+        maxAttempts: 2
+        backoffSeconds: 10
+      task: |
+        Reply with exactly: RETRY_TEST_OK
+        Previous step (which had continueOnFailure): {{ .Steps.step_fail_continue.Output }}
+
+    # Step 4: Final step — proves chain continued past the failure
+    - name: step_final
+      knightRef: gawain
+      timeout: 120
+      dependsOn: ["step_with_retry"]
+      task: |
+        This is the final step of the resilience test chain.
+        Step 1 output: {{ .Steps.step_success.Output }}
+        Step 2 (failed with continueOnFailure): {{ .Steps.step_fail_continue.Output }}
+        Step 3 (with retry): {{ .Steps.step_with_retry.Output }}
+
+        Summarize what you received from each step. Reply with: RESILIENCE_TEST_COMPLETE

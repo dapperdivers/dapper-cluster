@@ -13,3 +13,4 @@ resources:
   - scout-task.yaml
   - roadmap-issues.yaml
   - bridge-chain-resilience.yaml
+  - test-resilience.yaml
