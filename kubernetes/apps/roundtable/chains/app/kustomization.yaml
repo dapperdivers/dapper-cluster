@@ -14,3 +14,4 @@ resources:
   - roadmap-issues.yaml
   - bridge-chain-resilience.yaml
   - test-resilience.yaml
+  - bridge-knight-templates.yaml

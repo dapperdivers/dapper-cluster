@@ -1,0 +1,90 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: bridge-knight-templates
+  namespace: roundtable
+spec:
+  description: "Bridge work: implement default knight templates for ephemeral missions (issue #49)"
+  timeout: 3600
+  suspended: true
+  steps:
+    - name: research
+      knightRef: coder-1
+      timeout: 600
+      task: |
+        You are working on the roundtable operator (Go, controller-runtime).
+        Clone the repo: git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+
+        Analyze the current CRD types and mission controller for adding knight templates:
+
+        1. Read `api/v1alpha1/roundtable_types.go` — the RoundTable CRD spec
+        2. Read `api/v1alpha1/mission_types.go` — MissionKnight struct, especially `templateRef` field
+        3. Read `api/v1alpha1/knight_types.go` — KnightSpec struct (what gets templated)
+        4. Read `internal/controller/mission_controller.go` — `buildEphemeralKnight()` function
+
+        Design the implementation:
+        - Add `KnightTemplate` map to RoundTableSpec: `map[string]KnightSpec`
+        - In MissionKnight, `templateRef` already exists — wire it to look up the template from the RoundTable
+        - In `buildEphemeralKnight()`, merge template with any per-mission overrides
+        - Template should provide defaults for: domain, skills, nats, image, workspace, model
+
+        Produce:
+        - Exact struct changes needed (with kubebuilder annotations)
+        - Controller logic changes (file:line references)
+        - Example YAML showing a RoundTable with templates and a Mission using templateRef
+
+    - name: implement
+      knightRef: coder-2
+      timeout: 900
+      dependsOn: ["research"]
+      task: |
+        You are implementing default knight templates for the roundtable operator.
+        Clone the repo: git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+
+        Based on the research:
+        {{ .Steps.research.Output }}
+
+        Implement:
+
+        1. **CRD types** (`api/v1alpha1/roundtable_types.go`):
+           - Add `KnightTemplates map[string]KnightSpec` to RoundTableSpec (json:"knightTemplates,omitempty")
+
+        2. **Mission controller** (`internal/controller/mission_controller.go`):
+           - In `buildEphemeralKnight()`: if `mk.TemplateRef != ""`, look up the template from the RoundTable's `knightTemplates`
+           - Merge: template provides base, ephemeralSpec fields override template fields
+           - Error if templateRef specified but template not found in RoundTable
+
+        3. **Generate**: run `make generate manifests` or equivalent
+
+        4. **Build**: CGO_ENABLED=0 go build ./cmd/...
+
+        Create branch: git checkout -b feat/knight-templates-49
+        Commit: "feat: default knight templates in RoundTable CRD (#49)"
+        Push and create PR with gh CLI.
+
+        Output the PR URL and git diff --stat.
+
+    - name: test_templates
+      knightRef: coder-1
+      timeout: 900
+      dependsOn: ["implement"]
+      task: |
+        You are writing tests for knight templates in the roundtable operator.
+        Clone and checkout the branch:
+        git clone https://github.com/dapperdivers/roundtable.git /tmp/roundtable && cd /tmp/roundtable
+        git fetch origin feat/knight-templates-49 && git checkout feat/knight-templates-49
+
+        Based on the implementation:
+        {{ .Steps.implement.Output }}
+
+        Write tests in `internal/controller/mission_controller_test.go`:
+
+        1. Mission with templateRef → ephemeral knight gets template values
+        2. Mission with templateRef + ephemeralSpec overrides → overrides win
+        3. Mission with invalid templateRef → error
+        4. RoundTable with no templates → templateRef fails gracefully
+
+        Follow existing Ginkgo/Gomega patterns.
+        Run: CGO_ENABLED=0 go test ./internal/controller/ -count=1
+        Push to the branch.
