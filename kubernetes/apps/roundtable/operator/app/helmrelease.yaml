@@ -20,7 +20,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 0251ca88436dfa252b22df20db40402dc2d33ba9
+      tag: f59f27108e7615d0d6b11b4b0030cb5cd820335d
       pullPolicy: Always
 
     resources:
@@ -39,6 +39,25 @@ spec:
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
         tag: 6ad1c714520d5c720b90c2cd450ab9f2796f52ca
+
+    # Built-in planner knight — meta-mission planning
+    planner:
+      enabled: true
+      domain: operator
+      model: claude-sonnet-4-20250514
+      skills:
+        - operator
+        - shared
+      natsPrefix: fleet-a
+      concurrency: 1
+      taskTimeout: 600
+      arsenal:
+        repo: https://github.com/dapperdivers/roundtable-arsenal.git
+        ref: main
+        period: 5m
+      envFrom:
+        - secretRef:
+            name: roundtable-litellm
 
     # Dashboard — Round Table observability platform
     dashboard:
