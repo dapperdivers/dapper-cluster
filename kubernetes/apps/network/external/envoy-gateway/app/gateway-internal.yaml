@@ -1,0 +1,71 @@
+---
+# Certificate for internal wildcard TLS (managed by cert-manager)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-internal-domain
+  namespace: gateway-system
+spec:
+  secretName: wildcard-internal-domain-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  dnsNames:
+    - "internal.${SECRET_DOMAIN_PERSONAL}"
+    - "*.internal.${SECRET_DOMAIN_PERSONAL}"
+---
+# Internal Gateway for cluster-internal traffic
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: internal-gateway
+  namespace: gateway-system
+spec:
+  gatewayClassName: internal-envoy
+  
+  listeners:
+    # HTTPS listener with TLS termination
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "*.internal.${SECRET_DOMAIN_PERSONAL}"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: wildcard-internal-domain-tls
+            namespace: gateway-system
+    
+    # HTTP listener (for redirects to HTTPS)
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: "*.internal.${SECRET_DOMAIN_PERSONAL}"
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+# HTTP to HTTPS redirect for internal traffic
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: internal-https-redirect
+  namespace: gateway-system
+spec:
+  parentRefs:
+    - name: internal-gateway
+      namespace: gateway-system
+      sectionName: http
+  
+  hostnames:
+    - "*.internal.${SECRET_DOMAIN_PERSONAL}"
+  
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
