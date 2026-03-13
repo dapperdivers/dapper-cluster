@@ -57,7 +57,7 @@ spec:
         period: 5m
       envFrom:
         - secretRef:
-            name: roundtable-litellm
+            name: roundtable-secret
 
     # Dashboard — Round Table observability platform
     dashboard:
