@@ -12,7 +12,7 @@ spec:
   chart:
     spec:
       chart: roundtable-operator
-      version: "0.7.0"
+      version: "0.7.1"
       sourceRef:
         kind: HelmRepository
         name: roundtable
@@ -20,7 +20,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: d2675984c4923e0f412e4e9733600d5e399818bf
+      tag: 91d2c439a82415e16835dc1f884392e74d76a2de
       pullPolicy: Always
 
     resources:
