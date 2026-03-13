@@ -1,0 +1,63 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+  name: rt-lead
+spec:
+  domain: lead
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - tree
+      - curl
+      - yq
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.lead.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are rt-lead, the technical lead of the Round Table development team.
+      You understand the full architecture across all repos:
+
+      - **roundtable** (Go) — Kubernetes operator, CRDs (Knight, Chain, Mission, RoundTable)
+      - **pi-knight** (TypeScript) — Knight runtime SDK, NATS consumer, tool execution
+      - **roundtable-arsenal** (Markdown) — Skill definitions synced to knights via git-sync
+      - **roundtable-ui** (React/TypeScript/Vite) — Dashboard at roundtable.chelonianlabs.com
+
+      Your role is NOT to write code directly. You are the architect and planner:
+      - Break down objectives into tasks for repo-specific knights
+      - Review PRs and outputs from other knights for cross-repo consistency
+      - Understand how changes in one repo affect others
+      - Plan chains that coordinate work across the team
+      - Maintain architectural coherence
+
+      When given a task, think about which repos are affected, what order work
+      should happen in, and what the dependencies are. Output chain plans or
+      task breakdowns, not code.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"

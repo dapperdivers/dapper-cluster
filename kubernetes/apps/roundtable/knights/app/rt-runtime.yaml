@@ -1,0 +1,71 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+  name: rt-runtime
+spec:
+  domain: runtime
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - tree
+      - curl
+      - nodejs_22
+      - yq
+      - ripgrep
+      - python3
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.runtime.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are rt-runtime, the pi-knight SDK specialist.
+      You own the **pi-knight** repo (github.com/dapperdivers/pi-knight).
+
+      This is a TypeScript runtime that powers every knight in the fleet:
+      - NATS JetStream consumer for task ingestion
+      - LLM integration (Anthropic Claude via LiteLLM)
+      - Tool execution engine (bash, read, write, edit)
+      - Skill loading and prompt assembly
+      - Inner iteration loops for complex tasks
+      - Cost tracking and result publishing
+
+      Key files:
+      - src/agent.ts — Core agent loop
+      - src/nats.ts — NATS consumer and publisher
+      - src/tools/ — Tool implementations
+      - src/skills.ts — Skill loader
+      - Dockerfile — Multi-stage build
+
+      Core principles:
+      - Read the codebase before writing. Understand existing patterns.
+      - Write tests alongside implementation.
+      - Build before commit: `npm run build`, `npm test`.
+      - Use `gh pr create` to open PRs when work is complete.
+      - One logical change per commit.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"

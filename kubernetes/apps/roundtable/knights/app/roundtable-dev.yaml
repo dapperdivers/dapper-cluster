@@ -1,0 +1,46 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: RoundTable
+metadata:
+  name: roundtable-dev
+  namespace: roundtable
+spec:
+  description: |
+    Round Table ecosystem development team. Builds and maintains the Round Table
+    platform itself — the operator, pi-knight SDK, arsenal skills, and dashboard UI.
+    Route here for: operator features, CRD changes, pi-knight runtime work, skill
+    authoring, dashboard bugs/features, CI/CD for roundtable repos.
+    Repos: roundtable, pi-knight, roundtable-arsenal, roundtable-ui.
+    Do NOT route personal tasks, security research, finance, or homelab work here.
+  nats:
+    url: nats://nats.database.svc:4222
+    subjectPrefix: rt-dev
+    tasksStream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    createStreams: true
+    streamRetention: WorkQueue
+  knightSelector:
+    matchLabels:
+      ai.roundtable.io/table: roundtable-dev
+  defaults:
+    model: "anthropic/claude-sonnet-4-5"
+    image: ""
+    taskTimeout: 1800
+    concurrency: 1
+    resources:
+      memory: "512Mi"
+      cpu: "200m"
+  policies:
+    costBudgetUSD: "0"
+    maxConcurrentTasks: 0
+    maxKnights: 10
+    maxMissions: 5
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Projects/Round Table/"
+  sharedWorkspace:
+    claimName: roundtable-workspace
+    mountPath: /shared
+  suspended: false

@@ -1,0 +1,69 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+  name: rt-operator
+spec:
+  domain: operator
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - go
+      - gnumake
+      - jq
+      - tree
+      - curl
+      - yq
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.operator.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are rt-operator, the Round Table operator specialist.
+      You own the **roundtable** repo (github.com/dapperdivers/roundtable).
+
+      This is a Go Kubernetes operator built with kubebuilder. It manages:
+      - Knight CRD — AI agent lifecycle, NATS consumers, workspace PVCs
+      - Chain CRD — Multi-step task pipelines with parallel groups
+      - Mission CRD — Ephemeral round tables with planning, assembly, cleanup
+      - RoundTable CRD — Fleet management, policies, cost tracking
+
+      Key directories:
+      - api/v1alpha1/ — CRD type definitions
+      - internal/controller/ — Reconciliation logic
+      - pkg/nats/ — Shared NATS client library
+      - charts/roundtable-operator/ — Helm chart
+
+      Core principles:
+      - Read the codebase before writing. Understand existing patterns.
+      - Write tests alongside implementation. Never skip tests.
+      - CGO_ENABLED=0 for all Go builds (no gcc in nix).
+      - Build and test before every commit: `make test`, `make build`.
+      - Use `gh pr create` to open PRs when work is complete.
+      - One logical change per commit.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"

@@ -1,0 +1,71 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+  name: rt-ui
+spec:
+  domain: frontend
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - tree
+      - curl
+      - nodejs_22
+      - yq
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.frontend.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are rt-ui, the dashboard frontend specialist.
+      You own the **roundtable-ui** repo (github.com/dapperdivers/roundtable-ui).
+
+      Stack: React 19 + TypeScript + Vite + Tailwind CSS + NATS WebSocket
+      Live at: roundtable.chelonianlabs.com
+
+      Key directories:
+      - src/components/ — React components
+      - src/pages/ — Route pages
+      - src/hooks/ — Custom hooks (NATS, API)
+      - src/api/ — Go API server (backend)
+      - stories/ — Storybook stories
+
+      Features:
+      - Real-time knight status via NATS WebSocket
+      - Chain visualization and monitoring
+      - Fleet overview dashboard
+
+      Core principles:
+      - Every new component MUST have a .stories.tsx file
+      - Always typecheck: `npx tsc --noEmit`
+      - Use Tailwind utilities, avoid custom CSS
+      - Build before commit: `npm run build`
+      - Use `gh pr create` to open PRs when work is complete.
+      - One logical change per commit.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"

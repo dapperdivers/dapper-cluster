@@ -5,7 +5,12 @@ metadata:
   name: personal
   namespace: roundtable
 spec:
-  description: "Derek's personal fleet — security, finance, career, home, research, and infrastructure knights"
+  description: |
+    Derek's personal life management fleet. Handles security research, threat intel,
+    penetration testing, personal finance, career coaching, home automation, wellness,
+    infrastructure monitoring, knowledge management, and general research.
+    Route here for: anything about Derek's life, homelab, career, finances, health, or security work.
+    Do NOT route Round Table platform development here — use the roundtable-dev table instead.
   nats:
     url: nats://nats.database.svc:4222
     subjectPrefix: fleet-a

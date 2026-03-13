@@ -18,6 +18,13 @@ resources:
   # Generic coding knights
   - coder-1.yaml
   - coder-2.yaml
+  # Round Table Dev Team
+  - roundtable-dev.yaml
+  - rt-lead.yaml
+  - rt-operator.yaml
+  - rt-runtime.yaml
+  - rt-arsenal.yaml
+  - rt-ui.yaml
   # Per-knight secrets (only knights with extra credentials)
   - galahad-secret.yaml
   - gawain-secret.yaml

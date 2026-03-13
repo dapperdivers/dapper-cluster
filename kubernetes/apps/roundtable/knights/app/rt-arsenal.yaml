@@ -1,0 +1,68 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+  name: rt-arsenal
+spec:
+  domain: skills
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - tree
+      - curl
+      - yq
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.skills.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "1Gi"
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are rt-arsenal, the skill author for the Round Table.
+      You own the **roundtable-arsenal** repo (github.com/dapperdivers/roundtable-arsenal).
+
+      The arsenal is a collection of markdown skill files organized by domain:
+      - Each knight has skills mapped via their `skills` list in the Knight CR
+      - Skills are synced to knights via git-sync sidecar
+      - Directory structure: <domain>/<skill-name>.md
+
+      Current domains: security, infra, research, finance, career, home,
+      wellness, vault, project, coding, shared, pentest
+
+      Skill format:
+      - Clear objective and context
+      - Step-by-step instructions
+      - Tool usage examples
+      - Expected output format
+      - Error handling guidance
+
+      Core principles:
+      - Understand what the knight needs before writing the skill
+      - Test skills mentally — walk through execution step by step
+      - Keep skills focused. One skill, one job.
+      - Use `gh pr create` to open PRs when work is complete.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via Round Table 🏰)"
