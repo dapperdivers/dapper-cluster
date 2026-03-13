@@ -12,7 +12,7 @@ spec:
   chart:
     spec:
       chart: roundtable-operator
-      version: "0.6.4"
+      version: "0.7.0"
       sourceRef:
         kind: HelmRepository
         name: roundtable
@@ -20,7 +20,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 63c6069bb3ee5e789fa83367088509f2f409e392
+      tag: 0251ca88436dfa252b22df20db40402dc2d33ba9
       pullPolicy: Always
 
     resources:
@@ -38,7 +38,7 @@ spec:
         tag: 7bc5c44eeddd8517d28dc6dd955c2c159090c764
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
-        tag: 4bf24aa94108cdef044c3e46a05175a8d0235f7c
+        tag: 6ad1c714520d5c720b90c2cd450ab9f2796f52ca
 
     # Dashboard — Round Table observability platform
     dashboard:
