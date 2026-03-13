@@ -20,11 +20,12 @@ spec:
       knightRef: galahad
       continueOnFailure: true
       task: |
-        Generate your daily threat intelligence briefing.
+        Generate your daily security briefing.
         Check /vault/Briefings/Security/ for yesterday's report and note deltas.
         Review cluster security posture: expiring certs, failed security pods,
         Kyverno violations, CVEs in running images.
-        Write your full report to /vault/Briefings/Security/ with today's date.
+        Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's date, e.g. 2026-03-13.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary via NATS (5-8 bullet points MAX, action items only).
         If nothing changed since yesterday, say "No significant changes."
       timeout: 900
@@ -35,7 +36,8 @@ spec:
       task: |
         Generate today's intelligence digest. Research current events, technology news,
         and anything relevant to Derek's interests (security, AI, homelab, career).
-        Write your full report to /vault/Briefings/Intel/ with today's date.
+        Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's date, e.g. 2026-03-13.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary via NATS (5-10 bullet points, key findings only).
       timeout: 900
 
@@ -45,7 +47,8 @@ spec:
       task: |
         Generate today's infrastructure report. Check cluster health, node status,
         failing pods, resource pressure, Flux reconciliation state, and any deployment issues.
-        Write your full report to /vault/Briefings/HomeLab/ with today's date.
+        Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's date, e.g. 2026-03-13.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary via NATS (5-10 bullet points, key findings and action items).
       timeout: 900
 
@@ -55,7 +58,8 @@ spec:
       task: |
         Generate today's household briefing. Check family calendar, upcoming events,
         nursery prep status, baby countdown, and any home tasks needing attention.
-        Write your full report to /vault/Briefings/Home/ with today's date.
+        Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's date, e.g. 2026-03-13.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary via NATS (5-10 bullet points).
       timeout: 900
 
@@ -65,7 +69,8 @@ spec:
       task: |
         Generate today's financial briefing. Check tax deadlines, bill due dates,
         budget status, investment updates, and any items needing immediate attention.
-        Write your full report to /vault/Briefings/Finance/ with today's date.
+        Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's date, e.g. 2026-03-13.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary via NATS (5-10 bullet points).
       timeout: 900
 
@@ -75,7 +80,8 @@ spec:
       task: |
         Generate today's career briefing. Check pending applications, interview feedback,
         job market updates, and any action items.
-        Write your full report to /vault/Briefings/Career/ with today's date.
+        Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's date, e.g. 2026-03-13.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary via NATS (5-10 bullet points).
       timeout: 900
 
@@ -89,7 +95,7 @@ spec:
         - Nutrition focus for this week
         - Any upcoming appointments or prep tasks
         Read /vault/Personal/Family/Emma.md and /vault/Briefings/Home/ for context.
-        Write your full report to /vault/Briefings/Home/wellness-YYYY-MM-DD.md
+        Write your full report to /vault/Briefings/Home/wellness-YYYY-MM-DD.md (e.g. wellness-2026-03-13.md)
         Return a concise summary via NATS (3-5 bullet points).
       timeout: 600
 
