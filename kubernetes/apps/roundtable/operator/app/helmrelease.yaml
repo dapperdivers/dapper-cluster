@@ -20,7 +20,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: a5763ef4a6d1778e935294ae6d09fb8cff57c78e
+      tag: 55331ddb2f26c6f835fae9ac7b804d5217d196db
       pullPolicy: Always
 
     resources:
