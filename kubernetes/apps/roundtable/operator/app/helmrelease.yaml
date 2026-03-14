@@ -29,7 +29,7 @@ spec:
         memory: 64Mi
       limits:
         cpu: 200m
-        memory: 256Mi
+        memory: 512Mi
 
     # Centralized image tags — bump here, everything updates
     images:
