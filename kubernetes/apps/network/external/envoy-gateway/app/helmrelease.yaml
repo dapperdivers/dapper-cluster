@@ -1,93 +1,58 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: envoy-gateway
+  namespace: flux-system
+spec:
+  interval: 24h
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: v1.3.0
+  url: oci://docker.io/envoyproxy/gateway-helm
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: envoy-gateway
   namespace: envoy-gateway-system
 spec:
   interval: 30m
-  chart:
-    spec:
-      chart: gateway-helm
-      version: v1.0.1
-      sourceRef:
-        kind: HelmRepository
-        name: envoy-gateway
-        namespace: flux-system
-      interval: 12h
-  
+  chartRef:
+    kind: OCIRepository
+    name: envoy-gateway
   install:
     createNamespace: true
     remediation:
       retries: 3
-  
   upgrade:
     cleanupOnFail: true
     remediation:
       retries: 3
-  
   values:
-    # Envoy Gateway controller configuration
     config:
       envoyGateway:
         gateway:
           controllerName: gateway.envoyproxy.io/gatewayclass-controller
-        
         provider:
           type: Kubernetes
-          kubernetes:
-            watch:
-              type: Namespaces
-              namespaces: []  # Watch all namespaces
-        
         logging:
           level:
             default: info
-        
-        extensionManager:
-          resources:
-            limits:
-              cpu: 100m
-              memory: 128Mi
-            requests:
-              cpu: 50m
-              memory: 64Mi
-    
-    # Controller deployment
     deployment:
       replicas: 1
-      resources:
-        limits:
-          cpu: 500m
-          memory: 512Mi
-        requests:
-          cpu: 100m
-          memory: 128Mi
-    
-    # RBAC
-    rbac:
-      create: true
-    
-    serviceAccount:
-      create: true
-      name: envoy-gateway
-    
-    # Enable Prometheus metrics
-    service:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
+      pod:
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: envoy-gateway
-  namespace: flux-system
-spec:
-  interval: 24h
-  url: https://gateway.envoyproxy.io
----
-# External GatewayClass with EnvoyProxy configuration
+# External EnvoyProxy configuration
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -100,13 +65,14 @@ spec:
       envoyService:
         type: LoadBalancer
         annotations:
-          # Cilium L2 LoadBalancer
-          io.cilium/lb-ipam-ips: "192.168.1.240"
-          external-dns.alpha.kubernetes.io/hostname: "gateway.${SECRET_DOMAIN_PERSONAL}"
-      
+          io.cilium/lb-ipam-ips: "10.100.0.31"
       envoyDeployment:
         replicas: 2
         pod:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "19001"
+        container:
           resources:
             limits:
               cpu: 1000m
@@ -114,31 +80,12 @@ spec:
             requests:
               cpu: 200m
               memory: 256Mi
-          labels:
-            gateway-type: external
-          annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "19001"
-  
   telemetry:
     metrics:
       prometheus:
         disable: false
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: external-envoy
-spec:
-  controllerName: gateway.envoyproxy.io/gatewayclass-controller
-  description: "GatewayClass for external-facing traffic (Envoy Gateway)"
-  parametersRef:
-    group: gateway.envoyproxy.io
-    kind: EnvoyProxy
-    name: external-proxy-config
-    namespace: envoy-gateway-system
----
-# Internal GatewayClass with EnvoyProxy configuration
+# Internal EnvoyProxy configuration
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -151,12 +98,14 @@ spec:
       envoyService:
         type: LoadBalancer
         annotations:
-          # Cilium L2 LoadBalancer with fixed internal IP
-          io.cilium/lb-ipam-ips: "192.168.1.241"
-      
+          io.cilium/lb-ipam-ips: "10.100.0.32"
       envoyDeployment:
         replicas: 1
         pod:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "19001"
+        container:
           resources:
             limits:
               cpu: 500m
@@ -164,12 +113,6 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-          labels:
-            gateway-type: internal
-          annotations:
-            prometheus.io/scrape: "true"
-            prometheus.io/port: "19001"
-  
   telemetry:
     metrics:
       prometheus:
@@ -178,10 +121,23 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
+  name: external-envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  description: "External-facing traffic via Envoy Gateway"
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: external-proxy-config
+    namespace: envoy-gateway-system
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
   name: internal-envoy
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
-  description: "GatewayClass for internal cluster traffic (Envoy Gateway)"
+  description: "Internal cluster traffic via Envoy Gateway"
   parametersRef:
     group: gateway.envoyproxy.io
     kind: EnvoyProxy

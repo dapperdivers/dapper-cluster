@@ -7,5 +7,3 @@ resources:
   - ./gateway-external.yaml
   - ./gateway-internal.yaml
   - ./httproute-resume.yaml
-  # Uncomment when Authentik is deployed and configured:
-  # - ./securitypolicy-authentik-example.yaml

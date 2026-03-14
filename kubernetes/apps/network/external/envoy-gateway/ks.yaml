@@ -6,12 +6,13 @@ metadata:
   name: &app envoy-gateway
   namespace: &namespace network
 spec:
-  targetNamespace: envoy-gateway-system
+  # NO targetNamespace — resources span multiple namespaces
+  # (envoy-gateway-system, gateway-system, selfhosted)
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: cert-manager-tls
+    - name: cert-manager-issuers
       namespace: cert-manager
   path: ./kubernetes/apps/network/external/envoy-gateway/app
   prune: true
@@ -23,7 +24,3 @@ spec:
   interval: 30m
   retryInterval: 1m
   timeout: 5m
-  postBuild:
-    substitute:
-      # Domain substitution for derekmackley.com
-      SECRET_DOMAIN_PERSONAL: derekmackley.com

@@ -4,40 +4,19 @@ kind: Namespace
 metadata:
   name: gateway-system
 ---
-# Certificate for wildcard TLS (managed by cert-manager)
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-personal-domain
-  namespace: gateway-system
-spec:
-  secretName: wildcard-personal-domain-tls
-  issuerRef:
-    name: letsencrypt-production
-    kind: ClusterIssuer
-  dnsNames:
-    - "${SECRET_DOMAIN_PERSONAL}"
-    - "*.${SECRET_DOMAIN_PERSONAL}"
-  # Use HTTP-01 challenge via the Gateway (once it's ready)
-  # Or DNS-01 if you have DNS provider configured
----
-# External Gateway for public traffic
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: external-gateway
   namespace: gateway-system
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "*.${SECRET_DOMAIN_PERSONAL}"
+    cert-manager.io/cluster-issuer: letsencrypt-production
 spec:
   gatewayClassName: external-envoy
-  
   listeners:
-    # HTTPS listener with TLS termination
     - name: https
       protocol: HTTPS
       port: 443
-      hostname: "*.${SECRET_DOMAIN_PERSONAL}"
       allowedRoutes:
         namespaces:
           from: All
@@ -45,19 +24,15 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
-            name: wildcard-personal-domain-tls
-            namespace: gateway-system
-    
-    # HTTP listener (for redirects to HTTPS)
+            name: external-gateway-tls
     - name: http
       protocol: HTTP
       port: 80
-      hostname: "*.${SECRET_DOMAIN_PERSONAL}"
       allowedRoutes:
         namespaces:
           from: All
 ---
-# HTTP to HTTPS redirect for all traffic
+# HTTP → HTTPS redirect for all external traffic
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -68,10 +43,6 @@ spec:
     - name: external-gateway
       namespace: gateway-system
       sectionName: http
-  
-  hostnames:
-    - "*.${SECRET_DOMAIN_PERSONAL}"
-  
   rules:
     - filters:
         - type: RequestRedirect
