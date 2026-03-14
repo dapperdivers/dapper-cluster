@@ -20,7 +20,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: a5763ef4a6d1778e935294ae6d09fb8cff57c78e
+      tag: 46b9a19abf1670a57d0b76536c446d937f1b29d1
       pullPolicy: Always
 
     resources:
@@ -29,7 +29,7 @@ spec:
         memory: 64Mi
       limits:
         cpu: 200m
-        memory: 1Gi
+        memory: 256Mi
 
     # Centralized image tags — bump here, everything updates
     images:
