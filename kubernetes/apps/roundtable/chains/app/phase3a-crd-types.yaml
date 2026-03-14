@@ -5,6 +5,7 @@ metadata:
   name: phase3a-crd-types
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Phase 3a PR2: Add CRD type changes for dynamic missions (Issue #17)"
   timeout: 3600
   outputKnight: gawain

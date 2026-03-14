@@ -5,6 +5,7 @@ metadata:
   name: test-resilience
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Test chain resilience features: continueOnFailure, retry, and KV resume"
   timeout: 600
   suspended: true

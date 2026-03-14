@@ -5,6 +5,7 @@ metadata:
   name: phase3a-cost-and-results
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Phase 3a: Per-mission cost tracking (#23) + result preservation (#26)"
   timeout: 3600
   outputKnight: gawain

@@ -5,6 +5,7 @@ metadata:
   name: bridge-knight-templates
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Bridge work: implement default knight templates for ephemeral missions (issue #49)"
   timeout: 3600
   suspended: true

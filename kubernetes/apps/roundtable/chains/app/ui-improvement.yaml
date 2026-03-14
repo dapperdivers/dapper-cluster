@@ -5,6 +5,7 @@ metadata:
   name: ui-self-improvement
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Recursive self-improvement — knights analyze and fix the Round Table UI"
   timeout: 1200
   steps:

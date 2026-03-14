@@ -5,6 +5,7 @@ metadata:
   name: roadmap-issues
   namespace: roundtable
 spec:
+  roundTableRef: personal
   timeout: 3600
   suspended: true
   steps:

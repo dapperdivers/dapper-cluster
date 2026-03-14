@@ -5,6 +5,7 @@ metadata:
   name: phase3a-nats-library-extract
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Phase 3a PR1: Extract shared NATS client library from controller duplication (Issue #16)"
   timeout: 3600
   outputKnight: gawain

@@ -5,6 +5,7 @@ metadata:
   name: morning-briefing
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Daily morning mission briefing — full domain reports, cross-referenced synthesis"
   schedule: "0 11 * * *"
   timeout: 2400

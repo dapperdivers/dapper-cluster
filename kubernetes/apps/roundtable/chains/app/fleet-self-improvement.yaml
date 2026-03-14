@@ -5,6 +5,7 @@ metadata:
   name: fleet-self-improvement
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Weekly fleet self-improvement — knights report tool/skill gaps, Gawain PRs the fixes"
   schedule: "0 14 * * 1"
   timeout: 3600

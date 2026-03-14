@@ -5,6 +5,7 @@ metadata:
   name: scout-task
   namespace: roundtable
 spec:
+  roundTableRef: personal
   timeout: 300
   suspended: true
   steps:

@@ -5,6 +5,7 @@ metadata:
   name: phase3b-ephemeral-missions
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Phase 3b: Implement ephemeral missions — dynamic knight creation, provisioning, and teardown"
   timeout: 10800
   outputKnight: coder-1

@@ -5,6 +5,7 @@ metadata:
   name: workspace-setup
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Initialize shared workspace with repo clones for development chains"
   timeout: 600
   retryPolicy:

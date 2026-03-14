@@ -5,6 +5,7 @@ metadata:
   name: bridge-chain-resilience
   namespace: roundtable
 spec:
+  roundTableRef: personal
   description: "Bridge work: implement chain step resilience (issue #48) — continueOnFailure, retry with backoff, resume from KV"
   timeout: 3600
   suspended: true

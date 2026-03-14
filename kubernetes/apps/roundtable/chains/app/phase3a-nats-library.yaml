@@ -7,7 +7,7 @@ metadata:
 spec:
   description: "Phase 3a PR1: Extract shared NATS client library from operator controllers"
   timeout: 3600
-  roundTableRef: chelonian
+  roundTableRef: personal
   outputKnight: gawain
   retryPolicy:
     maxRetries: 0
