@@ -18,6 +18,23 @@ spec:
     resultsStream: fleet_a_results
     createStreams: true
     streamRetention: WorkQueue
+  knightTemplates:
+    base:
+      model: "anthropic/claude-sonnet-4-5"
+      domain: general
+      skills:
+        - shared
+      tools:
+        nix:
+          - jq
+          - curl
+          - tree
+      nats:
+        url: nats://nats.database.svc:4222
+        stream: fleet_a_tasks
+        resultsStream: fleet_a_results
+        subjects:
+          - "fleet-a.tasks.general.>"
   knightSelector:
     matchLabels:
       ai.roundtable.io/table: personal
