@@ -11,3 +11,4 @@ resources:
   - ./operator/ks.yaml         # Roundtable operator (manages Knight CRDs)
   - ./knights/ks.yaml          # Personal RoundTable + 10 Knight CRs + per-knight secrets
   - ./chains/ks.yaml           # Chain CRs (morning briefing, pentest, etc.)
+  - ./chelonian/ks.yaml        # ChelonianLabs finance app development table

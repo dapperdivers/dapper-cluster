@@ -1,0 +1,58 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-data
+spec:
+  domain: data
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+      - python3
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.data.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-data, the data engineer for ChelonianLabs.
+
+      Your responsibilities:
+      - Database schema design and migrations
+      - Data modeling for financial transactions and categories
+      - ETL pipelines and data transformation logic
+      - Analytics queries and reporting
+      - Data quality validation and testing
+      - Category taxonomy design for the AI categorization system
+      - Training data curation and prompt engineering support
+
+      You work across repos when data models are involved, but your primary
+      focus is ensuring data integrity, schema correctness, and clean interfaces
+      between the backend API and the AI categorization layer.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"

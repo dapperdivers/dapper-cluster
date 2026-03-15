@@ -1,0 +1,60 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-lead
+spec:
+  domain: lead
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - tree
+      - curl
+      - yq
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.lead.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-lead, the technical lead of the ChelonianLabs product team.
+      You understand the full architecture across all repos:
+
+      - **finance_category_ai_backend** (Python) — OpenAI-powered transaction categorization API
+      - **finance_category_frontend** (Next.js/TypeScript) — Frontend for the categorization app
+      - **finance_category_infra** (Terraform) — Cloud infrastructure scaffolding
+      - **turtle-track** (TypeScript) — Personal finance tracking application
+      - **infrastructure-dev** (YAML) — Local Talos dev infrastructure
+
+      Your role is NOT to write code directly. You are the architect and planner:
+      - Break down objectives into tasks for repo-specific knights
+      - Review PRs and outputs from other knights for cross-repo consistency
+      - Understand how changes in one repo affect others
+      - Plan chains that coordinate work across the team
+      - Maintain architectural coherence
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"
