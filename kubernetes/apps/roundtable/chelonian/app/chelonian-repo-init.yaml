@@ -29,7 +29,7 @@ spec:
            - Check for Docker/container config
         3. If there's a requirements.txt or pyproject.toml, review the dependencies
         4. Summarize: what this app does, its architecture, dependencies, and any issues you notice
-      timeout: 300
+      timeout: 600
 
     - name: init_frontend
       knightRef: cl-frontend
@@ -48,7 +48,7 @@ spec:
            - Check for Docker/container config
         3. Try `npm install` and `npx tsc --noEmit` to verify it builds
         4. Summarize: what this app does, its architecture, dependencies, and any issues you notice
-      timeout: 300
+      timeout: 600
 
     - name: init_infra
       knightRef: cl-infra
@@ -68,7 +68,7 @@ spec:
            - What's the current state of the dev environment?
 
         Summarize both repos: what they manage, current state, and any issues.
-      timeout: 300
+      timeout: 600
 
     - name: init_turtle
       knightRef: cl-turtle
@@ -87,7 +87,7 @@ spec:
            - Check for Docker/container config
         3. Try to build/compile if applicable
         4. Summarize: what this app does, its architecture, dependencies, and any issues you notice
-      timeout: 300
+      timeout: 600
 
     - name: init_research
       knightRef: cl-research
@@ -102,7 +102,7 @@ spec:
            - What are the main competitors? (Mint, YNAB, Copilot Money, Monarch, etc.)
            - What differentiates an AI categorization approach?
         5. Summarize: org overview, product vision assessment, and competitive positioning
-      timeout: 300
+      timeout: 600
 
     - name: init_data
       knightRef: cl-data
@@ -119,7 +119,7 @@ spec:
            - API data contracts (request/response shapes)
         4. Assess data quality: any missing validations, type safety issues, or schema gaps?
         5. Summarize: data architecture overview, schema status, and recommendations
-      timeout: 300
+      timeout: 600
 
     - name: init_qa
       knightRef: cl-qa
@@ -139,7 +139,7 @@ spec:
            - CI/CD pipeline quality (what's automated?)
            - Security: any hardcoded secrets, .env files committed, vulnerable deps?
         3. Summarize: quality scorecard per repo, top issues, and priority recommendations
-      timeout: 300
+      timeout: 600
 
     - name: repo_init_summary
       knightRef: cl-lead
@@ -172,4 +172,4 @@ spec:
         5. **Development Roadmap Suggestion** — What to build/fix next
 
         This is the team's first look at the codebase. Make it count.
-      timeout: 300
+      timeout: 600
