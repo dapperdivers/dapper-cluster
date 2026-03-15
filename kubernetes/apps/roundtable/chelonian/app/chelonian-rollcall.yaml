@@ -1,0 +1,112 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: chelonian-rollcall
+  namespace: roundtable
+spec:
+  roundTableRef: chelonian
+  description: "Roll call — verify all ChelonianLabs knights are functional and connected"
+  timeout: 300
+  retryPolicy:
+    maxRetries: 0
+    backoffSeconds: 30
+  outputKnight: cl-lead
+  steps:
+    - name: ack_backend
+      knightRef: cl-backend
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Verify you can access GitHub: run `gh repo list chelonianlabs --limit 3`
+        2. Report your installed tools (nix packages)
+        3. Reply with: "cl-backend reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: ack_frontend
+      knightRef: cl-frontend
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Verify you can access GitHub: run `gh repo list chelonianlabs --limit 3`
+        2. Report your installed tools (nix packages)
+        3. Reply with: "cl-frontend reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: ack_infra
+      knightRef: cl-infra
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Verify you can access GitHub: run `gh repo list chelonianlabs --limit 3`
+        2. Report your installed tools (nix packages)
+        3. Reply with: "cl-infra reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: ack_turtle
+      knightRef: cl-turtle
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Verify you can access GitHub: run `gh repo list chelonianlabs --limit 3`
+        2. Report your installed tools (nix packages)
+        3. Reply with: "cl-turtle reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: ack_research
+      knightRef: cl-research
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Report your installed tools (nix packages)
+        2. Reply with: "cl-research reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: ack_data
+      knightRef: cl-data
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Verify you can access GitHub: run `gh repo list chelonianlabs --limit 3`
+        2. Report your installed tools (nix packages)
+        3. Reply with: "cl-data reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: ack_qa
+      knightRef: cl-qa
+      continueOnFailure: true
+      task: |
+        Roll call! Confirm you're online and functional.
+        1. Verify you can access GitHub: run `gh repo list chelonianlabs --limit 3`
+        2. Report your installed tools (nix packages)
+        3. Reply with: "cl-qa reporting for duty 🐢" and your tool list.
+      timeout: 120
+
+    - name: rollcall_summary
+      knightRef: cl-lead
+      dependsOn:
+        - ack_backend
+        - ack_frontend
+        - ack_infra
+        - ack_turtle
+        - ack_research
+        - ack_data
+        - ack_qa
+      task: |
+        Compile the roll call results from all 7 knights.
+        For each knight, report:
+        - ✅ if they responded successfully, ❌ if they failed
+        - Whether they confirmed GitHub access
+        - Their tool inventory
+
+        Previous step outputs:
+        - Backend: {{ .Steps.ack_backend.Output }}
+        - Frontend: {{ .Steps.ack_frontend.Output }}
+        - Infra: {{ .Steps.ack_infra.Output }}
+        - Turtle: {{ .Steps.ack_turtle.Output }}
+        - Research: {{ .Steps.ack_research.Output }}
+        - Data: {{ .Steps.ack_data.Output }}
+        - QA: {{ .Steps.ack_qa.Output }}
+
+        Summarize the fleet readiness status.
+      timeout: 120
