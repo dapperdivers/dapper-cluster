@@ -36,6 +36,8 @@ spec:
   taskTimeout: 1800
   envFrom:
     - secretRef:
+        name: roundtable-secret
+    - secretRef:
         name: chelonian-secret
   prompt:
     identity: |
