@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ./namespace/ks.yaml
   - ./ghcr-pull-secret/ks.yaml
+  - ./turtle-track/ks.yaml
