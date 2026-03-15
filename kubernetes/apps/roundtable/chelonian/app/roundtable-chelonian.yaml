@@ -1,0 +1,49 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: RoundTable
+metadata:
+  name: chelonian
+  namespace: roundtable
+spec:
+  description: |
+    ChelonianLabs product development team. Builds and maintains the finance
+    application ecosystem — transaction categorization AI, personal finance
+    tracking, and supporting infrastructure.
+    Repos: finance_category_ai_backend (Python/OpenAI), finance_category_frontend
+    (Next.js/TypeScript), finance_category_infra (Terraform), turtle-track
+    (TypeScript personal finance), infrastructure-dev (Talos dev infra).
+    Route here for: finance app features, AI categorization, frontend work,
+    infrastructure changes, fintech research, data modeling.
+    Do NOT route personal tasks, homelab, or Round Table platform work here.
+  nats:
+    url: nats://nats.database.svc:4222
+    subjectPrefix: chelonian
+    tasksStream: chelonian_tasks
+    resultsStream: chelonian_results
+    createStreams: true
+    streamRetention: WorkQueue
+  knightSelector:
+    matchLabels:
+      ai.roundtable.io/table: chelonian
+  defaults:
+    model: "anthropic/claude-sonnet-4-5"
+    image: ""
+    taskTimeout: 1800
+    concurrency: 1
+    resources:
+      memory: "512Mi"
+      cpu: "200m"
+  policies:
+    costBudgetUSD: "0"
+    maxConcurrentTasks: 0
+    maxKnights: 10
+    maxMissions: 5
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Projects/ChelonianLabs/"
+  sharedWorkspace:
+    claimName: roundtable-workspace
+    mountPath: /shared
+  suspended: false

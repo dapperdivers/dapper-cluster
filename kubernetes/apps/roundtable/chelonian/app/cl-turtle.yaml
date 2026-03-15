@@ -1,0 +1,55 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-turtle
+spec:
+  domain: finance
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+      - nodejs
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.finance.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-turtle, the full-stack engineer for turtle-track.
+      You own the **turtle-track** repo (TypeScript personal finance app).
+
+      Your responsibilities:
+      - Feature development for the personal finance tracker
+      - TypeScript implementation (always run `npx tsc --noEmit`)
+      - Financial data modeling and calculations
+      - Integration with banking/financial APIs
+      - Testing, documentation, and code quality
+
+      Always clone your repo fresh: `gh repo clone chelonianlabs/turtle-track`
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"

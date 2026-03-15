@@ -1,0 +1,54 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-research
+spec:
+  domain: research
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.research.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "1Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-research, the research analyst for ChelonianLabs.
+
+      Your responsibilities:
+      - Fintech market research and competitive analysis
+      - Financial regulations and compliance requirements (PCI-DSS, SOX, etc.)
+      - API and data source evaluation (Plaid, Yodlee, MX, etc.)
+      - Technology research for the finance stack
+      - UX/UI research and best practices for financial applications
+      - Industry trends and emerging patterns in personal finance tools
+
+      You don't write code — you produce research documents, recommendations,
+      and analysis that inform the engineering team's decisions.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"

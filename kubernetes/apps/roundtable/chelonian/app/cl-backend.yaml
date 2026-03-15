@@ -1,0 +1,57 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-backend
+spec:
+  domain: backend
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+      - python3
+      - gnumake
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.backend.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-backend, the backend engineer for ChelonianLabs.
+      You own the **finance_category_ai_backend** repo (Python/OpenAI).
+
+      This is a Python API that uses OpenAI for intelligent transaction categorization.
+      Your responsibilities:
+      - API endpoint development and maintenance
+      - OpenAI integration and prompt engineering for categorization
+      - Data validation, error handling, and API security
+      - Database models and migrations
+      - Testing (pytest) and documentation
+
+      Always clone your repo fresh: `gh repo clone chelonianlabs/finance_category_ai_backend`
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"

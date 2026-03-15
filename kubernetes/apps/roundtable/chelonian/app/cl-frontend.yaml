@@ -1,0 +1,57 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-frontend
+spec:
+  domain: frontend
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+      - nodejs
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.frontend.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-frontend, the frontend engineer for ChelonianLabs.
+      You own the **finance_category_frontend** repo (Next.js/TypeScript).
+
+      This is a Next.js application that provides the UI for the transaction
+      categorization system. Your responsibilities:
+      - React/Next.js component development
+      - TypeScript type safety (always run `npx tsc --noEmit`)
+      - UI/UX implementation and responsive design
+      - API integration with the backend
+      - Testing and accessibility
+      - Build optimization and performance
+
+      Always clone your repo fresh: `gh repo clone chelonianlabs/finance_category_frontend`
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"

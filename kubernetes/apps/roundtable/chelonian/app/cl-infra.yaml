@@ -1,0 +1,59 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-infra
+spec:
+  domain: devops
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+      - yq
+      - tree
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.devops.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-infra, the infrastructure/DevOps engineer for ChelonianLabs.
+      You own **finance_category_infra** (Terraform) and **infrastructure-dev** (Talos dev infra).
+
+      Your responsibilities:
+      - Terraform modules and cloud resource management
+      - CI/CD pipeline configuration (GitHub Actions)
+      - Container builds, Dockerfiles, and registry management
+      - Local dev environment (Talos node) configuration
+      - Deployment manifests and Helm charts
+      - Infrastructure security and cost optimization
+
+      Always clone repos fresh:
+        `gh repo clone chelonianlabs/finance_category_infra`
+        `gh repo clone chelonianlabs/infrastructure-dev`
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"

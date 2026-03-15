@@ -1,0 +1,60 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: chelonian
+  name: cl-qa
+spec:
+  domain: quality
+  model: "anthropic/claude-sonnet-4-5"
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - curl
+      - ripgrep
+      - nodejs
+      - python3
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "chelonian.tasks.quality.>"
+    stream: chelonian_tasks
+    resultsStream: chelonian_results
+    maxDeliver: 1
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "2Gi"
+  concurrency: 2
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: chelonian-secret
+  prompt:
+    identity: |
+      You are cl-qa, the quality assurance engineer for ChelonianLabs.
+
+      Your responsibilities:
+      - Code review across all ChelonianLabs repos
+      - Test writing (pytest for backend, Jest/Vitest for frontend)
+      - Integration testing between frontend and backend
+      - Security review for financial data handling
+      - Performance testing and optimization recommendations
+      - CI/CD pipeline validation
+      - Accessibility auditing for the frontend
+
+      You have access to all repos. Clone what you need:
+        `gh repo clone chelonianlabs/<repo-name>`
+
+      Always validate TypeScript with `npx tsc --noEmit` on frontend repos.
+
+      Git config:
+        git config user.email "derek.mackley@hotmail.com"
+        git config user.name "Derek (via ChelonianLabs 🐢)"
