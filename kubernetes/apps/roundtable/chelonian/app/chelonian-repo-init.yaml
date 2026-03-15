@@ -1,0 +1,175 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: chelonian-repo-init
+  namespace: roundtable
+spec:
+  roundTableRef: chelonian
+  description: "Initialize all ChelonianLabs repos — clone, analyze structure, and report readiness"
+  timeout: 3600
+  retryPolicy:
+    maxRetries: 0
+    backoffSeconds: 30
+  outputKnight: cl-lead
+  steps:
+    - name: init_backend
+      knightRef: cl-backend
+      continueOnFailure: true
+      task: |
+        Initialize your development environment for finance_category_ai_backend.
+
+        1. Clone the repo: `gh repo clone chelonianlabs/finance_category_ai_backend`
+        2. cd into it and analyze the project:
+           - Read README.md if it exists
+           - List the directory structure (`find . -type f | head -50`)
+           - Identify the tech stack (Python version, dependencies, framework)
+           - Check for CI/CD config (.github/workflows/)
+           - Check for tests
+           - Check for Docker/container config
+        3. If there's a requirements.txt or pyproject.toml, review the dependencies
+        4. Summarize: what this app does, its architecture, dependencies, and any issues you notice
+      timeout: 300
+
+    - name: init_frontend
+      knightRef: cl-frontend
+      continueOnFailure: true
+      task: |
+        Initialize your development environment for finance_category_frontend.
+
+        1. Clone the repo: `gh repo clone chelonianlabs/finance_category_frontend`
+        2. cd into it and analyze the project:
+           - Read README.md if it exists
+           - List the directory structure (`find . -type f | head -50`)
+           - Identify the tech stack (Next.js version, TypeScript config, UI framework)
+           - Check for CI/CD config (.github/workflows/)
+           - Check for tests
+           - Review package.json for dependencies
+           - Check for Docker/container config
+        3. Try `npm install` and `npx tsc --noEmit` to verify it builds
+        4. Summarize: what this app does, its architecture, dependencies, and any issues you notice
+      timeout: 300
+
+    - name: init_infra
+      knightRef: cl-infra
+      continueOnFailure: true
+      task: |
+        Initialize your development environment for ChelonianLabs infrastructure repos.
+
+        Clone and analyze BOTH repos:
+
+        1. `gh repo clone chelonianlabs/finance_category_infra`
+           - Review Terraform structure (modules, providers, state config)
+           - What cloud provider? What resources are managed?
+           - Any CI/CD for terraform plan/apply?
+
+        2. `gh repo clone chelonianlabs/infrastructure-dev`
+           - Review the Talos dev infra setup
+           - What's the current state of the dev environment?
+
+        Summarize both repos: what they manage, current state, and any issues.
+      timeout: 300
+
+    - name: init_turtle
+      knightRef: cl-turtle
+      continueOnFailure: true
+      task: |
+        Initialize your development environment for turtle-track.
+
+        1. Clone the repo: `gh repo clone chelonianlabs/turtle-track`
+        2. cd into it and analyze the project:
+           - Read README.md if it exists
+           - List the directory structure (`find . -type f | head -50`)
+           - Identify the tech stack (framework, language, database)
+           - Check for CI/CD config (.github/workflows/)
+           - Check for tests
+           - Review package.json or equivalent for dependencies
+           - Check for Docker/container config
+        3. Try to build/compile if applicable
+        4. Summarize: what this app does, its architecture, dependencies, and any issues you notice
+      timeout: 300
+
+    - name: init_research
+      knightRef: cl-research
+      continueOnFailure: true
+      task: |
+        Analyze the ChelonianLabs GitHub org and produce a research brief.
+
+        1. List all repos: `gh repo list chelonianlabs --limit 50`
+        2. For each repo, note: name, language, description, last update
+        3. Identify the overall product vision — how do these repos fit together?
+        4. Research the competitive landscape for AI-powered personal finance / transaction categorization tools
+           - What are the main competitors? (Mint, YNAB, Copilot Money, Monarch, etc.)
+           - What differentiates an AI categorization approach?
+        5. Summarize: org overview, product vision assessment, and competitive positioning
+      timeout: 300
+
+    - name: init_data
+      knightRef: cl-data
+      continueOnFailure: true
+      task: |
+        Analyze the data architecture across ChelonianLabs repos.
+
+        1. Clone the backend: `gh repo clone chelonianlabs/finance_category_ai_backend`
+        2. Clone turtle-track: `gh repo clone chelonianlabs/turtle-track`
+        3. For each, identify:
+           - Database type and schema (look for migrations, models, SQL files)
+           - Data models and relationships
+           - How transactions are stored and categorized
+           - API data contracts (request/response shapes)
+        4. Assess data quality: any missing validations, type safety issues, or schema gaps?
+        5. Summarize: data architecture overview, schema status, and recommendations
+      timeout: 300
+
+    - name: init_qa
+      knightRef: cl-qa
+      continueOnFailure: true
+      task: |
+        Audit test coverage and code quality across ChelonianLabs repos.
+
+        1. Clone all code repos:
+           - `gh repo clone chelonianlabs/finance_category_ai_backend`
+           - `gh repo clone chelonianlabs/finance_category_frontend`
+           - `gh repo clone chelonianlabs/turtle-track`
+        2. For each, assess:
+           - Test files present? What testing framework?
+           - Estimated test coverage (files with tests vs without)
+           - Linting/formatting config (eslint, prettier, black, ruff, etc.)
+           - Type safety (TypeScript strict mode? Python type hints?)
+           - CI/CD pipeline quality (what's automated?)
+           - Security: any hardcoded secrets, .env files committed, vulnerable deps?
+        3. Summarize: quality scorecard per repo, top issues, and priority recommendations
+      timeout: 300
+
+    - name: repo_init_summary
+      knightRef: cl-lead
+      dependsOn:
+        - init_backend
+        - init_frontend
+        - init_infra
+        - init_turtle
+        - init_research
+        - init_data
+        - init_qa
+      task: |
+        Compile the repo initialization reports from all knights into a comprehensive
+        ChelonianLabs Development Readiness Report.
+
+        Knight reports:
+        - Backend: {{ .Steps.init_backend.Output }}
+        - Frontend: {{ .Steps.init_frontend.Output }}
+        - Infrastructure: {{ .Steps.init_infra.Output }}
+        - Turtle Track: {{ .Steps.init_turtle.Output }}
+        - Research: {{ .Steps.init_research.Output }}
+        - Data: {{ .Steps.init_data.Output }}
+        - QA: {{ .Steps.init_qa.Output }}
+
+        Synthesize into:
+        1. **Architecture Overview** — How the repos connect, what the product does
+        2. **Tech Stack Summary** — Languages, frameworks, databases, cloud services
+        3. **Health Assessment** — What's in good shape vs what needs work
+        4. **Priority Recommendations** — Top 5 things to address first
+        5. **Development Roadmap Suggestion** — What to build/fix next
+
+        This is the team's first look at the codebase. Make it count.
+      timeout: 300
