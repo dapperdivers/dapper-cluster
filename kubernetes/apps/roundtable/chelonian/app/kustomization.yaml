@@ -14,3 +14,5 @@ resources:
   - cl-research.yaml
   - cl-data.yaml
   - cl-qa.yaml
+  # Chains
+  - chelonian-rollcall.yaml
