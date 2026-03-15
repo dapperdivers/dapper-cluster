@@ -16,3 +16,4 @@ resources:
   - cl-qa.yaml
   # Chains
   - chelonian-rollcall.yaml
+  - chelonian-repo-init.yaml
