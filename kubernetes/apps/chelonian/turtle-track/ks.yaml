@@ -2,14 +2,17 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: chelonian-namespace
+  name: chelonian-turtle-track
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./kubernetes/apps/chelonian/namespace
-  prune: false
+  path: ./kubernetes/apps/chelonian/turtle-track/app
+  prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
   wait: true
+  dependsOn:
+    - name: chelonian-namespace
+    - name: chelonian-ghcr-pull-secret
