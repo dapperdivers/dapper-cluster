@@ -8,3 +8,4 @@ resources:
   - vault-pv.yaml
   - vault-pvc.yaml
   - shared-workspace-pvc.yaml
+  - chelonian-secret.yaml
