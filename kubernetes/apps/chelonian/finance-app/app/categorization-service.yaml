@@ -22,13 +22,16 @@ spec:
               HOST: "0.0.0.0"
               PORT: "8007"
               REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
+              AI_SERVICE_URL: "http://finance-ai-service.chelonian.svc.cluster.local:8005"
+              TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
+              AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
             probes:
               readiness: &probes
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /readyz
+                    path: /api/categorization/health
                     port: 8007
                   initialDelaySeconds: 10
                   periodSeconds: 30
