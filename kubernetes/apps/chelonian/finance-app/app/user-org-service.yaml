@@ -3,11 +3,6 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: finance-user-org-service
-  annotations:
-    postgres-init.home.arpa/enabled: "true"
-    postgres-init.home.arpa/dbname: "finance_user_org"
-    postgres-init.home.arpa/user-key: "CHELONIAN_DB_USER"
-    postgres-init.home.arpa/pass-key: "CHELONIAN_DB_PASS"
 spec:
   interval: 30m
   chartRef:
