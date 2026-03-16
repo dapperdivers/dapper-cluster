@@ -69,6 +69,11 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       imagePullSecrets:
         - name: ghcr-chelonian
+    persistence:
+      logs:
+        type: emptyDir
+        globalMounts:
+          - path: /app/logs
     service:
       app:
         controller: finance-main-api
