@@ -23,7 +23,6 @@ spec:
             image:
               repository: ghcr.io/chelonianlabs/finance-file-service
               tag: latest
-            command: ["sh", "-c", "python migrate.py && python -m app"]
             env:
               HOST: "0.0.0.0"
               PORT: "8003"
