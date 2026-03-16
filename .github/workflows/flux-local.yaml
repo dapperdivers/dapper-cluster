@@ -150,11 +150,9 @@ jobs:
         with:
           args: >-
             build all
-            --all-namespaces
+            /github/workspace/kubernetes/flux/cluster
             --enable-helm
-            --path /github/workspace/kubernetes/flux/cluster
-            --sources "flux-system"
-            --output /github/workspace/build-output
+            --output-file /github/workspace/build-output.yaml
 
       - name: Validate with kubeconform
         run: |
@@ -164,7 +162,7 @@ jobs:
             -summary \
             -ignore-missing-schemas \
             -output json \
-            build-output/*.yaml || true
+            build-output.yaml || true
 
   success:
     if: ${{ !cancelled() }}
