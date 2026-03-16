@@ -9,7 +9,7 @@ spec:
     kind: OCIRepository
     name: app-template
   dependsOn:
-    - name: cloudnative-pg-cluster
+    - name: cloudnative-pg
       namespace: database
     - name: external-secrets-stores
       namespace: external-secrets
@@ -25,7 +25,7 @@ spec:
               tag: latest
             env:
               HOST: "0.0.0.0"
-              PORT: &port "8001"
+              PORT: "8001"
               DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
@@ -48,7 +48,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: *port
+                    port: 8001
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -75,4 +75,4 @@ spec:
         controller: finance-auth-service
         ports:
           http:
-            port: *port
+            port: 8001
