@@ -26,6 +26,7 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: "8002"
+              REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
               AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
               DATABASE_URL:
                 valueFrom:

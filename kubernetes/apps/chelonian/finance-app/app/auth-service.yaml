@@ -26,6 +26,7 @@ spec:
             env:
               HOST: "0.0.0.0"
               PORT: "8001"
+              REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
               DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
