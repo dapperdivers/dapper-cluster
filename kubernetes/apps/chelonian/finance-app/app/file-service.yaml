@@ -1,0 +1,89 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: finance-file-service
+  annotations:
+    postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/dbname: "finance_file"
+    postgres-init.home.arpa/user-key: "CHELONIAN_DB_USER"
+    postgres-init.home.arpa/pass-key: "CHELONIAN_DB_PASS"
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  dependsOn:
+    - name: cloudnative-pg-cluster
+      namespace: database
+    - name: external-secrets-stores
+      namespace: external-secrets
+  values:
+    controllers:
+      finance-file-service:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/chelonianlabs/finance-file-service
+              tag: latest
+            command: ["sh", "-c", "python migrate.py && python -m app"]
+            env:
+              HOST: "0.0.0.0"
+              PORT: &port "8003"
+              STORAGE_TYPE: "local"
+              LOCAL_STORAGE_PATH: "/data/storage"
+              AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
+              TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
+              AI_SERVICE_URL: "http://finance-ai-service.chelonian.svc.cluster.local:8005"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: FILE_DATABASE_URL
+              API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: API_KEY
+            probes:
+              readiness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /readyz
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+              liveness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile: { type: RuntimeDefault }
+      imagePullSecrets:
+        - name: ghcr-chelonian
+    service:
+      app:
+        controller: finance-file-service
+        ports:
+          http:
+            port: *port
+    persistence:
+      storage:
+        type: emptyDir
+        globalMounts:
+          - path: /data/storage

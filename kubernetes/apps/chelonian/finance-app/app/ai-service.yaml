@@ -1,0 +1,75 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: finance-ai-service
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      finance-ai-service:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/chelonianlabs/finance-ai-service
+              tag: latest
+            env:
+              HOST: "0.0.0.0"
+              PORT: &port "8005"
+              AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
+              TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
+              OPENAI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: OPENAI_API_KEY
+              ANTHROPIC_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: ANTHROPIC_API_KEY
+              API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: API_KEY
+            probes:
+              readiness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /readyz
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+              liveness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile: { type: RuntimeDefault }
+      imagePullSecrets:
+        - name: ghcr-chelonian
+    service:
+      app:
+        controller: finance-ai-service
+        ports:
+          http:
+            port: *port
