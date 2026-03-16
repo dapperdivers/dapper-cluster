@@ -9,7 +9,7 @@ spec:
     kind: OCIRepository
     name: app-template
   dependsOn:
-    - name: cloudnative-pg-cluster
+    - name: cloudnative-pg
       namespace: database
     - name: external-secrets-stores
       namespace: external-secrets
@@ -25,7 +25,7 @@ spec:
               tag: latest
             env:
               HOST: "0.0.0.0"
-              PORT: &port "8000"
+              PORT: "8000"
               AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
               USER_ORG_SERVICE_URL: "http://finance-user-org-service.chelonian.svc.cluster.local:8002"
               FILE_SERVICE_URL: "http://finance-file-service.chelonian.svc.cluster.local:8003"
@@ -47,7 +47,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: *port
+                    port: 8000
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -74,7 +74,7 @@ spec:
         controller: finance-main-api
         ports:
           http:
-            port: *port
+            port: 8000
     ingress:
       app:
         annotations:

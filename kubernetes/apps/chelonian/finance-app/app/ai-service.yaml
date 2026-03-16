@@ -20,7 +20,7 @@ spec:
               tag: latest
             env:
               HOST: "0.0.0.0"
-              PORT: &port "8005"
+              PORT: "8005"
               AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
               TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
               OPENAI_API_KEY:
@@ -45,7 +45,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: *port
+                    port: 8005
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -72,4 +72,4 @@ spec:
         controller: finance-ai-service
         ports:
           http:
-            port: *port
+            port: 8005

@@ -20,7 +20,7 @@ spec:
               tag: latest
             env:
               HOST: "0.0.0.0"
-              PORT: &port "8007"
+              PORT: "8007"
             probes:
               readiness: &probes
                 enabled: true
@@ -28,7 +28,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: *port
+                    port: 8007
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -55,4 +55,4 @@ spec:
         controller: finance-categorization-service
         ports:
           http:
-            port: *port
+            port: 8007
