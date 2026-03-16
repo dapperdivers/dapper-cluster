@@ -8,3 +8,4 @@ resources:
   - ./namespace.yaml
   - ./ghcr-pull-secret/ks.yaml
   - ./turtle-track/ks.yaml
+  - ./finance-app/ks.yaml
