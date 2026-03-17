@@ -5,6 +5,7 @@ metadata:
   name: phase3a-mission-controller
   namespace: roundtable
 spec:
+  roundTableRef: roundtable-dev
   description: "Phase 3a PR7: Mission controller - chain copies and active phase (Issue #22)"
   timeout: 3600
   outputKnight: gawain
