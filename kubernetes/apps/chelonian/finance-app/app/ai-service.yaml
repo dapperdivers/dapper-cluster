@@ -18,6 +18,7 @@ spec:
             image:
               repository: ghcr.io/chelonianlabs/finance-ai-service
               tag: latest
+              pullPolicy: Always
             env:
               HOST: "0.0.0.0"
               PORT: "8005"

@@ -23,6 +23,7 @@ spec:
             image:
               repository: ghcr.io/chelonianlabs/finance-transaction-service
               tag: latest
+              pullPolicy: Always
             env:
               HOST: "0.0.0.0"
               PORT: "8004"

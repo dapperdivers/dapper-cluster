@@ -18,6 +18,7 @@ spec:
             image:
               repository: ghcr.io/chelonianlabs/finance-frontend
               tag: latest
+              pullPolicy: Always
             env:
               NODE_ENV: production
               HOSTNAME: "0.0.0.0"
