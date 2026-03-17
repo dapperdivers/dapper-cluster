@@ -18,7 +18,7 @@ spec:
     - name: galahad_assess
       knightRef: galahad
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -56,7 +56,7 @@ spec:
     - name: tristan_assess
       knightRef: tristan
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -88,7 +88,7 @@ spec:
     - name: kay_assess
       knightRef: kay
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -103,7 +103,7 @@ spec:
     - name: bedivere_assess
       knightRef: bedivere
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -117,7 +117,7 @@ spec:
     - name: percival_assess
       knightRef: percival
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -131,7 +131,7 @@ spec:
     - name: lancelot_assess
       knightRef: lancelot
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -145,7 +145,7 @@ spec:
     - name: agravain_assess
       knightRef: agravain
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -159,7 +159,7 @@ spec:
     - name: gareth_assess
       knightRef: gareth
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
@@ -173,7 +173,7 @@ spec:
     - name: patsy_assess
       knightRef: patsy
       continueOnFailure: true
-      timeout: 300
+      timeout: 600
       task: |
         SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
 
