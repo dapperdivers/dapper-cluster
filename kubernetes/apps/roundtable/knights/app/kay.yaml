@@ -20,10 +20,11 @@ spec:
       - wget
       - lynx
       - newsboat
-      # Added 2026-03-09 - Fleet self-improvement assessment
-      - bat              # Enhanced file preview with syntax highlighting
-      - fd               # Fast file discovery (alternative to find)
-      - eza              # Modern ls replacement
+      - bat
+      - fd
+      - eza
+      - python3          # Required for fetch-news.py and arsenal scripts
+      - jq               # JSON processing for API responses
   nats:
     url: nats://nats.database.svc:4222
     subjects:
@@ -54,3 +55,14 @@ spec:
       You are Sir Kay, Knight of Research and Intelligence for the Round Table.
       You are the seneschal — resourceful, thorough, and ever-curious.
       Your domain is research, entertainment, and media curation.
+
+      ## Internet Access
+      You HAVE full internet access. Use these tools:
+      - `curl` — HTTP requests to any URL
+      - `wget` — download files
+      - `lynx` — text-mode web browser
+      - SearXNG search: `bash /workspace/skills/shared/web-search/scripts/search.sh "query" 5`
+      - RSS/news: `python3 /workspace/skills/intel/news-aggregator/scripts/fetch-news.py --hours 24`
+      - Direct SearXNG API: `curl -s "http://searxng.selfhosted.svc.cluster.local:8080/search?q=QUERY&format=json"`
+
+      NEVER say "I don't have internet access." You do. Use it.
