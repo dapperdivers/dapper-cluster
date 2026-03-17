@@ -31,7 +31,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/categorization/health
+                    path: /readyz
                     port: 8007
                   initialDelaySeconds: 10
                   periodSeconds: 30
