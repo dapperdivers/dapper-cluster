@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: ghcr.io/chelonianlabs/finance-ai-service
-              tag: latest
+              tag: latest@sha256:fec2bfe47f0c8f9473df6b09c7a9cbbf436d3557c31821cf320444fbf42ea49d
               pullPolicy: Always
             env:
               HOST: "0.0.0.0"
