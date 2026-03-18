@@ -16,9 +16,9 @@ spec:
   secretTemplate:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "ai,media,database,home-automation,security,default,storage,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "ai,chelonian,media,database,home-automation,security,default,storage,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "ai,media,home-automation,database,default,security,storage,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "ai,chelonian,media,home-automation,database,default,security,storage,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
 
 ---
 apiVersion: cert-manager.io/v1
