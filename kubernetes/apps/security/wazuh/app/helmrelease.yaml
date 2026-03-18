@@ -49,7 +49,7 @@ spec:
           cpu: 2000m
           memory: 2Gi
       cred:
-        existingSecret: wazuh-passwords
+        existingSecret: wazuh-secret
       # Sysctl set at Talos node level (machine-sysctls.yaml)
       sysctlImage:
         enabled: false
@@ -72,7 +72,7 @@ spec:
           cpu: 1000m
           memory: 1Gi
       cred:
-        existingSecret: wazuh-passwords
+        existingSecret: wazuh-secret
       ingress:
         enabled: true
         className: internal
@@ -89,11 +89,11 @@ spec:
       enabled: true
       # API credentials for dashboard connection
       apiCred:
-        existingSecret: wazuh-passwords
+        existingSecret: wazuh-secret
       # Agent enrollment password
       authd:
         enabled: true
-        existingSecret: wazuh-passwords
+        existingSecret: wazuh-secret
       # LoadBalancer for external agents (like OPNsense)
       loadBalancer:
         enabled: true
@@ -114,7 +114,7 @@ spec:
                 protocol: UDP
       # Indexer credentials for filebeat
       indexerCred:
-        existingSecret: wazuh-passwords
+        existingSecret: wazuh-secret
       master:
         enabled: true
         storageSize: 50Gi
@@ -125,7 +125,7 @@ spec:
           - name: AUTHD_PASS
             valueFrom:
               secretKeyRef:
-                name: wazuh-passwords
+                name: wazuh-secret
                 key: AUTHD_PASS
         resources:
           requests:
