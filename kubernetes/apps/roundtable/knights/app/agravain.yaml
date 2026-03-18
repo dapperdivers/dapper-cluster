@@ -9,6 +9,8 @@ spec:
   domain: pentest
   image: ""
   model: "anthropic/claude-sonnet-4-5"
+  capabilities:
+    browser: true
   skills:
     - shared
     - pentest
