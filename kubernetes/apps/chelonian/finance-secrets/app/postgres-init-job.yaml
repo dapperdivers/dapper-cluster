@@ -37,4 +37,4 @@ spec:
                   name: finance-app-secret
                   key: CHELONIAN_DB_PASS
             - name: INIT_POSTGRES_DBNAME
-              value: "finance_main finance_auth finance_user_org finance_file finance_transaction"
+              value: "finance_main finance_auth finance_user_org finance_file finance_transaction finance_categorization"
