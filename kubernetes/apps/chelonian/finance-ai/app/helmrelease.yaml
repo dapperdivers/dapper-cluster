@@ -35,6 +35,11 @@ spec:
               REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
               AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
               TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: AI_DATABASE_URL
               OPENAI_API_KEY:
                 valueFrom:
                   secretKeyRef:
