@@ -20,7 +20,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 2aab04ec8bca128a8b798bb302739cb9e8cb9d55
+      tag: c7602b55fa5e313db503640438143decee2b4f54
       pullPolicy: Always
 
     resources:
@@ -35,7 +35,7 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/dapperdivers/pi-knight
-        tag: c0e8b80594e5bf2ea6057a8e67895edec05f53e7
+        tag: 17deefc82794c9ef47c5fedb70ae378b8006ac7f
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
         tag: 6ad1c714520d5c720b90c2cd450ab9f2796f52ca
