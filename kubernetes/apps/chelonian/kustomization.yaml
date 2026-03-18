@@ -8,7 +8,6 @@ components:
 resources:
   - ./namespace.yaml
   - ./ghcr-pull-secret/ks.yaml
-  - ./turtle-track/ks.yaml
   - ./finance-secrets/ks.yaml
   - ./finance-frontend/ks.yaml
   - ./finance-main-api/ks.yaml

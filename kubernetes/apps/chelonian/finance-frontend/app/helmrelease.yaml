@@ -32,8 +32,8 @@ spec:
               NODE_ENV: production
               HOSTNAME: "0.0.0.0"
               PORT: "3000"
-              API_URL: "https://finance-api.${SECRET_DOMAIN_CHELONIAN}"
-              AI_WS_URL: "wss://finance-api.${SECRET_DOMAIN_CHELONIAN}"
+              API_URL: "https://finance-api.${SECRET_DOMAIN}"
+              AI_WS_URL: "wss://finance-api.${SECRET_DOMAIN}"
             probes:
               readiness: &probes
                 enabled: true
@@ -72,10 +72,10 @@ spec:
     ingress:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN_CHELONIAN}
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
         className: internal
         hosts:
-          - host: &host "finance.${SECRET_DOMAIN_CHELONIAN}"
+          - host: &host "finance.${SECRET_DOMAIN}"
             paths:
               - path: /
                 service:
@@ -84,4 +84,4 @@ spec:
         tls:
           - hosts:
               - *host
-            secretName: ${SECRET_DOMAIN_CHELONIAN/./-}-tls
+            secretName: ${SECRET_DOMAIN/./-}-tls
