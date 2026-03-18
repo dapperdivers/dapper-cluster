@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: chelonian
@@ -9,4 +9,12 @@ resources:
   - ./namespace.yaml
   - ./ghcr-pull-secret/ks.yaml
   - ./turtle-track/ks.yaml
-  - ./finance-app/ks.yaml
+  - ./finance-secrets/ks.yaml
+  - ./finance-frontend/ks.yaml
+  - ./finance-main-api/ks.yaml
+  - ./finance-auth/ks.yaml
+  - ./finance-user-org/ks.yaml
+  - ./finance-file/ks.yaml
+  - ./finance-transaction/ks.yaml
+  - ./finance-ai/ks.yaml
+  - ./finance-categorization/ks.yaml

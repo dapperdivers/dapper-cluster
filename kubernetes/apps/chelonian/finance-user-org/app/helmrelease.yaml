@@ -1,32 +1,48 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: finance-categorization-service
+  name: finance-user-org-service
 spec:
   interval: 30m
   chartRef:
     kind: OCIRepository
     name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
   values:
     controllers:
-      finance-categorization-service:
+      finance-user-org-service:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/chelonianlabs/finance-categorization-service
+              repository: ghcr.io/chelonianlabs/finance-user-org-service
               tag: latest
               pullPolicy: Always
             env:
               HOST: "0.0.0.0"
-              PORT: "8007"
+              PORT: "8002"
               REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
-              AI_SERVICE_URL: "http://finance-ai-service.chelonian.svc.cluster.local:8005"
-              TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
               AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: USER_ORG_DATABASE_URL
+              API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: API_KEY
             probes:
               readiness: &probes
                 enabled: true
@@ -34,7 +50,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: 8007
+                    port: 8002
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -45,9 +61,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                memory: 64Mi
               limits:
-                memory: 512Mi
+                memory: 256Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -58,7 +74,7 @@ spec:
         - name: ghcr-chelonian
     service:
       app:
-        controller: finance-categorization-service
+        controller: finance-user-org-service
         ports:
           http:
-            port: 8007
+            port: 8002

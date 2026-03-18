@@ -1,49 +1,40 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: finance-file-service
+  name: finance-categorization-service
 spec:
   interval: 30m
   chartRef:
     kind: OCIRepository
     name: app-template
-  dependsOn:
-    - name: cloudnative-pg
-      namespace: database
-    - name: external-secrets
-      namespace: external-secrets
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
   values:
     controllers:
-      finance-file-service:
+      finance-categorization-service:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/chelonianlabs/finance-file-service
+              repository: ghcr.io/chelonianlabs/finance-categorization-service
               tag: latest
               pullPolicy: Always
             env:
               HOST: "0.0.0.0"
-              PORT: "8003"
+              PORT: "8007"
               REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
-              STORAGE_TYPE: "local"
-              LOCAL_STORAGE_PATH: "/data/storage"
-              AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
-              TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
               AI_SERVICE_URL: "http://finance-ai-service.chelonian.svc.cluster.local:8005"
-              DATABASE_URL:
-                valueFrom:
-                  secretKeyRef:
-                    name: finance-app-secret
-                    key: FILE_DATABASE_URL
-              API_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: finance-app-secret
-                    key: API_KEY
+              TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
+              AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
             probes:
               readiness: &probes
                 enabled: true
@@ -51,7 +42,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: 8003
+                    port: 8007
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -62,9 +53,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 64Mi
+                memory: 128Mi
               limits:
-                memory: 256Mi
+                memory: 512Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -75,12 +66,7 @@ spec:
         - name: ghcr-chelonian
     service:
       app:
-        controller: finance-file-service
+        controller: finance-categorization-service
         ports:
           http:
-            port: 8003
-    persistence:
-      storage:
-        type: emptyDir
-        globalMounts:
-          - path: /data/storage
+            port: 8007
