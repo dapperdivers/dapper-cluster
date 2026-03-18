@@ -27,7 +27,7 @@ spec:
       - testssl
       - sqlmap
       - nuclei
-      - zaproxy
+      # - zaproxy  # Package broken/missing in nixpkgs
       - feroxbuster
       - socat
       - tcpdump
