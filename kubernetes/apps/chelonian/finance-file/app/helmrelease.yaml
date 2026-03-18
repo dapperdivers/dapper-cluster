@@ -1,41 +1,47 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: finance-ai-service
+  name: finance-file-service
 spec:
   interval: 30m
   chartRef:
     kind: OCIRepository
     name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
   values:
     controllers:
-      finance-ai-service:
+      finance-file-service:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/chelonianlabs/finance-ai-service
+              repository: ghcr.io/chelonianlabs/finance-file-service
               tag: latest
               pullPolicy: Always
             env:
               HOST: "0.0.0.0"
-              PORT: "8005"
+              PORT: "8003"
               REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
+              STORAGE_TYPE: "local"
+              LOCAL_STORAGE_PATH: "/data/storage"
               AUTH_SERVICE_URL: "http://finance-auth-service.chelonian.svc.cluster.local:8001"
               TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
-              OPENAI_API_KEY:
+              AI_SERVICE_URL: "http://finance-ai-service.chelonian.svc.cluster.local:8005"
+              DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
                     name: finance-app-secret
-                    key: OPENAI_API_KEY
-              ANTHROPIC_API_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: finance-app-secret
-                    key: ANTHROPIC_API_KEY
+                    key: FILE_DATABASE_URL
               API_KEY:
                 valueFrom:
                   secretKeyRef:
@@ -48,7 +54,7 @@ spec:
                 spec:
                   httpGet:
                     path: /readyz
-                    port: 8005
+                    port: 8003
                   initialDelaySeconds: 10
                   periodSeconds: 30
               liveness: *probes
@@ -59,9 +65,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                memory: 64Mi
               limits:
-                memory: 512Mi
+                memory: 256Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -70,18 +76,14 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       imagePullSecrets:
         - name: ghcr-chelonian
-    persistence:
-      data:
-        type: emptyDir
-        globalMounts:
-          - path: /app/categorization_results
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
     service:
       app:
-        controller: finance-ai-service
+        controller: finance-file-service
         ports:
           http:
-            port: 8005
+            port: 8003
+    persistence:
+      storage:
+        type: emptyDir
+        globalMounts:
+          - path: /data/storage

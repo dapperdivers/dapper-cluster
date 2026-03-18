@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,11 +9,14 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
-  dependsOn:
-    - name: cloudnative-pg
-      namespace: database
-    - name: external-secrets
-      namespace: external-secrets
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
   values:
     controllers:
       finance-main-api:
@@ -86,10 +89,10 @@ spec:
     ingress:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN_CHELONIAN}
         className: internal
         hosts:
-          - host: &host "finance-api.${SECRET_DOMAIN}"
+          - host: &host "finance-api.${SECRET_DOMAIN_CHELONIAN}"
             paths:
               - path: /
                 service:
@@ -98,4 +101,4 @@ spec:
         tls:
           - hosts:
               - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
+            secretName: ${SECRET_DOMAIN_CHELONIAN/./-}-tls
