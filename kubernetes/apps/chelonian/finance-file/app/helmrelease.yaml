@@ -30,6 +30,7 @@ spec:
               pullPolicy: Always
             env:
               HOST: "0.0.0.0"
+              CORS_ORIGINS: "https://finance.${SECRET_DOMAIN},http://localhost:3000"
               PORT: "8003"
               REDIS_URL: "redis://dragonfly.database.svc.cluster.local:6379"
               STORAGE_TYPE: "local"
