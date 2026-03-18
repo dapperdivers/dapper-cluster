@@ -37,15 +37,15 @@ spec:
     opencti:
       adminEmail: admin@chelonianlabs.com
       adminPasswordExistingSecret:
-        name: opencti-secrets
+        name: opencti-secret
         key: OPENCTI_ADMIN_PASSWORD
       adminTokenExistingSecret:
-        name: opencti-secrets
+        name: opencti-secret
         key: OPENCTI_ADMIN_TOKEN
       basePath: "/"
       healthAccessKey: "opencti-health-check-key"
       # connectorTokenExistingSecret:  # TODO: recreate dedicated connector user, then re-enable
-      #   name: opencti-secrets
+      #   name: opencti-secret
       #   key: OPENCTI_CONNECTOR_TOKEN
       metrics:
         enabled: true
@@ -208,7 +208,7 @@ spec:
           CVE__NVD_DATA_FEED: "https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-recent.json.gz"
         envFromSecrets:
           CVE_API_KEY:
-            name: opencti-secrets
+            name: opencti-secret
             key: OPENCTI_NVD_API_KEY
         resources:
           requests:
@@ -325,7 +325,7 @@ spec:
           MALWAREBAZAAR_RECENT_ADDITIONS_API_URL: "https://mb-api.abuse.ch/api/v1/"
         envFromSecrets:
           MALWAREBAZAAR_RECENT_ADDITIONS_API_KEY:
-            name: opencti-secrets
+            name: opencti-secret
             key: OPENCTI_MALWAREBAZAAR_API_KEY
         resources:
           requests:
@@ -358,7 +358,7 @@ spec:
           ALIENVAULT_INTERVAL: "6"
         envFromSecrets:
           ALIENVAULT_API_KEY:
-            name: opencti-secrets
+            name: opencti-secret
             key: OPENCTI_ALIENVAULT_API_KEY
         resources:
           requests:

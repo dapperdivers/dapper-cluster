@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/persistentvolume.json
 ---
 # Static PV for CephFS Paperless data
 # Points to /paperless on external Ceph cluster using cephfs_data pool
