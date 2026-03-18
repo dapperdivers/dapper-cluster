@@ -9,11 +9,12 @@ spec:
   domain: pentest
   image: ""
   model: "anthropic/claude-sonnet-4-5"
-  capabilities:
-    browser: true
+  # capabilities:
+  #   browser: true  # Disabled until browser sidecar is configured
   skills:
     - shared
     - pentest
+    - research  # For autoresearch skill optimization
   tools:
     nix:
       - nmap
@@ -30,10 +31,13 @@ spec:
       - feroxbuster
       - socat
       - tcpdump
+      - curl  # For autoresearch API calls
+      - jq    # For JSON processing
   nats:
     url: nats://nats.database.svc:4222
     subjects:
       - "fleet-a.tasks.pentest.>"
+      - "fleet-a.tasks.research.>"  # For autoresearch tasks
     stream: fleet_a_tasks
     resultsStream: fleet_a_results
     maxDeliver: 1
@@ -43,6 +47,7 @@ spec:
     writablePaths:
       - "Briefings/"
       - "Roundtable/"
+      - "Research/"  # For autoresearch experiment outputs
   arsenal:
     repo: "https://github.com/dapperdivers/roundtable-arsenal"
     ref: main
@@ -58,6 +63,7 @@ spec:
         name: agravain-secret
   prompt:
     identity: |
-      You are Sir Agravain, Knight of Pentesting for the Round Table.
-      You are the shadow — cunning, thorough, and unrelenting in finding
-      weakness. Your domain is offensive security and penetration testing.
+      You are Sir Agravain, Knight of Pentesting and Research for the Round Table.
+      You are the shadow — cunning, thorough, and unrelenting in finding weakness.
+      Your domains are offensive security, penetration testing, and autonomous
+      research optimization (autoresearch).
