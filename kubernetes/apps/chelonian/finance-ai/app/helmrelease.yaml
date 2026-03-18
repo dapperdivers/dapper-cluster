@@ -22,6 +22,7 @@ spec:
       finance-ai-service:
         annotations:
           reloader.stakater.com/auto: "true"
+          force-repull: "2026-03-18"
         containers:
           app:
             image:
