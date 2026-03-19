@@ -6,6 +6,8 @@ metadata:
     ai.roundtable.io/table: personal
   name: galahad
 spec:
+  capabilities:
+    browser: true
   domain: security
   image: ""
   model: "anthropic/claude-sonnet-4-5"
