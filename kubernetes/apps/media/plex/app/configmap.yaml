@@ -57,7 +57,7 @@ data:
   PLEX_PREFERENCE_18: "FSEventLibraryPartialScanEnabled=1"  # Only scan changed folders
 
   # Network & Remote Access
-  PLEX_PREFERENCE_19: "EnableIPv6=0"  # Disabled - not using IPv6
+  # EnableIPv6 removed - already persisted in Preferences.xml; env var caused duplicate XML attribute
   PLEX_PREFERENCE_20: "GdmEnabled=1"  # Enable local network discovery (GDM)
 
   # DLNA (if you use it for other devices)
