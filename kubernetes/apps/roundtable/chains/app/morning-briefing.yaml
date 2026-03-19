@@ -38,6 +38,9 @@ spec:
       task: |
         Generate today's intelligence digest. Research current events, technology news,
         and anything relevant to Derek's interests (security, AI, homelab, career).
+        FIRST: Read yesterday's report in /vault/Briefings/Intel/ (most recent YYYY-MM-DD.md).
+        Note what's NEW vs what carried over. Only expand on new findings.
+        If a topic appeared yesterday with no update, give it one line: "Unchanged."
         Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
@@ -49,6 +52,9 @@ spec:
       task: |
         Generate today's infrastructure report. Check cluster health, node status,
         failing pods, resource pressure, Flux reconciliation state, and any deployment issues.
+        FIRST: Read yesterday's report in /vault/Briefings/HomeLab/ (most recent YYYY-MM-DD.md).
+        Focus on CHANGES: new failures, resolved issues, status transitions.
+        If a finding appeared yesterday with no change, one line: "Still pending: [item]."
         Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points, key findings and action items). Your response text IS the summary — just write it as your final output.
@@ -60,6 +66,9 @@ spec:
       task: |
         Generate today's household briefing. Check family calendar, upcoming events,
         nursery prep status, baby countdown, and any home tasks needing attention.
+        FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
+        Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
+        If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
         Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
@@ -71,6 +80,10 @@ spec:
       task: |
         Generate today's financial briefing. Check tax deadlines, bill due dates,
         budget status, investment updates, and any items needing immediate attention.
+        FIRST: Read yesterday's report in /vault/Briefings/Finance/ (most recent YYYY-MM-DD.md).
+        Focus on CHANGES: new payments, deadline shifts, status updates.
+        Don't re-derive the same debt numbers — reference yesterday's and note delta.
+        If nothing changed in a category, one line: "Unchanged since [date]."
         Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
@@ -82,6 +95,10 @@ spec:
       task: |
         Generate today's career briefing. Check pending applications, interview feedback,
         job market updates, and any action items.
+        FIRST: Read yesterday's report in /vault/Briefings/Career/ (most recent YYYY-MM-DD.md).
+        Focus on what CHANGED: new communications, deadline shifts, status updates.
+        If the same status persists (e.g., "waiting for offer"), one line: "Day N waiting — no update."
+        Don't re-explain the full timeline unless something shifted.
         Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
@@ -97,6 +114,9 @@ spec:
         - Nutrition focus for this week
         - Any upcoming appointments or prep tasks
         Read /vault/Personal/Family/Emma.md and /vault/Briefings/Home/ for context.
+        FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
+        Only report NEW milestones or changes. If still in the same week, focus on what's different today.
+        Don't repeat the same survival stats or development milestones from yesterday.
         Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (3-5 bullet points). Your response text IS the summary — just write it as your final output.
@@ -126,12 +146,16 @@ spec:
         Career (Lancelot): {{ .Steps.career_update.Output }}
         Wellness (Gareth): {{ .Steps.wellness_check.Output }}
 
+        FIRST: Read yesterday's Daily Briefing at /vault/Briefings/Daily/ (most recent YYYY-MM-DD.md).
+        Your job is to surface what CHANGED, not repeat yesterday's briefing.
+
         HARD RULES — VIOLATION = FAILURE:
-        1) DO NOT read vault reports. The NATS summaries above are your ONLY input.
+        1) DO NOT read individual knight vault reports. The NATS summaries above are your ONLY knight input.
         2) MAXIMUM 150 LINES. Count them. If you exceed 150, the briefing FAILS.
         3) DO NOT copy knight text verbatim — synthesize and connect dots.
         4) Only ACTION items. Zero informational filler.
         5) If a domain has no changes, give it ONE line: "🟢 No change."
+        6) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
 
         STRUCTURE (exactly this, no additions):
 
