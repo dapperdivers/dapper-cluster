@@ -5,14 +5,4 @@ kind: Kustomization
 resources:
   - morning-briefing.yaml
   - fleet-self-improvement.yaml
-  - workspace-setup.yaml
-  - phase3a-nats-library-extract.yaml
-  - phase3a-mission-controller.yaml
-  - phase3a-cost-and-results.yaml
-  - phase3a-e2e-tests.yaml
-  - phase3b-ephemeral-missions.yaml
   - scout-task.yaml
-  - roadmap-issues.yaml
-  - bridge-chain-resilience.yaml
-  - test-resilience.yaml
-  - bridge-knight-templates.yaml

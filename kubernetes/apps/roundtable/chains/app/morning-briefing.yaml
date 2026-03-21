@@ -66,6 +66,10 @@ spec:
       task: |
         Generate today's household briefing. Check family calendar, upcoming events,
         nursery prep status, baby countdown, and any home tasks needing attention.
+        CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
+        - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs or shower planning.
+        - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
+        - Nursery setup: IN PROGRESS with shower gifts.
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
         If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
@@ -114,6 +118,10 @@ spec:
         - Nutrition focus for this week
         - Any upcoming appointments or prep tasks
         Read /vault/Personal/Family/Emma.md and /vault/Briefings/Home/ for context.
+        CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
+        - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs, shower planning, or shower prep.
+        - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
+        - Nursery setup: IN PROGRESS (can begin with shower gifts received March 7).
         FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
         Only report NEW milestones or changes. If still in the same week, focus on what's different today.
         Don't repeat the same survival stats or development milestones from yesterday.
