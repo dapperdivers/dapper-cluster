@@ -112,22 +112,28 @@ spec:
       knightRef: gareth
       continueOnFailure: true
       task: |
+        You are Sir GARETH, wellness knight. NOT Bedivere, NOT any other knight.
+
         Generate today's wellness briefing. Emma's due date is April 29, 2026.
         Calculate the current pregnancy week. Report on:
         - Current week milestones and baby development
         - Nutrition focus for this week
         - Any upcoming appointments or prep tasks
-        Read /vault/Personal/Family/Emma.md and /vault/Briefings/Home/ for context.
-        CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
-        - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs, shower planning, or shower prep.
-        - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
-        - Nursery setup: IN PROGRESS (can begin with shower gifts received March 7).
+
+        ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY.
+        DO NOT read /vault/Briefings/Home/ or any other knight's domain files.
+
+        COMPLETED EVENTS (do NOT mention these):
+        - Baby shower: DONE March 7, 2026
+        - Wedding: DONE February 6, 2026
+
         FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
-        Only report NEW milestones or changes. If still in the same week, focus on what's different today.
-        Don't repeat the same survival stats or development milestones from yesterday.
-        Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (3-5 bullet points). Your response text IS the summary — just write it as your final output.
+        Only report what CHANGED since yesterday. Same-week = focus on daily differences only.
+
+        Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
+
+        OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points.
+        No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
       timeout: 600
 
     # Phase 2 — Gawain synthesizes all reports

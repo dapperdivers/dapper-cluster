@@ -5,4 +5,3 @@ kind: Kustomization
 resources:
   - morning-briefing.yaml
   - fleet-self-improvement.yaml
-  - scout-task.yaml
