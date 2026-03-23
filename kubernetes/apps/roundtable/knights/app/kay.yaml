@@ -25,6 +25,10 @@ spec:
       - eza
       - python3          # Required for fetch-news.py and arsenal scripts
       - jq               # JSON processing for API responses
+      # Research & Data Processing (Added 2026-03-23)
+      - ripgrep          # Faster grep alternative for large file searches
+      - httpie           # User-friendly HTTP client for API research
+      - yq-go            # YAML processing for structured data analysis
   nats:
     url: nats://nats.database.svc:4222
     subjects:

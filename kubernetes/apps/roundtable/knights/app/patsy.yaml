@@ -23,6 +23,7 @@ spec:
       - fzf              # Interactive fuzzy finder for vault exploration
       - graphviz         # Knowledge graph visualization
       - pandoc           # Document format conversion
+      - yq-go            # YAML processing (Added 2026-03-23)
   nats:
     url: nats://nats.database.svc:4222
     subjects:
