@@ -24,6 +24,10 @@ spec:
       - talosctl
       - cilium-cli
       - yq-go
+      # Container & Cluster Analysis (Added 2026-03-23)
+      - trivy          # Vulnerability scanning for container images and IaC
+      - popeye         # Kubernetes cluster sanity checks
+      - crane          # Container image inspection and manipulation
       # Added 2026-03-09 - Fleet self-improvement assessment
       - procps         # ps, top, free, vmstat - CRITICAL for process visibility
       - bind           # dig, host, nslookup - CRITICAL for DNS debugging
