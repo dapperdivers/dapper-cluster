@@ -15,174 +15,275 @@ spec:
     backoffSeconds: 60
   steps:
     # Phase 1 — Each knight self-assesses (parallel, no dependencies)
+    # IMPORTANT: Each knight MUST respond with ONLY valid YAML. No prose, no markdown, no explanations.
     - name: galahad_assess
       knightRef: galahad
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir GALAHAD, domain: security.
 
-        Your current config:
-        - Domain: security
-        - Skills: security, shared
-        - Nix tools: (check your environment)
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
 
-        Review your recent tasks and experiences. Report:
-        1. **Missing tools** — CLI tools you tried to use but weren't available (e.g., nikto, nuclei, semgrep)
-        2. **Missing skills** — capabilities you wish you had (specific skill folders or scripts)
-        3. **Broken tools** — anything installed but not working correctly
-        4. **Efficiency gaps** — tasks that took too long because of missing automation
-        5. **Skill improvements** — existing skills that need updates or fixes
+        Check what's actually installed: run `which trivy semgrep gosec nikto nuclei kubectl` and `ls /data/skills/`.
 
-        Format your response as structured YAML:
+        OUTPUT FORMAT — respond with ONLY this YAML, nothing else:
         ```yaml
         knight: galahad
         domain: security
+        tools_verified:
+          - name: tool_name
+            status: installed|missing|broken
         missing_tools:
           - name: tool_name
-            reason: "why you need it"
-            nix_package: "nixpkgs.package_name"  # if you know it
+            reason: "one line"
+            nix_package: "nixpkgs.package_name"
         missing_skills:
           - name: skill_name
-            description: "what it should do"
-        broken_tools: []
+            description: "one line"
+        broken_tools:
+          - name: tool_name
+            error: "what happens"
         efficiency_gaps:
-          - description: "what's slow or manual"
-        skill_improvements:
-          - skill: existing_skill_name
-            issue: "what needs fixing"
+          - description: "one line"
         ```
+        NO PROSE. NO EXPLANATIONS. YAML ONLY.
 
     - name: tristan_assess
       knightRef: tristan
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir TRISTAN, domain: infra.
 
-        Your current config:
-        - Domain: infra
-        - Skills: shared, infra
-        - Nix tools: (check your environment)
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
 
-        Review your recent tasks. What tools or skills are you missing?
-        What's broken? What's slow? Format as structured YAML:
+        Check what's installed: run `which kubectl flux kustomize helm trivy popeye crane` and `ls /data/skills/`.
+
+        OUTPUT FORMAT — respond with ONLY YAML:
         ```yaml
         knight: tristan
         domain: infra
+        tools_verified:
+          - name: tool_name
+            status: installed|missing|broken
         missing_tools:
           - name: tool_name
-            reason: "why"
+            reason: "one line"
             nix_package: "nixpkgs.package_name"
         missing_skills:
           - name: skill_name
-            description: "what it should do"
-        broken_tools: []
+            description: "one line"
+        broken_tools:
+          - name: tool_name
+            error: "what happens"
         efficiency_gaps:
-          - description: "what's slow"
-        skill_improvements:
-          - skill: existing_skill_name
-            issue: "what needs fixing"
+          - description: "one line"
         ```
+        NO PROSE. YAML ONLY.
 
     - name: kay_assess
       knightRef: kay
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir KAY, domain: research.
 
-        Your current config:
-        - Domain: research
-        - Skills: shared, research, intel
-        - Nix tools: (check your environment)
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        Check what's installed: `ls /data/skills/` and `which curl jq yq`.
+
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: kay
+        domain: research
+        tools_verified:
+          - name: tool_name
+            status: installed|missing|broken
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+            nix_package: "nixpkgs.package_name"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools:
+          - name: tool_name
+            error: "what happens"
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY.
 
     - name: bedivere_assess
       knightRef: bedivere
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir BEDIVERE, domain: home.
 
-        Your current config:
-        - Domain: home
-        - Skills: shared, home
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
+        Check: `ls /data/skills/` and `ls /vault/`.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: bedivere
+        domain: home
+        tools_verified: []
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY.
 
     - name: percival_assess
       knightRef: percival
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir PERCIVAL, domain: finance. Your knight name is "percival" — use that in output.
 
-        Your current config:
-        - Domain: finance
-        - Skills: shared, finance
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
+        Check: `ls /data/skills/` and `ls /vault/`.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: percival
+        domain: finance
+        tools_verified: []
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY.
 
     - name: lancelot_assess
       knightRef: lancelot
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir LANCELOT, domain: career.
 
-        Your current config:
-        - Domain: career
-        - Skills: shared, career
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
+        Check: `ls /data/skills/` and `ls /vault/`.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: lancelot
+        domain: career
+        tools_verified: []
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY. Do not write an essay. Do not narrate. Just the YAML.
 
     - name: agravain_assess
       knightRef: agravain
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir AGRAVAIN, domain: pentest.
 
-        Your current config:
-        - Domain: pentest
-        - Skills: shared, pentest
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
+        Check what's installed: `which nmap gobuster nikto sqlmap ffuf nuclei feroxbuster` and `ls /data/skills/`.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        DIAGNOSTIC: Also run `echo "AGRAVAIN_ALIVE=$(date -u +%Y-%m-%dT%H:%M:%SZ)"` and include the timestamp.
+
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: agravain
+        domain: pentest
+        diagnostic: "AGRAVAIN_ALIVE=<timestamp>"
+        tools_verified:
+          - name: tool_name
+            status: installed|missing|broken
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+            nix_package: "nixpkgs.package_name"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY.
 
     - name: gareth_assess
       knightRef: gareth
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are Sir GARETH, domain: wellness. NOT Bedivere. You are GARETH.
 
-        Your current config:
-        - Domain: wellness
-        - Skills: shared, wellness
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
+        Check: `ls /data/skills/` and `ls /vault/`.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: gareth
+        domain: wellness
+        tools_verified: []
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY.
 
     - name: patsy_assess
       knightRef: patsy
       continueOnFailure: true
       timeout: 600
       task: |
-        SELF-IMPROVEMENT ASSESSMENT — Analyze your capabilities and recent task history.
+        You are PATSY, domain: vault.
 
-        Your current config:
-        - Domain: vault
-        - Skills: shared, vault
+        SELF-IMPROVEMENT ASSESSMENT — Review your tools and recent tasks.
+        Check: `ls /data/skills/` and `which rg fd yq jq`.
 
-        Review your recent tasks. What tools or skills are you missing?
-        Format as structured YAML with fields: knight, domain, missing_tools, missing_skills, broken_tools, efficiency_gaps, skill_improvements.
+        OUTPUT FORMAT — respond with ONLY YAML:
+        ```yaml
+        knight: patsy
+        domain: vault
+        tools_verified:
+          - name: tool_name
+            status: installed|missing|broken
+        missing_tools:
+          - name: tool_name
+            reason: "one line"
+        missing_skills:
+          - name: skill_name
+            description: "one line"
+        broken_tools: []
+        efficiency_gaps:
+          - description: "one line"
+        ```
+        NO PROSE. YAML ONLY.
 
     # Phase 2 — Gawain aggregates and creates PR
     - name: aggregate_and_pr
