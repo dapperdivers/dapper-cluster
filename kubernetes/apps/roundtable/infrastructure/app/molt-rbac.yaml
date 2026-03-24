@@ -17,7 +17,7 @@ rules:
     verbs: ["get", "list", "watch", "create", "delete"]
   - apiGroups: ["ai.roundtable.io"]
     resources: ["knights", "chains", "missions", "roundtables"]
-    verbs: ["get", "list", "watch", "create", "update", "patch"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["ai.roundtable.io"]
     resources: ["knights/status", "chains/status", "missions/status", "roundtables/status"]
     verbs: ["get", "update", "patch"]
