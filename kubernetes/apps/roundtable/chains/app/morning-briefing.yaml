@@ -165,29 +165,33 @@ spec:
 
         HARD RULES — VIOLATION = FAILURE:
         1) DO NOT read individual knight vault reports. The NATS summaries above are your ONLY knight input.
-        2) MAXIMUM 150 LINES. Count them. If you exceed 150, the briefing FAILS.
-        3) DO NOT copy knight text verbatim — synthesize and connect dots.
-        4) Only ACTION items. Zero informational filler.
-        5) If a domain has no changes, give it ONE line: "🟢 No change."
-        6) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
+        2) DO NOT copy knight text verbatim — synthesize and connect dots.
+        3) Only ACTION items. Zero informational filler.
+        4) If a domain has no changes, give it ONE line: "🟢 No change."
+        5) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
+        6) Stale items (⏳ Day 5+) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots. Don't give them full bullets — they're noise until something changes.
 
         STRUCTURE (exactly this, no additions):
 
         # Daily Briefing — YYYY-MM-DD
 
         ## 🚨 TOP 3 ACTION ITEMS
-        Each: what + why + deadline. MAX 3 lines per item. Total: ~12 lines.
+        Each: what + why + deadline. 2-3 lines per item. (~12 lines total)
 
         ## 🔗 CROSS-DOMAIN CONNECTIONS
-        2-3 connections where domains intersect. 2 lines each. Total: ~8 lines.
+        2-4 connections where domains intersect. Show cause → effect. (~10 lines total)
 
         ## 📊 DOMAIN SNAPSHOTS
-        One line per domain with status emoji. Expand ONLY if action needed (3 bullets max).
-        Static domains get one line. Total: ~30 lines.
+        EVERY domain gets a status line (🔴/🟡/🟢) + 2-5 bullets if action needed.
+        Domains with changes: expand with specific bullets and next steps.
+        Static domains: one line is fine.
+        (~45-55 lines total for 7 domains)
 
         ## ❌ MISSING REPORTS
-        List timeouts. Skip if all reported. Total: ~3 lines.
+        List timeouts. "None — all knights reported." if clean. (~2 lines)
 
-        NO cost summary. NO week preview. NO calendar. NO essays. NO padding.
-        Target: 80-120 lines. 2-minute read. Your response text IS the final output — just write it directly.
+        ---
+        **Total Lines: [count]** | Read time: [estimate]
+
+        LENGTH REQUIREMENT: The briefing MUST be 80-120 lines. Under 80 = TOO SHORT (you're losing signal). Over 150 = too long. Count your lines before finishing. If under 80, expand domain snapshots with more detail. Your response text IS the final output — just write it directly.
       timeout: 600
