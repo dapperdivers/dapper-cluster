@@ -67,6 +67,8 @@ spec:
         serviceAccount:
           identifier: *app
     defaultPodOptions:
+      labels:
+        control-plane: controller-manager
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
