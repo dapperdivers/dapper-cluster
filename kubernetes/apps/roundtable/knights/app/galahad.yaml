@@ -33,6 +33,9 @@ spec:
       - httpx          # Fast HTTP probing
       - dnsx           # DNS toolkit
       - osv-scanner    # Google OSV vuln scanner
+      # SAST & Code Analysis (Added 2026-03-23)
+      - semgrep        # Static application security testing
+      - gosec          # Go security checker
     # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222
