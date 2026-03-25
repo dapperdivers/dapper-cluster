@@ -85,7 +85,7 @@ spec:
           tika:
             image:
               repository: apache/tika
-              tag: 3.2.3.0-full
+              tag: 3.3.0.0-full
             ports:
               - containerPort: 9998
     defaultPodOptions:
