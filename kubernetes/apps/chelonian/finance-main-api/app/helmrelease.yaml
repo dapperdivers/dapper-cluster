@@ -58,6 +58,11 @@ spec:
                   secretKeyRef:
                     name: finance-app-secret
                     key: SESSION_SECRET
+              JWT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: JWT_SECRET_KEY
             probes:
               readiness: &probes
                 enabled: true
