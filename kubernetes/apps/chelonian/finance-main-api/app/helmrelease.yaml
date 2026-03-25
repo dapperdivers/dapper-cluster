@@ -48,6 +48,11 @@ spec:
                   secretKeyRef:
                     name: finance-app-secret
                     key: API_KEY
+              CSRF_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: CSRF_SECRET
             probes:
               readiness: &probes
                 enabled: true
