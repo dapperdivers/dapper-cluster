@@ -25,6 +25,9 @@ spec:
   values:
     crds:
       install: true
+    features:
+      mutatingAdmissionPolicies:
+        enabled: false
     grafana:
       enabled: true
     admissionController:
@@ -43,7 +46,8 @@ spec:
           requests:
             cpu: 100m
             memory: 256Mi
-          limits: {}
+          limits:
+            memory: 512Mi
       serviceMonitor:
         enabled: true
     backgroundController:
@@ -61,7 +65,8 @@ spec:
         requests:
           cpu: 50m
           memory: 128Mi
-        limits: {}
+        limits:
+            memory: 384Mi
       serviceMonitor:
         enabled: true
     reportsController:
@@ -79,7 +84,8 @@ spec:
         requests:
           cpu: 100m
           memory: 128Mi
-        limits: {}
+        limits:
+            memory: 384Mi
       serviceMonitor:
         enabled: true
     cleanupController:
@@ -87,6 +93,7 @@ spec:
         requests:
           cpu: 100m
           memory: 128Mi
-        limits: {}
+        limits:
+            memory: 384Mi
       serviceMonitor:
         enabled: true
