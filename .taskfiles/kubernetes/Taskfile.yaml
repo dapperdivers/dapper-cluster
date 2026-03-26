@@ -59,6 +59,6 @@ tasks:
       - sleep 5
       - flux -n actions-runner-system reconcile hr actions-runner-controller
       - flux -n actions-runner-system reconcile hr dapper-cluster-runner
-      - helm -n actions-runner-system reconcile hr chelonianlabs-runner
+      - flux -n actions-runner-system reconcile hr chelonianlabs-runner
     preconditions:
       - which flux helm
