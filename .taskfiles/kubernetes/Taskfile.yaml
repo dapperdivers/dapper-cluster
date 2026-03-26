@@ -54,9 +54,11 @@ tasks:
     desc: Upgrade the ARC
     cmds:
       - helm -n actions-runner-system uninstall dapper-cluster-runner
+      - helm -n actions-runner-system uninstall chelonianlabs-runner
       - helm -n actions-runner-system uninstall actions-runner-controller
       - sleep 5
       - flux -n actions-runner-system reconcile hr actions-runner-controller
       - flux -n actions-runner-system reconcile hr dapper-cluster-runner
+      - helm -n actions-runner-system reconcile hr chelonianlabs-runner
     preconditions:
       - which flux helm
