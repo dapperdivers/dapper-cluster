@@ -51,31 +51,46 @@ spec:
     githubConfigUrl: https://github.com/chelonianlabs
     minRunners: 0
     maxRunners: 4
-    containerMode:
-      type: kubernetes
-      kubernetesModeWorkVolumeClaim:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: cephfs-shared
-        resources:
-          requests:
-            storage: 10Gi
     controllerServiceAccount:
       name: actions-runner-controller
       namespace: actions-runner-system
     template:
       spec:
         initContainers:
-          - name: kube-init
+          - name: init-dind-externals
             image: ghcr.io/actions/actions-runner:latest
-            command: ["sudo", "chown", "-R", "1001:1001", "/home/runner/_work"]
+            command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+            volumeMounts:
+              - name: dind-externals
+                mountPath: /home/runner/tmpDir
+        containers:
+          - name: runner
+            image: ghcr.io/actions/actions-runner:latest
+            command: ["/home/runner/run.sh"]
+            env:
+              - name: DOCKER_HOST
+                value: unix:///var/run/docker.sock
             volumeMounts:
               - name: work
                 mountPath: /home/runner/_work
-        containers:
-          - name: runner
-            image: ghcr.io/home-operations/actions-runner:2.333.0@sha256:35e5e1d6520009672d453ed84b3666b688423da51db732c8b4a46b14227b2628
-            command: ["/home/runner/run.sh"]
-            env:
-              - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
-                value: "false"
+              - name: dind-sock
+                mountPath: /var/run
+          - name: dind
+            image: docker:dind
+            securityContext:
+              privileged: true
+            volumeMounts:
+              - name: work
+                mountPath: /home/runner/_work
+              - name: dind-sock
+                mountPath: /var/run
+              - name: dind-externals
+                mountPath: /home/runner/externals
         serviceAccountName: *app
+        volumes:
+          - name: work
+            emptyDir: {}
+          - name: dind-sock
+            emptyDir: {}
+          - name: dind-externals
+            emptyDir: {}
