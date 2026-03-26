@@ -1,0 +1,81 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: gha-runner-scale-set-chelonian
+spec:
+  interval: 5m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: 0.14.0
+  url: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app chelonianlabs-runner
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: gha-runner-scale-set-chelonian
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: actions-runner-controller
+      namespace: actions-runner-system
+  valuesFrom:
+    - targetPath: githubConfigSecret.github_app_id
+      kind: Secret
+      name: chelonianlabs-runner-secret
+      valuesKey: CHELONIAN_RUNNER_APP_ID
+    - targetPath: githubConfigSecret.github_app_installation_id
+      kind: Secret
+      name: chelonianlabs-runner-secret
+      valuesKey: CHELONIAN_RUNNER_GITHUB_INSTALLATION_ID
+    - targetPath: githubConfigSecret.github_app_private_key
+      kind: Secret
+      name: chelonianlabs-runner-secret
+      valuesKey: CHELONIAN_RUNNER_GITHUB_PRIVATE_KEY
+  values:
+    githubConfigUrl: https://github.com/chelonianlabs
+    minRunners: 0
+    maxRunners: 4
+    containerMode:
+      type: kubernetes
+      kubernetesModeWorkVolumeClaim:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: cephfs-shared
+        resources:
+          requests:
+            storage: 10Gi
+    controllerServiceAccount:
+      name: actions-runner-controller
+      namespace: actions-runner-system
+    template:
+      spec:
+        initContainers:
+          - name: kube-init
+            image: ghcr.io/actions/actions-runner:latest
+            command: ["sudo", "chown", "-R", "1001:1001", "/home/runner/_work"]
+            volumeMounts:
+              - name: work
+                mountPath: /home/runner/_work
+        containers:
+          - name: runner
+            image: ghcr.io/home-operations/actions-runner:2.333.0@sha256:35e5e1d6520009672d453ed84b3666b688423da51db732c8b4a46b14227b2628
+            command: ["/home/runner/run.sh"]
+            env:
+              - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+                value: "false"
+        serviceAccountName: *app
