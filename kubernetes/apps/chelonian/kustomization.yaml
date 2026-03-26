@@ -17,3 +17,4 @@ resources:
   - ./finance-transaction/ks.yaml
   - ./finance-ai/ks.yaml
   - ./finance-categorization/ks.yaml
+  - ./docling-serve/ks.yaml
