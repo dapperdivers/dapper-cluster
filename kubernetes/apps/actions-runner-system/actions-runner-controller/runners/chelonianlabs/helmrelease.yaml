@@ -36,7 +36,7 @@ spec:
   values:
     githubConfigUrl: https://github.com/chelonianlabs
     minRunners: 0
-    maxRunners: 4
+    maxRunners: 8
     containerMode:
       type: kubernetes
       kubernetesModeWorkVolumeClaim:
