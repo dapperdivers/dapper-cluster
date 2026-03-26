@@ -63,6 +63,11 @@ spec:
                   secretKeyRef:
                     name: finance-app-secret
                     key: JWT_SECRET_KEY
+              PAPERLESS_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: finance-app-secret
+                    key: PAPERLESS_TOKEN
             probes:
               readiness: &probes
                 enabled: true
