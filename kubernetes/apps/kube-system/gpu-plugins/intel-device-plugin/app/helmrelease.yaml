@@ -29,6 +29,12 @@ spec:
       namespace: kube-system
   values:
     manager:
+      devices:
+        gpu: true
+        sgx: false
+        dsa: false
+        iaa: false
+        qat: false
       resources:
         requests:
           cpu: 50m
