@@ -1,94 +1,106 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app litellm
-  namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chartRef:
     kind: OCIRepository
     name: app-template
-  maxHistory: 3
   install:
     remediation:
-      retries: 5
+      retries: 3
   upgrade:
+    cleanupOnFail: true
     remediation:
       strategy: rollback
-      retries: 5
-
+      retries: 3
+  dependsOn:
+    - name: ollama
+      namespace: ai
   values:
     controllers:
       litellm:
         annotations:
           reloader.stakater.com/auto: "true"
-        replicas: 1
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/home-operations/postgres-init
-              tag: 18.3@sha256:6fa1f331cddd2eb0b6afa7b8d3685c864127a81ab01c3d9400bc3ff5263a51cf
-            envFrom:
-              - secretRef:
-                  name: litellm-postgres-secret
+        replicas: 0
+
         containers:
-          litellm:
+          app:
             image:
               repository: ghcr.io/berriai/litellm
               tag: v1.82.3-stable@sha256:b959a1816fa454a14d2842242d0fa1cd0d39f96fc94d3a1f4e1de4e48e2398c6
-            ports:
-              - containerPort: &port 4000
-            env:
-              TZ: "${TIME_ZONE}"
-              REDIS_URL: redis://dragonfly.database.svc.cluster.local
-              STORE_MODEL_IN_DB: True
-            envFrom:
-              - secretRef:
-                  name: litellm-secret
             args:
               - "--config"
               - "/app/config.yaml"
+            env:
+              TZ: ${TIME_ZONE}
+              HOME: /tmp
+              LITELLM_LOG: ERROR
+            envFrom:
+              - secretRef:
+                  name: litellm-secret
+            ports:
+              - name: http
+                containerPort: &port 4000
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/liveliness
+                    port: *port
+                  initialDelaySeconds: 15
+                  periodSeconds: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/readiness
+                    port: *port
+                  initialDelaySeconds: 15
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                cpu: 1
+                memory: 1Gi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities: { drop: ["ALL"] }
-            resources:
-              requests:
-                cpu: 2
-                memory: 830Mi
-              limits:
-                cpu: 4
-                memory: 1Gi
-    containerSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 150
-      runAsNonRoot: true
-      privileged: false
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: false
-      capabilities: { drop: ["ALL"] }
-      seccompProfile: { type: RuntimeDefault }
+
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+
     service:
       app:
         controller: litellm
         ports:
           http:
             port: *port
+
     ingress:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         className: internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
         hosts:
-          - host:  &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: &host litellm.${SECRET_DOMAIN}
             paths:
               - path: /
-                service:
-                  identifier: app
-                  port: http
-              - path: /ui
                 service:
                   identifier: app
                   port: http
@@ -96,11 +108,26 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+
     persistence:
-      config-file:
+      config:
         type: configMap
-        name: litellm-configmap
+        name: litellm-config
         globalMounts:
           - path: /app/config.yaml
             subPath: config.yaml
             readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+
+    serviceMonitor:
+      app:
+        serviceName: litellm
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 30s
+            scrapeTimeout: 10s

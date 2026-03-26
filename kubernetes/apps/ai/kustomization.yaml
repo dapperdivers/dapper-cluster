@@ -8,7 +8,6 @@ components:
 resources:
   - ./namespace.yaml
   # Core AI Agents
-  - ./archon/ks.yaml
   - ./munin/ks.yaml
   - ./openclaw/ks.yaml
   - ./outlook-bridge/ks.yaml
