@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: quay.io/docling-project/docling-serve-cpu
-              tag: 1.15.1
+              tag: v1.15.0
             env:
               DOCLING_SERVE_HOST: "0.0.0.0"
               DOCLING_SERVE_PORT: "5001"
