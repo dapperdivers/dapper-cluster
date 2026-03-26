@@ -25,6 +25,15 @@ spec:
         Check /vault/Briefings/Security/ for yesterday's report and note deltas.
         Review cluster security posture: expiring certs, failed security pods,
         Kyverno violations, CVEs in running images.
+
+        CRITICAL RULE — RELEVANCE FILTER:
+        Only report CVEs/KEVs/vulnerabilities for software ACTUALLY RUNNING in this cluster.
+        Run: kubectl get deploy,sts -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}'
+        Cross-reference ANY CVE you mention against that list. If the affected software
+        is NOT deployed here, DO NOT include it. Generic CISA KEV lists are NOISE unless
+        they affect OUR stack. We do NOT run: n8n, Jenkins, Confluence, Jira, or Oracle products.
+        If a CVE only affects software we don't use, skip it entirely.
+
         Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-8 bullet points MAX, action items only).
@@ -55,6 +64,10 @@ spec:
         FIRST: Read yesterday's report in /vault/Briefings/HomeLab/ (most recent YYYY-MM-DD.md).
         Focus on CHANGES: new failures, resolved issues, status transitions.
         If a finding appeared yesterday with no change, one line: "Still pending: [item]."
+
+        KNOWN LONG-STANDING ISSUES (don't re-explain, just note status):
+        - Wazuh HelmRelease: stalled since Feb 2026, pending decision to fix or remove. One line max.
+
         Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points, key findings and action items). Your response text IS the summary — just write it as your final output.
@@ -170,6 +183,7 @@ spec:
         4) If a domain has no changes, give it ONE line: "🟢 No change."
         5) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
         6) Stale items (⏳ Day 5+) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots. Don't give them full bullets — they're noise until something changes.
+        7) RELEVANCE CHECK: If Galahad mentions CVEs for software NOT in our cluster, DROP them. We only care about vulnerabilities in software we actually run. Generic CISA KEV deadlines for unrelated software are noise.
 
         STRUCTURE (exactly this, no additions):
 
