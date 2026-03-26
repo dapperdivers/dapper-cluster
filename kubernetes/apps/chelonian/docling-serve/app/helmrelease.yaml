@@ -83,7 +83,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
     persistence:
       cache:
-        type: emptyDir
+        existingClaim: docling-serve
         globalMounts:
           - path: /home/docling/.cache
       tmp:
