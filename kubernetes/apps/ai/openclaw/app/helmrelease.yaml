@@ -107,7 +107,8 @@ spec:
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
 
                 # Start gateway
-                exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
+                exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured \
+                  --allowed-origins "https://molt.${SECRET_DOMAIN}"
             resources:
               requests:
                 cpu: 500m
