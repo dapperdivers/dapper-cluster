@@ -184,6 +184,7 @@ spec:
         5) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
         6) Stale items (⏳ Day 5+) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots. Don't give them full bullets — they're noise until something changes.
         7) RELEVANCE CHECK: If Galahad mentions CVEs for software NOT in our cluster, DROP them. We only care about vulnerabilities in software we actually run. Generic CISA KEV deadlines for unrelated software are noise.
+        8) CROSS-DOMAIN REALITY CHECK: Connections must describe real cause→effect between domains Derek is managing. Do NOT invent business opportunities, revenue projections, or startup ideas from news items. If Kay reports a trend, connect it to something Derek is ALREADY doing — not something he could theoretically do.
 
         STRUCTURE (exactly this, no additions):
 
@@ -193,7 +194,12 @@ spec:
         Each: what + why + deadline. 2-3 lines per item. (~12 lines total)
 
         ## 🔗 CROSS-DOMAIN CONNECTIONS
-        2-4 connections where domains intersect. Show cause → effect. (~10 lines total)
+        2-4 connections where domains ACTUALLY intersect. Show cause → effect. (~10 lines total)
+        QUALITY RULE: Connections must be CONCRETE and ACTIONABLE — not speculative business opportunities.
+        ❌ BAD: "EU law creates $50M market opportunity — launch service in 48 hours"
+        ✅ GOOD: "Wazuh offline Day 8 + CISA KEV deadlines this week = blind spot during compliance window"
+        ✅ GOOD: "Emma T-34 days + attorney Day 11 = documents won't be ready before Week 36 if not scheduled today"
+        If no real connections exist, write "No actionable cross-domain connections today." Don't invent them.
 
         ## 📊 DOMAIN SNAPSHOTS
         EVERY domain gets a status line (🔴/🟡/🟢) + 2-5 bullets if action needed.
