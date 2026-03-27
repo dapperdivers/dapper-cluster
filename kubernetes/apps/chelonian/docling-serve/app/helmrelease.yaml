@@ -68,6 +68,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
+              runAsNonRoot: true
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
@@ -76,6 +77,7 @@ spec:
               limits:
                 memory: 6Gi
     defaultPodOptions:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001
