@@ -34,14 +34,14 @@ spec:
               DOCLING_SERVE_MAX_NUM_PAGES: "100"
               DOCLING_SERVE_MAX_FILE_SIZE: "104857600"
             probes:
-              readiness: &probes
+              readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /docs
+                    path: /readyz
                     port: 5001
-                  initialDelaySeconds: 60
+                  initialDelaySeconds: 10
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 10
@@ -50,16 +50,17 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /docs
+                    path: /livez
                     port: 5001
-                  initialDelaySeconds: 60
+                  initialDelaySeconds: 10
                   periodSeconds: 60
                   timeoutSeconds: 5
               startup:
                 enabled: true
                 custom: true
                 spec:
-                  tcpSocket:
+                  httpGet:
+                    path: /health
                     port: 5001
                   initialDelaySeconds: 30
                   periodSeconds: 10
