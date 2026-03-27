@@ -100,8 +100,19 @@ spec:
               - -c
               - |
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
-                exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured \
-                  --allowed-origins "https://munin.${SECRET_DOMAIN}"
+                # Configure allowed origins for Control UI
+                node -e "
+                  const fs = require('fs');
+                  const p = '/home/node/.openclaw/openclaw.json';
+                  const c = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p)) : {};
+                  c.gateway = c.gateway || {};
+                  c.gateway.controlUi = c.gateway.controlUi || {};
+                  c.gateway.controlUi.allowedOrigins = ['https://munin.${SECRET_DOMAIN}'];
+                  fs.mkdirSync('/home/node/.openclaw', {recursive: true});
+                  fs.writeFileSync(p, JSON.stringify(c, null, 2));
+                "
+
+                exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
               requests:
                 cpu: 500m
