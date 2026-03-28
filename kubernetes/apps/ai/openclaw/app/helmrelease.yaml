@@ -147,16 +147,14 @@ spec:
                   c.auth.profiles = c.auth.profiles || {};
                   c.auth.profiles['anthropic:default'] = {provider:'anthropic',mode:'oauth'};
                   c.auth.profiles['anthropic:manual'] = {provider:'anthropic',mode:'oauth'};
-                  c.agents = c.agents || {};
-                  c.agents.defaults = c.agents.defaults || {};
-                  c.agents.defaults.memorySearch = c.agents.defaults.memorySearch || {};
-                  c.agents.defaults.memorySearch.backend = 'qmd';
-                  c.agents.defaults.memorySearch.qmd = c.agents.defaults.memorySearch.qmd || {};
-                  c.agents.defaults.memorySearch.qmd.includeDefaultMemory = true;
-                  c.agents.defaults.memorySearch.qmd.paths = c.agents.defaults.memorySearch.qmd.paths || [];
+                  c.memory = c.memory || {};
+                  c.memory.backend = 'qmd';
+                  c.memory.qmd = c.memory.qmd || {};
+                  c.memory.qmd.includeDefaultMemory = true;
+                  c.memory.qmd.paths = c.memory.qmd.paths || [];
                   const vaultPath = '/home/node/obsidian-vault';
-                  if (!c.agents.defaults.memorySearch.qmd.paths.some(p2 => p2.path === vaultPath)) {
-                    c.agents.defaults.memorySearch.qmd.paths.push({path: vaultPath, name: 'vault'});
+                  if (!c.memory.qmd.paths.some(p2 => p2.path === vaultPath)) {
+                    c.memory.qmd.paths.push({path: vaultPath, name: 'vault'});
                   }
                   fs.mkdirSync('/home/node/.openclaw', {recursive: true});
                   fs.writeFileSync(p, JSON.stringify(c, null, 2));
