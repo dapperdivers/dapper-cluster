@@ -47,12 +47,12 @@ spec:
                 fi
 
                 # Install Go if not present on PVC
-                if [ ! -f /home/node/.local/go/bin/go ]; then
-                  echo "Installing Go..."
+                if [ ! -f /home/node/.local/go/bin/go ] || ! /home/node/.local/go/bin/go version 2>/dev/null | grep -q "go1.24"; then
+                  echo "Installing Go 1.24.1..."
+                  rm -rf /home/node/.local/go
                   cd /tmp
-                  curl -fsSL https://go.dev/dl/go1.23.5.linux-amd64.tar.gz -o go.tar.gz
-                  tar xzf go.tar.gz
-                  mv go /home/node/.local/
+                  curl -fsSL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz -o go.tar.gz
+                  tar xzf go.tar.gz -C /home/node/.local/
                   rm -rf go.tar.gz
                 fi
 
@@ -82,6 +82,25 @@ spec:
                 fi
                 set -e  # Re-enable error checking
 
+                # Install bun if not present on PVC
+                if [ ! -f /home/node/.local/bin/bun ]; then
+                  echo "Installing bun..."
+                  curl -fsSL https://bun.sh/install | BUN_INSTALL=/home/node/.local bash
+                fi
+
+                # Install QMD if not present on PVC
+                if [ ! -f /home/node/.local/bin/qmd ]; then
+                  echo "Installing QMD..."
+                  /home/node/.local/bin/bun install -g @tobilu/qmd
+                fi
+
+                # Install Claude CLI if not present on PVC
+                if [ ! -f /home/node/.local/bin/claude ]; then
+                  echo "Installing Claude CLI..."
+                  npm install --prefix /home/node/.local @anthropic-ai/claude-code
+                  ln -sf /home/node/.local/node_modules/.bin/claude /home/node/.local/bin/claude
+                fi
+
                 # Install mcporter for MCP server communication
                 echo "Installing mcporter..."
                 cd /home/node
@@ -92,8 +111,17 @@ spec:
                 echo '{"servers":{"ha-mcp":{"url":"http://localhost:8086/mcp"}}}' > /home/node/config/mcporter.json
 
                 echo "Tool installation complete"
+            resources:
+              requests:
+                cpu: 500m
+                memory: 512Mi
+              limits:
+                cpu: 2000m
+                memory: 4Gi
             env:
               HOME: /home/node
+              PATH: /home/node/.local/bin:/home/node/.local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              BUN_INSTALL: /home/node/.local
         containers:
           app:
             image:
@@ -114,7 +142,7 @@ spec:
                 memory: 512Mi
               limits:
                 cpu: 2000m
-                memory: 2Gi
+                memory: 4Gi
             env:
               TZ: ${TIME_ZONE}
               HOME: /home/node
