@@ -26,7 +26,7 @@ spec:
           install-tools:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: 2026.2.6-3@sha256:0ecbdbda258bc82eb3ab7f142dcfbbb2f309f21583489c0eb6a68a6debed1310
+              tag: 2026.3.24@sha256:7091859602df6b8cdd59b38adbaed723a6d94806fdd4274d488400dd2fcf0fb6
             command:
               - /bin/sh
               - -c
@@ -126,7 +126,7 @@ spec:
           app:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: 2026.2.6-3@sha256:0ecbdbda258bc82eb3ab7f142dcfbbb2f309f21583489c0eb6a68a6debed1310
+              tag: 2026.3.24@sha256:7091859602df6b8cdd59b38adbaed723a6d94806fdd4274d488400dd2fcf0fb6
             command:
               - /bin/sh
               - -c
@@ -135,6 +135,31 @@ spec:
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
 
                 # Start gateway
+                # Configure allowed origins for Control UI and QMD memory backend
+                node -e "
+                  const fs = require('fs');
+                  const p = '/home/node/.openclaw/openclaw.json';
+                  const c = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p)) : {};
+                  c.gateway = c.gateway || {};
+                  c.gateway.controlUi = c.gateway.controlUi || {};
+                  c.gateway.controlUi.allowedOrigins = ['https://molt.${SECRET_DOMAIN}'];
+                  c.auth = c.auth || {};
+                  c.auth.profiles = c.auth.profiles || {};
+                  c.auth.profiles['anthropic:default'] = {provider:'anthropic',mode:'oauth'};
+                  c.auth.profiles['anthropic:manual'] = {provider:'anthropic',mode:'oauth'};
+                  c.memory = c.memory || {};
+                  c.memory.backend = 'qmd';
+                  c.memory.qmd = c.memory.qmd || {};
+                  c.memory.qmd.includeDefaultMemory = true;
+                  c.memory.qmd.paths = c.memory.qmd.paths || [];
+                  const vaultPath = '/home/node/obsidian-vault';
+                  if (!c.memory.qmd.paths.some(p2 => p2.path === vaultPath)) {
+                    c.memory.qmd.paths.push({path: vaultPath, name: 'vault'});
+                  }
+                  fs.mkdirSync('/home/node/.openclaw', {recursive: true});
+                  fs.writeFileSync(p, JSON.stringify(c, null, 2));
+                "
+
                 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
               requests:
@@ -142,7 +167,7 @@ spec:
                 memory: 512Mi
               limits:
                 cpu: 2000m
-                memory: 4Gi
+                memory: 6Gi
             env:
               TZ: ${TIME_ZONE}
               HOME: /home/node
