@@ -98,6 +98,25 @@ spec:
                   /home/node/.local/bin/bun install -g @tobilu/qmd
                 fi
 
+                # Install CUDA runtime libs for QMD GPU acceleration
+                if [ ! -f /home/node/.local/lib/libcublas.so.13 ]; then
+                  echo "Installing CUDA runtime libraries..."
+                  mkdir -p /home/node/.local/lib
+                  cd /tmp
+                  curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/cuda-keyring_1.1-1_all.deb -o cuda-keyring.deb
+                  dpkg -i cuda-keyring.deb
+                  apt-get update -qq
+                  apt-get download -qq libcublas-13-0 libcudart-13-0 2>/dev/null || apt-get download -qq libcublas-13 libcudart-13 2>/dev/null
+                  for deb in *.deb; do
+                    dpkg-deb -x "$deb" /tmp/cuda-extract 2>/dev/null || true
+                  done
+                  find /tmp/cuda-extract -name "libcublas*.so*" -exec cp {} /home/node/.local/lib/ \;
+                  find /tmp/cuda-extract -name "libcublasLt*.so*" -exec cp {} /home/node/.local/lib/ \;
+                  find /tmp/cuda-extract -name "libcudart*.so*" -exec cp {} /home/node/.local/lib/ \;
+                  rm -rf /tmp/cuda-extract /tmp/*.deb cuda-keyring.deb
+                  echo "CUDA runtime libraries installed"
+                fi
+
                 # Install Claude CLI if not present on PVC
                 if [ ! -f /home/node/.local/bin/claude ]; then
                   echo "Installing Claude CLI..."
@@ -179,6 +198,7 @@ spec:
               HOME: /home/node
               TERM: xterm-256color
               PATH: /home/node/.local/bin:/home/node/.local/go/bin:/home/node/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              LD_LIBRARY_PATH: /home/node/.local/lib:/usr/local/glibc/usr/lib
               GOPATH: /home/node/go
               HOMEBREW_PREFIX: /home/node/.local/homebrew
               HOMEBREW_CELLAR: /home/node/.local/homebrew/Cellar
