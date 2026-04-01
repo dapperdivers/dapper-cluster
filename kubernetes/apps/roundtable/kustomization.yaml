@@ -8,6 +8,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./infrastructure/ks.yaml   # RBAC, secrets, shared vault PV/PVC
+  - ./agent-sandbox/ks.yaml    # K8s SIG Apps Agent Sandbox (Sandbox CRD for knight runtimes)
   - ./operator/ks.yaml         # Roundtable operator (manages Knight CRDs)
   - ./knights/ks.yaml          # Personal RoundTable + 10 Knight CRs + per-knight secrets
   - ./chains/ks.yaml           # Chain CRs (morning briefing, pentest, etc.)

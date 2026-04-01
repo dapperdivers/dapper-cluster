@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Pull controller + RBAC from upstream, add extensions RBAC + patch
+resources:
+  # Upstream core: namespace, SA, CRB, service, deployment
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/controller.yaml
+  # Upstream core RBAC (ClusterRole)
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/rbac.generated.yaml
+  # Upstream extensions RBAC (ClusterRole)
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/extensions-rbac.generated.yaml
+  # Extensions ClusterRoleBinding
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/extensions.yaml
+images:
+  # Override ko:// dev image with release image
+  - name: ko://sigs.k8s.io/agent-sandbox/cmd/agent-sandbox-controller
+    newName: registry.k8s.io/agent-sandbox/agent-sandbox-controller
+    newTag: v0.2.1
+patches:
+  # Add --extensions flag + resource limits to controller deployment
+  - target:
+      kind: Deployment
+      name: agent-sandbox-controller
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --extensions
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
