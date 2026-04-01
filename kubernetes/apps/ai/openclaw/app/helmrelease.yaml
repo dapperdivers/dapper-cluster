@@ -20,6 +20,10 @@ spec:
   values:
     controllers:
       molt:
+        pod:
+          runtimeClassName: nvidia
+          nodeSelector:
+            nvidia.feature.node.kubernetes.io/gpu: "true"
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -165,9 +169,11 @@ spec:
               requests:
                 cpu: 500m
                 memory: 512Mi
+                nvidia.com/gpu: 1
               limits:
                 cpu: 2000m
                 memory: 6Gi
+                nvidia.com/gpu: 1
             env:
               TZ: ${TIME_ZONE}
               HOME: /home/node
