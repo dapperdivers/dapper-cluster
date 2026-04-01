@@ -6,6 +6,7 @@ metadata:
     ai.roundtable.io/table: personal
   name: agravain
 spec:
+  runtime: sandbox  # Testing Agent Sandbox backend (roundtable#94)
   domain: pentest
   image: ""
   model: "anthropic/claude-sonnet-4-5"
