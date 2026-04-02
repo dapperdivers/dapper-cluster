@@ -38,6 +38,8 @@ spec:
               USER_ORG_SERVICE_URL: "http://finance-user-org-service.chelonian.svc.cluster.local:8002"
               FILE_SERVICE_URL: "http://finance-file-service.chelonian.svc.cluster.local:8003"
               TRANSACTION_SERVICE_URL: "http://finance-transaction-service.chelonian.svc.cluster.local:8004"
+              AI_SERVICE_URL: "http://finance-ai-service.chelonian.svc.cluster.local:8005"
+              CATEGORIZATION_SERVICE_URL: "http://finance-categorization-service.chelonian.svc.cluster.local:8007"
               DOCLING_URL: "http://docling-serve.chelonian.svc.cluster.local:5001"
               DATABASE_URL:
                 valueFrom:
