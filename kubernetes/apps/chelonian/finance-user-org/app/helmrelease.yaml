@@ -22,7 +22,9 @@ spec:
       finance-user-org-service:
         annotations:
           reloader.stakater.com/auto: "true"
-          redeploy-trigger: "20260402T205730"
+        pod:
+          annotations:
+            redeploy-trigger: "20260402T211734"
         containers:
           app:
             image:
