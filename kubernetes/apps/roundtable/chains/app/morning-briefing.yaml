@@ -207,5 +207,12 @@ spec:
         ---
         **Total Lines: [count]** | Read time: [estimate]
 
-        LENGTH REQUIREMENT: The briefing MUST be 80-120 lines. Under 80 = TOO SHORT (you're losing signal). Over 150 = too long. Count your lines before finishing. If under 80, expand domain snapshots with more detail. Your response text IS the final output — just write it directly.
+        LENGTH REQUIREMENT: The briefing MUST be 80-120 lines. Under 80 = TOO SHORT (you're losing signal). Over 150 = too long. Count your lines before finishing. If under 80, expand domain snapshots with more detail.
+
+        CRITICAL OUTPUT RULE: Your ENTIRE response text becomes the daily briefing file.
+        DO NOT say "Briefing assembled" or "saved to file" — there IS no file operation.
+        DO NOT write a summary of what you would write. WRITE THE ACTUAL BRIEFING.
+        DO NOT include any meta-commentary about the briefing. No preamble. No postamble.
+        Start your response with "# Daily Briefing — YYYY-MM-DD" and end with the line count.
+        Everything between is the briefing content. Nothing else.
       timeout: 600
