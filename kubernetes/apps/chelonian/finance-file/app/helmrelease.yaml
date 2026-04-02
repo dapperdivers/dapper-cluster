@@ -24,7 +24,7 @@ spec:
           reloader.stakater.com/auto: "true"
         pod:
           annotations:
-            redeploy-trigger: "20260402T211734"
+            redeploy-trigger: "20260402T214042"
         containers:
           app:
             image:

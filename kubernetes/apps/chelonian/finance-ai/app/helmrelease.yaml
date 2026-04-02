@@ -24,7 +24,7 @@ spec:
           reloader.stakater.com/auto: "true"
         pod:
           annotations:
-            redeploy-trigger: "20260402T211734"
+            redeploy-trigger: "20260402T214042"
           force-repull: "2026-03-18"
         containers:
           app:
