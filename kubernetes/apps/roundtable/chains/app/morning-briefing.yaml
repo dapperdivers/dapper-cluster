@@ -152,7 +152,9 @@ spec:
     # Phase 2 — Gawain synthesizes all reports
     - name: synthesize
       knightRef: gawain
-      outputPath: "/vault/Briefings/Daily/{{ .Date }}.md"
+      # outputPath removed — Gawain writes the file himself via write tool.
+      # Having outputPath caused the controller to OVERWRITE the good file
+      # with Gawain's .Output meta-summary text, destroying the briefing.
       dependsOn:
         - security_intel
         - intel_digest
