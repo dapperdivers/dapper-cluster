@@ -22,6 +22,7 @@ spec:
       finance-auth-service:
         annotations:
           reloader.stakater.com/auto: "true"
+          redeploy-trigger: "20260402T205730"
         containers:
           app:
             image:
