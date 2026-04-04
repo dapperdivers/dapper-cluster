@@ -23,9 +23,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
-          annotations:
-            redeploy-trigger: "20260402T214042"
-          force-repull: "2026-03-18"
+          imagePullPolicy: Always
         containers:
           app:
             image:
