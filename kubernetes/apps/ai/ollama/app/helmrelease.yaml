@@ -1,0 +1,140 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app ollama
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      ollama:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        replicas: 1
+        containers:
+          app:
+            image:
+              repository: docker.io/ollama/ollama
+              tag: 0.20.2
+            env:
+              TZ: ${TIME_ZONE}
+              # Store models on PVC — critical for persistence across restarts
+              OLLAMA_MODELS: /models
+              # Listen on all interfaces
+              OLLAMA_HOST: 0.0.0.0:11434
+              # Keep models loaded — single-user homelab, minimize cold starts
+              OLLAMA_KEEP_ALIVE: 60m
+              # Flash attention for faster inference
+              OLLAMA_FLASH_ATTENTION: "1"
+              # Parallel request handling
+              OLLAMA_NUM_PARALLEL: "2"
+              # Max loaded models — keep 1 to maximize VRAM for the primary model
+              OLLAMA_MAX_LOADED_MODELS: "1"
+              # Context window — vGPU VRAM budget
+              OLLAMA_NUM_CTX: "8192"
+            ports:
+              - name: http
+                containerPort: &port 11434
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/tags
+                    port: *port
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/tags
+                    port: *port
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/tags
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 5
+                  failureThreshold: 30
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 2
+                memory: 16Gi
+                nvidia.com/gpu: 2
+              limits:
+                cpu: 8
+                memory: 40Gi
+                nvidia.com/gpu: 2
+
+    defaultPodOptions:
+      runtimeClassName: nvidia
+      nodeSelector:
+        nvidia.feature.node.kubernetes.io/gpu: "true"
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      securityContext:
+        # Ollama requires root for NVIDIA GPU access
+        runAsNonRoot: false
+        seccompProfile: { type: RuntimeDefault }
+
+    service:
+      app:
+        controller: ollama
+        ports:
+          http:
+            port: *port
+
+    ingress:
+      app:
+        className: internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+        hosts:
+          - host: &host ollama.${SECRET_DOMAIN}
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
+
+    persistence:
+      models:
+        existingClaim: ollama-models
+        globalMounts:
+          - path: /models
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+data:
+  config.yaml: |
+    # LiteLLM Proxy Configuration
+    # Tiered routing: local Ollama → cheap cloud → premium Anthropic
+    # No database — static config, Redis caching only
+
+    model_list:
+      # ── Tier 1: Local (Free) ──────────────────────────────────────
+      # Gemma 4 26B A4B MoE — primary local model on 2x P100
+      - model_name: local/gemma4-26b
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 300
+        model_info:
+          description: "Local Gemma 4 26B A4B MoE — 2x P100 GPUs"
+          max_tokens: 8192
+
+      # Gemma 4 E4B — fast local fallback for simple tasks
+      - model_name: local/gemma4-e4b
+        litellm_params:
+          model: ollama/gemma4:e4b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 120
+        model_info:
+          description: "Local Gemma 4 E4B — lightweight, single GPU"
+          max_tokens: 8192
+
+      # ── Tier 2: Catch-all aliases → local ─────────────────────────
+      # Route common model names to local Gemma for cost savings
+      - model_name: gpt-3.5-turbo
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 300
+
+      - model_name: gpt-4
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 300
+
+      # Pi-knight SDK model aliases
+      - model_name: claude-3-5-sonnet-20241022
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 300
+
+      - model_name: claude-sonnet-4-20250514
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 300
+
+    router_settings:
+      routing_strategy: simple-shuffle
+      num_retries: 2
+      timeout: 300
+      retry_after: 5
+
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+
+    litellm_settings:
+      set_verbose: false
+      json_logs: true
+      request_timeout: 600
+      drop_params: true
+      cache: true
+      cache_params:
+        type: redis
+        host: dragonfly.database.svc.cluster.local
+        port: 6379
