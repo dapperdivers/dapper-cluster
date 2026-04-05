@@ -78,6 +78,10 @@ spec:
                   initialDelaySeconds: 10
                   periodSeconds: 5
                   failureThreshold: 30
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 2
@@ -96,6 +100,10 @@ spec:
         - key: nvidia.com/gpu
           operator: Exists
           effect: NoSchedule
+      securityContext:
+        # Ollama requires root for NVIDIA GPU access
+        runAsNonRoot: false
+        seccompProfile: { type: RuntimeDefault }
 
     service:
       app:
@@ -126,3 +134,7 @@ spec:
         existingClaim: ollama-models
         globalMounts:
           - path: /models
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
