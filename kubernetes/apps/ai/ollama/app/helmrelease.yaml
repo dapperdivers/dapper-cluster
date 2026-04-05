@@ -86,11 +86,11 @@ spec:
               requests:
                 cpu: 4
                 memory: 32Gi
-                nvidia.com/gpu: 3
+                nvidia.com/gpu: 4
               limits:
                 cpu: 16
                 memory: 80Gi
-                nvidia.com/gpu: 3
+                nvidia.com/gpu: 4
 
     defaultPodOptions:
       runtimeClassName: nvidia
