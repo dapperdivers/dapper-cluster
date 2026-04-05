@@ -17,7 +17,8 @@ data:
           model: ollama/gemma4:26b
           api_base: http://ollama.ai.svc.cluster.local:11434
           timeout: 300
-          thinking: false
+          extra_body:
+            think: false
         model_info:
           description: "Local Gemma 4 26B A4B MoE — 2x P100 GPUs"
           max_tokens: 8192
@@ -28,7 +29,8 @@ data:
           model: ollama/gemma4:e4b
           api_base: http://ollama.ai.svc.cluster.local:11434
           timeout: 120
-          thinking: false
+          extra_body:
+            think: false
         model_info:
           description: "Local Gemma 4 E4B — lightweight, single GPU"
           max_tokens: 8192
@@ -40,14 +42,16 @@ data:
           model: ollama/gemma4:26b
           api_base: http://ollama.ai.svc.cluster.local:11434
           timeout: 300
-          thinking: false
+          extra_body:
+            think: false
 
       - model_name: gpt-4
         litellm_params:
           model: ollama/gemma4:26b
           api_base: http://ollama.ai.svc.cluster.local:11434
           timeout: 300
-          thinking: false
+          extra_body:
+            think: false
 
       # Pi-knight SDK model aliases
       - model_name: claude-3-5-sonnet-20241022
@@ -55,14 +59,16 @@ data:
           model: ollama/gemma4:26b
           api_base: http://ollama.ai.svc.cluster.local:11434
           timeout: 300
-          thinking: false
+          extra_body:
+            think: false
 
       - model_name: claude-sonnet-4-20250514
         litellm_params:
           model: ollama/gemma4:26b
           api_base: http://ollama.ai.svc.cluster.local:11434
           timeout: 300
-          thinking: false
+          extra_body:
+            think: false
 
     router_settings:
       routing_strategy: simple-shuffle
