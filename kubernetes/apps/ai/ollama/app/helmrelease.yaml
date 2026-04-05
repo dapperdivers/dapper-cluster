@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: docker.io/ollama/ollama
-              tag: 0.19.0
+              tag: 0.20.2
             env:
               TZ: ${TIME_ZONE}
               # Store models on PVC — critical for persistence across restarts
@@ -42,7 +42,7 @@ spec:
               OLLAMA_NUM_PARALLEL: "2"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
-              # Context window — P100 16GB limits this
+              # Context window — vGPU VRAM budget
               OLLAMA_NUM_CTX: "8192"
             ports:
               - name: http
