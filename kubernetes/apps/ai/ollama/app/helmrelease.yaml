@@ -42,8 +42,8 @@ spec:
               OLLAMA_NUM_PARALLEL: "2"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
-              # Context window — vGPU VRAM budget
-              OLLAMA_NUM_CTX: "32768"
+              # Context window — bumped to 128K to match Anthropic performance
+              OLLAMA_NUM_CTX: "131072"
             ports:
               - name: http
                 containerPort: &port 11434
@@ -84,13 +84,13 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 2
-                memory: 16Gi
-                nvidia.com/gpu: 2
+                cpu: 4
+                memory: 32Gi
+                nvidia.com/gpu: 3
               limits:
-                cpu: 8
-                memory: 40Gi
-                nvidia.com/gpu: 2
+                cpu: 16
+                memory: 80Gi
+                nvidia.com/gpu: 3
 
     defaultPodOptions:
       runtimeClassName: nvidia
