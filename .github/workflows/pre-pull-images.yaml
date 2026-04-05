@@ -57,6 +57,7 @@ jobs:
             --path /github/workspace/kubernetes/flux/cluster
             --enable-images
             --only-images
+            --sources "flux-system"
             --output json
             --output-file images.json
 
