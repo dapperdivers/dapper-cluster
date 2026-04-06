@@ -35,15 +35,21 @@ spec:
               # Listen on all interfaces
               OLLAMA_HOST: 0.0.0.0:11434
               # Keep models loaded — single-user homelab, minimize cold starts
-              OLLAMA_KEEP_ALIVE: 60m
-              # Flash attention for faster inference
+              OLLAMA_KEEP_ALIVE: 24h
+              # Flash attention for faster inference (KV cache optimization)
               OLLAMA_FLASH_ATTENTION: "1"
-              # Parallel request handling
-              OLLAMA_NUM_PARALLEL: "2"
+              # KV cache quantization — Q8_0 saves ~50% KV VRAM with minimal quality loss
+              OLLAMA_KV_CACHE_TYPE: q8_0
+              # Spread model layers evenly across all GPUs (3x P100)
+              OLLAMA_SCHED_SPREAD: "true"
+              # Parallel request handling — 4 concurrent for knight workloads
+              OLLAMA_NUM_PARALLEL: "4"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
-              # Context window — bumped to 128K to match Anthropic performance
+              # Context window — 128K (Ollama auto-expands to 256K based on VRAM)
               OLLAMA_NUM_CTX: "131072"
+              # No output token limit — let the model decide
+              OLLAMA_NUM_PREDICT: "-1"
             ports:
               - name: http
                 containerPort: &port 11434

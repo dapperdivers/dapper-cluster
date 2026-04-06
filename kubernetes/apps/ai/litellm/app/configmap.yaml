@@ -16,12 +16,11 @@ data:
         litellm_params:
           model: ollama/gemma4:26b
           api_base: http://ollama.ai.svc.cluster.local:11434
-          timeout: 300
+          timeout: 600
           extra_body:
             think: false
         model_info:
-          description: "Local Gemma 4 26B A4B MoE — 2x P100 GPUs"
-          max_tokens: 8192
+          description: "Local Gemma 4 26B A4B MoE — 3x P100 GPUs, 256K context"
 
       # Gemma 4 E4B — fast local fallback for simple tasks
       - model_name: local/gemma4-e4b
@@ -33,7 +32,6 @@ data:
             think: false
         model_info:
           description: "Local Gemma 4 E4B — lightweight, single GPU"
-          max_tokens: 8192
 
       # ── Tier 2: Catch-all aliases → local ─────────────────────────
       # Route common model names to local Gemma for cost savings
