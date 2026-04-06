@@ -16,6 +16,7 @@ spec:
   tools:
     nix:
       - kubectl
+      - kubectx        # Fast context/namespace switching (Added 2026-04-06)
       - kubernetes-helm
       - stern
       - k9s

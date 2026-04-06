@@ -16,6 +16,9 @@ spec:
     nix:
       - python3
       - lynx
+      - jq             # JSON processing (Added 2026-04-06)
+      - yq-go          # YAML processing (Added 2026-04-06)
+      - curl           # HTTP requests (Added 2026-04-06)
   nats:
     url: nats://nats.database.svc:4222
     subjects:

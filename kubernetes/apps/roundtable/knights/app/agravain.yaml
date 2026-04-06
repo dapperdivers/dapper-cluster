@@ -34,6 +34,16 @@ spec:
       - tcpdump
       - curl  # For autoresearch API calls
       - jq    # For JSON processing
+      # Expanded Pentest Tools (Added 2026-04-06)
+      - wpscan         # WordPress security scanner
+      - rustscan       # Fast port scanner
+      - thc-hydra      # Credential brute-forcing
+      - john           # Password cracking
+      - hashcat        # GPU-accelerated password cracking
+      - amass          # Subdomain enumeration
+      - subfinder      # Passive subdomain discovery
+      - whatweb        # Web technology fingerprinting
+      - crackmapexec   # Network service exploitation
   nats:
     url: nats://nats.database.svc:4222
     subjects:
