@@ -6,6 +6,7 @@ metadata:
   name: &app litellm
   annotations:
     postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/dbname: "litellm"
     postgres-init.home.arpa/user-key: "LITELLM_POSTGRES_USER"
     postgres-init.home.arpa/pass-key: "LITELLM_POSTGRES_PASSWORD"
 spec:
