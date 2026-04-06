@@ -4,6 +4,10 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app litellm
+  annotations:
+    postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/user-key: "LITELLM_POSTGRES_USER"
+    postgres-init.home.arpa/pass-key: "LITELLM_POSTGRES_PASSWORD"
 spec:
   interval: 30m
   chartRef:
@@ -34,7 +38,9 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               HOME: /tmp
-              LITELLM_LOG: ERROR
+              LITELLM_LOG: INFO
+              DATABASE_URL: postgresql://litellm:${LITELLM_DB_PASSWORD}@postgres-rw.database.svc.cluster.local:5432/litellm
+              STORE_MODEL_IN_DB: "true"
             envFrom:
               - secretRef:
                   name: litellm-secret

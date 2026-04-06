@@ -68,6 +68,56 @@ data:
           extra_body:
             think: false
 
+      # ── Tier 3: Anthropic Cloud (Paid) ────────────────────────────
+      # Real Anthropic models for production use via LiteLLM tracking
+      - model_name: anthropic/claude-sonnet-4-5
+        litellm_params:
+          model: anthropic/claude-sonnet-4-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+        model_info:
+          mode: chat
+          supports_vision: true
+          supports_function_calling: true
+
+      - model_name: anthropic/claude-opus-4-6
+        litellm_params:
+          model: anthropic/claude-opus-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+        model_info:
+          mode: chat
+          supports_vision: true
+          supports_function_calling: true
+
+      - model_name: anthropic/claude-haiku-4-6
+        litellm_params:
+          model: anthropic/claude-haiku-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 300
+        model_info:
+          mode: chat
+          supports_function_calling: true
+
+      # Short aliases for common use
+      - model_name: sonnet
+        litellm_params:
+          model: anthropic/claude-sonnet-4-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+
+      - model_name: opus
+        litellm_params:
+          model: anthropic/claude-opus-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+
+      - model_name: haiku
+        litellm_params:
+          model: anthropic/claude-haiku-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 300
+
     router_settings:
       routing_strategy: simple-shuffle
       num_retries: 2
