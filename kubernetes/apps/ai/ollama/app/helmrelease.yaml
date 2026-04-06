@@ -42,8 +42,8 @@ spec:
               OLLAMA_KV_CACHE_TYPE: q8_0
               # Spread model layers evenly across all GPUs (3x P100)
               OLLAMA_SCHED_SPREAD: "true"
-              # Parallel request handling — 4 concurrent for knight workloads
-              OLLAMA_NUM_PARALLEL: "4"
+              # Parallel request handling — 2 concurrent (4 OOMs with 128K ctx)
+              OLLAMA_NUM_PARALLEL: "2"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
               # Context window — 128K (Ollama auto-expands to 256K based on VRAM)
