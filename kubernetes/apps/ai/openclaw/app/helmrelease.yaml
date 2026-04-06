@@ -158,6 +158,42 @@ spec:
                   if (!c.memory.qmd.paths.some(p2 => p2.path === vaultPath)) {
                     c.memory.qmd.paths.push({path: vaultPath, name: 'vault'});
                   }
+                  // Ollama provider for local Gemma 4 inference
+                  c.models = c.models || {};
+                  c.models.providers = c.models.providers || {};
+                  c.models.providers.ollama = {
+                    baseUrl: 'http://ollama.ai.svc.cluster.local:11434',
+                    apiKey: 'ollama-local',
+                    api: 'ollama',
+                    models: [
+                      {
+                        id: 'gemma4:26b',
+                        name: 'Gemma 4 26B (Local 3x P100)',
+                        reasoning: false,
+                        input: ['text'],
+                        cost: {input: 0, output: 0, cacheRead: 0, cacheWrite: 0},
+                        contextWindow: 131072,
+                        maxTokens: 32768
+                      },
+                      {
+                        id: 'gemma4:e4b',
+                        name: 'Gemma 4 E4B (Local Fast)',
+                        reasoning: false,
+                        input: ['text'],
+                        cost: {input: 0, output: 0, cacheRead: 0, cacheWrite: 0},
+                        contextWindow: 131072,
+                        maxTokens: 32768
+                      }
+                    ]
+                  };
+                  // Default subagents to local Gemma 4
+                  c.agents = c.agents || {};
+                  c.agents.defaults = c.agents.defaults || {};
+                  c.agents.defaults.subagents = c.agents.defaults.subagents || {};
+                  c.agents.defaults.subagents.model = {
+                    primary: 'ollama/gemma4:26b',
+                    fallbacks: ['anthropic/claude-sonnet-4-5']
+                  };
                   fs.mkdirSync('/home/node/.openclaw', {recursive: true});
                   fs.writeFileSync(p, JSON.stringify(c, null, 2));
                 "
