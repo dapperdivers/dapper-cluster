@@ -22,6 +22,11 @@ spec:
               kinds: [HelmRelease]
               annotations:
                 postgres-init.home.arpa/enabled: "true"
+      context:
+        - name: pgInitConfig
+          apiCall:
+            urlPath: /api/v1/namespaces/kyverno/configmaps/postgres-init-config
+            jmesPath: data
       mutate:
         patchStrategicMerge:
           spec:
@@ -31,8 +36,8 @@ spec:
                   initContainers:
                     init-db:
                       image:
-                        repository: "{{ lookup('v1', 'ConfigMap', 'kyverno', 'postgres-init-config').data.\"image-repository\" }}"
-                        tag: "{{ lookup('v1', 'ConfigMap', 'kyverno', 'postgres-init-config').data.\"image-tag\" }}"
+                        repository: "{{ pgInitConfig.\"image-repository\" }}"
+                        tag: "{{ pgInitConfig.\"image-tag\" }}"
                       envFrom:
                         - secretRef:
                             name: "{{ request.object.metadata.name }}-postgres-init"
