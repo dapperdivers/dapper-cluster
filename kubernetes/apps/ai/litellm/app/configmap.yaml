@@ -192,31 +192,33 @@ data:
 
       # Tim: OpenClaw assistant (more aggressive, starts at Haiku)
       # Tier 1: Haiku ($1/$5) → Tier 2: Sonnet ($3/$15) → Tier 3: Opus ($15/$75)
-      - model_name: tim
-        litellm_params:
-          model_list:
-            - model_name: anthropic/claude-haiku-4-6
-              litellm_params:
-                model: anthropic/claude-haiku-4-6
-                api_key: os.environ/ANTHROPIC_API_KEY
-                timeout: 300
-            - model_name: anthropic/claude-sonnet-4-5
-              litellm_params:
-                model: anthropic/claude-sonnet-4-5
-                api_key: os.environ/ANTHROPIC_API_KEY
-                timeout: 600
-            - model_name: anthropic/claude-opus-4-6
-              litellm_params:
-                model: anthropic/claude-opus-4-6
-                api_key: os.environ/ANTHROPIC_API_KEY
-                timeout: 600
-        router_settings:
-          routing_strategy: cost-based-routing
-          num_retries: 2
-          timeout: 600
-          allowed_fails: 2
-        model_info:
-          description: "Tim router: Haiku (fast) → Sonnet (balanced) → Opus (big guns)"
+      # DISABLED: LiteLLM v1.82.3 crashes on router models as last item in list
+      # TODO: Re-enable after LiteLLM upgrade or move before 'smart'
+      # - model_name: tim
+      #   litellm_params:
+      #     model_list:
+      #       - model_name: anthropic/claude-haiku-4-6
+      #         litellm_params:
+      #           model: anthropic/claude-haiku-4-6
+      #           api_key: os.environ/ANTHROPIC_API_KEY
+      #           timeout: 300
+      #       - model_name: anthropic/claude-sonnet-4-5
+      #         litellm_params:
+      #           model: anthropic/claude-sonnet-4-5
+      #           api_key: os.environ/ANTHROPIC_API_KEY
+      #           timeout: 600
+      #       - model_name: anthropic/claude-opus-4-6
+      #         litellm_params:
+      #           model: anthropic/claude-opus-4-6
+      #           api_key: os.environ/ANTHROPIC_API_KEY
+      #           timeout: 600
+      #   router_settings:
+      #     routing_strategy: cost-based-routing
+      #     num_retries: 2
+      #     timeout: 600
+      #     allowed_fails: 2
+      #   model_info:
+      #     description: "Tim router: Haiku (fast) → Sonnet (balanced) → Opus (big guns)"
 
     router_settings:
       routing_strategy: simple-shuffle
