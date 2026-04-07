@@ -90,9 +90,9 @@ data:
           supports_vision: true
           supports_function_calling: true
 
-      - model_name: anthropic/claude-haiku-4-6
+      - model_name: anthropic/claude-haiku-4-5
         litellm_params:
-          model: anthropic/claude-haiku-4-6
+          model: anthropic/claude-haiku-4-5
           api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 300
         model_info:
@@ -114,7 +114,7 @@ data:
 
       - model_name: haiku
         litellm_params:
-          model: anthropic/claude-haiku-4-6
+          model: anthropic/claude-haiku-4-5
           api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 300
 
@@ -132,7 +132,7 @@ data:
 
       - model_name: claude-haiku
         litellm_params:
-          model: anthropic/claude-haiku-4-6
+          model: anthropic/claude-haiku-4-5
           api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 300
         model_info:
@@ -174,9 +174,9 @@ data:
       #           model: ollama/gemma4:26b
       #           api_base: http://ollama.ai.svc.cluster.local:11434
       #           timeout: 120
-      #       - model_name: anthropic/claude-haiku-4-6
+      #       - model_name: anthropic/claude-haiku-4-5
       #         litellm_params:
-      #           model: anthropic/claude-haiku-4-6
+      #           model: anthropic/claude-haiku-4-5
       #           api_key: os.environ/ANTHROPIC_API_KEY
       #           timeout: 300
       #       - model_name: anthropic/claude-sonnet-4-5
@@ -199,9 +199,9 @@ data:
       # - model_name: tim
       #   litellm_params:
       #     model_list:
-      #       - model_name: anthropic/claude-haiku-4-6
+      #       - model_name: anthropic/claude-haiku-4-5
       #         litellm_params:
-      #           model: anthropic/claude-haiku-4-6
+      #           model: anthropic/claude-haiku-4-5
       #           api_key: os.environ/ANTHROPIC_API_KEY
       #           timeout: 300
       #       - model_name: anthropic/claude-sonnet-4-5
