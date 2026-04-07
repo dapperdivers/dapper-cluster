@@ -31,8 +31,8 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/squire
-              tag: master
-              pullPolicy: Always
+              tag: sha-54915bb
+              pullPolicy: IfNotPresent
             
             securityContext:
               allowPrivilegeEscalation: false
