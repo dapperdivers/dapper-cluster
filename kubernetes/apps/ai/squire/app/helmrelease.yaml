@@ -25,7 +25,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/squire
-              tag: latest
+              tag: master
               pullPolicy: Always
             
             env:
