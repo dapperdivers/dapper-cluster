@@ -50,6 +50,13 @@ spec:
         FIRST: Read yesterday's report in /vault/Briefings/Intel/ (most recent YYYY-MM-DD.md).
         Note what's NEW vs what carried over. Only expand on new findings.
         If a topic appeared yesterday with no update, give it one line: "Unchanged."
+
+        HARD RULES:
+        - Report FACTS only. No revenue projections, market sizing, or business opportunities.
+        - No "$X potential" or "launch service in N hours" language. You are a reporter, not a startup pitch deck.
+        - If a previous report contained speculative projections, do NOT carry them forward.
+        - Focus on: What happened? What does it affect? What should Derek know?
+
         Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
         Return a concise summary (5-10 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
@@ -186,6 +193,7 @@ spec:
         5) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
         6) Stale items (⏳ Day 5+) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots. Don't give them full bullets — they're noise until something changes.
         7) RELEVANCE CHECK: If Galahad mentions CVEs for software NOT in our cluster, DROP them. We only care about vulnerabilities in software we actually run. Generic CISA KEV deadlines for unrelated software are noise.
+        8) CROSS-DOMAIN CONNECTIONS must describe real cause→effect between domains Derek manages, not invented business opportunities or revenue projections. If no real connections exist, write: "No actionable cross-domain connections today."
 
         STRUCTURE (exactly this, no additions):
 
@@ -211,10 +219,18 @@ spec:
 
         LENGTH REQUIREMENT: The briefing MUST be 80-120 lines. Under 80 = TOO SHORT (you're losing signal). Over 150 = too long. Count your lines before finishing. If under 80, expand domain snapshots with more detail.
 
-        CRITICAL OUTPUT RULE: Your ENTIRE response text becomes the daily briefing file.
-        DO NOT say "Briefing assembled" or "saved to file" — there IS no file operation.
-        DO NOT write a summary of what you would write. WRITE THE ACTUAL BRIEFING.
-        DO NOT include any meta-commentary about the briefing. No preamble. No postamble.
-        Start your response with "# Daily Briefing — YYYY-MM-DD" and end with the line count.
-        Everything between is the briefing content. Nothing else.
-      timeout: 600
+        MANDATORY FILE WRITE — THIS IS THE MOST IMPORTANT STEP:
+        After composing the briefing, you MUST use your `write` tool to save the complete
+        briefing text to /vault/Briefings/Daily/YYYY-MM-DD.md (use today's actual date).
+        The NATS response alone does NOT create the file. If you skip this write, the
+        briefing is LOST — it only exists in NATS KV where nobody reads it.
+
+        After writing the file, verify it exists:
+        bash ls -la /vault/Briefings/Daily/YYYY-MM-DD.md
+
+        Your NATS response text should be a SHORT summary (5-10 lines):
+        - Confirm file was written with path and line count
+        - List the Top 3 action items as one-liners
+        - Note any missing reports or quality issues
+        This summary is what gets stored in NATS KV for chain diagnostics.
+      timeout: 900
