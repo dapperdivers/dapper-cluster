@@ -20,3 +20,4 @@ resources:
   # LLM Inference Stack
   - ./ollama/ks.yaml
   - ./litellm/ks.yaml
+  - ./squire/ks.yaml

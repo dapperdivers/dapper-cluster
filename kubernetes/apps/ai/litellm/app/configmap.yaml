@@ -118,6 +118,47 @@ data:
           api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 300
 
+      # ── Squire Model Aliases ──────────────────────────────────────
+      # Used by Squire for escalation paths
+      - model_name: gemma-local
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 600
+          extra_body:
+            think: false
+        model_info:
+          description: "Squire alias for local Gemma"
+
+      - model_name: claude-haiku
+        litellm_params:
+          model: anthropic/claude-haiku-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 300
+        model_info:
+          mode: chat
+          supports_function_calling: true
+
+      - model_name: claude-sonnet
+        litellm_params:
+          model: anthropic/claude-sonnet-4-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+        model_info:
+          mode: chat
+          supports_vision: true
+          supports_function_calling: true
+
+      - model_name: claude-opus
+        litellm_params:
+          model: anthropic/claude-opus-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+        model_info:
+          mode: chat
+          supports_vision: true
+          supports_function_calling: true
+
       # ── Smart Router Models ──────────────────────────────────────────────────
       # Cost-optimized routing with automatic fallbacks
 
