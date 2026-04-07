@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: home
   image: ""
-  model: "anthropic/claude-sonnet-4-5"
+  model: "local/gemma4-26b"
   skills:
     - shared
     - home

@@ -23,7 +23,7 @@ spec:
     matchLabels:
       ai.roundtable.io/table: roundtable-dev
   defaults:
-    model: "anthropic/claude-sonnet-4-5"
+    model: "local/gemma4-26b"
     image: ""
     taskTimeout: 1800
     concurrency: 1

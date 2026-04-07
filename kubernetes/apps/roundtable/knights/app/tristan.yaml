@@ -9,7 +9,7 @@ spec:
   domain: infra
   serviceAccountName: tristan
   image: ""
-  model: "anthropic/claude-sonnet-4-5"
+  model: "local/gemma4-26b"
   skills:
     - shared
     - infra

@@ -20,7 +20,7 @@ spec:
     streamRetention: WorkQueue
   knightTemplates:
     base:
-      model: "anthropic/claude-sonnet-4-5"
+      model: "local/gemma4-26b"
       domain: general
       skills:
         - shared
@@ -39,7 +39,7 @@ spec:
     matchLabels:
       ai.roundtable.io/table: personal
   defaults:
-    model: "anthropic/claude-sonnet-4-5"
+    model: "local/gemma4-26b"
     image: ""
     taskTimeout: 600
     concurrency: 2
