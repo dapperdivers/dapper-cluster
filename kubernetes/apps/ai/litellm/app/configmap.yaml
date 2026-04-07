@@ -118,6 +118,65 @@ data:
           api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 300
 
+      # ── Smart Router Models ──────────────────────────────────────────────────
+      # Cost-optimized routing with automatic fallbacks
+
+      # Smart: General purpose (knights)
+      # Tier 1: Gemma (free) → Tier 2: Haiku ($1/$5) → Tier 3: Sonnet ($3/$15)
+      - model_name: smart
+        litellm_params:
+          model_list:
+            - model_name: ollama/gemma4:26b
+              litellm_params:
+                model: ollama/gemma4:26b
+                api_base: http://ollama.ai.svc.cluster.local:11434
+                timeout: 120
+            - model_name: anthropic/claude-haiku-4-6
+              litellm_params:
+                model: anthropic/claude-haiku-4-6
+                api_key: os.environ/ANTHROPIC_API_KEY
+                timeout: 300
+            - model_name: anthropic/claude-sonnet-4-5
+              litellm_params:
+                model: anthropic/claude-sonnet-4-5
+                api_key: os.environ/ANTHROPIC_API_KEY
+                timeout: 600
+        router_settings:
+          routing_strategy: cost-based-routing
+          num_retries: 2
+          timeout: 600
+          allowed_fails: 2
+        model_info:
+          description: "Smart router: Gemma (free) → Haiku (cheap) → Sonnet (premium)"
+
+      # Tim: OpenClaw assistant (more aggressive, starts at Haiku)
+      # Tier 1: Haiku ($1/$5) → Tier 2: Sonnet ($3/$15) → Tier 3: Opus ($15/$75)
+      - model_name: tim
+        litellm_params:
+          model_list:
+            - model_name: anthropic/claude-haiku-4-6
+              litellm_params:
+                model: anthropic/claude-haiku-4-6
+                api_key: os.environ/ANTHROPIC_API_KEY
+                timeout: 300
+            - model_name: anthropic/claude-sonnet-4-5
+              litellm_params:
+                model: anthropic/claude-sonnet-4-5
+                api_key: os.environ/ANTHROPIC_API_KEY
+                timeout: 600
+            - model_name: anthropic/claude-opus-4-6
+              litellm_params:
+                model: anthropic/claude-opus-4-6
+                api_key: os.environ/ANTHROPIC_API_KEY
+                timeout: 600
+        router_settings:
+          routing_strategy: cost-based-routing
+          num_retries: 2
+          timeout: 600
+          allowed_fails: 2
+        model_info:
+          description: "Tim router: Haiku (fast) → Sonnet (balanced) → Opus (big guns)"
+
     router_settings:
       routing_strategy: simple-shuffle
       num_retries: 2
