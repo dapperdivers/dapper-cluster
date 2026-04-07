@@ -12,17 +12,17 @@ spec:
     name: app-template
   
   values:
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      automountServiceAccountToken: false
+    
     controllers:
       squire:
         replicas: 2
         strategy: RollingUpdate
-        
-        pod:
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-          automountServiceAccountToken: false
         
         containers:
           app:
