@@ -33,6 +33,10 @@ spec:
       - httpx          # Fast HTTP probing
       - dnsx           # DNS toolkit
       - osv-scanner    # Google OSV vuln scanner
+      # Added 2026-03-30 - Fleet self-improvement assessment
+      - kubectl        # Kubernetes CLI for live cluster security verification
+      - semgrep        # SAST code scanning for vulnerability detection
+      - kubescape      # Kubernetes security posture assessment
       # SAST & Code Analysis (Added 2026-03-23)
       - semgrep        # Static application security testing
       - gosec          # Go security checker

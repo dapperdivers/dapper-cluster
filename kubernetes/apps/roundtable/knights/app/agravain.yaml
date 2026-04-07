@@ -34,6 +34,8 @@ spec:
       - tcpdump
       - curl  # For autoresearch API calls
       - jq    # For JSON processing
+      # Added 2026-03-30 - Fleet self-improvement assessment
+      - netcat-gnu       # Network utility for port scanning and connections
   nats:
     url: nats://nats.database.svc:4222
     subjects:

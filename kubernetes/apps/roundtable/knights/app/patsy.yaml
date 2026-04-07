@@ -24,6 +24,12 @@ spec:
       - graphviz         # Knowledge graph visualization
       - pandoc           # Document format conversion
       - yq-go            # YAML processing (Added 2026-03-23)
+      # Added 2026-03-30 - Fleet self-improvement assessment
+      - ripgrep          # Fast text search for vault content analysis
+      - jq               # JSON processing for structured data
+      - kubectl          # Kubernetes CLI for vault integration debugging
+      - kubernetes-helm  # Helm for vault chart operations
+      - vault            # HashiCorp Vault CLI for vault operations
   nats:
     url: nats://nats.database.svc:4222
     subjects:

@@ -29,6 +29,8 @@ spec:
       - ripgrep          # Faster grep alternative for large file searches
       - httpie           # User-friendly HTTP client for API research
       - yq-go            # YAML processing for structured data analysis
+      # Added 2026-03-30 - Fleet self-improvement assessment
+      - htmlq            # HTML parsing for web scraping intelligence sources
   nats:
     url: nats://nats.database.svc:4222
     subjects:

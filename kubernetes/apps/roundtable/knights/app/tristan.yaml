@@ -42,6 +42,10 @@ spec:
       - jq             # JSON processing
       - tree
       - curl
+      # Added 2026-03-30 - Fleet self-improvement assessment
+      - trivy          # Container vulnerability scanning for security assessments
+      - popeye         # Kubernetes cluster sanitizer for resource health checks
+      - crane          # Container image manipulation tool for registry operations
   nats:
     url: nats://nats.database.svc:4222
     subjects:
