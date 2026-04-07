@@ -10,7 +10,7 @@ spec:
     browser: true
   domain: security
   image: ""
-  model: "local/gemma4-26b"
+  model: "smart"
   skills:
     - security
     - shared

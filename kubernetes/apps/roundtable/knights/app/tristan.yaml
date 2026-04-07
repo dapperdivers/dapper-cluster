@@ -9,7 +9,7 @@ spec:
   domain: infra
   serviceAccountName: tristan
   image: ""
-  model: "local/gemma4-26b"
+  model: "smart"
   skills:
     - shared
     - infra

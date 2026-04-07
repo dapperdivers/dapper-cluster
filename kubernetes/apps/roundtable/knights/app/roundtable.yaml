@@ -20,7 +20,7 @@ spec:
     streamRetention: WorkQueue
   knightTemplates:
     base:
-      model: "local/gemma4-26b"
+      model: "smart"
       domain: general
       skills:
         - shared
@@ -39,7 +39,7 @@ spec:
     matchLabels:
       ai.roundtable.io/table: personal
   defaults:
-    model: "local/gemma4-26b"
+    model: "smart"
     image: ""
     taskTimeout: 600
     concurrency: 2

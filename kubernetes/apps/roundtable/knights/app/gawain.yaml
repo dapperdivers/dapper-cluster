@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: project
   image: ""
-  model: "local/gemma4-26b"
+  model: "smart"
   skills:
     - shared
     - project

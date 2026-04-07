@@ -9,7 +9,7 @@ spec:
   runtime: sandbox  # Testing Agent Sandbox backend (roundtable#94)
   domain: pentest
   image: ""
-  model: "local/gemma4-26b"
+  model: "smart"
   # capabilities:
   #   browser: true  # Disabled until browser sidecar is configured
   skills:

@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: finance
   image: ""
-  model: "local/gemma4-26b"
+  model: "smart"
   skills:
     - shared
     - finance
