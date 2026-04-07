@@ -17,12 +17,28 @@ spec:
         replicas: 2
         strategy: RollingUpdate
         
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+          automountServiceAccountToken: false
+        
         containers:
           app:
             image:
               repository: ghcr.io/dapperdivers/squire
               tag: master
               pullPolicy: Always
+            
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
             
             env:
               NODE_ENV: production
