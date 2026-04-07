@@ -31,7 +31,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/squire
-              tag: sha-54915bb
+              tag: sha-a31d180
               pullPolicy: IfNotPresent
             
             securityContext:
