@@ -36,6 +36,8 @@ spec:
       # SAST & Code Analysis (Added 2026-03-23)
       - semgrep        # Static application security testing
       - gosec          # Go security checker
+      # Cluster Operations (Added 2026-04-06)
+      - kubectl        # Kubernetes cluster access for CVE verification
     # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222
