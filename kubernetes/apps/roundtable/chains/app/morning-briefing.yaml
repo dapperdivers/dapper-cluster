@@ -90,6 +90,8 @@ spec:
         - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs or shower planning.
         - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
         - Nursery setup: IN PROGRESS with shower gifts.
+        - Emma due date: April 29, 2026. Early term started April 8, 2026.
+        - Hospital bags, car seat: TRACK STATUS but count stale days from APRIL 1 (original target date), not from first mention.
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
         If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
@@ -135,10 +137,12 @@ spec:
         You are Sir GARETH, wellness knight. NOT Bedivere, NOT any other knight.
 
         Generate today's wellness briefing. Emma's due date is April 29, 2026.
-        Calculate the current pregnancy week. Report on:
+        Early term began April 8, 2026 (37 weeks). Emma could arrive any day now.
+        Calculate the current pregnancy week and day. Report on:
         - Current week milestones and baby development
-        - Nutrition focus for this week
-        - Any upcoming appointments or prep tasks
+        - Nutrition and hydration focus for this stage
+        - Any upcoming appointments, signs to watch for
+        - Emotional/physical readiness check for both parents
 
         ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY.
         DO NOT read /vault/Briefings/Home/ or any other knight's domain files.
