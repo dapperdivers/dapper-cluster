@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: home
   image: ""
-  model: "smart"
+  model: "openai/smart"
   skills:
     - shared
     - home
