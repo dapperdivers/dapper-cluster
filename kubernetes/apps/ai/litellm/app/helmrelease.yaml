@@ -40,7 +40,6 @@ spec:
               TZ: ${TIME_ZONE}
               HOME: /tmp
               LITELLM_LOG: INFO
-              DATABASE_URL: postgresql://litellm:${LITELLM_DB_PASSWORD}@postgres-rw.database.svc.cluster.local:5432/litellm
               STORE_MODEL_IN_DB: "true"
             envFrom:
               - secretRef:
