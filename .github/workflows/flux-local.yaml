@@ -152,7 +152,6 @@ jobs:
             build all
             /github/workspace/kubernetes/flux/cluster
             --enable-helm
-            --sources "flux-system"
             --output-file /github/workspace/build-output.yaml
 
       - name: Validate with kubeconform
