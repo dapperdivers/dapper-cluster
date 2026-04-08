@@ -145,8 +145,8 @@ spec:
                   c.gateway.controlUi.allowedOrigins = ['https://molt.${SECRET_DOMAIN}'];
                   c.auth = c.auth || {};
                   c.auth.profiles = c.auth.profiles || {};
-                  c.auth.profiles['anthropic:default'] = {provider:'anthropic',mode:'oauth'};
-                  c.auth.profiles['anthropic:manual'] = {provider:'anthropic',mode:'oauth'};
+                  c.auth.profiles['openai-codex:default'] = {provider:'openai-codex',mode:'oauth'};
+                  c.auth.profiles['openai-codex:manual'] = {provider:'openai-codex',mode:'oauth'};
                   c.memory = c.memory || {};
                   c.memory.backend = 'qmd';
                   c.memory.qmd = c.memory.qmd || {};
@@ -186,13 +186,15 @@ spec:
                       }
                     ]
                   };
-                  // Default subagents to local Gemma 4
+                  // Default agent/subagent model routing
+                  // Main assistant should use Codex; agents/subagents should use smart by default.
                   c.agents = c.agents || {};
                   c.agents.defaults = c.agents.defaults || {};
+                  c.agents.defaults.model = 'openai-codex/gpt-5.4';
                   c.agents.defaults.subagents = c.agents.defaults.subagents || {};
                   c.agents.defaults.subagents.model = {
-                    primary: 'ollama/gemma4:26b',
-                    fallbacks: ['anthropic/claude-sonnet-4-5']
+                    primary: 'openai/smart',
+                    fallbacks: ['openai-codex/gpt-5.4']
                   };
                   fs.mkdirSync('/home/node/.openclaw', {recursive: true});
                   fs.writeFileSync(p, JSON.stringify(c, null, 2));
