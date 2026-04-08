@@ -9,6 +9,7 @@ metadata:
     postgres-init.home.arpa/dbname: "litellm"
     postgres-init.home.arpa/user-key: "LITELLM_POSTGRES_USER"
     postgres-init.home.arpa/pass-key: "LITELLM_POSTGRES_PASSWORD"
+    postgres-init.home.arpa/secret-store: "infisical-postgres"
 spec:
   interval: 30m
   chartRef:
@@ -31,8 +32,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/berriai/litellm
-              tag: v1.82.3-stable.patch.2
+              repository: ghcr.io/berriai/litellm-database
+              tag: v1.82.3.dev.8
             args:
               - "--config"
               - "/app/config.yaml"
@@ -41,6 +42,7 @@ spec:
               HOME: /tmp
               LITELLM_LOG: INFO
               STORE_MODEL_IN_DB: "true"
+              DISABLE_SCHEMA_UPDATE: "true"
               LITELLM_MIGRATION_DIR: /tmp/migrations
             envFrom:
               - secretRef:
@@ -75,7 +77,7 @@ spec:
                 memory: 512Mi
               limits:
                 cpu: 1
-                memory: 2Gi
+                memory: 1Gi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
