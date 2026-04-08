@@ -41,6 +41,7 @@ spec:
               HOME: /tmp
               LITELLM_LOG: INFO
               STORE_MODEL_IN_DB: "true"
+              LITELLM_MIGRATION_DIR: /tmp/migrations
             envFrom:
               - secretRef:
                   name: litellm-secret
