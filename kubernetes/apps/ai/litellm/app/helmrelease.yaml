@@ -33,17 +33,14 @@ spec:
           app:
             image:
               repository: ghcr.io/berriai/litellm-database
-              tag: v1.82.3.dev.8
+              tag: main-stable
             args:
               - "--config"
               - "/app/config.yaml"
             env:
               TZ: ${TIME_ZONE}
-              HOME: /tmp
               LITELLM_LOG: INFO
               STORE_MODEL_IN_DB: "true"
-              DISABLE_SCHEMA_UPDATE: "true"
-              LITELLM_MIGRATION_DIR: /tmp/migrations
             envFrom:
               - secretRef:
                   name: litellm-secret
@@ -85,11 +82,6 @@ spec:
 
     defaultPodOptions:
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-        runAsNonRoot: false
-        fsGroup: 0
-        fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: RuntimeDefault }
 
     service:
@@ -124,10 +116,6 @@ spec:
           - path: /app/config.yaml
             subPath: config.yaml
             readOnly: true
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
 
     serviceMonitor:
       app:
