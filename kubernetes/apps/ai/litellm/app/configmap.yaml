@@ -11,7 +11,7 @@ data:
 
     model_list:
       # ── Tier 1: Local (Free) ──────────────────────────────────────
-      # Gemma 4 26B A4B MoE — primary local model on 2x P100
+      # Gemma 4 26B A4B MoE — primary local model on 3x P100
       - model_name: local/gemma4-26b
         litellm_params:
           model: ollama/gemma4:26b
@@ -245,7 +245,7 @@ data:
       set_verbose: false
       json_logs: true
       request_timeout: 600
-      drop_params: true
+      drop_params: false
       cache: true
       cache_params:
         type: redis
