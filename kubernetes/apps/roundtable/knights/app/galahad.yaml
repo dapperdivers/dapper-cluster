@@ -10,7 +10,7 @@ spec:
     browser: true
   domain: security
   image: ""
-  model: "openai/gemma4"
+  model: "ollama/gemma4:26b"
   skills:
     - security
     - shared
