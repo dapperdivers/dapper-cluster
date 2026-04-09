@@ -130,6 +130,16 @@ data:
         model_info:
           description: "Squire alias for local Gemma"
 
+      - model_name: openai/gemma-local
+        litellm_params:
+          model: ollama/gemma4:26b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+          timeout: 600
+          extra_body:
+            think: false
+        model_info:
+          description: "OpenAI-compatible alias for local Gemma"
+
       - model_name: claude-haiku
         litellm_params:
           model: anthropic/claude-haiku-4-5

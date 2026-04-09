@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: coding
   image: ""
-  model: "ollama/gemma4:26b"
+  model: "openai/gemma-local"
   skills:
     - shared
     - coding
