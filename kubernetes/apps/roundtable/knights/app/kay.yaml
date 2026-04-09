@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: research
   image: ""
-  model: "openai/gemma4"
+  model: "ollama/gemma4:26b"
   skills:
     - shared
     - research
