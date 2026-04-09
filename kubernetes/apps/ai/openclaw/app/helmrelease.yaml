@@ -151,6 +151,8 @@ spec:
 
                   c.auth = c.auth || {};
                   c.auth.profiles = c.auth.profiles || {};
+                  delete c.auth.profiles['anthropic:default'];
+                  delete c.auth.profiles['anthropic:manual'];
                   c.auth.profiles['openai-codex:default'] = {provider:'openai-codex',mode:'oauth'};
                   c.auth.profiles['openai-codex:manual'] = {provider:'openai-codex',mode:'oauth'};
 
