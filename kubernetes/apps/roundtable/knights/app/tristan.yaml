@@ -9,7 +9,7 @@ spec:
   domain: infra
   serviceAccountName: tristan
   image: ""
-  model: "smart"
+  model: "openai/gemma4"
   skills:
     - shared
     - infra

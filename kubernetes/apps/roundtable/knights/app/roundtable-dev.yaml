@@ -23,7 +23,7 @@ spec:
     matchLabels:
       ai.roundtable.io/table: roundtable-dev
   defaults:
-    model: "smart"
+    model: "openai/gemma4"
     image: ""
     taskTimeout: 1800
     concurrency: 1

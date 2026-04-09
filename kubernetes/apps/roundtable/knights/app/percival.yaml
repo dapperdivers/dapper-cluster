@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: finance
   image: ""
-  model: "smart"
+  model: "openai/gemma4"
   skills:
     - shared
     - finance
