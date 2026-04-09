@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: project
   image: ""
-  model: "smart"
+  model: "openai/gemma4"
   skills:
     - shared
     - project

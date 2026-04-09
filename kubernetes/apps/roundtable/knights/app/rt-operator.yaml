@@ -7,7 +7,7 @@ metadata:
   name: rt-operator
 spec:
   domain: operator
-  model: "smart"
+  model: "openai/gemma4"
   skills:
     - shared
     - coding
