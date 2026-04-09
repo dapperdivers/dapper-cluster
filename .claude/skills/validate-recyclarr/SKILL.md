@@ -1,6 +1,7 @@
 ---
+name: validate-recyclarr
 description: Validate recyclarr.yml config against official documentation
-allowed-tools: Read, WebFetch, WebSearch, Grep, Glob
+tools: Read, WebFetch, WebSearch, Grep, Glob
 ---
 
 # Recyclarr Configuration Validator
