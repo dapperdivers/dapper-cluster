@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: wellness
   image: ""
-  model: "ollama/gemma4:26b"
+  model: "openai/gemma-local"
   skills:
     - shared
     - wellness
