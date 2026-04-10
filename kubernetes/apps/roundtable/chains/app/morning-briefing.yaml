@@ -238,3 +238,61 @@ spec:
         - Note any missing reports or quality issues
         This summary is what gets stored in NATS KV for chain diagnostics.
       timeout: 900
+
+    # Phase 3 — Fail loudly if artifacts are missing or malformed.
+    # A partial/fallback briefing is still useful for Derek, but the chain status
+    # must reflect reality so the morning operator doesn't get a false green light.
+    - name: verify_artifacts
+      knightRef: gawain
+      dependsOn:
+        - security_intel
+        - intel_digest
+        - infra_status
+        - home_tasks
+        - finance_check
+        - career_update
+        - wellness_check
+        - synthesize
+      task: |
+        MORNING BRIEFING ARTIFACT AUDIT — determine whether this chain actually succeeded.
+
+        You are not writing a briefing. You are acting as the auditor.
+        Inspect the expected artifacts for today's run and FAIL if the chain produced a false-success condition.
+
+        Expected knight report files:
+        - /vault/Briefings/Security/YYYY-MM-DD.md
+        - /vault/Briefings/Intel/YYYY-MM-DD.md
+        - /vault/Briefings/HomeLab/YYYY-MM-DD.md
+        - /vault/Briefings/Home/YYYY-MM-DD.md
+        - /vault/Briefings/Finance/YYYY-MM-DD.md
+        - /vault/Briefings/Career/YYYY-MM-DD.md
+        - /vault/Briefings/Wellness/YYYY-MM-DD.md
+
+        Expected final briefing file:
+        - /vault/Briefings/Daily/YYYY-MM-DD.md
+
+        Available step outputs to inspect for bad signals:
+        Security: {{ .Steps.security_intel.Output }}
+        Intel: {{ .Steps.intel_digest.Output }}
+        Infrastructure: {{ .Steps.infra_status.Output }}
+        Home: {{ .Steps.home_tasks.Output }}
+        Finance: {{ .Steps.finance_check.Output }}
+        Career: {{ .Steps.career_update.Output }}
+        Wellness: {{ .Steps.wellness_check.Output }}
+        Synthesis: {{ .Steps.synthesize.Output }}
+
+        HARD RULES:
+        1) Use your bash tool to list every expected file with byte counts.
+        2) Treat any missing domain report as FAILURE.
+        3) Treat a domain report under 500 bytes as suspicious and FAILURE.
+        4) Treat the daily briefing file missing as FAILURE.
+        5) Treat obviously malformed step outputs as FAILURE, including:
+           - empty output
+           - tool-call fragments
+           - analysis/thought leakage
+           - truncation markers like "... [truncated]"
+        6) If everything is healthy, return exactly: ARTIFACT_AUDIT_OK
+        7) If anything is wrong, return a concise failure report and then EXIT NON-ZERO using bash so the chain status becomes Failed.
+
+        The purpose of this step is truthfulness, not optimism.
+      timeout: 300
