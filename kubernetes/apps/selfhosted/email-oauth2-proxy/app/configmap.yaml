@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: email-oauth2-proxy-config
+data:
+  emailproxy.config: |
+    [Email OAuth 2.0 Proxy configuration]
+    # Log to stdout for k8s log collection
+    delete_account_token_on_password_error = False
+    encrypt_client_secret_on_first_use = False
+
+    [outlook]
+    permission_url = https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+    token_url = https://login.microsoftonline.com/common/oauth2/v2.0/token
+    oauth2_scope = https://outlook.office.com/IMAP.AccessAsUser.All offline_access
+    redirect_uri = https://login.microsoftonline.com/common/oauth2/nativeclient
+
+    server_address = outlook.office.com
+    server_port = 993
+
+    local_address = 0.0.0.0
+    local_port = 1993
