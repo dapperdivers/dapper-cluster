@@ -282,17 +282,14 @@ spec:
         Synthesis: {{ .Steps.synthesize.Output }}
 
         HARD RULES:
-        1) Use your bash tool to list every expected file with byte counts.
-        2) Treat any missing domain report as FAILURE.
-        3) Treat a domain report under 500 bytes as suspicious and FAILURE.
-        4) Treat the daily briefing file missing as FAILURE.
-        5) Treat obviously malformed step outputs as FAILURE, including:
-           - empty output
-           - tool-call fragments
-           - analysis/thought leakage
-           - truncation markers like "... [truncated]"
-        6) If everything is healthy, return exactly: ARTIFACT_AUDIT_OK
-        7) If anything is wrong, return a concise failure report and then EXIT NON-ZERO using bash so the chain status becomes Failed.
+        1) Do NOT perform a freeform audit from memory.
+        2) Run this exact command first:
+           bash /workspace/scripts/briefing-artifact-audit.sh YYYY-MM-DD
+        3) Treat any non-zero exit from that script as FAILURE.
+        4) Then verify the final briefing file exists with:
+           ls -lh /vault/Briefings/Daily/YYYY-MM-DD.md
+        5) If everything is healthy, return exactly: ARTIFACT_AUDIT_OK
+        6) If anything is wrong, return a concise failure report and then EXIT NON-ZERO using bash so the chain status becomes Failed.
 
         The purpose of this step is truthfulness, not optimism.
       timeout: 300
