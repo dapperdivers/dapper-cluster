@@ -45,11 +45,20 @@ spec:
       knightRef: kay
       continueOnFailure: true
       task: |
-        Generate today's intelligence digest. Research current events, technology news,
-        and anything relevant to Derek's interests (security, AI, homelab, career).
+        Generate today's intelligence digest.
+        PRIORITY ORDER: security/AI/homelab news first, career-relevant tech second.
+        This is a MORNING DIGEST, not a deep research project.
+
         FIRST: Read yesterday's report in /vault/Briefings/Intel/ (most recent YYYY-MM-DD.md).
         Note what's NEW vs what carried over. Only expand on new findings.
         If a topic appeared yesterday with no update, give it one line: "Unchanged."
+
+        HARD BOUNDS:
+        - Stop after 3-5 meaningful developments total.
+        - Spend no more than ~2 quick source checks per development.
+        - Prefer concise summaries over exhaustive browsing.
+        - If a source stalls or tooling is flaky, skip it and move on.
+        - If no credible new developments are found quickly, say so plainly instead of stretching.
 
         HARD RULES:
         - Report FACTS only. No revenue projections, market sizing, or business opportunities.
@@ -59,8 +68,8 @@ spec:
 
         Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
-      timeout: 900
+        Return a concise summary (4-8 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
+      timeout: 1200
 
     - name: infra_status
       knightRef: tristan
@@ -146,6 +155,7 @@ spec:
 
         ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY.
         DO NOT read /vault/Briefings/Home/ or any other knight's domain files.
+        DO NOT browse the web. This is a bounded local-context task.
 
         COMPLETED EVENTS (do NOT mention these):
         - Baby shower: DONE March 7, 2026
@@ -153,12 +163,18 @@ spec:
 
         FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
         Only report what CHANGED since yesterday. Same-week = focus on daily differences only.
+        If nothing changed materially, say that briefly instead of re-deriving a full explainer.
+
+        EXECUTION BOUNDS:
+        - Read at most 2 files total.
+        - Do not do open-ended analysis.
+        - Finish fast. This step should be lightweight.
 
         Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
 
         OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points.
         No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
-      timeout: 600
+      timeout: 900
 
     # Phase 2 — Gawain synthesizes all reports
     - name: synthesize
