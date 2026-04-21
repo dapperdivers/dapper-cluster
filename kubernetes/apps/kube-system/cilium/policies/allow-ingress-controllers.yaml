@@ -1,0 +1,30 @@
+---
+# Allow internal nginx ingress to reach backend pods
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-from-internal-ingress
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+            app.kubernetes.io/name: ingress-nginx
+            app.kubernetes.io/component: controller
+            app.kubernetes.io/instance: internal
+---
+# Allow external nginx ingress to reach backend pods
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-from-external-ingress
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+            app.kubernetes.io/name: ingress-nginx
+            app.kubernetes.io/component: controller
+            app.kubernetes.io/instance: external

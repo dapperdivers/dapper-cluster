@@ -1,0 +1,14 @@
+---
+# Default deny all ingress to ai namespace
+# AI services (LiteLLM, OpenClaw, Speaches, etc.) — protect the brains
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: ai
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai

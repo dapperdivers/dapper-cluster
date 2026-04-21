@@ -1,0 +1,74 @@
+---
+# Knights need NATS for task dispatch and inter-knight comms
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-knights-nats-egress
+  namespace: roundtable
+spec:
+  endpointSelector: {}
+  egress:
+    # NATS (task dispatch, results, inter-knight comms)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: nats
+      toPorts:
+        - ports:
+            - port: "4222"
+              protocol: TCP
+    # External APIs (Anthropic via LiteLLM or direct)
+    - toCIDR:
+        - 0.0.0.0/0
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # LiteLLM (local LLM proxy)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+            app.kubernetes.io/name: litellm
+      toPorts:
+        - ports:
+            - port: "4000"
+              protocol: TCP
+---
+# Galahad needs OpenCTI access
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-galahad-opencti
+  namespace: roundtable
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: galahad
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# Bedivere needs Home Assistant access
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-bedivere-ha
+  namespace: roundtable
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: bedivere
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: home-automation
+            app.kubernetes.io/name: home-assistant
+      toPorts:
+        - ports:
+            - port: "8123"
+              protocol: TCP

@@ -1,0 +1,14 @@
+---
+# Default deny all ingress to security namespace
+# Authentik, OpenCTI, Vaultwarden, Wazuh — high-value targets
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: security
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: security

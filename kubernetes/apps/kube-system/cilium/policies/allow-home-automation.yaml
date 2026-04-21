@@ -1,0 +1,73 @@
+---
+# Home Assistant needs to reach IoT devices on LAN
+# and EMQX (MQTT) in database namespace
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-ha-egress
+  namespace: home-automation
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: home-assistant
+  egress:
+    # Reach MQTT broker
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: emqx
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
+    # Reach LAN devices (IoT VLAN, typical ranges)
+    - toCIDR:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "8123"
+              protocol: TCP
+---
+# Zigbee2MQTT needs MQTT broker access
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-z2m-egress
+  namespace: home-automation
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zigbee2mqtt
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: emqx
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
+---
+# Allow AI namespace to reach Home Assistant (ha-mcp sidecar)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-ha-from-ai
+  namespace: home-automation
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: home-assistant
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "8123"
+              protocol: TCP

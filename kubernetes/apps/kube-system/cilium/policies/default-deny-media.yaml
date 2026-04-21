@@ -1,0 +1,14 @@
+---
+# Default deny all ingress to media namespace
+# *arr apps, Plex, Sabnzbd — only ingress controllers should reach these
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: media
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: media
