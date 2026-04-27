@@ -171,6 +171,7 @@ spec:
         - Finish fast. This step should be lightweight.
 
         Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
         OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points.
         No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
