@@ -32,7 +32,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/home-assistant
-              tag: 2026.3.4@sha256:45d37a8be32fc1b2ebc64acc9ab219ca6226dcf04b4de0046d6c4e650b7a3022
+              tag: 2026.4.4@sha256:589e4c1c93025d01320c14329427197c8b52d4f2e241a6bc1d6207837e07b4a7
             env:
               TZ: ${TIME_ZONE}
               UV_SYSTEM_PYTHON: true
