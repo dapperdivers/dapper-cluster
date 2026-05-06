@@ -38,7 +38,7 @@ spec:
           app:
             image:
               repository: vaultwarden/server
-              tag: 1.35.6@sha256:93072633c6b125628419097fc951d1ce448422a1af1d653805520a8ba90f6956
+              tag: 1.36.0@sha256:d626d04934cd1192ad8ced1adb975099fca78cec33ab467d2d3c923cde7f3b0c
 
             env:
               TZ: ${TIME_ZONE}
