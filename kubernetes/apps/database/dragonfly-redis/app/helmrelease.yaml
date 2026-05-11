@@ -67,6 +67,7 @@ spec:
         serviceAccount:
           identifier: *app
     defaultPodOptions:
+      automountServiceAccountToken: true
       labels:
         control-plane: controller-manager
       securityContext:
