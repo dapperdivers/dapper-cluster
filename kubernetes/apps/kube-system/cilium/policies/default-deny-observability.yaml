@@ -1,0 +1,14 @@
+---
+# Default deny all ingress to observability namespace
+# Grafana, Loki, Prometheus — protected monitoring stack
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: observability
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability

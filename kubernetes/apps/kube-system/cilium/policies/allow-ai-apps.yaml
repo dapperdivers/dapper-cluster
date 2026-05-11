@@ -1,0 +1,147 @@
+---
+# OpenClaw (Tim) needs broad egress:
+# - Database (Postgres, Redis, NATS)
+# - Home Assistant (ha-mcp)
+# - OpenCTI (threat intel)
+# - External APIs (Anthropic, etc.)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-openclaw-egress
+  namespace: ai
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: openclaw
+  egress:
+    # Database access (NATS, Redis, Postgres)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "4222"
+              protocol: TCP
+            - port: "5432"
+              protocol: TCP
+            - port: "6379"
+              protocol: TCP
+    # Home Assistant
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: home-automation
+            app.kubernetes.io/name: home-assistant
+      toPorts:
+        - ports:
+            - port: "8123"
+              protocol: TCP
+    # OpenCTI
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # LiteLLM (local LLM proxy)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: litellm
+      toPorts:
+        - ports:
+            - port: "4000"
+              protocol: TCP
+    # Speaches (STT/TTS)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: speaches
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    # External APIs (Anthropic, OpenAI, etc.) — HTTPS
+    - toCIDR:
+        - 0.0.0.0/0
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# LiteLLM needs Postgres + external LLM APIs
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-litellm-egress
+  namespace: ai
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: litellm
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "6379"
+              protocol: TCP
+    # External LLM APIs
+    - toCIDR:
+        - 0.0.0.0/0
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Munin (OpenClaw #2) — similar to Tim but scoped
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-munin-egress
+  namespace: ai
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: munin
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "4222"
+              protocol: TCP
+            - port: "5432"
+              protocol: TCP
+            - port: "6379"
+              protocol: TCP
+    # External APIs
+    - toCIDR:
+        - 0.0.0.0/0
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow LiteLLM to be reached by other AI services
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-litellm-ingress
+  namespace: ai
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: litellm
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+        - matchLabels:
+            io.kubernetes.pod.namespace: roundtable
+      toPorts:
+        - ports:
+            - port: "4000"
+              protocol: TCP

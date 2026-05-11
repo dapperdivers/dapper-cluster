@@ -1,0 +1,45 @@
+---
+# Allow Prometheus to scrape metrics from all namespaces
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+            - port: "9100"
+              protocol: TCP
+            - port: "9153"
+              protocol: TCP
+---
+# Allow Promtail/Loki to collect logs
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-promtail-logs
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: observability
+      app.kubernetes.io/name: promtail
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: loki
+      toPorts:
+        - ports:
+            - port: "3100"
+              protocol: TCP

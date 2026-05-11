@@ -1,0 +1,51 @@
+---
+# Paperless-NGX needs Redis (Dragonfly) and Postgres
+# Egress to database namespace
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-selfhosted-db-egress
+  namespace: selfhosted
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - paperless-ngx
+          - miniflux
+          - atuin
+          - inbox-zero
+          - searxng
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "6379"
+              protocol: TCP
+---
+# Paperless-NGX needs Gotenberg for document conversion
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-paperless-gotenberg
+  namespace: selfhosted
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: gotenberg
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+# Obsidian CouchDB — only accessible from Obsidian clients (ingress-only)
+# Default deny + ingress controller covers this

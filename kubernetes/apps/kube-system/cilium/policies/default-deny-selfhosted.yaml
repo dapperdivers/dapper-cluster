@@ -1,0 +1,13 @@
+---
+# Default deny all ingress to selfhosted namespace
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: selfhosted
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: selfhosted
