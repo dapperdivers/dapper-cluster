@@ -32,9 +32,6 @@ spec:
         retain_available = true
       }
   coreTemplate:
-    metadata:
-      annotations:
-        reloader.stakater.com/auto: "true"
     spec:
       replicas: 3
       envFrom:
