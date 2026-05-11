@@ -1,0 +1,85 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: email-oauth2-proxy
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: blacktirion/email-oauth2-proxy-docker
+              tag: "2.4.0"
+            env:
+              CACHE_STORE: /config/credstore.config
+              LOGFILE: "true"
+            envFrom:
+              - secretRef:
+                  name: email-oauth2-proxy-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: &port 1993
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
+    service:
+      app:
+        controller: main
+        ports:
+          imap:
+            port: *port
+    persistence:
+      config:
+        type: configMap
+        name: email-oauth2-proxy-config
+        advancedMounts:
+          main:
+            app:
+              - path: /app/emailproxy.config
+                subPath: emailproxy.config
+                readOnly: true
+      data:
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 100Mi
+        advancedMounts:
+          main:
+            app:
+              - path: /config

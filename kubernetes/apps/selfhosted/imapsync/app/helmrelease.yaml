@@ -1,0 +1,233 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: imapsync
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      # ---- Gmail ----
+      gmail:
+        type: cronjob
+        cronjob:
+          schedule: "*/10 * * * *"
+          timeZone: "Etc/UTC"
+          suspend: true
+          concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 300
+          successfulJobsHistory: 3
+          failedJobsHistory: 5
+          activeDeadlineSeconds: 540
+          backoffLimit: 2
+        pod:
+          restartPolicy: Never
+        containers:
+          app:
+            image:
+              repository: gilleslamiral/imapsync
+              tag: "2.314"
+            env:
+              GMAIL_ADDRESS:
+                valueFrom:
+                  secretKeyRef:
+                    name: imapsync-credentials
+                    key: GMAIL_ADDRESS
+              STALWART_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: imapsync-credentials
+                    key: STALWART_USER
+            args:
+              - --gmail1
+              - --host2=stalwart.selfhosted.svc.cluster.local
+              - --port2=143
+              - --user1=$(GMAIL_ADDRESS)
+              - --passfile1=/secrets/gmail-password
+              - --user2=$(STALWART_USER)
+              - --passfile2=/secrets/stalwart-password
+              - --skipcrossduplicates
+              - "--exclude=\\[Gmail\\]/(All Mail|Important|Starred|Spam|Chats|Trash)"
+              - --usecache
+              - --tmpdir=/cache
+              - --logdir=/cache/logs
+              - --maxmessagespersecond=3
+              - --errorsmax=200
+              - --pidfilelocking
+              - --pidfile=/cache/gmail.pid
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+      # ---- Outlook ----
+      outlook:
+        type: cronjob
+        cronjob:
+          schedule: "2-52/10 * * * *"
+          timeZone: "Etc/UTC"
+          suspend: true
+          concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 300
+          successfulJobsHistory: 3
+          failedJobsHistory: 5
+          activeDeadlineSeconds: 540
+          backoffLimit: 2
+        pod:
+          restartPolicy: Never
+        containers:
+          app:
+            image:
+              repository: gilleslamiral/imapsync
+              tag: "2.314"
+            env:
+              OUTLOOK_ADDRESS:
+                valueFrom:
+                  secretKeyRef:
+                    name: imapsync-credentials
+                    key: OUTLOOK_ADDRESS
+              STALWART_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: imapsync-credentials
+                    key: STALWART_USER
+            args:
+              - --host1=email-oauth2-proxy.selfhosted.svc.cluster.local
+              - --port1=1993
+              - --host2=stalwart.selfhosted.svc.cluster.local
+              - --port2=143
+              - --user1=$(OUTLOOK_ADDRESS)
+              - --passfile1=/secrets/outlook-password
+              - --user2=$(STALWART_USER)
+              - --passfile2=/secrets/stalwart-password
+              - --usecache
+              - --tmpdir=/cache
+              - --logdir=/cache/logs
+              - --errorsmax=200
+              - --pidfilelocking
+              - --pidfile=/cache/outlook.pid
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+      # ---- Migadu ----
+      migadu:
+        type: cronjob
+        cronjob:
+          schedule: "4-54/10 * * * *"
+          timeZone: "Etc/UTC"
+          suspend: true
+          concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 300
+          successfulJobsHistory: 3
+          failedJobsHistory: 5
+          activeDeadlineSeconds: 540
+          backoffLimit: 2
+        pod:
+          restartPolicy: Never
+        containers:
+          app:
+            image:
+              repository: gilleslamiral/imapsync
+              tag: "2.314"
+            env:
+              MIGADU_ADDRESS:
+                valueFrom:
+                  secretKeyRef:
+                    name: imapsync-credentials
+                    key: MIGADU_ADDRESS
+              STALWART_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: imapsync-credentials
+                    key: STALWART_USER
+            args:
+              - --host1=imap.migadu.com
+              - --port1=993
+              - --ssl1
+              - --host2=stalwart.selfhosted.svc.cluster.local
+              - --port2=143
+              - --user1=$(MIGADU_ADDRESS)
+              - --passfile1=/secrets/migadu-password
+              - --user2=$(STALWART_USER)
+              - --passfile2=/secrets/stalwart-password
+              - --usecache
+              - --tmpdir=/cache
+              - --logdir=/cache/logs
+              - --errorsmax=200
+              - --pidfilelocking
+              - --pidfile=/cache/migadu.pid
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+    persistence:
+      # Credentials mounted as files for --passfile
+      secrets:
+        type: secret
+        name: imapsync-credentials
+        defaultMode: 0400
+        advancedMounts:
+          gmail:
+            app:
+              - path: /secrets
+                readOnly: true
+          outlook:
+            app:
+              - path: /secrets
+                readOnly: true
+          migadu:
+            app:
+              - path: /secrets
+                readOnly: true
+      # Per-provider cache PVCs (RWO -- avoids multi-node mount conflicts)
+      cache-gmail:
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        advancedMounts:
+          gmail:
+            app:
+              - path: /cache
+      cache-outlook:
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        advancedMounts:
+          outlook:
+            app:
+              - path: /cache
+      cache-migadu:
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        advancedMounts:
+          migadu:
+            app:
+              - path: /cache
