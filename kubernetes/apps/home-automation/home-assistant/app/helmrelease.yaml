@@ -78,6 +78,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 140
+        fsGroup: 140
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: RuntimeDefault }
     service:
