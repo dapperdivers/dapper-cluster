@@ -6,6 +6,6 @@ machine:
     extraArgs:
       # Conservative but safe kubelet settings
       max-pods: "250"
-      # Standard image GC settings
-      image-gc-high-threshold: "85"
-      image-gc-low-threshold: "80"
+      # Aggressive image GC to prevent disk pressure on image-heavy nodes
+      image-gc-high-threshold: "75"
+      image-gc-low-threshold: "65"
