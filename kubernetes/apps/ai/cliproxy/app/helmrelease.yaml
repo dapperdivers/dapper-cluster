@@ -26,14 +26,17 @@ spec:
         initContainers:
           assemble-config:
             image:
-              repository: docker.io/bhgedigital/envsubst
-              tag: "v1.0.0"
+              repository: docker.io/library/busybox
+              tag: "1.37.0"
             command:
               - /bin/sh
               - -c
               - |
                 # Resolve ${CLIPROXY_API_KEY} and ${CLIPROXY_MANAGEMENT_KEY} into final config
-                envsubst < /config-template/config.yaml > /config/config.yaml
+                sed \
+                  -e "s|\${CLIPROXY_API_KEY}|$CLIPROXY_API_KEY|g" \
+                  -e "s|\${CLIPROXY_MANAGEMENT_KEY}|$CLIPROXY_MANAGEMENT_KEY|g" \
+                  /config-template/config.yaml > /config/config.yaml
                 echo "Config assembled."
 
                 # Inject OAuth token files from Infisical into the auth PVC.
