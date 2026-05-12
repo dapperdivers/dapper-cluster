@@ -23,7 +23,7 @@ spec:
     matchLabels:
       ai.roundtable.io/table: roundtable-dev
   defaults:
-    model: "openai/gemma-local"
+    model: "openai/tensorzero::function_name::gemma-local"
     image: ""
     taskTimeout: 1800
     concurrency: 1

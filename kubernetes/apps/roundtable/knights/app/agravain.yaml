@@ -9,7 +9,7 @@ spec:
   runtime: sandbox  # Testing Agent Sandbox backend (roundtable#94)
   domain: pentest
   image: ""
-  model: "openai/gemma-local"
+  model: "openai/tensorzero::function_name::gemma-local"
   # capabilities:
   #   browser: true  # Disabled until browser sidecar is configured
   skills:
@@ -69,7 +69,7 @@ spec:
   taskTimeout: 1800
   env:
     - name: OPENAI_BASE_URL
-      value: "http://litellm.ai.svc.cluster.local:4000/v1"
+      value: "http://tensorzero.ai.svc.cluster.local:3000/openai/v1"
   envFrom:
     - secretRef:
         name: roundtable-secret
