@@ -18,6 +18,12 @@ spec:
       kind: Node
       expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
 
+  maintenance:
+    windows:
+      - start: "0 2 * * 0"  # Sunday 2:00 AM
+        duration: "6h"
+        timezone: "America/Chicago"
+
   drain:
     deleteLocalData: true
     ignoreDaemonSets: true
