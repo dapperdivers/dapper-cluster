@@ -1,8 +1,8 @@
 ---
-# The emqx-operator creates a PDB with no budget set, which allows 0 disruptions.
-# This is because it relies on the EMQX Enterprise evacuation API to control drains.
-# Since we run OSS EMQX, that API (load_rebalance/global_status) returns 404 and
-# the operator gets stuck, never releasing disruptions. We manage the PDB ourselves.
+# The emqx-operator manages its own PDB during rolling updates but can leave it
+# in a locked state (0 disruptions allowed) if the reconcile loop fails mid-update.
+# We manage the PDB ourselves with a fixed maxUnavailable: 1 to ensure predictable
+# rolling update behavior regardless of operator state.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
