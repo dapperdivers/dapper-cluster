@@ -37,9 +37,6 @@ spec:
                 echo "Config assembled."
 
                 # Inject OAuth token files from Infisical into the auth PVC.
-                # Each provider needs two Infisical secrets:
-                #   CLIPROXY_{PROVIDER}_TOKEN    — raw JSON content of the token file
-                #   CLIPROXY_{PROVIDER}_FILENAME — exact filename (e.g. claude-user@example.com.json)
                 inject() {
                   local content_var="CLIPROXY_${1}_TOKEN"
                   local filename_var="CLIPROXY_${1}_FILENAME"
@@ -56,14 +53,6 @@ spec:
             envFrom:
               - secretRef:
                   name: cliproxy-secret
-            volumeMounts:
-              - name: config-template
-                mountPath: /config-template
-                readOnly: true
-              - name: config
-                mountPath: /config
-              - name: auth
-                mountPath: /auth
         containers:
           app:
             image:
@@ -138,16 +127,26 @@ spec:
       config-template:
         type: configMap
         name: cliproxy-config
-        globalMounts:
-          - path: /config-template
-            readOnly: true
+        advancedMounts:
+          cliproxy:
+            assemble-config:
+              - path: /config-template
+                readOnly: true
       config:
         type: emptyDir
-        globalMounts:
-          - path: /CLIProxyAPI
+        advancedMounts:
+          cliproxy:
+            assemble-config:
+              - path: /config
+            app:
+              - path: /CLIProxyAPI
       auth:
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 1Gi
-        globalMounts:
-          - path: /auth
+        advancedMounts:
+          cliproxy:
+            assemble-config:
+              - path: /auth
+            app:
+              - path: /auth
