@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cliproxy-config
+data:
+  # Sensitive fields (api-keys, remote-management.secret-key) are injected at
+  # pod startup by the init container via envsubst from cliproxy-secret.
+  config.yaml: |
+    host: ""
+    port: 8317
+    auth-dir: "/auth"
+    debug: false
+    api-keys:
+      - "${CLIPROXY_API_KEY}"
+    remote-management:
+      allow-remote: true
+      secret-key: "${CLIPROXY_MANAGEMENT_KEY}"
+    routing:
+      strategy: round-robin
+    request-retry: 3
