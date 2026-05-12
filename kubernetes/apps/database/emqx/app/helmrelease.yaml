@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: emqx-operator
-      version: 2.2.29
+      version: 2.3.0
       sourceRef:
         kind: HelmRepository
         name: emqx
@@ -22,9 +22,6 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-  dependsOn:
-    - name: cert-manager
-      namespace: cert-manager
   values:
     fullnameOverride: emqx-operator
     image:
