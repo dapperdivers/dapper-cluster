@@ -6,3 +6,4 @@ resources:
   - ./cluster.yaml
   - ./ingress.yaml
   - ./podmonitor.yaml
+  - ./pdb.yaml
