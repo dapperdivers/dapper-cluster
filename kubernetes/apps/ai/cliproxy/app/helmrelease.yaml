@@ -24,7 +24,7 @@ spec:
           reloader.stakater.com/auto: "true"
         replicas: 1
         initContainers:
-          assemble-config:
+          inject-tokens:
             image:
               repository: docker.io/library/busybox
               tag: "1.37.0"
@@ -32,21 +32,11 @@ spec:
               - /bin/sh
               - -c
               - |
-                # Resolve ${CLIPROXY_API_KEY} and ${CLIPROXY_MANAGEMENT_KEY} into final config
-                sed \
-                  -e "s|\${CLIPROXY_API_KEY}|$CLIPROXY_API_KEY|g" \
-                  -e "s|\${CLIPROXY_MANAGEMENT_KEY}|$CLIPROXY_MANAGEMENT_KEY|g" \
-                  /config-template/config.yaml > /config/config.yaml
-                echo "Config assembled."
-
-                # Inject OAuth token files from Infisical into the auth PVC.
                 inject() {
-                  local content_var="CLIPROXY_${1}_TOKEN"
-                  local filename_var="CLIPROXY_${1}_FILENAME"
                   local fname
-                  fname=$(printenv "$filename_var" 2>/dev/null || true)
+                  fname=$(printenv "CLIPROXY_${1}_FILENAME" 2>/dev/null || true)
                   if [ -n "$fname" ]; then
-                    printenv "$content_var" > "/auth/$fname"
+                    printenv "CLIPROXY_${1}_TOKEN" > "/auth/$fname"
                     echo "Injected $1 token as $fname"
                   fi
                 }
@@ -127,29 +117,22 @@ spec:
             secretName: ${SECRET_DOMAIN/./-}-tls
 
     persistence:
-      config-template:
-        type: configMap
-        name: cliproxy-config
-        advancedMounts:
-          cliproxy:
-            assemble-config:
-              - path: /config-template
-                readOnly: true
       config:
-        type: emptyDir
+        type: secret
+        name: cliproxy-secret
         advancedMounts:
           cliproxy:
-            assemble-config:
-              - path: /config
             app:
-              - path: /CLIProxyAPI
+              - path: /CLIProxyAPI/config.yaml
+                subPath: config.yaml
+                readOnly: true
       auth:
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 1Gi
         advancedMounts:
           cliproxy:
-            assemble-config:
+            inject-tokens:
               - path: /auth
             app:
               - path: /auth
