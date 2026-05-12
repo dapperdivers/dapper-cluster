@@ -3,7 +3,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app litellm
+  name: &app tensorzero
   namespace: &namespace ai
 spec:
   targetNamespace: *namespace
@@ -15,7 +15,7 @@ spec:
       namespace: external-secrets
     - name: ollama
       namespace: ai
-  path: ./kubernetes/apps/ai/litellm/app
+  path: ./kubernetes/apps/ai/tensorzero/app
   prune: true
   sourceRef:
     kind: GitRepository
@@ -24,4 +24,4 @@ spec:
   wait: false
   interval: 30m
   retryInterval: 1m
-  timeout: 15m
+  timeout: 5m

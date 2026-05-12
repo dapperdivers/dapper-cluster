@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tensorzero-config
+data:
+  tensorzero.toml: |
+    [gateway]
+    bind_address = "0.0.0.0:3000"
+
+    # ── Local Ollama (OpenAI-compatible) ──────────────────────────────
+    [models.gemma4-26b]
+    routing = ["ollama"]
+
+    [models.gemma4-26b.providers.ollama]
+    type = "openai"
+    model_name = "gemma4:26b"
+    api_base = "http://ollama.ai.svc.cluster.local:11434/v1/"
+    api_key_location = "none"
+
+    [models.gemma4-e4b]
+    routing = ["ollama"]
+
+    [models.gemma4-e4b.providers.ollama]
+    type = "openai"
+    model_name = "gemma4:e4b"
+    api_base = "http://ollama.ai.svc.cluster.local:11434/v1/"
+    api_key_location = "none"
+
+    # ── Anthropic cloud ────────────────────────────────────────────────
+    [models.claude-haiku]
+    routing = ["anthropic"]
+
+    [models.claude-haiku.providers.anthropic]
+    type = "anthropic"
+    model_name = "claude-haiku-4-5-20251001"
+    api_key_location = "env::ANTHROPIC_API_KEY"
+
+    [models.claude-sonnet]
+    routing = ["anthropic"]
+
+    [models.claude-sonnet.providers.anthropic]
+    type = "anthropic"
+    model_name = "claude-sonnet-4-6"
+    api_key_location = "env::ANTHROPIC_API_KEY"
+
+    [models.claude-opus]
+    routing = ["anthropic"]
+
+    [models.claude-opus.providers.anthropic]
+    type = "anthropic"
+    model_name = "claude-opus-4-7"
+    api_key_location = "env::ANTHROPIC_API_KEY"
+
+    # ── Functions ──────────────────────────────────────────────────────
+    # gemma-local: primary local model, used by most knights
+    [functions.gemma-local]
+    type = "chat"
+
+    [functions.gemma-local.variants.primary]
+    type = "chat_completion"
+    model = "gemma4-26b"
+    weight = 1.0
+
+    # gemma-fast: lightweight local model for simple tasks
+    [functions.gemma-fast]
+    type = "chat"
+
+    [functions.gemma-fast.variants.primary]
+    type = "chat_completion"
+    model = "gemma4-e4b"
+    weight = 1.0
+
+    # haiku: fast cloud model
+    [functions.haiku]
+    type = "chat"
+
+    [functions.haiku.variants.primary]
+    type = "chat_completion"
+    model = "claude-haiku"
+    weight = 1.0
+
+    # sonnet: balanced cloud model
+    [functions.sonnet]
+    type = "chat"
+
+    [functions.sonnet.variants.primary]
+    type = "chat_completion"
+    model = "claude-sonnet"
+    weight = 1.0
+
+    # opus: premium cloud model
+    [functions.opus]
+    type = "chat"
+
+    [functions.opus.variants.primary]
+    type = "chat_completion"
+    model = "claude-opus"
+    weight = 1.0

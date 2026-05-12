@@ -14,10 +14,8 @@ resources:
 
   # Voice/Speech
   - ./speaches/ks.yaml
-  - ./wyoming-whisper/ks.yaml
   - ./voice-ingest/ks.yaml
 
   # LLM Inference Stack
   - ./ollama/ks.yaml
-  - ./litellm/ks.yaml
-  - ./squire/ks.yaml
+  - ./tensorzero/ks.yaml
