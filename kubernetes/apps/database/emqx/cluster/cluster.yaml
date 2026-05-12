@@ -5,7 +5,7 @@ kind: EMQX
 metadata:
   name: emqx
 spec:
-  image: public.ecr.aws/emqx/emqx:5.9.2
+  image: docker.io/emqx/emqx:6.2.0
   config:
     data: |
       authentication {
