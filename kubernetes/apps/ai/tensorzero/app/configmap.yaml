@@ -27,7 +27,7 @@ data:
     api_base = "http://ollama.ai.svc.cluster.local:11434/v1/"
     api_key_location = "none"
 
-    # ── Anthropic cloud ────────────────────────────────────────────────
+    # ── Anthropic cloud (API key) ──────────────────────────────────────
     [models.claude-haiku]
     routing = ["anthropic"]
 
@@ -36,21 +36,56 @@ data:
     model_name = "claude-haiku-4-5-20251001"
     api_key_location = "env::ANTHROPIC_API_KEY"
 
+    # claude-sonnet: API key primary, Claude Max subscription fallback
     [models.claude-sonnet]
-    routing = ["anthropic"]
+    routing = ["anthropic", "cliproxy"]
 
     [models.claude-sonnet.providers.anthropic]
     type = "anthropic"
     model_name = "claude-sonnet-4-6"
     api_key_location = "env::ANTHROPIC_API_KEY"
 
+    [models.claude-sonnet.providers.cliproxy]
+    type = "openai"
+    model_name = "claude-sonnet-4-5-20250929"
+    api_base = "http://cliproxy.ai.svc.cluster.local:8317/v1/"
+    api_key_location = "env::CLIPROXY_API_KEY"
+
+    # claude-opus: API key primary, Claude Max subscription fallback
     [models.claude-opus]
-    routing = ["anthropic"]
+    routing = ["anthropic", "cliproxy"]
 
     [models.claude-opus.providers.anthropic]
     type = "anthropic"
     model_name = "claude-opus-4-7"
     api_key_location = "env::ANTHROPIC_API_KEY"
+
+    [models.claude-opus.providers.cliproxy]
+    type = "openai"
+    model_name = "claude-opus-4-5-20251101"
+    api_base = "http://cliproxy.ai.svc.cluster.local:8317/v1/"
+    api_key_location = "env::CLIPROXY_API_KEY"
+
+    # ── CLIProxyAPI subscription models ───────────────────────────────
+    # ChatGPT Plus via Codex OAuth
+    [models.gpt-5]
+    routing = ["cliproxy"]
+
+    [models.gpt-5.providers.cliproxy]
+    type = "openai"
+    model_name = "gpt-5"
+    api_base = "http://cliproxy.ai.svc.cluster.local:8317/v1/"
+    api_key_location = "env::CLIPROXY_API_KEY"
+
+    # Gemini Pro via Gemini CLI OAuth
+    [models.gemini-pro]
+    routing = ["cliproxy"]
+
+    [models.gemini-pro.providers.cliproxy]
+    type = "openai"
+    model_name = "gemini-2.5-pro"
+    api_base = "http://cliproxy.ai.svc.cluster.local:8317/v1/"
+    api_key_location = "env::CLIPROXY_API_KEY"
 
     # ── Functions ──────────────────────────────────────────────────────
     # gemma-local: primary local model, used by most knights
@@ -80,7 +115,7 @@ data:
     model = "claude-haiku"
     weight = 1.0
 
-    # sonnet: balanced cloud model
+    # sonnet: balanced cloud model (API key + Max subscription fallback)
     [functions.sonnet]
     type = "chat"
 
@@ -89,11 +124,29 @@ data:
     model = "claude-sonnet"
     weight = 1.0
 
-    # opus: premium cloud model
+    # opus: premium cloud model (API key + Max subscription fallback)
     [functions.opus]
     type = "chat"
 
     [functions.opus.variants.primary]
     type = "chat_completion"
     model = "claude-opus"
+    weight = 1.0
+
+    # gpt: ChatGPT Plus via Codex OAuth
+    [functions.gpt]
+    type = "chat"
+
+    [functions.gpt.variants.primary]
+    type = "chat_completion"
+    model = "gpt-5"
+    weight = 1.0
+
+    # gemini: Gemini Pro via OAuth
+    [functions.gemini]
+    type = "chat"
+
+    [functions.gemini.variants.primary]
+    type = "chat_completion"
+    model = "gemini-pro"
     weight = 1.0

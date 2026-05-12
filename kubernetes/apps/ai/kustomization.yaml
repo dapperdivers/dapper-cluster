@@ -18,4 +18,5 @@ resources:
 
   # LLM Inference Stack
   - ./ollama/ks.yaml
+  - ./cliproxy/ks.yaml
   - ./tensorzero/ks.yaml
