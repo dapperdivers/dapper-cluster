@@ -9,8 +9,7 @@ spec:
   chart:
     spec:
       chart: emqx-operator
-      # renovate: ignore
-      version: 2.3.0
+      version: 2.2.29 # renovate: ignore
       sourceRef:
         kind: HelmRepository
         name: emqx
