@@ -14,7 +14,7 @@ spec:
       # To roll back from a bad upgrade:
       #   1. Patch CRD stored versions: kubectl patch crd emqxes.apps.emqx.io --subresource=status --type=merge -p '{"status":{"storedVersions":["v2beta1"]}}'
       #   2. Reset Flux retries: flux reconcile helmrelease emqx -n database --reset
-      version: 2.2.29
+      version: 2.3.0
       sourceRef:
         kind: HelmRepository
         name: emqx
