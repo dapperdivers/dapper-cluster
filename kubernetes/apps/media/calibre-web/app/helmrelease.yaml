@@ -64,7 +64,7 @@ spec:
           kosync:
             image:
               repository: b1n4ryj4n/koreader-sync
-              tag: latest
+              tag: 0.0.5
             env:
               OPEN_REGISTRATIONS: "true"
               RECEIVE_RANDOM_DEVICE_ID: "false"
