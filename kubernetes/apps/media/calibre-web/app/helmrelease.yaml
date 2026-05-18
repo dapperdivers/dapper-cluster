@@ -61,6 +61,22 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 2Gi
+          kosync:
+            image:
+              repository: b1n4ryj4n/koreader-sync
+              tag: latest
+            env:
+              OPEN_REGISTRATIONS: "true"
+              RECEIVE_RANDOM_DEVICE_ID: "false"
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 150
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
     defaultPodOptions:
       securityContext:
         fsGroup: 150
@@ -76,6 +92,11 @@ spec:
         ports:
           desktop:
             port: 8080
+      kosync:
+        controller: calibre-web
+        ports:
+          http:
+            port: 8081
     ingress:
       app:
         annotations:
@@ -107,6 +128,21 @@ spec:
           - hosts:
               - *calhost
             secretName: ${SECRET_DOMAIN/./-}-tls
+      kosync:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &synchost "kosync.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: kosync
+                  port: http
+        tls:
+          - hosts:
+              - *synchost
+            secretName: ${SECRET_DOMAIN/./-}-tls
     persistence:
       config:
         existingClaim: calibre-web
@@ -121,6 +157,13 @@ spec:
         existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /media
+      kosync-data:
+        existingClaim: calibre-web
+        advancedMounts:
+          calibre-web:
+            kosync:
+              - path: /app/data
+                subPath: kosync-data
       tmp:
         type: emptyDir
         advancedMounts:
