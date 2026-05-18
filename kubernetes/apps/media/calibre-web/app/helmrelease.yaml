@@ -1,0 +1,131 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: calibre-web
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: volsync
+      namespace: storage
+  values:
+    controllers:
+      calibre-web:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/linuxserver/calibre-web
+              tag: 0.6.26
+            env:
+              TZ: ${TIME_ZONE}
+              PUID: "1000"
+              PGID: "150"
+              DOCKER_MODS: "linuxserver/mods:universal-calibre"
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+            resources:
+              requests:
+                cpu: 20m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
+          calibre:
+            image:
+              repository: ghcr.io/linuxserver/calibre
+              tag: 9.8.0
+            env:
+              TZ: ${TIME_ZONE}
+              PUID: "1000"
+              PGID: "150"
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+    defaultPodOptions:
+      securityContext:
+        fsGroup: 150
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: calibre-web
+        ports:
+          http:
+            port: &port 8083
+      calibre:
+        controller: calibre-web
+        ports:
+          desktop:
+            port: 8080
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &host "books.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
+      calibre:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &calhost "calibre.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: calibre
+                  port: desktop
+        tls:
+          - hosts:
+              - *calhost
+            secretName: ${SECRET_DOMAIN/./-}-tls
+    persistence:
+      config:
+        existingClaim: calibre-web
+        advancedMounts:
+          calibre-web:
+            app:
+              - path: /config
+            calibre:
+              - path: /config
+                subPath: calibre-config
+      media:
+        existingClaim: media-cephfs-pvc
+        globalMounts:
+          - path: /media
+      tmp:
+        type: emptyDir
+        advancedMounts:
+          calibre-web:
+            app:
+              - path: /tmp
+            calibre:
+              - path: /tmp
