@@ -29,4 +29,5 @@ resources:
   - ./prowlarr/ks.yaml
   - ./plex/ks.yaml
   - ./wizarr/ks.yaml
+  - ./bookshelf/ks.yaml
   - ./calibre-web/ks.yaml
