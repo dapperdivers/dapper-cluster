@@ -18,5 +18,12 @@
       ],
       allowedVersions: "/^v18\\./",
     },
+    {
+      // Pin emqx-operator to 2.2.29 - 2.3.0 crashes on /api/v5/load_rebalance/global_status
+      // (HTTP 404), sets readiness gate apps.emqx.io/on-serving=False, drains listeners endpoints.
+      matchDatasources: ["helm"],
+      matchPackageNames: ["emqx-operator"],
+      allowedVersions: "<=2.2.29",
+    },
   ],
 }
