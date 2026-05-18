@@ -100,10 +100,10 @@ spec:
     ingress:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
         className: internal
         hosts:
-          - host: &host "books.${SECRET_DOMAIN}"
+          - host: &host "books.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
@@ -112,13 +112,13 @@ spec:
         tls:
           - hosts:
               - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
       calibre:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
         className: internal
         hosts:
-          - host: &calhost "calibre.${SECRET_DOMAIN}"
+          - host: &calhost "calibre.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
@@ -127,13 +127,13 @@ spec:
         tls:
           - hosts:
               - *calhost
-            secretName: ${SECRET_DOMAIN/./-}-tls
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
       kosync:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
         className: internal
         hosts:
-          - host: &synchost "kosync.${SECRET_DOMAIN}"
+          - host: &synchost "kosync.${SECRET_DOMAIN_MEDIA}"
             paths:
               - path: /
                 service:
@@ -142,7 +142,7 @@ spec:
         tls:
           - hosts:
               - *synchost
-            secretName: ${SECRET_DOMAIN/./-}-tls
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     persistence:
       config:
         existingClaim: calibre-web
