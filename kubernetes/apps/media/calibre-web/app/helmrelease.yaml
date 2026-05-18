@@ -93,7 +93,7 @@ spec:
           desktop:
             port: 8080
           content-server:
-            port: 8082
+            port: 8181
       kosync:
         controller: calibre-web
         ports:
