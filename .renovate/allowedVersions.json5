@@ -25,5 +25,11 @@
       matchPackageNames: ["emqx-operator"],
       allowedVersions: "<=2.2.29",
     },
+    {
+      // Pin EMQX broker to 5.8.x - 5.9+ requires operator 2.3.0+ (broken), 6.x is enterprise-only.
+      matchDatasources: ["docker"],
+      matchPackageNames: ["public.ecr.aws/emqx/emqx"],
+      allowedVersions: "/^5\\.8\\./",
+    },
   ],
 }

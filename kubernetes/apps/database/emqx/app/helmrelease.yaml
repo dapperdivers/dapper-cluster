@@ -11,9 +11,21 @@ spec:
       chart: emqx-operator
       # Pinned at 2.2.29 - 2.3.0 crashes on /api/v5/load_rebalance/global_status (HTTP 404),
       # sets readiness gate apps.emqx.io/on-serving=False, drains emqx-listeners endpoints.
-      # To roll back from a bad upgrade:
-      #   1. Patch CRD stored versions: kubectl patch crd emqxes.apps.emqx.io --subresource=status --type=merge -p '{"status":{"storedVersions":["v2beta1"]}}'
-      #   2. Reset Flux retries: flux reconcile helmrelease emqx -n database --reset
+      # EMQX broker is also pinned to 5.8.x in .renovate/allowedVersions.json5 (5.9+ needs 2.3.0+).
+      #
+      # Full rollback procedure (if 2.3.0 somehow gets deployed):
+      #   1. Suspend cluster kustomization: flux suspend ks emqx-cluster -n database
+      #   2. Delete the EMQX CR: kubectl delete emqxes.apps.emqx.io emqx -n database
+      #      (if deletion fails with conversion error, first: kubectl replace -f <2.3.0-crd.yaml>
+      #       then delete, then continue from step 3)
+      #   3. Patch CRD stored versions: kubectl patch crd emqxes.apps.emqx.io --subresource=status --type=merge -p '{"status":{"storedVersions":["v2beta1"]}}'
+      #   4. Render 2.2.29 CRD: helm pull emqx/emqx-operator --version 2.2.29 --untar --untardir /tmp/emqx-229
+      #      helm template emqx-operator /tmp/emqx-229/emqx-operator --set fullnameOverride=emqx-operator --include-crds \
+      #        | grep -A999999 'name: emqxes.apps.emqx.io' | kubectl replace -f -
+      #      (easier: extract just the emqxes CRD doc and kubectl replace -f <file>)
+      #   5. Reset HelmRelease: flux reconcile helmrelease emqx -n database --reset
+      #   6. Resume and reconcile cluster: flux resume ks emqx-cluster -n database && flux reconcile ks emqx-cluster -n database
+      #   Note: upgrade.crds=CreateReplace cannot change the storage version - manual CRD replace is required.
       version: 2.2.29
       sourceRef:
         kind: HelmRepository
