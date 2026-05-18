@@ -69,8 +69,8 @@ spec:
               OPEN_REGISTRATIONS: "true"
               RECEIVE_RANDOM_DEVICE_ID: "false"
             securityContext:
-              runAsUser: 1000
-              runAsGroup: 150
+              runAsUser: 0
+              runAsGroup: 0
             resources:
               requests:
                 cpu: 10m
@@ -86,7 +86,7 @@ spec:
         controller: calibre-web
         ports:
           http:
-            port: &port 8083
+            port: 8083
       calibre:
         controller: calibre-web
         ports:
