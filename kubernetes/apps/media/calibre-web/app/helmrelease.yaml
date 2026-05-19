@@ -61,6 +61,25 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 2Gi
+          shelfmark:
+            image:
+              repository: ghcr.io/calibrain/shelfmark
+              tag: latest
+            env:
+              TZ: ${TIME_ZONE}
+              PUID: "1000"
+              PGID: "150"
+              INGEST_DIR: /media/downloads/usenet/completed/books
+              SEARCH_MODE: universal
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+            resources:
+              requests:
+                cpu: 20m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
           kosync:
             image:
               repository: b1n4ryj4n/koreader-sync
@@ -94,6 +113,11 @@ spec:
             port: 8080
           content-server:
             port: 8090
+      shelfmark:
+        controller: calibre-web
+        ports:
+          http:
+            port: 8084
       kosync:
         controller: calibre-web
         ports:
@@ -130,6 +154,21 @@ spec:
           - hosts:
               - *calhost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+      shelfmark:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
+        className: internal
+        hosts:
+          - host: &shelfhost "shelfmark.${SECRET_DOMAIN_MEDIA}"
+            paths:
+              - path: /
+                service:
+                  identifier: shelfmark
+                  port: http
+        tls:
+          - hosts:
+              - *shelfhost
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
       kosync:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
@@ -155,6 +194,9 @@ spec:
             calibre:
               - path: /config
                 subPath: calibre-config
+            shelfmark:
+              - path: /config
+                subPath: shelfmark-config
       media:
         existingClaim: media-cephfs-pvc
         globalMounts:
