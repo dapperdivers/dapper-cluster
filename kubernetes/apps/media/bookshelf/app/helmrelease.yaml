@@ -40,6 +40,24 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 1Gi
+
+          calibre-server:
+            image:
+              repository: ghcr.io/linuxserver/calibre
+              tag: 9.8.0
+            env:
+              TZ: ${TIME_ZONE}
+              PUID: "1000"
+              PGID: "150"
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
     defaultPodOptions:
       securityContext:
         fsGroup: 150
@@ -50,6 +68,13 @@ spec:
         ports:
           http:
             port: 8787
+      calibre-server:
+        controller: bookshelf
+        ports:
+          desktop:
+            port: 8181
+          content-server:
+            port: 8090
     ingress:
       app:
         annotations:
@@ -66,14 +91,40 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+
+      calibre-server:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
+        className: internal
+        hosts:
+          - host: &calhost "calibre.${SECRET_DOMAIN_MEDIA}"
+            paths:
+              - path: /
+                service:
+                  identifier: calibre-server
+                  port: desktop
+        tls:
+          - hosts:
+              - *calhost
+            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     persistence:
       config:
         existingClaim: bookshelf
-        globalMounts:
-          - path: /config
+        advancedMounts:
+          bookshelf:
+            app:
+              - path: /config
+            calibre-server:
+              - path: /config
+                subPath: calibre-config
       media:
         existingClaim: media-cephfs-pvc
-        globalMounts:
-          - path: /media
+        advancedMounts:
+          bookshelf:
+            app:
+              - path: /media
+            calibre-server:
+              - path: /books
+                subPath: books
       tmp:
         type: emptyDir

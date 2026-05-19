@@ -34,6 +34,9 @@ spec:
               TZ: ${TIME_ZONE}
               PUID: "1000"
               PGID: "150"
+            envFrom:
+              - secretRef:
+                  name: calibre-web-secret
             securityContext:
               runAsUser: 0
               runAsGroup: 0
