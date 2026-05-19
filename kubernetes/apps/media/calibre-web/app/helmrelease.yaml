@@ -28,13 +28,12 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/linuxserver/calibre-web
-              tag: 0.6.26
+              repository: crocodilestick/calibre-web-automated
+              tag: latest
             env:
               TZ: ${TIME_ZONE}
               PUID: "1000"
               PGID: "150"
-              DOCKER_MODS: "linuxserver/mods:universal-calibre"
             securityContext:
               runAsUser: 0
               runAsGroup: 0
@@ -44,6 +43,7 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 512Mi
+
           calibre:
             image:
               repository: ghcr.io/linuxserver/calibre
@@ -61,6 +61,7 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 2Gi
+
           shelfmark:
             image:
               repository: ghcr.io/calibrain/shelfmark
@@ -69,7 +70,7 @@ spec:
               TZ: ${TIME_ZONE}
               PUID: "1000"
               PGID: "150"
-              INGEST_DIR: /media/downloads/usenet/completed/books
+              INGEST_DIR: /books
               SEARCH_MODE: universal
             securityContext:
               runAsUser: 0
@@ -80,6 +81,7 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 512Mi
+
           kosync:
             image:
               repository: b1n4ryj4n/koreader-sync
@@ -96,16 +98,19 @@ spec:
                 memory: 64Mi
               limits:
                 memory: 128Mi
+
     defaultPodOptions:
       securityContext:
         fsGroup: 150
         fsGroupChangePolicy: OnRootMismatch
+
     service:
       app:
         controller: calibre-web
         ports:
           http:
             port: 8083
+
       calibre:
         controller: calibre-web
         ports:
@@ -113,16 +118,19 @@ spec:
             port: 8080
           content-server:
             port: 8090
+
       shelfmark:
         controller: calibre-web
         ports:
           http:
             port: 8084
+
       kosync:
         controller: calibre-web
         ports:
           http:
             port: 8081
+
     ingress:
       app:
         annotations:
@@ -139,6 +147,7 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+
       calibre:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
@@ -154,6 +163,7 @@ spec:
           - hosts:
               - *calhost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+
       shelfmark:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
@@ -169,6 +179,7 @@ spec:
           - hosts:
               - *shelfhost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+
       kosync:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
@@ -184,6 +195,7 @@ spec:
           - hosts:
               - *synchost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+
     persistence:
       config:
         existingClaim: calibre-web
@@ -197,10 +209,25 @@ spec:
             shelfmark:
               - path: /config
                 subPath: shelfmark-config
+
       media:
         existingClaim: media-cephfs-pvc
         globalMounts:
           - path: /media
+        advancedMounts:
+          calibre-web:
+            app:
+              - path: /calibre-library
+                subPath: books
+              - path: /cwa-book-ingest
+                subPath: downloads/irc/books
+            calibre:
+              - path: /books
+                subPath: books
+            shelfmark:
+              - path: /books
+                subPath: downloads/irc/books
+
       kosync-data:
         existingClaim: calibre-web
         advancedMounts:
@@ -208,6 +235,7 @@ spec:
             kosync:
               - path: /app/data
                 subPath: kosync-data
+
       tmp:
         type: emptyDir
         advancedMounts:
@@ -215,4 +243,6 @@ spec:
             app:
               - path: /tmp
             calibre:
+              - path: /tmp
+            shelfmark:
               - path: /tmp
