@@ -44,24 +44,6 @@ spec:
               limits:
                 memory: 512Mi
 
-          calibre:
-            image:
-              repository: ghcr.io/linuxserver/calibre
-              tag: 9.8.0
-            env:
-              TZ: ${TIME_ZONE}
-              PUID: "1000"
-              PGID: "150"
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-            resources:
-              requests:
-                cpu: 100m
-                memory: 512Mi
-              limits:
-                memory: 2Gi
-
           shelfmark:
             image:
               repository: ghcr.io/calibrain/shelfmark
@@ -94,14 +76,6 @@ spec:
           http:
             port: 8083
 
-      calibre:
-        controller: calibre-web
-        ports:
-          desktop:
-            port: 8080
-          content-server:
-            port: 8090
-
       shelfmark:
         controller: calibre-web
         ports:
@@ -123,22 +97,6 @@ spec:
         tls:
           - hosts:
               - *host
-            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
-
-      calibre:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-        className: internal
-        hosts:
-          - host: &calhost "calibre.${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: calibre
-                  port: desktop
-        tls:
-          - hosts:
-              - *calhost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
 
       shelfmark:
@@ -164,9 +122,6 @@ spec:
           calibre-web:
             app:
               - path: /config
-            calibre:
-              - path: /config
-                subPath: calibre-config
             shelfmark:
               - path: /config
                 subPath: shelfmark-config
@@ -182,9 +137,6 @@ spec:
                 subPath: books
               - path: /cwa-book-ingest
                 subPath: downloads/irc/books
-            calibre:
-              - path: /books
-                subPath: books
             shelfmark:
               - path: /books
                 subPath: downloads/irc/books
@@ -193,8 +145,6 @@ spec:
         advancedMounts:
           calibre-web:
             app:
-              - path: /tmp
-            calibre:
               - path: /tmp
             shelfmark:
               - path: /tmp
