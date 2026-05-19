@@ -82,23 +82,6 @@ spec:
               limits:
                 memory: 512Mi
 
-          kosync:
-            image:
-              repository: b1n4ryj4n/koreader-sync
-              tag: 0.0.5
-            env:
-              OPEN_REGISTRATIONS: "true"
-              RECEIVE_RANDOM_DEVICE_ID: "false"
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-            resources:
-              requests:
-                cpu: 10m
-                memory: 64Mi
-              limits:
-                memory: 128Mi
-
     defaultPodOptions:
       securityContext:
         fsGroup: 150
@@ -124,12 +107,6 @@ spec:
         ports:
           http:
             port: 8084
-
-      kosync:
-        controller: calibre-web
-        ports:
-          http:
-            port: 8081
 
     ingress:
       app:
@@ -180,22 +157,6 @@ spec:
               - *shelfhost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
 
-      kosync:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-        className: internal
-        hosts:
-          - host: &synchost "kosync.${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: kosync
-                  port: http
-        tls:
-          - hosts:
-              - *synchost
-            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
-
     persistence:
       config:
         existingClaim: calibre-web
@@ -227,15 +188,6 @@ spec:
             shelfmark:
               - path: /books
                 subPath: downloads/irc/books
-
-      kosync-data:
-        existingClaim: calibre-web
-        advancedMounts:
-          calibre-web:
-            kosync:
-              - path: /app/data
-                subPath: kosync-data
-
       tmp:
         type: emptyDir
         advancedMounts:
