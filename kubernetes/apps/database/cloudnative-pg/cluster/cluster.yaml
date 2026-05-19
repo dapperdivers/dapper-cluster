@@ -11,7 +11,7 @@ spec:
     size: 20Gi
     storageClass: ceph-rbd
   walStorage:
-    size: 5Gi
+    size: 10Gi
     storageClass: ceph-rbd
   superuserSecret:
     name: cloudnative-pg-secret
