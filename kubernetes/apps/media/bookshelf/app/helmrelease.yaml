@@ -72,7 +72,7 @@ spec:
         controller: bookshelf
         ports:
           desktop:
-            port: 8181
+            port: 8080
           content-server:
             port: 8090
     ingress:
