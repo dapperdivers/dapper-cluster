@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: docker.io/tensorzero/gateway
-              tag: "2026.5.0"
+              tag: "2026.5.2"
             args:
               - "--config-file"
               - "/etc/tensorzero/tensorzero.toml"
