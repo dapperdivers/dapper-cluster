@@ -10,7 +10,7 @@ spec:
     browser: true
   domain: security
   image: ""
-  model: "anthropic/claude-sonnet-4-6"
+  model: "ollama/gemma4:26b"
   skills:
     - security
     - shared
@@ -61,6 +61,8 @@ spec:
   concurrency: 2
   taskTimeout: 300
   env:
+    - name: OPENAI_BASE_URL
+      value: "http://ollama.ai.svc.cluster.local:11434/v1"
     - name: OPENCTI_URL
       value: "http://opencti-server.security.svc:80"
   envFrom:
