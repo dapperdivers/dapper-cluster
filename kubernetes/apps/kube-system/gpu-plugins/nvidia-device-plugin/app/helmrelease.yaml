@@ -29,8 +29,8 @@ spec:
     - name: node-feature-discovery
   values:
     image:
-      repository: ghcr.io/nvidia/k8s-device-plugin
-      tag: 99990375-ubi9@sha256:75d1dfc49cc1e2783d34c183c24b7fa5136af488e7e0a6daa8ed1e2f122a7ad8
+      repository: nvcr.io/nvidia/k8s-device-plugin
+      tag: v0.19.1
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
     runtimeClassName: nvidia
