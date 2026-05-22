@@ -50,7 +50,7 @@ spec:
           flags:
             migStrategy: none
           sharing:
-            timeSlicing:
+            mps:
               renameByDefault: false
               failRequestsGreaterThanOne: false
               resources:

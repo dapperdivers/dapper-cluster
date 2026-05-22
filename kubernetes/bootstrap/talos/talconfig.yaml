@@ -97,6 +97,7 @@ nodes:
     nodeLabels:
       hardware.cluster.io/gpu: "p100"
       nvidia.com/gpu.present: "true"
+      nvidia.com/mps.capable: "true"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "bc:24:11:d3:ff:c2"
