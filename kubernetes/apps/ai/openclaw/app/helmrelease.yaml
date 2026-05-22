@@ -105,7 +105,7 @@ spec:
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
                 if [ ! -d /home/node/.openclaw/npm/node_modules/@openclaw/discord ]; then
                   echo "Installing Discord plugin..."
-                  openclaw plugins install @openclaw/discord
+                  openclaw plugins install @openclaw/discord || openclaw plugins update @openclaw/discord || true
                 fi
 
                 echo "Tool installation complete"
