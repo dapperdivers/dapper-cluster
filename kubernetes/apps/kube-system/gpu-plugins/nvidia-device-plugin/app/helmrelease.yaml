@@ -25,6 +25,35 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
+  # mps-control-daemon wrapper strips PATH before starting nvidia-cuda-mps-control,
+  # which then cannot find nvidia-cuda-mps-server via execvp (it lives in /usr/local/bin,
+  # not in the default PATH fallback). Bypass the wrapper and run the control binary
+  # directly in foreground mode with PATH set.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: DaemonSet
+              name: nvidia-device-plugin-mps-control-daemon
+            patch: |
+              apiVersion: apps/v1
+              kind: DaemonSet
+              metadata:
+                name: nvidia-device-plugin-mps-control-daemon
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: mps-control-daemon-ctr
+                        command:
+                          - /bin/sh
+                          - -c
+                          - |
+                            nvidia-smi -c EXCLUSIVE_PROCESS
+                            export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+                            export CUDA_MPS_PIPE_DIRECTORY=/mps/nvidia.com/gpu/pipe
+                            export CUDA_MPS_LOG_DIRECTORY=/mps/nvidia.com/gpu/log
+                            exec nvidia-cuda-mps-control -f
   dependsOn:
     - name: node-feature-discovery
   values:
