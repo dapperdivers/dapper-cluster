@@ -36,7 +36,7 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/dapperdivers/pi-knight
-        tag: eb83c68e0f80cdcf50d00a1347ccc7f9fedf9f73
+        tag: sha256:373c58bfcefb26f2596ec81e233c0dedc7d75a18c6e2e7ff5005203b6278a088
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
         tag: 6ad1c714520d5c720b90c2cd450ab9f2796f52ca
