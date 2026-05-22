@@ -197,6 +197,11 @@ spec:
                     fallbacks: ['openai-codex/gpt-5.4']
                   };
 
+                  c.agents.defaults.cliBackends = c.agents.defaults.cliBackends || {};
+                  c.agents.defaults.cliBackends['claude-cli'] = {
+                    command: '/home/node/.local/bin/claude'
+                  };
+
                   c.mcp = c.mcp || {};
                   c.mcp.servers = c.mcp.servers || {};
                   c.mcp.servers['ha-mcp'] = {
@@ -206,6 +211,13 @@ spec:
 
                   // Remove secrets from config file — provided via env vars instead
                   if (c.channels && c.channels.discord) delete c.channels.discord.token;
+
+                  // Remove stale whatsapp config — plugin not used
+                  if (c.channels) delete c.channels.whatsapp;
+                  if (c.plugins) {
+                    c.plugins.allow = (c.plugins.allow || []).filter(p => p !== 'whatsapp');
+                    if (c.plugins.entries) delete c.plugins.entries.whatsapp;
+                  }
                   if (process.env.MOLT_HOOKS_TOKEN) {
                     c.hooks = c.hooks || {};
                     c.hooks.token = process.env.MOLT_HOOKS_TOKEN;
