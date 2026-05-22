@@ -103,9 +103,14 @@ spec:
 
                 # Install OpenClaw plugins
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
-                if [ ! -d /home/node/.openclaw/npm/node_modules/@openclaw/discord ]; then
+                mkdir -p /home/node/.openclaw
+                if [ ! -f /home/node/.openclaw/.discord-plugin-installed ]; then
                   echo "Installing Discord plugin..."
-                  openclaw plugins install @openclaw/discord || openclaw plugins update @openclaw/discord || true
+                  set +e
+                  openclaw plugins install @openclaw/discord
+                  openclaw plugins update discord 2>/dev/null
+                  set -e
+                  touch /home/node/.openclaw/.discord-plugin-installed
                 fi
 
                 echo "Tool installation complete"
