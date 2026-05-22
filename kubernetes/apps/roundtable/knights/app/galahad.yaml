@@ -10,7 +10,7 @@ spec:
     browser: true
   domain: security
   image: ""
-  model: "ollama/gemma4:26b"
+  model: "ollama/gemma4:e4b"
   skills:
     - security
     - shared
