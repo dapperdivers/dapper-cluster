@@ -10,7 +10,7 @@ spec:
     browser: true
   domain: security
   image: ""
-  model: "openai/tensorzero::function_name::gemma-local"
+  model: "ollama/gemma4:26b"
   skills:
     - security
     - shared
@@ -61,8 +61,10 @@ spec:
   concurrency: 2
   taskTimeout: 300
   env:
+    # Native Ollama canary — pi-knight's model fallback creates an openai-completions
+    # client from these two vars when ollama/gemma4:26b is not in the Pi SDK registry.
     - name: OPENAI_BASE_URL
-      value: "http://tensorzero.ai.svc.cluster.local:3000/openai/v1"
+      value: "http://ollama.ai.svc.cluster.local:11434/v1"
     - name: OPENCTI_URL
       value: "http://opencti-server.security.svc:80"
   envFrom:
