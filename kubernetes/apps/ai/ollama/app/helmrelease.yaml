@@ -48,6 +48,8 @@ spec:
               OLLAMA_NUM_CTX: "131072"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
+              # Force CUDA 12 backend — P100 is sm_60 (Pascal); CUDA 13 dropped sm_60 support
+              OLLAMA_LLM_LIBRARY: cuda_v12
             ports:
               - name: http
                 containerPort: &port 11434
