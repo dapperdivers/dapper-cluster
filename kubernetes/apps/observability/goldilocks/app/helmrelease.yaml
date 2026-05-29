@@ -34,7 +34,7 @@ spec:
           memory: 105M
     image:
       repository: us-docker.pkg.dev/fairwinds-ops/oss/goldilocks
-      tag: v4.15.0@sha256:af056dda73779b7ba28def81f0deab912083b941ac78beeac362e1577c443268
+      tag: v4.15.1@sha256:244b52b53aa4bb56b53c50f5b6b617612619a8f76571bd1e21d7d8157b3aee9e
       pullPolicy: Always
     vpa:
       enabled: true
