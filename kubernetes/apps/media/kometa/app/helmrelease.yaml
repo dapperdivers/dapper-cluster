@@ -44,7 +44,7 @@ spec:
               GITSYNC_ONE_TIME: "true"
             image:
               repository: registry.k8s.io/git-sync/git-sync
-              tag: v4.6.0@sha256:228a26d5f55ac5ae9c51635812570ba0073e0b1e0bd8fc3a653a0523b918c092
+              tag: v4.7.0@sha256:d232fd13474ba1b46dba431af2b1411b9d9afacda55ae644d2a32e43975128dd
             resources:
               requests:
                 cpu: 10m
@@ -54,7 +54,7 @@ spec:
           app:
             image:
               repository: kometateam/kometa
-              tag: nightly@sha256:0cd6b7fafd5daa227ee74a51bef59323027386f199914f6302a025e466586b5a
+              tag: nightly@sha256:22e32be546681e419c8a2d5685437fd1fb3c4de67820bf654b9765a4a975d866
             command:
               - /bin/sh
               - -c

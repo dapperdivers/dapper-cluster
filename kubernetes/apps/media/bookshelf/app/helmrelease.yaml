@@ -44,7 +44,7 @@ spec:
           calibre-server:
             image:
               repository: ghcr.io/linuxserver/calibre
-              tag: 9.8.0
+              tag: 9.9.0
             env:
               TZ: ${TIME_ZONE}
               PUID: "1000"
@@ -72,7 +72,7 @@ spec:
         controller: bookshelf
         ports:
           desktop:
-            port: 8181
+            port: 8080
           content-server:
             port: 8090
     ingress:

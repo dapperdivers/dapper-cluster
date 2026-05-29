@@ -40,16 +40,16 @@ spec:
               OLLAMA_FLASH_ATTENTION: "1"
               # KV cache quantization — Q8_0 saves ~50% KV VRAM with minimal quality loss
               OLLAMA_KV_CACHE_TYPE: q8_0
-              # Spread model layers evenly across all GPUs (3x P100)
-              OLLAMA_SCHED_SPREAD: "true"
-              # Parallel request handling — 2 concurrent (4 OOMs with 128K ctx)
-              OLLAMA_NUM_PARALLEL: "2"
+              # Parallel request handling — 1 concurrent (single P100 via MPS)
+              OLLAMA_NUM_PARALLEL: "1"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
               # Context window — 128K (Ollama auto-expands to 256K based on VRAM)
               OLLAMA_NUM_CTX: "131072"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
+              # Force CUDA 12 backend — P100 is sm_60 (Pascal); CUDA 13 dropped sm_60 support
+              OLLAMA_LLM_LIBRARY: cuda_v12
             ports:
               - name: http
                 containerPort: &port 11434
@@ -92,11 +92,11 @@ spec:
               requests:
                 cpu: 4
                 memory: 32Gi
-                nvidia.com/gpu: 3
+                nvidia.com/gpu: 1
               limits:
                 cpu: 16
-                memory: 80Gi
-                nvidia.com/gpu: 3
+                memory: 32Gi
+                nvidia.com/gpu: 1
 
     defaultPodOptions:
       runtimeClassName: nvidia

@@ -26,7 +26,7 @@ spec:
           install-tools:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: 2026.5.7@sha256:1af3f457a2d5a1d210f4d95634fa5da6e23f9c0ac7b52ef4bc38e2ecf09704fd
+              tag: 2026.5.20@sha256:a2a5cff3b2540236fc6cdc5222327841c6ff19056beb9e34f889aec0cd29b719
             command:
               - /bin/sh
               - -c
@@ -101,14 +101,17 @@ spec:
                   ln -sf /home/node/.local/node_modules/.bin/claude /home/node/.local/bin/claude
                 fi
 
-                # Install mcporter for MCP server communication
-                echo "Installing mcporter..."
-                cd /home/node
-                npm install mcporter 2>/dev/null || echo "mcporter install skipped"
-
-                # Configure mcporter to connect to ha-mcp sidecar (streamable-http on port 8086)
-                mkdir -p /home/node/config
-                echo '{"servers":{"ha-mcp":{"url":"http://localhost:8086/mcp"}}}' > /home/node/config/mcporter.json
+                # Install OpenClaw plugins
+                ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
+                mkdir -p /home/node/.openclaw
+                if [ ! -f /home/node/.openclaw/.discord-plugin-installed ]; then
+                  echo "Installing Discord plugin..."
+                  set +e
+                  openclaw plugins install @openclaw/discord
+                  openclaw plugins update discord 2>/dev/null
+                  set -e
+                  touch /home/node/.openclaw/.discord-plugin-installed
+                fi
 
                 echo "Tool installation complete"
             resources:
@@ -126,14 +129,11 @@ spec:
           app:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: 2026.5.7@sha256:1af3f457a2d5a1d210f4d95634fa5da6e23f9c0ac7b52ef4bc38e2ecf09704fd
+              tag: 2026.5.20@sha256:a2a5cff3b2540236fc6cdc5222327841c6ff19056beb9e34f889aec0cd29b719
             command:
               - /bin/sh
               - -c
               - |
-                # Set up openclaw CLI symlink
-                ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
-
                 # Let OpenClaw own the evolving base config, then apply a thin patch layer.
                 # This avoids a stale fully-managed config as OpenClaw versions change.
                 if [ ! -f /home/node/.openclaw/openclaw.json ]; then
@@ -201,6 +201,40 @@ spec:
                     primary: 'openai/smart',
                     fallbacks: ['openai-codex/gpt-5.4']
                   };
+
+                  c.agents.defaults.cliBackends = c.agents.defaults.cliBackends || {};
+                  c.agents.defaults.cliBackends['claude-cli'] = {
+                    command: '/home/node/.local/bin/claude'
+                  };
+
+                  c.mcp = c.mcp || {};
+                  c.mcp.servers = c.mcp.servers || {};
+                  c.mcp.servers['ha-mcp'] = {
+                    url: 'http://localhost:8086/mcp',
+                    transport: 'streamable-http'
+                  };
+
+                  // Remove secrets from config file — provided via env vars instead
+                  if (c.channels && c.channels.discord) delete c.channels.discord.token;
+
+                  // Remove stale whatsapp config — plugin not used
+                  if (c.channels) delete c.channels.whatsapp;
+                  if (c.plugins) {
+                    c.plugins.allow = (c.plugins.allow || []).filter(p => p !== 'whatsapp');
+                    if (c.plugins.entries) delete c.plugins.entries.whatsapp;
+                  }
+                  if (process.env.MOLT_HOOKS_TOKEN) {
+                    c.hooks = c.hooks || {};
+                    c.hooks.token = process.env.MOLT_HOOKS_TOKEN;
+                  }
+                  if (process.env.MOLT_GOOGLE_PLACES_API_KEY) {
+                    c.skills = c.skills || {};
+                    c.skills.entries = c.skills.entries || {};
+                    c.skills.entries.goplaces = c.skills.entries.goplaces || {};
+                    c.skills.entries.goplaces.apiKey = process.env.MOLT_GOOGLE_PLACES_API_KEY;
+                    c.skills.entries['local-places'] = c.skills.entries['local-places'] || {};
+                    c.skills.entries['local-places'].apiKey = process.env.MOLT_GOOGLE_PLACES_API_KEY;
+                  }
 
                   fs.mkdirSync('/home/node/.openclaw', {recursive: true});
                   fs.writeFileSync(p, JSON.stringify(c, null, 2));

@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: nvidia-device-plugin
-      version: 0.19.1
+      version: 0.19.2
       sourceRef:
         kind: HelmRepository
         name: nvidia-charts
@@ -25,12 +25,44 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
+  # Two issues fixed with a custom command for mps-control-daemon-ctr:
+  # 1. The wrapper strips PATH before starting nvidia-cuda-mps-control, which then
+  #    cannot find nvidia-cuda-mps-server via execvp. Bypass with PATH set.
+  # 2. After node crash/reboot, /run/nvidia/mps (hostPath) is wiped; the MPS daemon
+  #    cannot start if /mps/nvidia.com/gpu/pipe and /mps/nvidia.com/gpu/log don't exist.
+  #    mkdir -p ensures they're created before the daemon starts.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: DaemonSet
+              name: nvidia-device-plugin-mps-control-daemon
+            patch: |
+              apiVersion: apps/v1
+              kind: DaemonSet
+              metadata:
+                name: nvidia-device-plugin-mps-control-daemon
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: mps-control-daemon-ctr
+                        command:
+                          - /bin/sh
+                          - -c
+                          - |
+                            nvidia-smi -c EXCLUSIVE_PROCESS
+                            mkdir -p /mps/nvidia.com/gpu/pipe /mps/nvidia.com/gpu/log
+                            export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+                            export CUDA_MPS_PIPE_DIRECTORY=/mps/nvidia.com/gpu/pipe
+                            export CUDA_MPS_LOG_DIRECTORY=/mps/nvidia.com/gpu/log
+                            exec nvidia-cuda-mps-control -f
   dependsOn:
     - name: node-feature-discovery
   values:
     image:
-      repository: ghcr.io/nvidia/k8s-device-plugin
-      tag: 99990375-ubi9@sha256:75d1dfc49cc1e2783d34c183c24b7fa5136af488e7e0a6daa8ed1e2f122a7ad8
+      repository: nvcr.io/nvidia/k8s-device-plugin
+      tag: v0.19.2
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
     runtimeClassName: nvidia
@@ -50,7 +82,7 @@ spec:
           flags:
             migStrategy: none
           sharing:
-            timeSlicing:
+            mps:
               renameByDefault: false
               failRequestsGreaterThanOne: false
               resources:
