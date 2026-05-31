@@ -30,6 +30,10 @@ EXPECTED_DOMAIN_STEPS = {
 }
 EXPECTED_SYNTH_DEPS = list(EXPECTED_DOMAIN_STEPS)
 EXPECTED_VERIFY_DEPS = EXPECTED_SYNTH_DEPS + ["synthesize"]
+REQUIRED_DOMAIN_GUARDRAILS = [
+    "Never return an empty response.",
+    "OUTPUT CONSTRAINT:",
+]
 issues: list[str] = []
 
 
@@ -70,6 +74,9 @@ else:
             add_issue(f"{name} task missing mandatory vault write instruction")
         if "FILENAME MUST be exactly YYYY-MM-DD.md" not in task:
             add_issue(f"{name} task missing exact-filename guardrail")
+        for marker in REQUIRED_DOMAIN_GUARDRAILS:
+            if marker not in task:
+                add_issue(f"{name} task missing guardrail marker: {marker}")
 
     synth = steps_by_name.get("synthesize")
     if not synth:
@@ -85,6 +92,8 @@ else:
             add_issue("synthesize task must explicitly instruct Gawain to use the write tool")
         if "Your NATS response text should be a SHORT summary" not in (synth.get("task") or ""):
             add_issue("synthesize task missing NATS-summary contract")
+        if "Never return an empty response." not in (synth.get("task") or ""):
+            add_issue("synthesize task missing non-empty-response guardrail")
 
     verify = steps_by_name.get("verify_artifacts")
     if not verify:

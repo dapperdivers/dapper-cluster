@@ -36,8 +36,14 @@ spec:
 
         Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-8 bullet points MAX, action items only).
-        Your response text IS the summary — just write it as your final output.
+        EXECUTION BOUNDS:
+        - Keep this to the shortest useful pass. Do not do open-ended investigation.
+        - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
+        - Never return an empty response.
+        OUTPUT CONSTRAINT:
+        - Your NATS response text must be EXACTLY 5-8 bullet points.
+        - Action items only. No headers, no frontmatter, no preamble.
+        - MAX 12 lines total.
         If nothing changed since yesterday, say "No significant changes."
       timeout: 900
 
@@ -65,10 +71,15 @@ spec:
         - No "$X potential" or "launch service in N hours" language. You are a reporter, not a startup pitch deck.
         - If a previous report contained speculative projections, do NOT carry them forward.
         - Focus on: What happened? What does it affect? What should Derek know?
+        - If a source/tool is unavailable, say so plainly in one bullet and continue.
+        - Never return an empty response.
 
         Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (4-8 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
+        OUTPUT CONSTRAINT:
+        - Your NATS response text must be EXACTLY 4-8 bullet points.
+        - Key findings only. No headers, no frontmatter, no preamble.
+        - MAX 12 lines total.
       timeout: 1200
 
     - name: infra_status
@@ -83,10 +94,17 @@ spec:
 
         KNOWN LONG-STANDING ISSUES (don't re-explain, just note status):
         - Wazuh HelmRelease: stalled since Feb 2026, pending decision to fix or remove. One line max.
+        EXECUTION BOUNDS:
+        - Focus on status changes, not a full cluster archaeology dig.
+        - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
+        - Never return an empty response.
 
         Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points, key findings and action items). Your response text IS the summary — just write it as your final output.
+        OUTPUT CONSTRAINT:
+        - Your NATS response text must be EXACTLY 5-10 bullet points.
+        - Key findings and action items only. No headers, no frontmatter, no preamble.
+        - MAX 14 lines total.
       timeout: 900
 
     - name: home_tasks
@@ -104,9 +122,16 @@ spec:
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
         If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
+        EXECUTION BOUNDS:
+        - Keep this practical and lightweight.
+        - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
+        - Never return an empty response.
         Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
+        OUTPUT CONSTRAINT:
+        - Your NATS response text must be EXACTLY 5-10 bullet points.
+        - No headers, no frontmatter, no preamble.
+        - MAX 14 lines total.
       timeout: 900
 
     - name: finance_check
@@ -119,9 +144,16 @@ spec:
         Focus on CHANGES: new payments, deadline shifts, status updates.
         Don't re-derive the same debt numbers — reference yesterday's and note delta.
         If nothing changed in a category, one line: "Unchanged since [date]."
+        EXECUTION BOUNDS:
+        - Keep this to changed facts and near-term action items.
+        - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
+        - Never return an empty response.
         Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
+        OUTPUT CONSTRAINT:
+        - Your NATS response text must be EXACTLY 5-10 bullet points.
+        - No headers, no frontmatter, no preamble.
+        - MAX 14 lines total.
       timeout: 900
 
     - name: career_update
@@ -134,9 +166,16 @@ spec:
         Focus on what CHANGED: new communications, deadline shifts, status updates.
         If the same status persists (e.g., "waiting for offer"), one line: "Day N waiting — no update."
         Don't re-explain the full timeline unless something shifted.
+        EXECUTION BOUNDS:
+        - Keep this focused on real movement and next actions.
+        - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
+        - Never return an empty response.
         Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
+        OUTPUT CONSTRAINT:
+        - Your NATS response text must be EXACTLY 5-10 bullet points.
+        - No headers, no frontmatter, no preamble.
+        - MAX 14 lines total.
       timeout: 900
 
     - name: wellness_check
@@ -169,6 +208,8 @@ spec:
         - Read at most 2 files total.
         - Do not do open-ended analysis.
         - Finish fast. This step should be lightweight.
+        - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
+        - Never return an empty response.
 
         Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
@@ -248,6 +289,8 @@ spec:
 
         After writing the file, verify it exists:
         bash ls -la /vault/Briefings/Daily/YYYY-MM-DD.md
+
+        Never return an empty response. If the file write or verification fails, say so explicitly in the summary.
 
         Your NATS response text should be a SHORT summary (5-10 lines):
         - Confirm file was written with path and line count
