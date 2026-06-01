@@ -13,6 +13,12 @@ NO_OUTPUT_MARKERS = {"", "[No output from agent]", "[no output from agent]"}
 ACTION_KEYS = {"action", "action_input", "tool", "tool_name", "function", "function_call"}
 RESULT_KEYS = ("output", "result", "content", "text", "final")
 BRIEFING_RE = re.compile(r"^#\s+Daily Briefing\b", re.MULTILINE)
+META_RESPONSE_PATTERNS = (
+    re.compile(r"\b(?:this|the)\s+(?:task|request|process|analysis|audit)\s+requires\s+(?:access|accessing)\b"),
+    re.compile(r"\bi\s+will\s+(?:perform|check|review|analyze|investigate|gather)\b"),
+    re.compile(r"\b(?:unable|cannot|can't|do not have|don't have|lack|without)\b.{0,60}\b(?:access|credentials|permission|permissions|tools|context)\b"),
+    re.compile(r"\bto\s+complete\s+(?:this|the)\s+(?:task|request|analysis|audit)\b"),
+)
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 MONTH_RE = re.compile(
     r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})"
@@ -41,6 +47,19 @@ def extract_date(text: str) -> str:
     return "unknown"
 
 
+def looks_like_meta_response(text: str) -> bool:
+    lowered = text.lower()
+    if not lowered:
+        return False
+    matches = sum(1 for pattern in META_RESPONSE_PATTERNS if pattern.search(lowered))
+    if matches >= 2:
+        return True
+    return bool(
+        matches
+        and ("requires access" in lowered or "requires accessing" in lowered or "i will " in lowered)
+    )
+
+
 def inspect_text(text: str, *, allow_briefing_markdown: bool = False) -> Tuple[str, Dict[str, Any]]:
     stripped = text.strip()
     lowered = stripped.lower()
@@ -60,6 +79,8 @@ def inspect_text(text: str, *, allow_briefing_markdown: bool = False) -> Tuple[s
         return "briefing-markdown", meta
     if stripped.startswith(("-", "•", "*")):
         return "bullet-summary", meta
+    if looks_like_meta_response(stripped):
+        return "meta-response", meta
     return "plain-text", meta
 
 

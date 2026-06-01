@@ -115,7 +115,7 @@ for knight, domain, label, report_dir, step_name in specs:
                 issues.append(f"{label}: current chain KV output missing")
         elif not nats_success:
             issues.append(f"{label}: current chain KV output present but error was recorded")
-        elif result_kind in {'truncated', 'malformed-json', 'thought-leakage', 'empty', 'kv-malformed', 'json-other', 'json-array', 'action-payload', 'reasoning-payload', 'too-deep', 'unknown'}:
+        elif result_kind in {'truncated', 'malformed-json', 'thought-leakage', 'empty', 'kv-malformed', 'json-other', 'json-array', 'action-payload', 'reasoning-payload', 'meta-response', 'too-deep', 'unknown'}:
             issues.append(f"{label}: suspicious current chain output ({result_kind})")
 
     rows.append({
