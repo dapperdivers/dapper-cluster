@@ -10,3 +10,4 @@ resources:
   - vault-pvc.yaml
   - shared-workspace-pvc.yaml
   - chelonian-secret.yaml
+  - limitrange.yaml

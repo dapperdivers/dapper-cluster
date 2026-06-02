@@ -31,9 +31,14 @@ spec:
     ref: main
     period: "300s"
   workspace:
-    size: "2Gi"
+    size: "10Gi"
   concurrency: 2
   taskTimeout: 1800
+  env:
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
   envFrom:
     - secretRef:
         name: roundtable-secret
