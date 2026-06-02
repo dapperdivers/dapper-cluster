@@ -59,7 +59,7 @@ spec:
   workspace:
     size: "1Gi"
   concurrency: 2
-  taskTimeout: 300
+  taskTimeout: 1800
   env:
     - name: OPENCTI_URL
       value: "http://opencti-server.security.svc:80"
