@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: coding
   image: ""
-  model: "openai/tensorzero::function_name::gemma-local"
+  model: "openrouter/anthropic/claude-sonnet-4.6"
   skills:
     - shared
     - coding
@@ -40,9 +40,6 @@ spec:
     size: "2Gi"
   concurrency: 1
   taskTimeout: 1800
-  env:
-    - name: OPENAI_BASE_URL
-      value: "http://tensorzero.ai.svc.cluster.local:3000/openai/v1"
   envFrom:
     - secretRef:
         name: roundtable-secret

@@ -8,7 +8,7 @@ metadata:
 spec:
   domain: wellness
   image: ""
-  model: "openai/tensorzero::function_name::gemma-local"
+  model: "openrouter/deepseek/deepseek-v3.2"
   skills:
     - shared
     - wellness
@@ -40,9 +40,6 @@ spec:
     size: "1Gi"
   concurrency: 2
   taskTimeout: 600
-  env:
-    - name: OPENAI_BASE_URL
-      value: "http://tensorzero.ai.svc.cluster.local:3000/openai/v1"
   envFrom:
     - secretRef:
         name: roundtable-secret

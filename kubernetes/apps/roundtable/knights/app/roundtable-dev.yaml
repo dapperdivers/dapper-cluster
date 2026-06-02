@@ -23,7 +23,7 @@ spec:
     matchLabels:
       ai.roundtable.io/table: roundtable-dev
   defaults:
-    model: "openai/tensorzero::function_name::gemma-local"
+    model: "openrouter/anthropic/claude-sonnet-4.6"
     image: ""
     taskTimeout: 1800
     concurrency: 1

@@ -45,7 +45,7 @@ spec:
     planner:
       enabled: true
       domain: operator
-      model: claude-sonnet-4-20250514
+      model: openrouter/anthropic/claude-sonnet-4.6
       skills:
         - operator
         - shared

@@ -9,7 +9,7 @@ spec:
   runtime: sandbox  # Testing Agent Sandbox backend (roundtable#94)
   domain: pentest
   image: ""
-  model: "openai/tensorzero::function_name::gemma-local"
+  model: "openrouter/anthropic/claude-sonnet-4.6"
   # capabilities:
   #   browser: true  # Disabled until browser sidecar is configured
   skills:
@@ -67,9 +67,6 @@ spec:
     size: "1Gi"
   concurrency: 1
   taskTimeout: 1800
-  env:
-    - name: OPENAI_BASE_URL
-      value: "http://tensorzero.ai.svc.cluster.local:3000/openai/v1"
   envFrom:
     - secretRef:
         name: roundtable-secret
