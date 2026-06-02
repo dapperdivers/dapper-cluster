@@ -10,7 +10,7 @@ spec:
     browser: true
   domain: security
   image: ""
-  model: "openrouter/anthropic/claude-sonnet-4.6"
+  model: "openrouter/google/gemini-2.5-flash"
   skills:
     - security
     - shared

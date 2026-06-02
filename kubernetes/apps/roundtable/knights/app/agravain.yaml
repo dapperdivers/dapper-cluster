@@ -9,7 +9,7 @@ spec:
   runtime: sandbox  # Testing Agent Sandbox backend (roundtable#94)
   domain: pentest
   image: ""
-  model: "openrouter/anthropic/claude-sonnet-4.6"
+  model: "openrouter/google/gemini-2.5-flash"
   # capabilities:
   #   browser: true  # Disabled until browser sidecar is configured
   skills:
