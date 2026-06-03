@@ -195,10 +195,16 @@ spec:
 
                   c.agents = c.agents || {};
                   c.agents.defaults = c.agents.defaults || {};
-                  c.agents.defaults.model = 'openai-codex/gpt-5.4';
+                  // OpenRouter as primary (auto-routing), openai-codex kept as fallback.
+                  // The openrouter plugin is bundled + enabledByDefault; it reads
+                  // OPENROUTER_API_KEY from the env (provided via molt-secret).
+                  c.agents.defaults.model = {
+                    primary: 'openrouter/auto',
+                    fallbacks: ['openai-codex/gpt-5.4']
+                  };
                   c.agents.defaults.subagents = c.agents.defaults.subagents || {};
                   c.agents.defaults.subagents.model = {
-                    primary: 'openai/smart',
+                    primary: 'openrouter/auto',
                     fallbacks: ['openai-codex/gpt-5.4']
                   };
 
