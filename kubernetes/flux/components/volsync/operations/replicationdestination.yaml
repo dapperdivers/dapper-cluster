@@ -21,6 +21,7 @@ spec:
       runAsUser: ${VOLSYNC_PUID:-1000}
       runAsGroup: ${VOLSYNC_PGID:-150}
       fsGroup: ${VOLSYNC_PGID:-150}
+      fsGroupChangePolicy: OnRootMismatch
     enableFileDeletion: true
     cleanupCachePVC: true
     cleanupTempPVC: true
