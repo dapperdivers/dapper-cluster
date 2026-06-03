@@ -45,6 +45,12 @@ spec:
             secretName: ${SECRET_DOMAIN/./-}-tls
         pathType: Prefix
       alertmanagerSpec:
+        # Apply the AlertmanagerConfig CRD cluster-wide instead of only to its own
+        # namespace. Without this the operator auto-scopes the route to
+        # namespace="observability", so alerts from every other namespace fall
+        # through to the default "null" receiver and are silently dropped.
+        alertmanagerConfigMatcherStrategy:
+          type: None
         useExistingSecret: true
         configSecret: alertmanager-secret
         storage:
