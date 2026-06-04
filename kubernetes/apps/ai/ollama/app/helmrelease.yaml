@@ -93,7 +93,10 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 4
+                # GPU-bound server — reserve only 1 core so it always fits on the
+                # CPU-tight GPU node (a 4-core request let jobs like kometa evict it).
+                # It can still burst to the limit during model load/repack.
+                cpu: 1
                 memory: 32Gi
                 nvidia.com/gpu: 1
               limits:
