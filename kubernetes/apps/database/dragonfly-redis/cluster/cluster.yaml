@@ -7,22 +7,20 @@ metadata:
 spec:
   image: ghcr.io/dragonflydb/dragonfly:v1.38.1
   replicas: 3
-  env:
-    - name: MAX_MEMORY
-      valueFrom:
-        resourceFieldRef:
-          resource: limits.memory
-          divisor: 1Mi
   args:
-    - --maxmemory=$(MAX_MEMORY)Mi
+    # maxmemory is kept well below limits.memory: Dragonfly's RSS includes
+    # connection buffers and snapshot/replication fork overhead on top of the
+    # dataset, so setting maxmemory == the cgroup limit causes OOMKills under
+    # bursts before eviction can kick in.
+    - --maxmemory=1536Mi
     - --proactor_threads=2
     - --cluster_mode=emulated
   resources:
     requests:
       cpu: 100m
-      memory: 512Mi
-    limits:
       memory: 1Gi
+    limits:
+      memory: 2Gi
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
