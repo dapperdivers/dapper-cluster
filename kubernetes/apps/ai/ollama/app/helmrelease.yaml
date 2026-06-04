@@ -30,6 +30,11 @@ spec:
               tag: 0.30.2
             env:
               TZ: ${TIME_ZONE}
+              # See all 3 P100s (time-sliced, shared with Plex). SCHED_SPREAD makes
+              # ollama spread a model across every visible GPU, pooling the 3x16GB.
+              NVIDIA_VISIBLE_DEVICES: all
+              NVIDIA_DRIVER_CAPABILITIES: compute,utility
+              OLLAMA_SCHED_SPREAD: "1"
               # Store models on PVC — critical for persistence across restarts
               OLLAMA_MODELS: /models
               # Listen on all interfaces
