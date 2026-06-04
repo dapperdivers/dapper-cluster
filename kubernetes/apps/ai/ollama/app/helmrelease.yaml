@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: docker.io/ollama/ollama
-              tag: 0.30.2
+              tag: 0.30.3
             env:
               TZ: ${TIME_ZONE}
               # See all 3 P100s (time-sliced, shared with Plex). ollama uses one card
