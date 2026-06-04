@@ -163,7 +163,7 @@ spec:
       enabled: true
       persistence:
         enabled: true
-        size: 20Gi
+        size: 40Gi
         storageClass: ceph-rbd
       resources:
         requests:
