@@ -195,18 +195,35 @@ spec:
 
                   c.agents = c.agents || {};
                   c.agents.defaults = c.agents.defaults || {};
-                  // OpenRouter as primary (auto-routing), openai-codex kept as fallback.
+                  // Cost control: pin a cheap model instead of 'openrouter/auto'.
+                  // 'auto' optimises for capability, not price, and kept routing
+                  // every call to flagship GPT-5.5 (~70% of molt+roundtable spend).
+                  // Haiku 4.5 covers everyday assistant work at a fraction of the cost;
+                  // openai-codex/gpt-5.4 stays as a failure-only fallback.
+                  // NOTE: subagents.model is widely reported to be ignored (openclaw
+                  // issues #10963/#51854) — subagents inherit the parent primary — so
+                  // pinning the primary cheap is what actually caps cost.
                   // The openrouter plugin is bundled + enabledByDefault; it reads
                   // OPENROUTER_API_KEY from the env (provided via molt-secret).
                   c.agents.defaults.model = {
-                    primary: 'openrouter/auto',
+                    primary: 'openrouter/anthropic/claude-haiku-4.5',
                     fallbacks: ['openai-codex/gpt-5.4']
                   };
                   c.agents.defaults.subagents = c.agents.defaults.subagents || {};
                   c.agents.defaults.subagents.model = {
-                    primary: 'openrouter/auto',
+                    primary: 'openrouter/anthropic/claude-haiku-4.5',
                     fallbacks: ['openai-codex/gpt-5.4']
                   };
+                  // Image/PDF tasks defaulted to openai/gpt-5.4 on the PVC — pin the
+                  // cheap vision model (matches the roundtable knights) instead.
+                  c.agents.defaults.imageModel = { primary: 'openrouter/google/gemini-2.5-flash' };
+                  c.agents.defaults.pdfModel = { primary: 'openrouter/google/gemini-2.5-flash' };
+                  // Heartbeat was hourly on flagship openai/gpt-5.4 (24 background
+                  // calls/day, each loading full context). Halve the cadence and run
+                  // it on cheap Haiku 4.5 instead.
+                  c.agents.defaults.heartbeat = c.agents.defaults.heartbeat || {};
+                  c.agents.defaults.heartbeat.every = '2h';
+                  c.agents.defaults.heartbeat.model = 'openrouter/anthropic/claude-haiku-4.5';
                   // Named sub-agents were pinned to openai/gpt-5.4 (codex) as bare
                   // strings — that clobbers inherited fallbacks. Strip the pin so they
                   // inherit the OpenRouter default (primary + fallback) above.
