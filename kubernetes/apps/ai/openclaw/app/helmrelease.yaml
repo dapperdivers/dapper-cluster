@@ -177,21 +177,28 @@ spec:
                     models: []
                   };
                   const models = c.models.providers.ollama.models = c.models.providers.ollama.models || [];
+                  // Local inference is a single 16GB P100 (MPS-sliced). Keep the
+                  // advertised context small so molt never sends prompts that force
+                  // ollama into a CPU-only load (which times out). Upsert so existing
+                  // entries get clamped too, not just freshly-added ones.
+                  const LOCAL_CTX = 8192, LOCAL_MAXTOK = 2048;
                   const ensureModel = (id, name) => {
-                    if (!models.some(m => m.id === id)) {
-                      models.push({
+                    let m = models.find(x => x.id === id);
+                    if (!m) {
+                      m = {
                         id,
                         name,
                         reasoning: false,
                         input: ['text'],
-                        cost: {input: 0, output: 0, cacheRead: 0, cacheWrite: 0},
-                        contextWindow: 131072,
-                        maxTokens: 32768
-                      });
+                        cost: {input: 0, output: 0, cacheRead: 0, cacheWrite: 0}
+                      };
+                      models.push(m);
                     }
+                    m.contextWindow = LOCAL_CTX;
+                    m.maxTokens = LOCAL_MAXTOK;
                   };
-                  ensureModel('gemma4:26b', 'Gemma 4 26B (Local 3x P100)');
-                  ensureModel('gemma4:e4b', 'Gemma 4 E4B (Local Fast)');
+                  ensureModel('gemma4:e4b', 'Gemma 4 E4B (Local Fast, fits GPU)');
+                  ensureModel('gemma4:26b', 'Gemma 4 26B (Local, partial CPU - slow)');
 
                   c.agents = c.agents || {};
                   c.agents.defaults = c.agents.defaults || {};
