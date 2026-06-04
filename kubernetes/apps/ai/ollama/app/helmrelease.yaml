@@ -30,11 +30,13 @@ spec:
               tag: 0.30.3
             env:
               TZ: ${TIME_ZONE}
-              # See all 3 P100s (time-sliced, shared with Plex). ollama uses one card
-              # for models that fit and auto-splits across cards for bigger ones.
-              # NOT setting OLLAMA_SCHED_SPREAD: forcing a 3-way split crashes
-              # llama.cpp on Pascal (GGML_ASSERT n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS).
-              NVIDIA_VISIBLE_DEVICES: all
+              # Pin ollama to ONE P100 (by UUID). Splitting a model across multiple
+              # cards crashes llama.cpp on Pascal during the pre-load graph fit
+              # (GGML_ASSERT n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS) — and ollama spreads
+              # across every visible GPU by default, so we expose just one. A model must
+              # fit in one 16GB card. The other two cards stay free for Plex / a second
+              # ollama instance; all share the node via time-slicing.
+              NVIDIA_VISIBLE_DEVICES: GPU-093a9684-9b6e-111e-a37e-6bc4995bb37f
               NVIDIA_DRIVER_CAPABILITIES: compute,utility
               # Store models on PVC — critical for persistence across restarts
               OLLAMA_MODELS: /models
