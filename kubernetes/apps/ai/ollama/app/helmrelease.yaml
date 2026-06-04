@@ -30,11 +30,12 @@ spec:
               tag: 0.30.2
             env:
               TZ: ${TIME_ZONE}
-              # See all 3 P100s (time-sliced, shared with Plex). SCHED_SPREAD makes
-              # ollama spread a model across every visible GPU, pooling the 3x16GB.
+              # See all 3 P100s (time-sliced, shared with Plex). ollama uses one card
+              # for models that fit and auto-splits across cards for bigger ones.
+              # NOT setting OLLAMA_SCHED_SPREAD: forcing a 3-way split crashes
+              # llama.cpp on Pascal (GGML_ASSERT n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS).
               NVIDIA_VISIBLE_DEVICES: all
               NVIDIA_DRIVER_CAPABILITIES: compute,utility
-              OLLAMA_SCHED_SPREAD: "1"
               # Store models on PVC — critical for persistence across restarts
               OLLAMA_MODELS: /models
               # Listen on all interfaces
