@@ -51,8 +51,12 @@ spec:
               OLLAMA_NUM_CTX: "8192"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
-              # Force CUDA 12 backend — P100 is sm_60 (Pascal); CUDA 13 dropped sm_60 support
-              OLLAMA_LLM_LIBRARY: cuda_v12
+              # NOTE: OLLAMA_LLM_LIBRARY=cuda_v12 was removed — in ollama 0.30.2 this
+              # legacy override suppressed GPU autodiscovery (logs showed only
+              # library=cpu), forcing CPU-only inference. The image bundles both
+              # cuda_v12 and cuda_v13 runners; autodiscovery picks cuda_v12 for the
+              # Pascal P100 (sm_60). If a future bump regresses Pascal support, pin an
+              # older ollama image that ships only CUDA 12 instead of re-adding this.
             ports:
               - name: http
                 containerPort: &port 11434
