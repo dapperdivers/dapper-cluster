@@ -36,6 +36,11 @@ cluster:
     extraArgs:
       listen-metrics-urls: http://0.0.0.0:2381
       quota-backend-bytes: "1073741824"  # 1 GiB (double peak usage of ~350MB)
+      # Widen raft timeouts to tolerate ~20-22ms WAL fsync latency on Proxmox VM
+      # disks (SSD/hardware migration ruled out). Stops leader flapping when a
+      # heartbeat is delayed by a slow fsync. election-timeout is 10x heartbeat.
+      heartbeat-interval: "250"   # default 100ms
+      election-timeout: "2500"    # default 1000ms
     advertisedSubnets:
       - 10.100.0.0/24
   proxy:
