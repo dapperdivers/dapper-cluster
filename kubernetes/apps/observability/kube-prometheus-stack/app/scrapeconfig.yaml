@@ -3,21 +3,6 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: &name pve-exporter
-spec:
-  staticConfigs:
-    - targets:
-      - athena.manor:9221  # Proxmox VE node with PVE exporter.
-  metricsPath: /pve
-  relabelings:
-    - action: replace
-      targetLabel: job
-
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
   name: &name zigbee-controller
 spec:
   staticConfigs:
