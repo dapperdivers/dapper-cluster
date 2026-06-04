@@ -108,6 +108,10 @@ else:
         task = verify.get("task") or ""
         if "bash /workspace/scripts/briefing-artifact-audit.sh YYYY-MM-DD" not in task:
             add_issue("verify_artifacts task missing artifact-audit script call")
+        if "bash /workspace/scripts/briefing-context-audit.sh YYYY-MM-DD" not in task:
+            add_issue("verify_artifacts task missing content/context audit script call")
+        if "placeholder CVEs" not in task or "stale Emma/birth facts" not in task:
+            add_issue("verify_artifacts task missing content-quality failure contract")
         if "ARTIFACT_AUDIT_OK" not in task:
             add_issue("verify_artifacts task missing explicit healthy success token")
 

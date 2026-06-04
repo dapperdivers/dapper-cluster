@@ -116,9 +116,9 @@ spec:
         CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
         - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs or shower planning.
         - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
+        - Emma was BORN April 14, 2026. Do NOT describe a countdown, due date, pregnancy week, or pending arrival.
         - Nursery setup: IN PROGRESS with shower gifts.
-        - Emma due date: April 29, 2026. Early term started April 8, 2026.
-        - Hospital bags, car seat: TRACK STATUS but count stale days from APRIL 1 (original target date), not from first mention.
+        - Hospital bags and car seat are no longer countdown blockers; only mention if there is a concrete post-birth follow-up.
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
         If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
@@ -140,6 +140,10 @@ spec:
       task: |
         Generate today's financial briefing. Check tax deadlines, bill due dates,
         budget status, investment updates, and any items needing immediate attention.
+        CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
+        - Emma was BORN April 14, 2026. Do NOT say her birth date needs confirmation or approximate it as late April/early May.
+        - Tax extension status is unknown unless verified from a source; do not assume it was filed.
+        - If exact balances or payments cannot be checked, say "source unavailable" instead of inventing estimates.
         FIRST: Read yesterday's report in /vault/Briefings/Finance/ (most recent YYYY-MM-DD.md).
         Focus on CHANGES: new payments, deadline shifts, status updates.
         Don't re-derive the same debt numbers — reference yesterday's and note delta.
@@ -184,13 +188,13 @@ spec:
       task: |
         You are Sir GARETH, wellness knight. NOT Bedivere, NOT any other knight.
 
-        Generate today's wellness briefing. Emma's due date is April 29, 2026.
-        Early term began April 8, 2026 (37 weeks). Emma could arrive any day now.
-        Calculate the current pregnancy week and day. Report on:
-        - Current week milestones and baby development
-        - Nutrition and hydration focus for this stage
-        - Any upcoming appointments, signs to watch for
-        - Emotional/physical readiness check for both parents
+        Generate today's wellness briefing. Emma was born April 14, 2026.
+        This is postpartum/newborn wellness now, NOT pregnancy tracking.
+        Report on:
+        - Sara postpartum recovery and hydration/nutrition focus if known
+        - Emma newborn follow-up items if known
+        - Derek/Sara sleep, stress, and support load
+        - Appointments, warning signs, or family wellbeing tasks needing attention
 
         ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY.
         DO NOT read /vault/Briefings/Home/ or any other knight's domain files.
@@ -201,8 +205,9 @@ spec:
         - Wedding: DONE February 6, 2026
 
         FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
-        Only report what CHANGED since yesterday. Same-week = focus on daily differences only.
+        Only report what CHANGED since yesterday.
         If nothing changed materially, say that briefly instead of re-deriving a full explainer.
+        HARD RULE: Do NOT mention pregnancy week, due date countdown, early-term status, baby shower, or wedding.
 
         EXECUTION BOUNDS:
         - Read at most 2 files total.
@@ -346,10 +351,13 @@ spec:
         2) Run this exact command first:
            bash /workspace/scripts/briefing-artifact-audit.sh YYYY-MM-DD
         3) Treat any non-zero exit from that script as FAILURE.
-        4) Then verify the final briefing file exists with:
+        4) Then run this exact command:
+           bash /workspace/scripts/briefing-context-audit.sh YYYY-MM-DD
+        5) Treat any non-zero exit from that script as FAILURE. Fresh-looking reports that contain placeholder CVEs, stale Emma/birth facts, or assistant-preamble leakage are not acceptable.
+        6) Then verify the final briefing file exists with:
            ls -lh /vault/Briefings/Daily/YYYY-MM-DD.md
-        5) If everything is healthy, return exactly: ARTIFACT_AUDIT_OK
-        6) If anything is wrong, return a concise failure report and then EXIT NON-ZERO using bash so the chain status becomes Failed.
+        7) If everything is healthy, return exactly: ARTIFACT_AUDIT_OK
+        8) If anything is wrong, return a concise failure report and then EXIT NON-ZERO using bash so the chain status becomes Failed.
 
         The purpose of this step is truthfulness, not optimism.
       timeout: 300
