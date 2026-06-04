@@ -32,6 +32,7 @@ spec:
           schedule: "0 1 * * *" # Daily at 1 AM
           timeZone: &timeZone ${TIME_ZONE}
           concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 21600 # 6h — kill overruns so they don't block the next run / fire KubeJobNotCompleted
           successfulJobsHistory: 1
           failedJobsHistory: 1
         initContainers:
