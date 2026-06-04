@@ -222,18 +222,12 @@ spec:
                     primary: 'openrouter/anthropic/claude-haiku-4.5',
                     fallbacks: ['openai-codex/gpt-5.4']
                   };
-                  // Allowlist for the /model picker. The gateway rejects any model not
-                  // listed here ("model not allowed") — even the configured default — so
-                  // explicit /model switches failed. Register the cheap default, on-demand
-                  // escalation, the free local models, and the codex fallback. Set
-                  // (not merged) to drop the stale gemma4:26b that left sessions wedged.
-                  c.agents.defaults.models = {
-                    'openrouter/anthropic/claude-haiku-4.5': { alias: 'haiku' },
-                    'openrouter/anthropic/claude-sonnet-4.6': { alias: 'sonnet' },
-                    'ollama/gpt-oss:20b': { alias: 'gptoss' },
-                    'ollama/gemma4:e4b': { alias: 'gemma' },
-                    'openai/gpt-5.4': { alias: 'gpt', agentRuntime: { id: 'codex' } }
-                  };
+                  // NOTE: agents.defaults.models (the /model allowlist) is intentionally
+                  // NOT managed from this patch. Setting it here clobbered live edits and
+                  // the gateway reverted the patch-written version on load. It lives on the
+                  // PVC and is maintained live + hot-reloaded via:
+                  //   openclaw config set agents.defaults.models '{"openrouter/*":{}, ...}' --strict-json --merge
+                  // Current live allowlist: openrouter/*, ollama/* wildcards + haiku/sonnet/gptoss aliases.
                   // Image/PDF tasks defaulted to openai/gpt-5.4 on the PVC — pin the
                   // cheap vision model (matches the roundtable knights) instead.
                   c.agents.defaults.imageModel = { primary: 'openrouter/google/gemini-2.5-flash' };
