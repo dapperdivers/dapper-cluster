@@ -94,6 +94,17 @@ spec:
                   /home/node/.local/bin/bun install -g @tobilu/qmd
                 fi
 
+                # Pre-pull QMD's GGUF models (embed + reranker + 1.7B query-expansion,
+                # ~2.3GB total) into the shared cache. The 'qmd query' pipeline that
+                # backs memory_search downloads these on first use; on a fresh PVC that
+                # download blows past the 15s search timeout and trips the active-memory
+                # circuit breaker. Pre-pulling here makes memory search work immediately.
+                # Guarded on the reranker file so it's a no-op once the cache is warm.
+                if [ ! -f /home/node/.cache/qmd/models/hf_ggml-org_qwen3-reranker-0.6b-q8_0.gguf ]; then
+                  echo "Pre-pulling QMD models..."
+                  node -e "import('/home/node/.local/node_modules/@tobilu/qmd/dist/llm.js').then(async m => { const r = await m.pullModels([m.DEFAULT_EMBED_MODEL_URI, m.DEFAULT_RERANK_MODEL_URI, m.DEFAULT_GENERATE_MODEL_URI], {}); console.log('QMD models ready:', r.map(x => x.path).join(', ')); }).catch(e => { console.error('QMD model pre-pull failed (non-fatal):', e && e.message); })" || echo "QMD pre-pull skipped"
+                fi
+
                 # Install Claude CLI if not present on PVC
                 if [ ! -f /home/node/.local/bin/claude ]; then
                   echo "Installing Claude CLI..."
@@ -167,6 +178,23 @@ spec:
                   if (!c.memory.qmd.paths.some(p2 => p2.path === vaultPath)) {
                     c.memory.qmd.paths.push({path: vaultPath, name: 'vault'});
                   }
+
+                  // active-memory runs a blocking memory sub-agent before replies.
+                  // Its search timeout defaults to 15s; on CPU, QMD's query pipeline
+                  // cold-loads 3 GGUF models (embed + reranker + 1.7B expansion) and
+                  // reranks candidates — a cold run can take well over a minute. After
+                  // 3 consecutive timeouts a circuit breaker DISABLES memory search
+                  // entirely ('Memory search is disabled/unavailable'). Raise the
+                  // timeout to the 120s max and give the breaker more tolerance so a
+                  // cold warm-up after a restart doesn't permanently trip it. The real
+                  // latency fix is running QMD on GPU (blocked: Pascal P100 + the
+                  // node-llama-cpp CUDA 13 build that dropped sm_60 — see ollama notes).
+                  c.plugins = c.plugins || {};
+                  c.plugins.entries = c.plugins.entries || {};
+                  c.plugins.entries['active-memory'] = c.plugins.entries['active-memory'] || { enabled: true, config: {} };
+                  c.plugins.entries['active-memory'].config = c.plugins.entries['active-memory'].config || {};
+                  c.plugins.entries['active-memory'].config.timeoutMs = 120000;
+                  c.plugins.entries['active-memory'].config.circuitBreakerMaxTimeouts = 5;
 
                   c.models = c.models || {};
                   c.models.providers = c.models.providers || {};
@@ -300,7 +328,12 @@ spec:
                 memory: 512Mi
               limits:
                 cpu: 2000m
-                memory: 6Gi
+                # QMD memory_search loads 3 GGUF models on CPU (embed 300M +
+                # reranker 600M + 1.7B query-expansion, ~2.3GB) on top of the
+                # openclaw process (~1.5GB). At 6Gi the container OOMKilled during
+                # searches. Bumped to give headroom until QMD runs on GPU (blocked
+                # on Pascal P100 + node-llama-cpp's CUDA 13 build — see ollama notes).
+                memory: 12Gi
             env:
               TZ: ${TIME_ZONE}
               HOME: /home/node
