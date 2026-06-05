@@ -34,16 +34,21 @@ spec:
         they affect OUR stack. We do NOT run: n8n, Jenkins, Confluence, Jira, or Oracle products.
         If a CVE only affects software we don't use, skip it entirely.
 
-        Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/Security/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/Security/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/Security/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
+        
         EXECUTION BOUNDS:
         - Keep this to the shortest useful pass. Do not do open-ended investigation.
         - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
         - Never return an empty response.
         OUTPUT CONSTRAINT:
         - Your NATS response text must be EXACTLY 5-8 bullet points.
-        - Action items only. No headers, no frontmatter, no preamble.
+        - Action items only. No headers, no frontmatter, no preamble. Always include file status.
         - MAX 12 lines total.
+        - Always include: "✅ Report written to /vault/Briefings/Security/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
         If nothing changed since yesterday, say "No significant changes."
       timeout: 900
 
@@ -74,12 +79,17 @@ spec:
         - If a source/tool is unavailable, say so plainly in one bullet and continue.
         - Never return an empty response.
 
-        Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/Intel/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/Intel/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/Intel/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
+        
         OUTPUT CONSTRAINT:
         - Your NATS response text must be EXACTLY 4-8 bullet points.
-        - Key findings only. No headers, no frontmatter, no preamble.
+        - Key findings only. No headers, no frontmatter, no preamble. Always include file status.
         - MAX 12 lines total.
+        - Always include: "✅ Report written to /vault/Briefings/Intel/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
       timeout: 1200
 
     - name: infra_status
@@ -99,12 +109,17 @@ spec:
         - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
         - Never return an empty response.
 
-        Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/HomeLab/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/HomeLab/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/HomeLab/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
+        
         OUTPUT CONSTRAINT:
         - Your NATS response text must be EXACTLY 5-10 bullet points.
         - Key findings and action items only. No headers, no frontmatter, no preamble.
         - MAX 14 lines total.
+        - Always include: "✅ Report written to /vault/Briefings/HomeLab/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
       timeout: 900
 
     - name: home_tasks
@@ -126,12 +141,18 @@ spec:
         - Keep this practical and lightweight.
         - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
         - Never return an empty response.
-        Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/Home/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/Home/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/Home/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
+        
         OUTPUT CONSTRAINT:
         - Your NATS response text must be EXACTLY 5-10 bullet points.
-        - No headers, no frontmatter, no preamble.
+        - No headers, no frontmatter, no preamble. Always include file status.
         - MAX 14 lines total.
+        - Always include: "✅ Report written to /vault/Briefings/Home/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
       timeout: 900
 
     - name: finance_check
@@ -152,12 +173,18 @@ spec:
         - Keep this to changed facts and near-term action items.
         - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
         - Never return an empty response.
-        Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/Finance/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/Finance/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/Finance/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
+        
         OUTPUT CONSTRAINT:
         - Your NATS response text must be EXACTLY 5-10 bullet points.
-        - No headers, no frontmatter, no preamble.
+        - No headers, no frontmatter, no preamble. Always include file status.
         - MAX 14 lines total.
+        - Always include: "✅ Report written to /vault/Briefings/Finance/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
       timeout: 900
 
     - name: career_update
@@ -174,12 +201,18 @@ spec:
         - Keep this focused on real movement and next actions.
         - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
         - Never return an empty response.
-        Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/Career/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/Career/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/Career/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
+        
         OUTPUT CONSTRAINT:
         - Your NATS response text must be EXACTLY 5-10 bullet points.
-        - No headers, no frontmatter, no preamble.
+        - No headers, no frontmatter, no preamble. Always include file status.
         - MAX 14 lines total.
+        - Always include: "✅ Report written to /vault/Briefings/Career/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
       timeout: 900
 
     - name: wellness_check
@@ -216,11 +249,15 @@ spec:
         - If a source/tool is unavailable, say so in one bullet and continue with the remaining signal.
         - Never return an empty response.
 
-        Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        MANDATORY VAULT WRITE:
+        You MUST use the `write` tool to save your complete report to /vault/Briefings/Wellness/YYYY-MM-DD.md.
+        Use your write tool like this: write tool with path="/vault/Briefings/Wellness/YYYY-MM-DD.md" and your complete report content.
+        After writing, verify: bash ls -l /vault/Briefings/Wellness/YYYY-MM-DD.md
+        If the write or verification fails, include the error in your NATS response and it will fail the chain.
 
         OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points.
         No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
+        Always include: "✅ Report written to /vault/Briefings/Wellness/YYYY-MM-DD.md" or "❌ Write failed: [error]" as the first bullet.
       timeout: 900
 
     # Phase 2 — Gawain synthesizes all reports
