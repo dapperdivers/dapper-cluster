@@ -44,7 +44,7 @@ spec:
           app:
             image:
               repository: ghcr.io/fscorrupt/posterizarr
-              tag: 2.2.47@sha256:3eb7d53fc71457d6669ba3e82bd8ee6ff030534dc38a506d3983ecddcfe664fb
+              tag: 2.2.48@sha256:c60833bd275ba2c5cbe0dcf5d7b0a79bbf023a218dd3c498d5a7ec7813f9bc87
             env:
               TZ: ${TIME_ZONE}
             resources:
