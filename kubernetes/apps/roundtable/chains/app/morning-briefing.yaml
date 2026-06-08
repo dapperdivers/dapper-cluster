@@ -21,6 +21,8 @@ spec:
       knightRef: galahad
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         Generate your daily security briefing.
         Check /vault/Briefings/Security/ for yesterday's report and note deltas.
         Review cluster security posture: expiring certs, failed security pods,
@@ -34,8 +36,8 @@ spec:
         they affect OUR stack. We do NOT run: n8n, Jenkins, Confluence, Jira, or Oracle products.
         If a CVE only affects software we don't use, skip it entirely.
 
-        Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        Write your full report to /vault/Briefings/Security/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
         Return a concise summary (5-8 bullet points MAX, action items only).
         Your response text IS the summary — just write it as your final output.
         If nothing changed since yesterday, say "No significant changes."
@@ -45,6 +47,8 @@ spec:
       knightRef: kay
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         Generate today's intelligence digest. Research current events, technology news,
         and anything relevant to Derek's interests (security, AI, homelab, career).
         FIRST: Read yesterday's report in /vault/Briefings/Intel/ (most recent YYYY-MM-DD.md).
@@ -57,8 +61,8 @@ spec:
         - If a previous report contained speculative projections, do NOT carry them forward.
         - Focus on: What happened? What does it affect? What should Derek know?
 
-        Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        Write your full report to /vault/Briefings/Intel/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
         Return a concise summary (5-10 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
       timeout: 900
 
@@ -66,6 +70,8 @@ spec:
       knightRef: tristan
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         Generate today's infrastructure report. Check cluster health, node status,
         failing pods, resource pressure, Flux reconciliation state, and any deployment issues.
         FIRST: Read yesterday's report in /vault/Briefings/HomeLab/ (most recent YYYY-MM-DD.md).
@@ -75,8 +81,8 @@ spec:
         KNOWN LONG-STANDING ISSUES (don't re-explain, just note status):
         - Wazuh HelmRelease: stalled since Feb 2026, pending decision to fix or remove. One line max.
 
-        Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        Write your full report to /vault/Briefings/HomeLab/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
         Return a concise summary (5-10 bullet points, key findings and action items). Your response text IS the summary — just write it as your final output.
       timeout: 900
 
@@ -84,6 +90,8 @@ spec:
       knightRef: bedivere
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         Generate today's household briefing. Check family calendar, upcoming events,
         nursery prep status, baby countdown, and any home tasks needing attention.
         CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
@@ -95,8 +103,8 @@ spec:
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
         If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
-        Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        Write your full report to /vault/Briefings/Home/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
         Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
       timeout: 900
 
@@ -104,14 +112,16 @@ spec:
       knightRef: percival
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         Generate today's financial briefing. Check tax deadlines, bill due dates,
         budget status, investment updates, and any items needing immediate attention.
         FIRST: Read yesterday's report in /vault/Briefings/Finance/ (most recent YYYY-MM-DD.md).
         Focus on CHANGES: new payments, deadline shifts, status updates.
         Don't re-derive the same debt numbers — reference yesterday's and note delta.
         If nothing changed in a category, one line: "Unchanged since [date]."
-        Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        Write your full report to /vault/Briefings/Finance/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
         Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
       timeout: 900
 
@@ -119,14 +129,16 @@ spec:
       knightRef: lancelot
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         Generate today's career briefing. Check pending applications, interview feedback,
         job market updates, and any action items.
         FIRST: Read yesterday's report in /vault/Briefings/Career/ (most recent YYYY-MM-DD.md).
         Focus on what CHANGED: new communications, deadline shifts, status updates.
         If the same status persists (e.g., "waiting for offer"), one line: "Day N waiting — no update."
         Don't re-explain the full timeline unless something shifted.
-        Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's actual date).
-        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+        Write your full report to /vault/Briefings/Career/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
         Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
       timeout: 900
 
@@ -134,6 +146,8 @@ spec:
       knightRef: gareth
       continueOnFailure: true
       task: |
+        TODAY'S DATE: {{ .Date }}
+        
         You are Sir GARETH, wellness knight. NOT Bedivere, NOT any other knight.
 
         Generate today's wellness briefing. Emma's due date is April 29, 2026.
@@ -154,10 +168,15 @@ spec:
         FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
         Only report what CHANGED since yesterday. Same-week = focus on daily differences only.
 
-        Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
+        MANDATORY WRITE STEP (do this immediately, before responding):
+        Use your write tool to save your report to /vault/Briefings/Wellness/{{ .Date }}.md
+        
+        Write your full report to /vault/Briefings/Wellness/{{ .Date }}.md (use TODAY'S DATE exactly: {{ .Date }}).
+        FILENAME MUST be exactly {{ .Date }}.md — no variations, no manual date computation.
 
         OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points.
         No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
+        Start with: ✅ Report written to /vault/Briefings/Wellness/{{ .Date }}.md
       timeout: 600
 
     # Phase 2 — Gawain synthesizes all reports
