@@ -65,6 +65,15 @@ spec:
       replicaCount: 1
       nodeOptions: "--max-old-space-size=4096"
 
+      # Cap the Redis event stream (stream.opencti) length. OpenCTI defaults to
+      # 2,000,000 entries, which at ~3.5KB/entry can consume >5GB and saturate
+      # the shared Dragonfly instance (noeviction -> "Out of memory" rejecting
+      # writes for all tenants, e.g. searxng). 200k entries (~700MB) keeps a
+      # ~1.5-day connector catch-up window while staying well under maxmemory.
+      extraEnv:
+        - name: REDIS__TRIMMING
+          value: "200000"
+
       resources:
         requests:
           cpu: 1000m

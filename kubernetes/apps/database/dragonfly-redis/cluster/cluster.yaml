@@ -12,7 +12,10 @@ spec:
     # connection buffers and snapshot/replication fork overhead on top of the
     # dataset, so setting maxmemory == the cgroup limit causes OOMKills under
     # bursts before eviction can kick in.
-    - --maxmemory=1536Mi
+    # Sized for OpenCTI's event stream (stream.opencti) as the dominant tenant;
+    # the stream is bounded by REDIS__TRIMMING in apps/security/opencti so it
+    # stays well under this ceiling alongside the other shared-cache tenants.
+    - --maxmemory=2560Mi
     - --proactor_threads=2
     - --cluster_mode=emulated
   resources:
@@ -20,7 +23,7 @@ spec:
       cpu: 100m
       memory: 1Gi
     limits:
-      memory: 2Gi
+      memory: 3Gi
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
