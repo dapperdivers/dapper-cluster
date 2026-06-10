@@ -34,9 +34,10 @@ spec:
               # cards crashes llama.cpp on Pascal during the pre-load graph fit
               # (GGML_ASSERT n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS) — and ollama spreads
               # across every visible GPU by default, so we expose just one. A model must
-              # fit in one 16GB card. GPU 1/GPU 2 host ollama-1/ollama-2 (the roundtable
-              # knight pool — see service.yaml); all share the node via time-slicing.
-              # This instance is reserved for openclaw/molt and is NOT a pool member.
+              # fit in one 16GB card. GPU 1/GPU 2 host ollama-1/ollama-2; all three
+              # instances are ollama-pool members (see service.yaml) serving the
+              # roundtable knights. molt stopped using local inference, so this
+              # card no longer needs to be reserved for openclaw.
               NVIDIA_VISIBLE_DEVICES: GPU-093a9684-9b6e-111e-a37e-6bc4995bb37f
               NVIDIA_DRIVER_CAPABILITIES: compute,utility
               # Store models on PVC — critical for persistence across restarts
@@ -53,14 +54,14 @@ spec:
               OLLAMA_NUM_PARALLEL: "1"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
-              # Context window — must fit a single 16GB P100. 131072 forced the KV
-              # cache far past VRAM, so models loaded entirely on CPU and timed out
-              # before llama-server started ("Load failed"). 8192 lets layers offload
-              # to the GPU and load fast. Raise cautiously if VRAM headroom allows.
+              # Context window — must match the other pool members (knights send
+              # 32K-window requests and any member may serve them). qwen3.5:9b is
+              # ~5.9GB resident so 32K KV fits easily. Do NOT exceed VRAM: 131072
+              # once forced the KV cache past 16GB and models loaded on CPU.
               # NOTE: renamed from OLLAMA_NUM_CTX, which ollama 0.30.x silently
               # ignores (absent from the server config dump) — the server was
-              # actually running its 4096 default while molt's catalog said 8192.
-              OLLAMA_CONTEXT_LENGTH: "8192"
+              # actually running its 4096 default while the config said 8192.
+              OLLAMA_CONTEXT_LENGTH: "32768"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
               # NOTE: OLLAMA_LLM_LIBRARY=cuda_v12 was removed — in ollama 0.30.2 this
@@ -122,6 +123,9 @@ spec:
 
     defaultPodOptions:
       runtimeClassName: nvidia
+      # Membership label for the ollama-pool Service (service.yaml).
+      labels:
+        ollama-pool: member
       nodeSelector:
         nvidia.feature.node.kubernetes.io/gpu: "true"
       tolerations:
