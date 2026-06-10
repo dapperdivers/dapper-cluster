@@ -39,7 +39,7 @@ spec:
         tag: c46731a536a135362a98c203d49a9618bd61cf90
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
-        tag: ca09d994b6843e425c61932bed877ad6694dbb9a
+        tag: 2dbd0af7d181e40f95a263104102b34290fc12dd
 
     # Built-in planner knight — meta-mission planning
     planner:
