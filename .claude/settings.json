@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl logs *)",
+      "Bash(kubectl top *)",
+      "Bash(kubectl config get-contexts *)",
+      "Bash(flux get *)",
+      "Bash(flux stats *)",
+      "Bash(talosctl get *)",
+      "Bash(talosctl health *)",
+      "Bash(talosctl version *)"
+    ]
+  }
+}
