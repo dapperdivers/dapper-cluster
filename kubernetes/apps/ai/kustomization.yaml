@@ -8,13 +8,13 @@ components:
 resources:
   - ./namespace.yaml
   # Core AI Agents
-  - ./munin/ks.yaml
+  # - ./munin/ks.yaml
   - ./openclaw/ks.yaml
-  - ./outlook-bridge/ks.yaml
+  # - ./outlook-bridge/ks.yaml
 
   # Voice/Speech
-  - ./speaches/ks.yaml
-  - ./voice-ingest/ks.yaml
+  # - ./speaches/ks.yaml
+  # - ./voice-ingest/ks.yaml
 
   # LLM Inference Stack
   - ./ollama/ks.yaml
