@@ -57,7 +57,10 @@ spec:
               # gpt-oss:20b is ~12.8GB of weights; its GQA + sliding-window KV at
               # q8_0 leaves room for 16K on a 16GB card. Keep in sync with the
               # knights' MODEL_CONTEXT_WINDOW env and the other pool member.
-              OLLAMA_NUM_CTX: "16384"
+              # NOTE: the env ollama actually reads is OLLAMA_CONTEXT_LENGTH —
+              # OLLAMA_NUM_CTX is ignored (absent from the server config dump)
+              # and the server silently falls back to its 4096 default.
+              OLLAMA_CONTEXT_LENGTH: "16384"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
             ports:

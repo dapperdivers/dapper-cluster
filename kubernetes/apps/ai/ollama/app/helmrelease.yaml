@@ -57,7 +57,10 @@ spec:
               # cache far past VRAM, so models loaded entirely on CPU and timed out
               # before llama-server started ("Load failed"). 8192 lets layers offload
               # to the GPU and load fast. Raise cautiously if VRAM headroom allows.
-              OLLAMA_NUM_CTX: "8192"
+              # NOTE: renamed from OLLAMA_NUM_CTX, which ollama 0.30.x silently
+              # ignores (absent from the server config dump) — the server was
+              # actually running its 4096 default while molt's catalog said 8192.
+              OLLAMA_CONTEXT_LENGTH: "8192"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
               # NOTE: OLLAMA_LLM_LIBRARY=cuda_v12 was removed — in ollama 0.30.2 this
