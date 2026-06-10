@@ -13,7 +13,7 @@ spec:
   chart:
     spec:
       chart: roundtable-operator
-      version: "0.8.1"
+      version: "0.9.0"
       sourceRef:
         kind: HelmRepository
         name: roundtable
@@ -21,7 +21,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: d81f5e9e7392cdcf25bf5c69dda468fef3399e54
+      tag: 91c6957bd9a54c7df8a35c9c38c68d65ce1fb1c5
       pullPolicy: Always
 
     resources:
@@ -36,10 +36,10 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/dapperdivers/pi-knight
-        tag: d52bcf6934916732dd6fbe30590fdc7c31f7b985
+        tag: c46731a536a135362a98c203d49a9618bd61cf90
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
-        tag: 6ad1c714520d5c720b90c2cd450ab9f2796f52ca
+        tag: ca09d994b6843e425c61932bed877ad6694dbb9a
 
     # Built-in planner knight — meta-mission planning
     planner:
