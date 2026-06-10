@@ -1,0 +1,18 @@
+---
+# Single endpoint for the roundtable knights' local inference. Selects every
+# ollama pod labeled as a pool member (ollama-1/GPU 1 + ollama-2/GPU 2) and
+# round-robins connections across them — "clustering" at the request level,
+# since Pascal cards can't pool VRAM for a single larger model. The GPU 0
+# ollama release is intentionally NOT a member (different ctx window, reserved
+# for openclaw/molt).
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-pool
+spec:
+  selector:
+    ollama-pool: member
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434

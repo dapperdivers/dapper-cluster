@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app ollama
+  name: &app ollama-1
 spec:
   interval: 30m
   chartRef:
@@ -19,7 +19,7 @@ spec:
       retries: 3
   values:
     controllers:
-      ollama:
+      ollama-1:
         annotations:
           reloader.stakater.com/auto: "true"
         replicas: 1
@@ -30,42 +30,36 @@ spec:
               tag: 0.30.7
             env:
               TZ: ${TIME_ZONE}
-              # Pin ollama to ONE P100 (by UUID). Splitting a model across multiple
-              # cards crashes llama.cpp on Pascal during the pre-load graph fit
-              # (GGML_ASSERT n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS) — and ollama spreads
-              # across every visible GPU by default, so we expose just one. A model must
-              # fit in one 16GB card. GPU 1/GPU 2 host ollama-1/ollama-2 (the roundtable
-              # knight pool — see service.yaml); all share the node via time-slicing.
-              # This instance is reserved for openclaw/molt and is NOT a pool member.
-              NVIDIA_VISIBLE_DEVICES: GPU-093a9684-9b6e-111e-a37e-6bc4995bb37f
+              # Roundtable-knight pool member pinned to GPU 1 (by UUID).
+              # One ollama per P100 because splitting a model across Pascal cards
+              # crashes llama.cpp (GGML_SCHED_MAX_SPLIT_INPUTS) — see the ollama
+              # (GPU 0, openclaw/molt) release for the full story. Models must
+              # fit one 16GB card. Knights reach the pool members through the
+              # ollama-pool Service (service.yaml), never this instance directly.
+              NVIDIA_VISIBLE_DEVICES: GPU-79e61e98-91b9-7c6c-261a-ba1b8bafe6a6
               NVIDIA_DRIVER_CAPABILITIES: compute,utility
               # Store models on PVC — critical for persistence across restarts
               OLLAMA_MODELS: /models
               # Listen on all interfaces
               OLLAMA_HOST: 0.0.0.0:11434
-              # Keep models loaded — single-user homelab, minimize cold starts
+              # Keep models loaded — daily briefing chain, minimize cold starts
               OLLAMA_KEEP_ALIVE: 24h
               # Flash attention for faster inference (KV cache optimization)
               OLLAMA_FLASH_ATTENTION: "1"
               # KV cache quantization — Q8_0 saves ~50% KV VRAM with minimal quality loss
               OLLAMA_KV_CACHE_TYPE: q8_0
-              # Parallel request handling — 1 concurrent (single P100 via MPS)
+              # Parallel request handling — 1 concurrent; pooled knight requests queue FIFO
               OLLAMA_NUM_PARALLEL: "1"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
-              # Context window — must fit a single 16GB P100. 131072 forced the KV
-              # cache far past VRAM, so models loaded entirely on CPU and timed out
-              # before llama-server started ("Load failed"). 8192 lets layers offload
-              # to the GPU and load fast. Raise cautiously if VRAM headroom allows.
-              OLLAMA_NUM_CTX: "8192"
+              # Context window — knights are pi coding agents with skills/tools, so
+              # their prompts run fatter than molt's chat traffic on GPU 0 (8K).
+              # gpt-oss:20b is ~12.8GB of weights; its GQA + sliding-window KV at
+              # q8_0 leaves room for 16K on a 16GB card. Keep in sync with the
+              # knights' MODEL_CONTEXT_WINDOW env and the other pool member.
+              OLLAMA_NUM_CTX: "16384"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
-              # NOTE: OLLAMA_LLM_LIBRARY=cuda_v12 was removed — in ollama 0.30.2 this
-              # legacy override suppressed GPU autodiscovery (logs showed only
-              # library=cpu), forcing CPU-only inference. The image bundles both
-              # cuda_v12 and cuda_v13 runners; autodiscovery picks cuda_v12 for the
-              # Pascal P100 (sm_60). If a future bump regresses Pascal support, pin an
-              # older ollama image that ships only CUDA 12 instead of re-adding this.
             ports:
               - name: http
                 containerPort: &port 11434
@@ -107,10 +101,12 @@ spec:
             resources:
               requests:
                 # GPU-bound server — reserve only 1 core so it always fits on the
-                # CPU-tight GPU node (a 4-core request let jobs like kometa evict it).
-                # It can still burst to the limit during model load/repack.
+                # CPU-tight GPU node. Memory request is 16Gi (not 32Gi like the
+                # GPU 0 instance): three 32Gi requests would push the node to
+                # ~98% reserved. Inference lives in VRAM; host RAM can still
+                # burst to the limit during model load/repack.
                 cpu: 1
-                memory: 32Gi
+                memory: 16Gi
                 nvidia.com/gpu: 1
               limits:
                 cpu: 16
@@ -119,6 +115,10 @@ spec:
 
     defaultPodOptions:
       runtimeClassName: nvidia
+      # Membership label for the ollama-pool Service (service.yaml) — the pool
+      # load-balances knight traffic across all pods carrying this label.
+      labels:
+        ollama-pool: member
       nodeSelector:
         nvidia.feature.node.kubernetes.io/gpu: "true"
       tolerations:
@@ -132,31 +132,14 @@ spec:
 
     service:
       app:
-        controller: ollama
+        controller: ollama-1
         ports:
           http:
             port: *port
 
-    ingress:
-      app:
-        className: internal
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-        hosts:
-          - host: &host ollama.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-
     persistence:
       models:
-        existingClaim: ollama-models
+        existingClaim: ollama-models-1
         globalMounts:
           - path: /models
       tmp:

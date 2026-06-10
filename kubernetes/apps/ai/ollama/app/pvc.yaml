@@ -10,3 +10,30 @@ spec:
     requests:
       storage: 50Gi
   storageClassName: ceph-rbd
+---
+# Per-instance model stores for the knight pool members. Each instance gets
+# its own claim — ollama's blob store is not multi-writer safe, so sharing
+# one RWO claim across instances would race on concurrent pulls.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models-1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: ceph-rbd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models-2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: ceph-rbd

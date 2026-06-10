@@ -8,7 +8,8 @@ metadata:
 spec:
   domain: wellness
   image: ""
-  model: "openrouter/deepseek/deepseek-v3.2"
+  # Local P100 pool (was openrouter/deepseek/deepseek-v3.2) — endpoint env below.
+  model: "ollama/gpt-oss:20b"
   skills:
     - shared
     - wellness
@@ -39,12 +40,24 @@ spec:
   workspace:
     size: "10Gi"
   concurrency: 2
-  taskTimeout: 600
+  # Raised 600 → 1800 with the move to the local pool: knight requests queue
+  # FIFO behind each other on two P100s, so wall time includes queue wait.
+  taskTimeout: 1800
   env:
     - name: TMPDIR
       value: "/data/scratch"
     - name: XDG_CACHE_HOME
       value: "/data/scratch/.cache"
+    # Local inference via the ollama-pool Service (2x P100, gpt-oss:20b).
+    # "ollama/..." is not in pi's model registry, so pi-knight builds an
+    # openai-completions model from these envs (pi-knight dist/model.js).
+    # MODEL_CONTEXT_WINDOW must match the pool's OLLAMA_NUM_CTX.
+    - name: OPENAI_BASE_URL
+      value: "http://ollama-pool.ai.svc.cluster.local:11434/v1"
+    - name: MODEL_CONTEXT_WINDOW
+      value: "16384"
+    - name: MODEL_MAX_TOKENS
+      value: "4096"
   envFrom:
     - secretRef:
         name: roundtable-secret
