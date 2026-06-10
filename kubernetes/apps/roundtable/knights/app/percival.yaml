@@ -9,7 +9,7 @@ spec:
   domain: finance
   image: ""
   # Local P100 pool (was openrouter/deepseek/deepseek-v3.2) — endpoint env below.
-  model: "ollama/gpt-oss:20b"
+  model: "ollama/qwen3.5:9b"
   skills:
     - shared
     - finance
@@ -46,14 +46,14 @@ spec:
       value: "/data/scratch"
     - name: XDG_CACHE_HOME
       value: "/data/scratch/.cache"
-    # Local inference via the ollama-pool Service (2x P100, gpt-oss:20b).
+    # Local inference via the ollama-pool Service (2x P100, qwen3.5:9b).
     # "ollama/..." is not in pi's model registry, so pi-knight builds an
     # openai-completions model from these envs (pi-knight dist/model.js).
-    # MODEL_CONTEXT_WINDOW must match the pool's OLLAMA_NUM_CTX.
+    # MODEL_CONTEXT_WINDOW must match the pool's OLLAMA_CONTEXT_LENGTH.
     - name: OPENAI_BASE_URL
       value: "http://ollama-pool.ai.svc.cluster.local:11434/v1"
     - name: MODEL_CONTEXT_WINDOW
-      value: "16384"
+      value: "32768"
     - name: MODEL_MAX_TOKENS
       value: "4096"
   envFrom:
