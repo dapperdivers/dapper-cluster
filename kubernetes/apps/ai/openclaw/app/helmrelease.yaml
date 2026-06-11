@@ -265,6 +265,13 @@ spec:
                   // cheap vision model (matches the roundtable knights) instead.
                   c.agents.defaults.imageModel = { primary: 'openrouter/google/gemini-2.5-flash' };
                   c.agents.defaults.pdfModel = { primary: 'openrouter/google/gemini-2.5-flash' };
+                  // Restore the always-on typing indicator. Since ~2026.6,
+                  // unmentioned group-chat turns default to typingMode
+                  // 'message' (typing only once reply text starts streaming),
+                  // so the indicator barely flashes. 'instant' starts typing
+                  // when the turn begins (pre-2026.6 behaviour). Heartbeats
+                  // are forced to 'never' regardless of this setting.
+                  c.agents.defaults.typingMode = 'instant';
                   // Heartbeat runs on the FREE local model (gpt-oss:20b on the P100)
                   // every 2h — zero API cost for background check-ins. Messages stay on
                   // Haiku (fast, concurrent); this also keeps gpt-oss warm on the GPU
