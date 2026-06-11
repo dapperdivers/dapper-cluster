@@ -112,17 +112,12 @@ spec:
                   ln -sf /home/node/.local/node_modules/.bin/claude /home/node/.local/bin/claude
                 fi
 
-                # Install OpenClaw plugins
+                # Channel plugins (discord, etc.) are bundled with the openclaw
+                # image since ~2026.5 — do NOT `openclaw plugins install` them here.
+                # A PVC-installed copy shadows the bundled one and version-skews
+                # against the (Renovate-bumped) core image.
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
                 mkdir -p /home/node/.openclaw
-                if [ ! -f /home/node/.openclaw/.discord-plugin-installed ]; then
-                  echo "Installing Discord plugin..."
-                  set +e
-                  openclaw plugins install @openclaw/discord
-                  openclaw plugins update discord 2>/dev/null
-                  set -e
-                  touch /home/node/.openclaw/.discord-plugin-installed
-                fi
 
                 echo "Tool installation complete"
             resources:
@@ -206,10 +201,13 @@ spec:
                   };
                   // Single 16GB P100 (time-sliced, shared with Plex), ollama pinned to
                   // one card — one model at a time, must fit 16GB. Drop gemma4:26b (17GB,
-                  // no longer fits). Keep context small enough to sit alongside weights.
+                  // no longer fits). Context matches the server-side
+                  // OLLAMA_CONTEXT_LENGTH=32768 (ollama helmreleases); 8192 was a stale
+                  // client-side cap that wedged the 2h heartbeat (~28.6k-token prompt
+                  // -> context-overflow loop, livenessState=blocked).
                   const models = c.models.providers.ollama.models =
                     (c.models.providers.ollama.models || []).filter(m => m.id !== 'gemma4:26b');
-                  const LOCAL_CTX = 8192, LOCAL_MAXTOK = 2048;
+                  const LOCAL_CTX = 32768, LOCAL_MAXTOK = 2048;
                   const ensureModel = (id, name, reasoning) => {
                     let m = models.find(x => x.id === id);
                     if (!m) {
