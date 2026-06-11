@@ -8,7 +8,8 @@ metadata:
 spec:
   domain: vault
   image: ""
-  model: "openrouter/deepseek/deepseek-v3.2"
+  # Kimi K2.6 (was openrouter/deepseek/deepseek-v3.2).
+  model: "openrouter/moonshotai/kimi-k2.6:exacto"
   skills:
     - shared
     - vault

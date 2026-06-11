@@ -8,7 +8,8 @@ metadata:
 spec:
   domain: pentest
   image: ""
-  model: "openrouter/google/gemini-2.5-flash"
+  # Kimi K2.6 (was openrouter/google/gemini-2.5-flash).
+  model: "openrouter/moonshotai/kimi-k2.6:exacto"
   # capabilities:
   #   browser: true  # Disabled until browser sidecar is configured
   skills:

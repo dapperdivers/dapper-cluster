@@ -8,8 +8,11 @@ metadata:
 spec:
   domain: project
   image: ""
-  # Local P100 pool (was openrouter/deepseek/deepseek-v3.2) — endpoint env below.
-  model: "ollama/qwen3.5:9b"
+  # Kimi K2.6 — gawain is the briefing SYNTHESIS knight, the one step where
+  # output quality matters most, so it runs on the strongest cheap cloud model
+  # while the 7 domain knights stay on the free local pool (ollama/qwen3.5:9b).
+  # History: openrouter/deepseek/deepseek-v3.2 -> ollama/qwen3.5:9b -> kimi.
+  model: "openrouter/moonshotai/kimi-k2.6:exacto"
   skills:
     - shared
     - project
@@ -52,9 +55,10 @@ spec:
       value: "/data/scratch"
     - name: XDG_CACHE_HOME
       value: "/data/scratch/.cache"
-    # Local inference via the ollama-pool Service (2x P100, qwen3.5:9b).
-    # "ollama/..." is not in pi's model registry, so pi-knight builds an
-    # openai-completions model from these envs (pi-knight dist/model.js).
+    # Local-pool fallback wiring (unused while model is openrouter/...; these
+    # envs only apply when an "ollama/..." model misses pi's registry and
+    # pi-knight builds an openai-completions model from them). Kept so
+    # flipping back to ollama/qwen3.5:9b is a one-line change.
     # MODEL_CONTEXT_WINDOW must match the pool's OLLAMA_CONTEXT_LENGTH.
     - name: OPENAI_BASE_URL
       value: "http://ollama-pool.ai.svc.cluster.local:11434/v1"

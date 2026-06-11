@@ -7,7 +7,9 @@ metadata:
   name: rt-arsenal
 spec:
   domain: skills
-  model: "openrouter/anthropic/claude-haiku-4.5"
+  # Kimi K2.6 (was openrouter/anthropic/claude-haiku-4.5) — cheaper and more capable
+  # than Haiku; :exacto pins OpenRouter providers measured for tool-call accuracy.
+  model: "openrouter/moonshotai/kimi-k2.6:exacto"
   skills:
     - shared
     - coding

@@ -8,7 +8,9 @@ metadata:
 spec:
   domain: coding
   image: ""
-  model: "openrouter/anthropic/claude-sonnet-4.6"
+  # Kimi K2.6 A/B (was openrouter/anthropic/claude-sonnet-4.6) — coder-1 stays on
+  # Sonnet as the quality control; compare coding output before flipping it too.
+  model: "openrouter/moonshotai/kimi-k2.6:exacto"
   skills:
     - shared
     - coding
