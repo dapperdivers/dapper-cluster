@@ -112,12 +112,19 @@ spec:
                   ln -sf /home/node/.local/node_modules/.bin/claude /home/node/.local/bin/claude
                 fi
 
-                # Channel plugins (discord, etc.) are bundled with the openclaw
-                # image since ~2026.5 — do NOT `openclaw plugins install` them here.
-                # A PVC-installed copy shadows the bundled one and version-skews
-                # against the (Renovate-bumped) core image.
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
                 mkdir -p /home/node/.openclaw
+
+                # Register the Discord channel plugin on EVERY boot. openclaw
+                # needs an install record even for image-bundled plugins; raw
+                # @openclaw/* specs resolve to the bundled copy (no npm fetch).
+                # Running unconditionally (no marker guard) re-syncs the plugin
+                # to each new image's bundled version — a once-guarded install
+                # left a stale 2026.5.20 copy shadowing the 2026.6.5 core,
+                # which broke Discord delivery.
+                set +e
+                openclaw plugins install @openclaw/discord
+                set -e
 
                 echo "Tool installation complete"
             resources:
