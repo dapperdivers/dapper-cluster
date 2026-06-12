@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - rbac.yaml
   - molt-rbac.yaml
+  - knight-rbac.yaml
   - roundtable-secret.yaml
   - vault-pv.yaml
   - vault-pvc.yaml
