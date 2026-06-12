@@ -40,8 +40,8 @@ spec:
         - alert: KnightLLMCostSpike
           annotations:
             summary: >-
-              Fleet LLM spend rose ${{ $value | humanize }} in 24h — above the
-              Night Watch budget envelope; possible runaway loop.
+              Fleet LLM spend rose {{ $value | humanize }} USD in 24h — above
+              the Night Watch budget envelope; possible runaway loop.
           expr: |
             sum(increase(pi_knight_llm_cost_dollars_total[24h])) > 15
           for: 15m
