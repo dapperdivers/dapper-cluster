@@ -9,14 +9,17 @@ metadata:
   name: night-watch
   namespace: roundtable
 spec:
-  roundTableRef: personal
+  # roundtable-dev table: the platform's own dev team handles platform health.
+  # NOTE chains cannot span tables (step subjects use this table's prefix),
+  # so every knightRef here must live on roundtable-dev.
+  roundTableRef: roundtable-dev
   description: "Nightly telemetry sweep — triage platform errors, keep the ledger, dispatch fix Missions"
   schedule: "0 7 * * *"  # ~2-3 AM ET
   timeout: 10800
   retryPolicy:
     maxRetries: 1
     backoffSeconds: 120
-  outputKnight: gawain
+  outputKnight: watchman
   steps:
     - name: verify_yesterday
       knightRef: watchman
@@ -86,9 +89,11 @@ spec:
       timeout: 3600
 
     - name: report
-      knightRef: gawain
+      knightRef: watchman
       # No outputPath on purpose — the controller would overwrite the file
-      # Gawain writes with this step's raw .Output (see morning-briefing).
+      # the knight writes with this step's raw .Output (see morning-briefing).
+      # Watchman writes its own report: gawain lives on the personal table and
+      # chains can't dispatch across tables.
       dependsOn:
         - triage
       task: |

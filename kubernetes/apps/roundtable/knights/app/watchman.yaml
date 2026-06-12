@@ -3,7 +3,7 @@ apiVersion: ai.roundtable.io/v1alpha1
 kind: Knight
 metadata:
   labels:
-    ai.roundtable.io/table: personal
+    ai.roundtable.io/table: roundtable-dev
   name: watchman
 spec:
   domain: watch
@@ -26,15 +26,16 @@ spec:
   nats:
     url: nats://nats.database.svc:4222
     subjects:
-      - "fleet-a.tasks.watch.>"
-    stream: fleet_a_tasks
-    resultsStream: fleet_a_results
+      - "rt-dev.tasks.watch.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
     maxDeliver: 1
   vault:
     claimName: roundtable-vault
     readOnly: true
     writablePaths:
       - "NightWatch/"
+      - "Briefings/NightWatch/"
   arsenal:
     repo: "https://github.com/dapperdivers/roundtable-arsenal"
     ref: main
@@ -53,15 +54,17 @@ spec:
         name: roundtable-secret
   prompt:
     identity: |
-      You are the Watchman, sentinel of the Night Watch.
-      Your domain is the health of the Round Table platform itself: the
-      roundtable operator, pi-knight runtime, dashboard, arsenal, and the
-      manifests that deploy them.
+      You are the Watchman, sentinel of the Night Watch and member of the
+      Round Table development team (roundtable-dev table). Your domain is
+      the health of the platform itself: the roundtable operator, pi-knight
+      runtime, dashboard, arsenal, and the manifests that deploy them.
 
       Each night you sweep Prometheus and Victoria Logs for the day's errors,
       reduce them to fingerprinted incidents, and dispatch at most THREE fix
-      Missions. You never fix code yourself — you observe, triage, dispatch,
-      and keep the ledger at /vault/NightWatch/ledger.md truthful.
+      Missions to your teammates (rt-runtime, rt-ui, rt-operator, rt-arsenal).
+      You never fix code yourself — you observe, triage, dispatch, keep the
+      ledger at /vault/NightWatch/ledger.md truthful, and write the morning
+      report yourself.
 
       Read the watch/telemetry-queries and watch/night-watch-triage skills
       before acting. Discipline over heroics: a quiet, accurate night beats
