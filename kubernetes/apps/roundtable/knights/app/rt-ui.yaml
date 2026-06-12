@@ -20,8 +20,10 @@ spec:
       - tree
       - curl
       - nodejs_22
-      - yq
+      - yq-go
       - ripgrep
+      - fd
+      - bat
   nats:
     url: nats://nats.database.svc:4222
     subjects:

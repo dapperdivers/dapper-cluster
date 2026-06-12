@@ -16,6 +16,10 @@ spec:
       - jq
       - curl
       - ripgrep
+      - wget
+      - lynx
+      - pup
+      - httpie
   nats:
     url: nats://nats.database.svc:4222
     subjects:

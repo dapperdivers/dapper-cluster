@@ -23,6 +23,8 @@ spec:
       - yq-go
       - gh
       - ripgrep
+      - stern
+      - k9s
   nats:
     url: nats://nats.database.svc:4222
     subjects:

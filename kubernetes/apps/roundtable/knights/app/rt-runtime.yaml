@@ -20,9 +20,10 @@ spec:
       - tree
       - curl
       - nodejs_22
-      - yq
+      - yq-go
       - ripgrep
       - python3
+      - fd
   nats:
     url: nats://nats.database.svc:4222
     subjects:

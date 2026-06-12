@@ -26,6 +26,10 @@ spec:
       - nuclei
       - trivy
       - yara
+      - trufflehog
+      - cosign
+      - checkov
+      - tfsec
       # OSINT & threat intel
       - gitleaks       # Secret scanning
       - grype          # Container image vuln scanner

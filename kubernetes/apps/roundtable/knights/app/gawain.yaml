@@ -20,13 +20,15 @@ spec:
   tools:
     nix:
       - gh
-      - yq
+      - yq-go
       - python3
       - go
       - gnumake
       - jq
       - tree
       - curl
+      - fd
+      - ripgrep
   nats:
     url: nats://nats.database.svc:4222
     subjects:

@@ -17,8 +17,9 @@ spec:
       - jq
       - tree
       - curl
-      - yq
+      - yq-go
       - ripgrep
+      - fd
   nats:
     url: nats://nats.database.svc:4222
     subjects:
