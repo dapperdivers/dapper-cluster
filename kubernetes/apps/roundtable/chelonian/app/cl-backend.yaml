@@ -19,6 +19,11 @@ spec:
       - ripgrep
       - python3
       - gnumake
+      - fd
+      - tree
+      - yq-go
+      - bat
+      - delta
   nats:
     url: nats://nats.database.svc:4222
     subjects:

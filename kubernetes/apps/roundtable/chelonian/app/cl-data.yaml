@@ -18,6 +18,10 @@ spec:
       - curl
       - ripgrep
       - python3
+      - duckdb
+      - sqlite
+      - csvkit
+      - miller
   nats:
     url: nats://nats.database.svc:4222
     subjects:

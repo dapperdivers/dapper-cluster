@@ -20,6 +20,9 @@ spec:
       - sqlite
       - units
       - dateutils
+      - python3
+      - jq
+      - curl
   nats:
     url: nats://nats.database.svc:4222
     subjects:

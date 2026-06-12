@@ -17,8 +17,13 @@ spec:
       - jq
       - curl
       - ripgrep
-      - yq
+      - yq-go
       - tree
+      - kubectl
+      - kubernetes-helm
+      - k9s
+      - stern
+      - kustomize
   nats:
     url: nats://nats.database.svc:4222
     subjects:

@@ -16,6 +16,8 @@ spec:
   tools:
     nix:
       - python3
+      - curl
+      - jq
   nats:
     url: nats://nats.database.svc:4222
     subjects:

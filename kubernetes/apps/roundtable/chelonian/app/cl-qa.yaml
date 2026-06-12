@@ -17,8 +17,14 @@ spec:
       - jq
       - curl
       - ripgrep
-      - nodejs
+      - nodejs_22
       - python3
+      - fd
+      - tree
+      - yq-go
+      - bat
+      - delta
+      - shellcheck
   nats:
     url: nats://nats.database.svc:4222
     subjects:

@@ -28,6 +28,10 @@ spec:
       - testssl
       - sqlmap
       - nuclei
+      - katana
+      - naabu
+      - dalfox
+      - gowitness
       # - zaproxy  # Package broken/missing in nixpkgs
       - feroxbuster
       - socat
