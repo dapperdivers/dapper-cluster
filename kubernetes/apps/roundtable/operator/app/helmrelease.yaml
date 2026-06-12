@@ -13,7 +13,7 @@ spec:
   chart:
     spec:
       chart: roundtable-operator
-      version: "0.10.4"
+      version: "0.11.0"
       sourceRef:
         kind: HelmRepository
         name: roundtable
@@ -21,8 +21,14 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 78049fc0fd5d47cb8159d2082f4585f61e86382a
+      tag: 89858749a80446d2c3b689950613219fcc63a611
       pullPolicy: Always
+
+    # Persistent nix-daemon builder: a single root Deployment owns the shared
+    # Nix store and builds knight tools dispatched via the roundtable-nix-buildqueue
+    # PVC — replaces the per-knight build Jobs + global store lock.
+    nixBuilder:
+      enabled: true
 
     resources:
       requests:
@@ -36,7 +42,7 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/dapperdivers/pi-knight
-        tag: 7786f1785521a57258cc100351af0a110672afb1
+        tag: 36aa86f97f23776686be01666d2ae2b8e4c69c5f
       dashboard:
         repository: ghcr.io/dapperdivers/roundtable-ui
         tag: 2dbd0af7d181e40f95a263104102b34290fc12dd
