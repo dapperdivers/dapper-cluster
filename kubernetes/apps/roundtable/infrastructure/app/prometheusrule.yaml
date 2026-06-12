@@ -6,6 +6,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: roundtable
+  namespace: roundtable
 spec:
   groups:
     - name: roundtable.knights
