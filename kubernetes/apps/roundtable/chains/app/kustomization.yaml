@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - morning-briefing.yaml
   - fleet-self-improvement.yaml
+  - night-watch.yaml

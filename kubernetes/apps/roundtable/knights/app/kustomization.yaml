@@ -19,6 +19,8 @@ resources:
   # Generic coding knights
   - coder-1.yaml
   - coder-2.yaml
+  # Night Watch sentinel
+  - watchman.yaml
   # Round Table Dev Team
   - roundtable-dev.yaml
   - rt-lead.yaml
