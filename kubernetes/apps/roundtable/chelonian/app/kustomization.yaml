@@ -5,15 +5,5 @@ kind: Kustomization
 resources:
   # ChelonianLabs RoundTable
   - roundtable-chelonian.yaml
-  # Repo knights
-  - cl-backend.yaml
-  - cl-frontend.yaml
-  - cl-infra.yaml
-  - cl-turtle.yaml
-  # Support knights
-  - cl-lead.yaml
-  - cl-research.yaml
-  - cl-data.yaml
-  - cl-qa.yaml
   # Chains
   - chelonian-repo-init.yaml
