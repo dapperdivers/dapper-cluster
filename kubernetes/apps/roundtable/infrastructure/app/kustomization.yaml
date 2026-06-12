@@ -6,9 +6,13 @@ resources:
   - rbac.yaml
   - molt-rbac.yaml
   - knight-rbac.yaml
+  - watchman-rbac.yaml
   - roundtable-secret.yaml
   - vault-pv.yaml
   - vault-pvc.yaml
   - shared-workspace-pvc.yaml
   - chelonian-secret.yaml
   - limitrange.yaml
+  - podmonitor.yaml
+  - servicemonitor.yaml
+  - prometheusrule.yaml

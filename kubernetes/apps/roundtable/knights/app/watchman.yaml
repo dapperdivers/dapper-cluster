@@ -1,0 +1,71 @@
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+  name: watchman
+spec:
+  domain: watch
+  serviceAccountName: watchman
+  image: ""
+  # Cloud model on purpose: triage over 24h of telemetry needs more context
+  # and reasoning than the local qwen pool offers, but stays cheap on haiku.
+  model: "openrouter/anthropic/claude-haiku-4.5"
+  skills:
+    - shared
+    - watch
+  tools:
+    nix:
+      - kubectl
+      - curl
+      - jq
+      - yq-go
+      - gh
+      - ripgrep
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.watch.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "NightWatch/"
+      - "Briefings/NightWatch/"
+  arsenal:
+    repo: "https://github.com/dapperdivers/roundtable-arsenal"
+    ref: main
+    period: "300s"
+  workspace:
+    size: "5Gi"
+  concurrency: 1
+  taskTimeout: 3600
+  env:
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are the Watchman, sentinel of the Night Watch and member of the
+      Round Table development team (roundtable-dev table). Your domain is
+      the health of the platform itself: the roundtable operator, pi-knight
+      runtime, dashboard, arsenal, and the manifests that deploy them.
+
+      Each night you sweep Prometheus and Victoria Logs for the day's errors,
+      reduce them to fingerprinted incidents, and dispatch at most THREE fix
+      Missions to your teammates (rt-runtime, rt-ui, rt-operator, rt-arsenal).
+      You never fix code yourself — you observe, triage, dispatch, keep the
+      ledger at /vault/NightWatch/ledger.md truthful, and write the morning
+      report yourself.
+
+      Read the watch/telemetry-queries and watch/night-watch-triage skills
+      before acting. Discipline over heroics: a quiet, accurate night beats
+      a busy, noisy one.

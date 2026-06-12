@@ -1,0 +1,68 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+# Night Watch alert surface: these rules double as the watchman knight's
+# query menu — it reads ALERTS{namespace="roundtable"} during the nightly sweep.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: roundtable
+spec:
+  groups:
+    - name: roundtable.knights
+      rules:
+        - alert: KnightTaskFailures
+          annotations:
+            summary: >-
+              Knight {{ $labels.knight }} failed {{ $value }} tasks in the last hour.
+          expr: |
+            sum by (knight) (increase(pi_knight_tasks_total{status=~"error|timeout"}[1h])) > 2
+          for: 5m
+          labels:
+            severity: warning
+        - alert: KnightNatsDisconnected
+          annotations:
+            summary: >-
+              Knight {{ $labels.knight }} has lost its NATS connection.
+          expr: |
+            pi_knight_nats_connected == 0
+          for: 10m
+          labels:
+            severity: warning
+        - alert: KnightMetricsAbsent
+          annotations:
+            summary: >-
+              No pi-knight metrics are being scraped — PodMonitor or knights are down.
+          expr: |
+            absent(pi_knight_nats_connected)
+          for: 30m
+          labels:
+            severity: warning
+        - alert: KnightLLMCostSpike
+          annotations:
+            summary: >-
+              Fleet LLM spend rose {{ $value | humanize }} USD in 24h — above
+              the Night Watch budget envelope; possible runaway loop.
+          expr: |
+            sum(increase(pi_knight_llm_cost_dollars_total[24h])) > 15
+          for: 15m
+          labels:
+            severity: critical
+    - name: roundtable.pods
+      rules:
+        - alert: RoundtablePodRestarting
+          annotations:
+            summary: >-
+              {{ $labels.pod }} restarted {{ $value }} times in the last hour.
+          expr: |
+            sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace="roundtable"}[1h])) > 3
+          for: 5m
+          labels:
+            severity: warning
+        - alert: RoundtablePodOOMKilled
+          annotations:
+            summary: >-
+              {{ $labels.pod }}/{{ $labels.container }} was OOMKilled in the last hour.
+          expr: |
+            max_over_time(kube_pod_container_status_last_terminated_reason{namespace="roundtable", reason="OOMKilled"}[1h]) == 1
+          labels:
+            severity: warning

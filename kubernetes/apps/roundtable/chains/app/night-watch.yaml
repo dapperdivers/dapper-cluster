@@ -1,0 +1,125 @@
+---
+# Night Watch — overnight self-fixing sweep for the Round Table platform.
+# Phase 1: DIAGNOSIS mode (triage + ledger only, no fix Missions).
+# Kill switch: set spec.suspended: true (or `kubectl patch chain night-watch
+# -n roundtable --type merge -p '{"spec":{"suspended":true}}'`).
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: night-watch
+  namespace: roundtable
+spec:
+  # roundtable-dev table: the platform's own dev team handles platform health.
+  # NOTE chains cannot span tables (step subjects use this table's prefix),
+  # so every knightRef here must live on roundtable-dev.
+  roundTableRef: roundtable-dev
+  description: "Nightly telemetry sweep — triage platform errors, keep the ledger, dispatch fix Missions"
+  schedule: "0 7 * * *"  # ~2-3 AM ET
+  timeout: 10800
+  retryPolicy:
+    maxRetries: 1
+    backoffSeconds: 120
+  outputKnight: watchman
+  steps:
+    - name: verify_yesterday
+      knightRef: watchman
+      continueOnFailure: true
+      task: |
+        NIGHT WATCH — VERIFICATION PASS.
+        Read the watch/telemetry-queries and watch/night-watch-triage skills first.
+
+        Read /vault/NightWatch/ledger.md (create it with the schema from the
+        triage skill if it does not exist). For every row with status
+        "dispatched", "fix-pr-open", or "merged":
+          1. Check the Mission result if one exists:
+             kubectl get missions -n roundtable -l night-watch/fingerprint=<fp> -o yaml
+             and check PR state via: gh pr list --repo <repo> --search "<fp>" --state all
+             Update status accordingly (fix-pr-open / merged).
+          2. For "merged" rows: query Prometheus and Victoria Logs for that
+             fingerprint's signature over the last 24h. Gone → status "verified".
+             Still occurring → status "recurred" (flag it prominently).
+
+        Update the ledger rows in place. Return a concise summary of every
+        status transition you made (or "No rows to verify.").
+      timeout: 1800
+
+    - name: collect
+      knightRef: watchman
+      continueOnFailure: false
+      task: |
+        NIGHT WATCH — COLLECTION PASS.
+        Read the watch/telemetry-queries skill and follow it exactly.
+
+        Sweep the last 24h of telemetry for the roundtable namespace:
+        firing alerts, knight task failures, pod restarts/OOMs, NATS
+        disconnects, error-level logs from knights, the operator, and the
+        dashboard. Aggregate FIRST, then sample raw lines only for the top
+        offenders. Also record the fleet's 24h LLM spend.
+
+        Output: a compact markdown list of at most 50 distinct error
+        signatures, each with: workload, normalized signature, count,
+        and 1-3 sample log lines. Include the spend figure at the top.
+        If the namespace was quiet, say exactly that.
+      timeout: 1800
+
+    - name: triage
+      knightRef: watchman
+      dependsOn:
+        - verify_yesterday
+        - collect
+      task: |
+        NIGHT WATCH — TRIAGE PASS. Mode: DIAGNOSIS (no Missions, ledger only).
+        Read the watch/night-watch-triage skill and follow it exactly.
+
+        Yesterday's verification:
+        {{ .Steps.verify_yesterday.Output }}
+
+        Tonight's collection:
+        {{ .Steps.collect.Output }}
+
+        Fingerprint every signature, dedup against the ledger and existing
+        Missions, rank, and update /vault/NightWatch/ledger.md. Apply the
+        cost-cap check. Because this is DIAGNOSIS mode, do NOT create any
+        Mission CRs — instead, for each incident you WOULD have dispatched
+        (max 3), write the complete would-be Mission briefing (fingerprint,
+        repo, tier, fixer, evidence, root-cause hypothesis) into your output.
+
+        Output: incidents seen / would-dispatch (with full briefings) /
+        skipped (with reasons) / ledger deltas / fleet spend.
+      timeout: 3600
+
+    - name: report
+      knightRef: watchman
+      # No outputPath on purpose — the controller would overwrite the file
+      # the knight writes with this step's raw .Output (see morning-briefing).
+      # Watchman writes its own report: gawain lives on the personal table and
+      # chains can't dispatch across tables.
+      dependsOn:
+        - triage
+      task: |
+        NIGHT WATCH — MORNING REPORT.
+
+        Triage results:
+        {{ .Steps.triage.Output }}
+
+        Write the Night Watch report to /vault/Briefings/NightWatch/YYYY-MM-DD.md
+        (today's actual date, filename exactly YYYY-MM-DD.md) using your write
+        tool, then verify with: ls -la /vault/Briefings/NightWatch/
+
+        Structure (keep it under 60 lines — Derek reads this with coffee):
+
+        # Night Watch — YYYY-MM-DD
+        ## Verdict
+        One line: quiet night / N incidents, M would-dispatch / cost-cap hit.
+        ## Would-be dispatches (diagnosis mode)
+        Per incident: fingerprint, repo, tier, one-line root-cause hypothesis.
+        ## Verified / recurred
+        Fixes confirmed dead, and anything that came back (flag recurrences 🔴).
+        ## Watchlist
+        Incidents seen but below the dispatch bar, one line each.
+        ## Spend
+        Fleet 24h LLM cost vs the $10 nightly cap.
+
+        Your NATS response: confirm the file path was written plus the
+        Verdict line only.
+      timeout: 900
