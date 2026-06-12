@@ -1,0 +1,16 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/podmonitor_v1.json
+# Scrape pi-knight runtime metrics (pi_knight_tasks_total, pi_knight_llm_cost_dollars_total, ...)
+# Knight pods are operator-managed and expose no named ports, hence portNumber.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: knights
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: knight
+  podMetricsEndpoints:
+    - portNumber: 3000
+      path: /metrics
+      interval: 1m

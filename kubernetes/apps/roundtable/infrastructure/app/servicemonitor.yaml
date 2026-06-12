@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/servicemonitor_v1.json
+# Scrape the Round Table dashboard API (/metrics lands with roundtable-ui#night-watch-telemetry).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: roundtable-dashboard
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: roundtable-dashboard
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 1m
