@@ -28,7 +28,6 @@ spec:
       - yara
       - trufflehog
       - cosign
-      - checkov
       - tfsec
       # OSINT & threat intel
       - gitleaks       # Secret scanning
