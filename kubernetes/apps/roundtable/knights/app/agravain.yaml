@@ -43,7 +43,7 @@ spec:
       - amass          # Subdomain enumeration
       - subfinder      # Passive subdomain discovery
       - whatweb        # Web technology fingerprinting
-      - crackmapexec   # Network service exploitation
+      - netexec        # Network service exploitation (crackmapexec successor; renamed in nixpkgs)
   nats:
     url: nats://nats.database.svc:4222
     subjects:
