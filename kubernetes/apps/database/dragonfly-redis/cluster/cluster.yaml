@@ -7,6 +7,11 @@ metadata:
 spec:
   image: ghcr.io/dragonflydb/dragonfly:v1.39.0
   replicas: 3
+  # Dragonfly is a shared, passwordless cross-namespace cache (OpenCTI, paperless,
+  # searxng, etc.). The operator's managed NetworkPolicy (v1.6.x) hardened the
+  # client port 6379 to same-namespace-only, which severs every cross-namespace
+  # tenant. Disable it to restore cluster-wide client access (prior behavior).
+  networkPolicyEnabled: false
   args:
     # maxmemory is kept well below limits.memory: Dragonfly's RSS includes
     # connection buffers and snapshot/replication fork overhead on top of the
