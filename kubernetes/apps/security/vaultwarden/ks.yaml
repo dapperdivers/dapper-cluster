@@ -17,8 +17,6 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
-    - name: cloudnative-pg-cluster
-      namespace: database
     - name: external-secrets-stores
       namespace: external-secrets
   path: ./kubernetes/apps/security/vaultwarden/app
