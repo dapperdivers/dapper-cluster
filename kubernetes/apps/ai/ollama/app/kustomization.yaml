@@ -5,6 +5,6 @@ kind: Kustomization
 resources:
   - ./pvc.yaml
   - ./helmrelease.yaml
-  - ./helmrelease-1.yaml
+#  - ./helmrelease-1.yaml
   - ./helmrelease-2.yaml
   - ./service.yaml
