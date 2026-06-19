@@ -1,0 +1,170 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hermes
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      hermes:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/nousresearch/hermes-agent
+              tag: v2026.6.5
+            # The image ENTRYPOINT is s6-overlay's /init — it must stay PID 1.
+            # It runs the cont-init hooks (UID remap, /opt/data ownership,
+            # first-boot config seeding, config-schema migrations), then
+            # supervises the gateway with auto-restart on crash. Only set
+            # args (CMD), never command. /init starts as root and drops every
+            # supervised service to the hermes user via s6-setuidgid, so this
+            # container intentionally has no runAsUser override.
+            args:
+              - gateway
+              - run
+            env:
+              TZ: ${TIME_ZONE}
+              # Remap the image's internal hermes user (uid 10000) to 1000 so
+              # files on the PVC match the rest of the cluster (volsync, etc.)
+              HERMES_UID: "1000"
+              HERMES_GID: "1000"
+              # Web dashboard (supervised alongside the gateway). Binds
+              # 0.0.0.0:9119. INSECURE disables the auth gate — acceptable
+              # for the stabilization phase since the ingress is
+              # internal-only, but the dashboard exposes API keys; add the
+              # HERMES_DASHBOARD_BASIC_AUTH_* trio to hermes-secret and
+              # drop this once stable.
+              HERMES_DASHBOARD: "1"
+              HERMES_DASHBOARD_INSECURE: "1"
+              # Match molt's Discord behavior: respond in guild channels
+              # without an @mention, and reply inline instead of opening a
+              # thread per message.
+              DISCORD_REQUIRE_MENTION: "false"
+              DISCORD_AUTO_THREAD: "false"
+              # REQUIRED before Discord cutover: without an allowlist the
+              # gateway denies all users. Comma-separated Discord user IDs
+              # (Settings → Advanced → Developer Mode → Copy User ID).
+              # DISCORD_ALLOWED_USERS: "<your-discord-user-id>"
+              # Where cron jobs / proactive messages land. Set to a channel
+              # ID once chosen (molt's free-response channels:
+              # 1466806583714644063, 1479266525562011818, ...).
+              # DISCORD_HOME_CHANNEL: "1466806583714644063"
+            envFrom:
+              - secretRef:
+                  name: hermes-secret
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: 2000m
+                # Docs recommend 2-4Gi; Playwright/Chromium is the hungry
+                # part. No QMD/GGUF models here (memory is files + SQLite
+                # FTS5), so molt's 12Gi is not needed.
+                memory: 4Gi
+          ha-mcp:
+            image:
+              repository: ghcr.io/homeassistant-ai/ha-mcp
+              tag: 7.7.0
+            args:
+              - fastmcp
+              - run
+              - fastmcp-http.json
+            env:
+              TZ: ${TIME_ZONE}
+              UV_NO_CACHE: "1"
+              HOME: /tmp
+              HOMEASSISTANT_URL: "http://home-assistant.home-automation.svc.cluster.local:8123"
+              HOMEASSISTANT_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: hermes-secret
+                    key: HOMEASSISTANT_TOKEN
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+    defaultPodOptions:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: hermes
+        ports:
+          http:
+            port: 9119
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &host "hermes.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
+    persistence:
+      data:
+        enabled: true
+        existingClaim: hermes
+        advancedMounts:
+          hermes:
+            app:
+              - path: /opt/data
+      # Shared RWX claims still owned by the openclaw app — hermes mounts
+      # them alongside molt during the transition. /opt/data/home is the
+      # HOME hermes gives tool subprocesses, so the agent sees these as
+      # ~/obsidian-vault and ~/voice-recordings.
+      vault:
+        enabled: true
+        existingClaim: molt-vault
+        advancedMounts:
+          hermes:
+            app:
+              - path: /opt/data/home/obsidian-vault
+      voice-recordings:
+        enabled: true
+        existingClaim: molt-voice-recordings
+        advancedMounts:
+          hermes:
+            app:
+              - path: /opt/data/home/voice-recordings
+      # Playwright/Chromium needs more shared memory than the 64Mi k8s
+      # default (docker equivalent: --shm-size=1g).
+      shm:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        advancedMounts:
+          hermes:
+            app:
+              - path: /dev/shm
