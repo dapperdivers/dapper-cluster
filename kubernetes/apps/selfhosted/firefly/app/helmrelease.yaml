@@ -29,10 +29,6 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
-    - name: cloudnative-pg-cluster
-      namespace: database
-    - name: external-secrets-stores
-      namespace: external-secrets
   values:
     controllers:
       firefly:
