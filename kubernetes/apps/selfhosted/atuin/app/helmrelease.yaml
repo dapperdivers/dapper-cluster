@@ -4,6 +4,14 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app atuin
+  annotations:
+    # Postgres-init automation — Kyverno generates the init secret + injects the
+    # init container that creates the DB/role. Creds come from Infisical.
+    postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/user-key: "ATUIN_POSTGRES_USER"
+    postgres-init.home.arpa/pass-key: "ATUIN_POSTGRES_PASSWORD"
+    postgres-init.home.arpa/dbname: "atuin"
+    postgres-init.home.arpa/secret-store: "infisical-postgres"
 spec:
   interval: 30m
   chartRef:
@@ -26,14 +34,7 @@ spec:
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/home-operations/postgres-init
-              tag: 18.4@sha256:ebd9d30add17acdf935d73eb004758c7dfd9388aaa605fda70ad74378ab92aec
-            envFrom: &envFrom
-              - secretRef:
-                  name: atuin-secret
+        # init-db container injected automatically by Kyverno postgres-init
         containers:
           app:
             image:
@@ -53,7 +54,6 @@ spec:
               ATUIN_METRICS__HOST: 0.0.0.0
               ATUIN_METRICS__PORT: &metricsPort 8080
               ATUIN_TLS__ENABLE: "false"
-            envFrom: *envFrom
             args: ["start"]
             probes:
               liveness: &probes
