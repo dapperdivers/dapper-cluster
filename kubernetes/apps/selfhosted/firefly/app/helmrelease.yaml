@@ -105,7 +105,9 @@ spec:
               repository: docker.io/fireflyiii/data-importer
               tag: version-1.2.2
             env:
-              FIREFLY_III_URL: "http://firefly.selfhosted.svc.cluster.local:8080"
+              # app-template names the core service <release>-<identifier> when
+              # multiple services exist -> "firefly-app" (not "firefly")
+              FIREFLY_III_URL: "http://firefly-app.selfhosted.svc.cluster.local:8080"
               APP_URL: "https://firefly-importer.${SECRET_DOMAIN}"
               TRUSTED_PROXIES: "**"
               TZ: America/Chicago
