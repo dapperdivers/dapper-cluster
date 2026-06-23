@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/jbops
-              tag: rolling@sha256:5fec0ac64f8093a526a2f37b24ded12dc7375fcda3ddcc2917dbf6716bd0fe44
+              tag: rolling@sha256:1e1062b830ad628541b636e4efc64d154bf37c6b1ebfd076a51834c0a091ccf7
             env:
               TZ: *timeZone
               JBOPS__SCRIPT_PATH: utility/off_deck.py
