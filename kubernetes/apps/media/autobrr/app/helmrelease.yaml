@@ -4,6 +4,14 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: autobrr
+  annotations:
+    # Postgres-init automation — Kyverno generates the init secret + injects the
+    # init container that creates the DB/role. Creds come from Infisical.
+    postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/user-key: "AUTOBRR_POSTGRES_USER"
+    postgres-init.home.arpa/pass-key: "AUTOBRR_POSTGRES_PASSWORD"
+    postgres-init.home.arpa/dbname: "autobrr"
+    postgres-init.home.arpa/secret-store: "infisical-postgres"
 spec:
   interval: 30m
   chartRef:
@@ -25,14 +33,7 @@ spec:
       autobrr:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/home-operations/postgres-init
-              tag: 18.4@sha256:ebd9d30add17acdf935d73eb004758c7dfd9388aaa605fda70ad74378ab92aec
-            envFrom: &envFrom
-              - secretRef:
-                  name: autobrr-secret
+        # init-db container injected automatically by Kyverno postgres-init
         containers:
           app:
             image:
@@ -43,7 +44,9 @@ spec:
               AUTOBRR__HOST: 0.0.0.0
               AUTOBRR__PORT: &port 80
               AUTOBRR__LOG_LEVEL: INFO
-            envFrom: *envFrom
+            envFrom:
+              - secretRef:
+                  name: autobrr-secret
             probes:
               liveness: &probes
                 enabled: true
