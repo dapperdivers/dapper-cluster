@@ -78,8 +78,9 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /login
+                  # TCP (not httpGet /login) so health checks don't trip the
+                  # remote_user guard and spam "No user in header" errors
+                  tcpSocket:
                     port: &port 8080
                   initialDelaySeconds: 30
                   periodSeconds: 30
