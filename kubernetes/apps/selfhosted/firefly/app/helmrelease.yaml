@@ -1,0 +1,131 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: firefly
+  annotations:
+    # Postgres-init automation — Kyverno generates the init secret + injects the
+    # init container that creates the DB/role. Creds come from Infisical.
+    postgres-init.home.arpa/enabled: "true"
+    postgres-init.home.arpa/user-key: "FIREFLY_POSTGRES_USER"
+    postgres-init.home.arpa/pass-key: "FIREFLY_POSTGRES_PASSWORD"
+    postgres-init.home.arpa/dbname: "firefly"
+    # Postgres super-creds live in the dedicated infisical-postgres store
+    postgres-init.home.arpa/secret-store: "infisical-postgres"
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: volsync
+      namespace: storage
+    - name: cloudnative-pg-cluster
+      namespace: database
+    - name: external-secrets-stores
+      namespace: external-secrets
+  values:
+    controllers:
+      firefly:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        # No initContainers needed — Kyverno injects postgres-init automatically
+        containers:
+          app:
+            image:
+              repository: docker.io/fireflyiii/core
+              tag: version-6.6.3
+            env:
+              APP_URL: "https://firefly.${SECRET_DOMAIN}"
+              TZ: America/Chicago
+              TRUSTED_PROXIES: "**"
+              DB_CONNECTION: pgsql
+              # App secret (infisical store, Selfhosted folder)
+              APP_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-secret
+                    key: APP_KEY
+              # DB connection from the Kyverno-generated postgres-init secret
+              # (infisical-postgres store) — same role the init container creates
+              DB_HOST:
+                valueFrom:
+                  secretKeyRef: { name: firefly-postgres-init, key: INIT_POSTGRES_HOST }
+              DB_PORT:
+                valueFrom:
+                  secretKeyRef: { name: firefly-postgres-init, key: INIT_POSTGRES_PORT }
+              DB_DATABASE:
+                valueFrom:
+                  secretKeyRef: { name: firefly-postgres-init, key: INIT_POSTGRES_DBNAME }
+              DB_USERNAME:
+                valueFrom:
+                  secretKeyRef: { name: firefly-postgres-init, key: INIT_POSTGRES_USER }
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef: { name: firefly-postgres-init, key: INIT_POSTGRES_PASS }
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /login
+                    port: &port 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+              readiness: *probes
+            resources:
+              requests:
+                cpu: 25m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+
+    defaultPodOptions:
+      securityContext:
+        # fireflyiii/core runs as www-data (uid/gid 33); make the upload PVC writable
+        fsGroup: 33
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        controller: firefly
+        ports:
+          http:
+            port: *port
+
+    ingress:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &host "firefly.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts:
+              - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
+
+    persistence:
+      upload:
+        existingClaim: firefly
+        advancedMounts:
+          firefly:
+            app:
+              - path: /var/www/html/storage/upload
