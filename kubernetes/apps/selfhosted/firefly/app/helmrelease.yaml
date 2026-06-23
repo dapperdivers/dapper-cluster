@@ -94,6 +94,45 @@ spec:
               limits:
                 memory: 1Gi
 
+      # Firefly III Data Importer (SimpleFIN + CSV) — separate pod, same release.
+      # Talks to core over the in-cluster service (bypasses the SSO ingress).
+      importer:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/fireflyiii/data-importer
+              tag: version-1.2.2
+            env:
+              FIREFLY_III_URL: "http://firefly.selfhosted.svc.cluster.local:8080"
+              APP_URL: "https://firefly-importer.${SECRET_DOMAIN}"
+              TRUSTED_PROXIES: "**"
+              TZ: America/Chicago
+              FIREFLY_III_ACCESS_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-secret
+                    key: FIREFLY_III_ACCESS_TOKEN
+            probes:
+              liveness: &importerProbes
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+              readiness: *importerProbes
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
     defaultPodOptions:
       securityContext:
         # fireflyiii/core runs as www-data (uid/gid 33); make the upload PVC writable
@@ -106,6 +145,11 @@ spec:
         ports:
           http:
             port: *port
+      importer:
+        controller: importer
+        ports:
+          http:
+            port: 8080
 
     ingress:
       app:
@@ -127,6 +171,21 @@ spec:
         tls:
           - hosts:
               - *host
+            secretName: ${SECRET_DOMAIN/./-}-tls
+      importer:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        className: internal
+        hosts:
+          - host: &importerHost "firefly-importer.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: importer
+                  port: http
+        tls:
+          - hosts:
+              - *importerHost
             secretName: ${SECRET_DOMAIN/./-}-tls
 
     persistence:
