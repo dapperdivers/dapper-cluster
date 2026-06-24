@@ -33,7 +33,10 @@ spec:
       }
   coreTemplate:
     spec:
-      replicas: 3
+      # Single core node: EMQX 6.x is Enterprise; the built-in free Developer
+      # license (10M sessions, valid to 2029) allows single-node only. Multi-node
+      # clustering requires a paid Enterprise license. Was 3 on Apache/OSS 5.8.
+      replicas: 1
       envFrom:
         - secretRef:
             name: emqx-secret
