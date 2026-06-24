@@ -40,25 +40,6 @@ spec:
       enabled: true
     dashboard:
       enabled: true
-      ingress:
-        enabled: true
-        ingressClassName: internal
-        annotations:
-          gethomepage.dev/enabled: "true"
-          gethomepage.dev/name: "Goldilocks"
-          gethomepage.dev/group: "Observability"
-          gethomepage.dev/icon: "https://raw.githubusercontent.com/FairwindsOps/goldilocks/master/pkg/dashboard/assets/images/favicon.ico"
-          gethomepage.dev/description: "Kubernetes Resource Recommendations"
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        hosts:
-          - host: &host "goldilocks.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                type: ImplementationSpecific
-        tls:
-          - secretName: ${SECRET_DOMAIN/./-}-tls
-            hosts:
-              - *host
       resources:
         requests:
           memory: 105M

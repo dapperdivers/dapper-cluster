@@ -69,12 +69,6 @@ spec:
     # Dashboard — Round Table observability platform
     dashboard:
       enabled: true
-      ingress:
-        enabled: true
-        className: internal
-        host: "roundtable.${SECRET_DOMAIN}"
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
       vault:
         enabled: true
         claimName: roundtable-vault

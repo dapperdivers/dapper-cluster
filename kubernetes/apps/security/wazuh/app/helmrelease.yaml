@@ -73,17 +73,6 @@ spec:
           memory: 1Gi
       cred:
         existingSecret: wazuh-secret
-      ingress:
-        enabled: true
-        className: internal
-        host: wazuh.${SECRET_DOMAIN}
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-        tls:
-          - secretName: ${SECRET_DOMAIN/./-}-tls
-            hosts:
-              - wazuh.${SECRET_DOMAIN}
-
     # Wazuh Manager configuration
     wazuh:
       enabled: true

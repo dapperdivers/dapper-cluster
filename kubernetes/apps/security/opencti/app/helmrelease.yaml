@@ -81,21 +81,6 @@ spec:
         limits:
           memory: 4Gi
 
-      ingress:
-        enabled: true
-        className: internal
-        annotations:
-          cert-manager.io/cluster-issuer: letsencrypt-production
-        hosts:
-          - host: opencti.chelonianlabs.com
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - opencti.chelonianlabs.com
-            secretName: opencti-tls
-
     # ===================
     # Workers
     # ===================
