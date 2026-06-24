@@ -89,37 +89,6 @@ spec:
             port: 8123
           code-server:
             port: 12321
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
-        className: external
-        hosts:
-          - host: &host hass.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-      code-server:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-        className: internal
-        hosts:
-          - host: &code_host hass-code.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: code-server
-        tls:
-          - hosts:
-              - *code_host
-            secretName: ${SECRET_DOMAIN/./-}-tls
     route:
       app:
         annotations:

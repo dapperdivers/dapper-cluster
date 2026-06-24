@@ -123,28 +123,6 @@ spec:
           gdm-4:
             port: 32414
             protocol: UDP
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN_MEDIA}
-          nginx.ingress.kubernetes.io/server-snippet: |
-            location ~ ^/library/streams {
-              proxy_set_header        Range "";
-              proxy_pass              http://plex.media.svc.cluster.local:32400;
-              proxy_http_version      1.1;
-            }
-        className: external
-        hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: *port
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     route:
       app:
         annotations:

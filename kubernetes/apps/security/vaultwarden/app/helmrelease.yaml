@@ -80,30 +80,6 @@ spec:
             enabled: true
             port: &websocket-port 3012
 
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
-        className: external
-        hosts:
-          - host: &host vault.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: *port
-              - path: /notifications/hub/negotiate
-                service:
-                  identifier: app
-                  port: *port
-              - path: /notifications/hub
-                service:
-                  identifier: app
-                  port: *websocket-port
-        tls:
-          - hosts:
-              - *host
-            secretName: "${SECRET_DOMAIN/./-}-tls"
     # Gateway API (parallel-run). Websocket path splits to the websocket port;
     # /notifications/hub/negotiate is more specific so it wins over /notifications/hub.
     route:
