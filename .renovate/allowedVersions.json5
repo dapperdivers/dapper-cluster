@@ -19,17 +19,17 @@
       allowedVersions: "/^v18\\./",
     },
     {
-      // Pin emqx-operator to 2.2.29 - 2.3.0 crashes on /api/v5/load_rebalance/global_status
-      // (HTTP 404), sets readiness gate apps.emqx.io/on-serving=False, drains listeners endpoints.
+      // Stay on emqx-operator 2.3.x - 3.0 introduces another CRD storage migration (v3beta1).
       matchDatasources: ["helm"],
       matchPackageNames: ["emqx-operator"],
-      allowedVersions: "<=2.2.29",
+      allowedVersions: "/^2\\.3\\./",
     },
     {
-      // Pin EMQX broker to 5.8.x - 5.9+ requires operator 2.3.0+ (broken), 6.x is enterprise-only.
+      // Pin EMQX broker to 6.2.x (BSL). Image moved ECR->Docker Hub (ECR has no 5.9+).
+      // Requires operator 2.3.x. Migrated off Apache/EOL 5.8 on 2026-06-24.
       matchDatasources: ["docker"],
-      matchPackageNames: ["public.ecr.aws/emqx/emqx"],
-      allowedVersions: "/^5\\.8\\./",
+      matchPackageNames: ["docker.io/emqx/emqx"],
+      allowedVersions: "/^6\\.2\\./",
     },
   ],
 }
