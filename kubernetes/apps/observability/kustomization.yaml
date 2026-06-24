@@ -7,6 +7,7 @@ components:
   - ../../flux/components/common
 resources:
   - ./namespace.yaml
+  - ./alertmanager-ntfy/ks.yaml
   - ./blackbox-exporter/ks.yaml
   - ./exporters/dcgm-exporter/ks.yaml
   - ./exporters/snmp-exporter/ks.yaml

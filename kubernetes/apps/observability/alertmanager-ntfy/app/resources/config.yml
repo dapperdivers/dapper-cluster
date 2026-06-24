@@ -1,0 +1,22 @@
+http:
+  addr: :8000
+ntfy:
+  baseurl: http://ntfy.network.svc.cluster.local:8080
+  notification:
+    # Dedicated topic so cluster alerts are separate from the gatus status topic.
+    topic: alertmanager
+    priority: |
+      status == "firing" ? "high" : "default"
+    tags:
+      - tag: white_check_mark
+        condition: status == "resolved"
+      - tag: rotating_light
+        condition: status == "firing"
+    templates:
+      title: |
+        {{ if eq .Status "resolved" }}Resolved: {{ end }}{{ index .Annotations "summary" }}
+      description: |
+        {{ index .Annotations "description" }}
+      headers:
+        X-Click: |
+          {{ .GeneratorURL }}

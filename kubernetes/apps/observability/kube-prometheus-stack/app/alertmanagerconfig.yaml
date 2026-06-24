@@ -9,7 +9,8 @@ spec:
     groupBy: ["alertname", "job"]
     groupInterval: 10m
     groupWait: 1m
-    receiver: pushover
+    # Default (non-critical) -> ntfy. severity=critical is routed to pushover below.
+    receiver: ntfy
     repeatInterval: 12h
     routes:
       - receiver: "null"
@@ -81,3 +82,7 @@ spec:
             name: *secret
             key: PUSHOVER_USER_KEY
           urlTitle: View in Alertmanager
+    - name: ntfy
+      webhookConfigs:
+        - sendResolved: true
+          url: http://alertmanager-ntfy.observability.svc.cluster.local:8000/hook
