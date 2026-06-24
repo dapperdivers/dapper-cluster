@@ -7,4 +7,6 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://ori-edge.github.io/k8s_gateway
+  # Maintained fork (ori-edge is abandoned at plugin 0.4.0, which is incompatible
+  # with Gateway API v1 GRPCRoute). The fork's plugin >=1.x supports v1 routes.
+  url: https://k8s-gateway.github.io/k8s_gateway
