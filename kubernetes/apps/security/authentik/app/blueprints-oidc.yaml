@@ -64,3 +64,15 @@ data:
       - model: authentik_core.application
         identifiers: { slug: proxmox }
         attrs: { name: Proxmox, group: internal-proxmox, provider: !KeyOf proxmox-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/proxmox.svg", meta_launch_url: "https://proxmox-02.${SECRET_DOMAIN}" }
+      # home-assistant (hass-oidc-auth component) — NEW provider; Authentik generates
+      # client_id/secret on first apply (read them out for HA's configuration.yaml).
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Home Assistant OIDC }
+        id: hass-oidc
+        attrs:
+          <<: *oidc
+          redirect_uris:
+            - { matching_mode: strict, url: "https://hass.${SECRET_DOMAIN}/auth/oidc/callback", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: home-assistant }
+        attrs: { name: Home Assistant, group: home, provider: !KeyOf hass-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/home-assistant.svg", meta_launch_url: "https://hass.${SECRET_DOMAIN}" }
