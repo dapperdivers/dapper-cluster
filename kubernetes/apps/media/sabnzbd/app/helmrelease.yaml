@@ -92,7 +92,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-media
     persistence:
       config:
         existingClaim: sabnzbd

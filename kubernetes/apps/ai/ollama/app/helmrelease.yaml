@@ -150,7 +150,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-main
 
     persistence:
       models:

@@ -23,7 +23,6 @@ spec:
   parentRefs:
     - name: internal
       namespace: network
-      sectionName: https-main
   hostnames: ["unifi.${SECRET_DOMAIN}"]
   rules:
     - backendRefs:

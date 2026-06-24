@@ -81,7 +81,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-media
         rules:
           - backendRefs:
               - identifier: app
@@ -91,7 +90,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-media
         rules:
           - backendRefs:
               - identifier: calibre-server

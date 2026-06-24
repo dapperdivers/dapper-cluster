@@ -95,13 +95,11 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-main
       s3:
         hostnames: ["s3.${SECRET_DOMAIN}"]
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-main
         rules:
           - backendRefs:
               - identifier: app

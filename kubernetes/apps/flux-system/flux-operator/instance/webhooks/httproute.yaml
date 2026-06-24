@@ -10,7 +10,6 @@ spec:
   parentRefs:
     - name: external
       namespace: network
-      sectionName: https-main
   hostnames: ["flux-webhook.${SECRET_DOMAIN}"]
   rules:
     - matches:

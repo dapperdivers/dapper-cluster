@@ -90,7 +90,6 @@ spec:
         parentRefs:
           - name: external
             namespace: network
-            sectionName: https-main
         rules:
           - matches:
               - path:

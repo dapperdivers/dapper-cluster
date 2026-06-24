@@ -33,7 +33,6 @@ spec:
   parentRefs:
     - name: internal
       namespace: network
-      sectionName: https-main
   hostnames: ["firewall.${SECRET_DOMAIN}"]
   rules:
     - backendRefs:

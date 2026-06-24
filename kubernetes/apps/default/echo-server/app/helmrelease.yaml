@@ -90,4 +90,3 @@ spec:
         parentRefs:
           - name: external
             namespace: network
-            sectionName: https-main

@@ -103,7 +103,3 @@ spec:
         parentRefs:
           - name: external
             namespace: network
-            sectionName: https-personal
-          - name: external
-            namespace: network
-            sectionName: https-apex-personal

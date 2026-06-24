@@ -30,7 +30,6 @@ spec:
   parentRefs:
     - name: internal
       namespace: network
-      sectionName: https-main
   hostnames: ["used.${SECRET_DOMAIN}"]
   rules:
     - backendRefs:

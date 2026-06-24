@@ -131,7 +131,6 @@ spec:
         parentRefs:
           - name: external
             namespace: network
-            sectionName: https-media
     persistence:
       config:
         existingClaim: plex

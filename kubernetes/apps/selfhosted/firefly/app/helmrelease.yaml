@@ -163,7 +163,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-main
         rules:
           - backendRefs:
               - identifier: app
@@ -173,7 +172,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-main
         rules:
           - backendRefs:
               - identifier: importer

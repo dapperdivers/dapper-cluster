@@ -33,7 +33,6 @@ spec:
   parentRefs:
     - name: internal
       namespace: network
-      sectionName: https-main
   hostnames: ["circe.${SECRET_DOMAIN}"]
   rules:
     - backendRefs:
@@ -75,7 +74,6 @@ spec:
   parentRefs:
     - name: internal
       namespace: network
-      sectionName: https-main
   hostnames: ["athena.${SECRET_DOMAIN}"]
   rules:
     - backendRefs:

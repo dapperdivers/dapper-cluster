@@ -31,7 +31,6 @@ spec:
       parentRefs:
         - name: internal
           namespace: network
-          sectionName: https-main
       hostnames:
         - konflate.${SECRET_DOMAIN}
     monitoring:

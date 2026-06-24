@@ -73,7 +73,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-media
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true

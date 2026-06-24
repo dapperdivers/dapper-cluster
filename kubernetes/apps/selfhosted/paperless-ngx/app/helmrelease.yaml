@@ -111,7 +111,6 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
-            sectionName: https-main
     persistence:
       data:
         existingClaim: paperless-ngx
