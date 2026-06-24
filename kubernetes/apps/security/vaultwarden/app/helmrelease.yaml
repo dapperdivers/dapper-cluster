@@ -108,6 +108,8 @@ spec:
     # /notifications/hub/negotiate is more specific so it wins over /notifications/hub.
     route:
       app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         hostnames: ["vault.${SECRET_DOMAIN}"]
         parentRefs:
           - name: external

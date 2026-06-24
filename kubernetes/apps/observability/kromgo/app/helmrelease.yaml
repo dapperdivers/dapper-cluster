@@ -88,6 +88,8 @@ spec:
             secretName: "${SECRET_DOMAIN/./-}-tls"
     route:
       app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:
           - name: external

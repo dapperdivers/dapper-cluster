@@ -4,6 +4,10 @@ kind: Gateway
 metadata:
   name: external
   namespace: network
+  labels:
+    # external-dns --gateway-label-filter targets this so only external-Gateway
+    # HTTPRoutes are published to public (Cloudflare) DNS.
+    external-dns: "true"
 spec:
   gatewayClassName: envoy
   infrastructure:

@@ -99,6 +99,8 @@ spec:
     # at the external Gateway; rules omitted -> defaults to the primary service.
     route:
       app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:

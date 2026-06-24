@@ -101,6 +101,8 @@ spec:
     # Gateway API (parallel-run). Apex host attaches to the apex listener too.
     route:
       app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_MEDIA}"
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
           - "www.${SECRET_DOMAIN_MEDIA}"
