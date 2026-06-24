@@ -24,3 +24,17 @@ rules:
       - update
       - patch
       - delete
+  # ReferenceGrant lets the generated SecurityPolicy (app ns) reach the outpost
+  # Service in `security`. The forward-auth policy generates these per-namespace.
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - referencegrants
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
