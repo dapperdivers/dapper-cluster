@@ -33,3 +33,35 @@ spec:
                 name: *app
                 port:
                   number: 8443
+---
+# Gateway API: route to the self-signed HTTPS upstream via an EG Backend
+# (insecureSkipVerify mirrors nginx backend-protocol: HTTPS without verification).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: firewall-proxy
+  namespace: network
+spec:
+  endpoints:
+    - fqdn:
+        hostname: firewall.manor
+        port: 8443
+  tls:
+    insecureSkipVerify: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: firewall-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - name: internal
+      namespace: network
+      sectionName: https-main
+  hostnames: ["firewall.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: firewall-proxy

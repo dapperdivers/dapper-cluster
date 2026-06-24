@@ -34,6 +34,37 @@ spec:
                 name: *app
                 port:
                   number: 8006
+---
+# Gateway API: Circe (Proxmox) self-signed HTTPS upstream
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: circe-proxy
+  namespace: network
+spec:
+  endpoints:
+    - fqdn:
+        hostname: circe.manor
+        port: 8006
+  tls:
+    insecureSkipVerify: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: circe-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - name: internal
+      namespace: network
+      sectionName: https-main
+  hostnames: ["circe.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: circe-proxy
 ## Athena
 ---
 apiVersion: v1
@@ -70,3 +101,34 @@ spec:
                 name: *app
                 port:
                   number: 8006
+---
+# Gateway API: Athena (Proxmox) self-signed HTTPS upstream
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: athena-proxy
+  namespace: network
+spec:
+  endpoints:
+    - fqdn:
+        hostname: athena.manor
+        port: 8006
+  tls:
+    insecureSkipVerify: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: athena-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - name: internal
+      namespace: network
+      sectionName: https-main
+  hostnames: ["athena.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: athena-proxy
