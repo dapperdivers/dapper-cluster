@@ -133,38 +133,6 @@ data:
       - model: authentik_core.application
         identifiers: { slug: sabnzbd }
         attrs: { name: Sabnzbd, group: media_internal, provider: !KeyOf sabnzbd-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sabnzbd.svg", meta_launch_url: "https://sabnzbd.${SECRET_DOMAIN_MEDIA}" }
-      # n8n
-      - model: authentik_providers_proxy.proxyprovider
-        identifiers: { name: Provider for N8N }
-        id: n8n-provider
-        attrs: { <<: *proxy, external_host: "https://n8n.${SECRET_DOMAIN}/" }
-      - model: authentik_core.application
-        identifiers: { slug: n8n }
-        attrs: { name: N8N, provider: !KeyOf n8n-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/n8n.svg", meta_launch_url: "https://n8n.${SECRET_DOMAIN}/" }
-      # docs
-      - model: authentik_providers_proxy.proxyprovider
-        identifiers: { name: Provider for Paperless-ngx }
-        id: docs-provider
-        attrs: { <<: *proxy, external_host: "https://docs.${SECRET_DOMAIN}" }
-      - model: authentik_core.application
-        identifiers: { slug: docs }
-        attrs: { name: Paperless NGX, provider: !KeyOf docs-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/paperless-ngx.svg", meta_launch_url: "https://docs.${SECRET_DOMAIN}" }
-      # search
-      - model: authentik_providers_proxy.proxyprovider
-        identifiers: { name: Provider for Searxng }
-        id: search-provider
-        attrs: { <<: *proxy, external_host: "https://search.${SECRET_DOMAIN}" }
-      - model: authentik_core.application
-        identifiers: { slug: search }
-        attrs: { name: Searxng, provider: !KeyOf search-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/searxng.svg", meta_launch_url: "https://search.${SECRET_DOMAIN}" }
-      # nzbget
-      - model: authentik_providers_proxy.proxyprovider
-        identifiers: { name: Provider for nzbget }
-        id: nzbget-provider
-        attrs: { <<: *proxy, external_host: "https://nzbget.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
-      - model: authentik_core.application
-        identifiers: { slug: nzbget }
-        attrs: { name: nzbget, provider: !KeyOf nzbget-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/nzbget.svg", meta_launch_url: "https://nzbget.${SECRET_DOMAIN_MEDIA}" }
       # tdarr
       - model: authentik_providers_proxy.proxyprovider
         identifiers: { name: Provider for Tdarr }
@@ -181,14 +149,6 @@ data:
       - model: authentik_core.application
         identifiers: { slug: 4kbazarr }
         attrs: { name: 4k-Bazarr, group: media_internal, provider: !KeyOf 4kbazarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/bazarr.svg", meta_launch_url: "https://4kbazarr.${SECRET_DOMAIN_MEDIA}" }
-      # huntarr
-      - model: authentik_providers_proxy.proxyprovider
-        identifiers: { name: Provider for Huntarr }
-        id: huntarr-provider
-        attrs: { <<: *proxy, external_host: "https://huntarr.${SECRET_DOMAIN_MEDIA}" }
-      - model: authentik_core.application
-        identifiers: { slug: huntarr }
-        attrs: { name: huntarr, group: media_internal, provider: !KeyOf huntarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/png/huntarr.png", meta_launch_url: "https://huntarr.${SECRET_DOMAIN_MEDIA}/" }
       # posterizarr
       - model: authentik_providers_proxy.proxyprovider
         identifiers: { name: Provider for Posterizarr }
@@ -197,14 +157,6 @@ data:
       - model: authentik_core.application
         identifiers: { slug: posterizarr }
         attrs: { name: Posterizarr, group: media_internal, provider: !KeyOf posterizarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/posterizarr.svg", meta_launch_url: "https://posterizarr.turlteassmedia.com" }
-      # kestra
-      - model: authentik_providers_proxy.proxyprovider
-        identifiers: { name: Provider for Kestra }
-        id: kestra-provider
-        attrs: { <<: *proxy, external_host: "https://kestra.${SECRET_DOMAIN}", skip_path_regex: "^/api([/?].*)?$" }
-      - model: authentik_core.application
-        identifiers: { slug: kestra }
-        attrs: { name: Kestra, group: home, provider: !KeyOf kestra-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/kestra.svg", meta_launch_url: "https://kestra.${SECRET_DOMAIN}" }
       # firefly
       - model: authentik_providers_proxy.proxyprovider
         identifiers: { name: Provider for Firefly }
