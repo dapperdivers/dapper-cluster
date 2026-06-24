@@ -9,7 +9,7 @@ spec:
   infrastructure:
     # Cilium LB-IPAM pins this VIP onto the managed Envoy LoadBalancer Service
     annotations:
-      lbipam.cilium.io/ips: "${INTERNAL_GW_VIP}"
+      lbipam.cilium.io/ips: "${INTERNAL_VIP_GATEWAY}"
   listeners:
     - name: http
       protocol: HTTP

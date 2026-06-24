@@ -11,7 +11,7 @@ spec:
     # Public traffic actually arrives via cloudflared -> this Gateway's Service;
     # the VIP is for direct LAN access only.
     annotations:
-      lbipam.cilium.io/ips: "${EXTERNAL_GW_VIP}"
+      lbipam.cilium.io/ips: "${EXTERNAL_VIP_GATEWAY}"
   listeners:
     - name: http
       protocol: HTTP
