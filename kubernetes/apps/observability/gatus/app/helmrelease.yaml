@@ -65,6 +65,26 @@ spec:
     persistence:
       enabled: true
       existingClaim: gatus
+    # One-time migration cleanup: the legacy kiwigrid sidecar dumped per-app
+    # `*-gatus-ep.config.yaml` files onto this (reused) PVC. They now collide with
+    # the sidecar-generated gatus-sidecar.yaml (duplicate name+group → Gatus panics).
+    # Idempotent; safe to remove once the PVC is clean. Does not touch sqlite.db,
+    # config.yaml, or gatus-sidecar.yaml.
+    initContainers:
+      - name: purge-legacy-configmaps
+        image: mirror.gcr.io/library/busybox:1.37
+        command:
+          - /bin/sh
+          - -c
+          - rm -f /config/*gatus-ep*.config.yaml; true
+        volumeMounts:
+          - name: config
+            mountPath: /config
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
     monitoring:
       serviceMonitor:
         enabled: true
