@@ -104,25 +104,7 @@ spec:
         ports:
           http:
             port: 8000
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          authentik.home.arpa/internal: "true"
-          nginx.ingress.kubernetes.io/auth-signin: "https://docs.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
-        className: internal
-        hosts:
-          - host: &host docs.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-    # Gateway API (parallel-run). Auth added later as a SecurityPolicy.
+    # Gateway API. Auth added later as a SecurityPolicy.
     route:
       app:
         hostnames: ["docs.${SECRET_DOMAIN}"]

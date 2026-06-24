@@ -75,38 +75,6 @@ spec:
             port: 8080
           content-server:
             port: 8090
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-        className: internal
-        hosts:
-          - host: &host "bookshelf.${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
-
-      calibre-server:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-        className: internal
-        hosts:
-          - host: &calhost "calibre.${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: calibre-server
-                  port: desktop
-        tls:
-          - hosts:
-              - *calhost
-            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     route:
       app:
         hostnames: ["bookshelf.${SECRET_DOMAIN_MEDIA}"]

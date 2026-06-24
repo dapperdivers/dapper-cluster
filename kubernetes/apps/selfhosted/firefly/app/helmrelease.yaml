@@ -153,43 +153,7 @@ spec:
           http:
             port: 8080
 
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          # Authentik forward-auth (proxy provider). The cluster injects auth-url
-          # from this marker; we forward the email header to Firefly's remote_user guard.
-          authentik.home.arpa/internal: "true"
-          nginx.ingress.kubernetes.io/auth-signin: "https://firefly.${SECRET_DOMAIN}/outpost.goauthentik.io/start?rd=$scheme://$http_host$escaped_request_uri"
-          nginx.ingress.kubernetes.io/auth-response-headers: "Set-Cookie,X-authentik-username,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-groups"
-        className: internal
-        hosts:
-          - host: &host "firefly.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-      importer:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &importerHost "firefly-importer.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: importer
-                  port: http
-        tls:
-          - hosts:
-              - *importerHost
-            secretName: ${SECRET_DOMAIN/./-}-tls
-    # Gateway API (parallel-run). Multi-service app → explicit rules per service.
+    # Gateway API. Multi-service app → explicit rules per service.
     # Auth (header via ext-auth -> outpost) is added later as a SecurityPolicy.
     route:
       app:

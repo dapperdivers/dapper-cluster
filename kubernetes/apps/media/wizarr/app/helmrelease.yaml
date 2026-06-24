@@ -47,22 +47,6 @@ spec:
         ports:
           http:
             port: 5690
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN_MEDIA}"
-        className: internal
-        hosts:
-          - host: &host "invite.${SECRET_DOMAIN_MEDIA}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     route:
       app:
         hostnames: ["invite.${SECRET_DOMAIN_MEDIA}"]

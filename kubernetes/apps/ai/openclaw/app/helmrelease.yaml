@@ -464,37 +464,6 @@ spec:
           sync:
             port: 22000
             protocol: TCP
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &host "molt.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-      syncthing:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &synchost "molt-syncthing.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: syncthing
-                  port: http
-        tls:
-          - hosts:
-              - *synchost
-            secretName: ${SECRET_DOMAIN/./-}-tls
     route:
       app:
         hostnames: ["molt.${SECRET_DOMAIN}"]

@@ -101,23 +101,7 @@ spec:
             path: /metrics
             interval: 1m
             scrapeTimeout: 10s
-    ingress:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-        className: internal
-        hosts:
-          - host: &host sh.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-    # Gateway API (parallel-run alongside ingress; TLS terminates at the Gateway)
+    # Gateway API (TLS terminates at the Gateway)
     route:
       app:
         hostnames: ["sh.${SECRET_DOMAIN}"]

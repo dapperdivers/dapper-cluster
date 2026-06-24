@@ -60,21 +60,6 @@ spec:
         ports:
           http:
             port: *port
-    ingress:
-      app:
-        enabled: true
-        className: internal
-        hosts:
-          - host: *host
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
     route:
       app:
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]

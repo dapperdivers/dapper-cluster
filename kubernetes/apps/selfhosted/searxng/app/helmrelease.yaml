@@ -74,24 +74,7 @@ spec:
         ports:
           http:
             port: *httpPort
-    ingress:
-      app:
-        enabled: true
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &host search.${SECRET_DOMAIN}
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
-    # Gateway API (parallel-run alongside ingress; TLS terminates at the Gateway)
+    # Gateway API (TLS terminates at the Gateway)
     route:
       app:
         hostnames: ["search.${SECRET_DOMAIN}"]

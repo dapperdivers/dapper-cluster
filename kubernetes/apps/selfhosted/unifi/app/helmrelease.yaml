@@ -83,25 +83,6 @@ spec:
             enabled: true
             port: 10001
             protocol: UDP
-    ingress:
-      app:
-        enabled: true
-        className: internal
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-          hajimari.io/icon: simple-icons:ubiquiti
-        hosts:
-          - host: &host "unifi.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: ${SECRET_DOMAIN/./-}-tls
     persistence:
       data:
         enabled: true
