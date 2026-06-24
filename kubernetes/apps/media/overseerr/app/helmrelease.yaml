@@ -70,7 +70,8 @@ spec:
         ports:
           http:
             port: *port
-    # Gateway API (parallel-run). Apex host attaches to the apex listener too.
+    # Gateway API. No sectionName: each hostname auto-attaches to the matching
+    # listener by hostname (wildcard for subdomains, apex listener for the bare host).
     route:
       app:
         annotations:
@@ -82,10 +83,6 @@ spec:
         parentRefs:
           - name: external
             namespace: network
-            sectionName: https-media
-          - name: external
-            namespace: network
-            sectionName: https-apex-media
     persistence:
       config:
         existingClaim: overseerr
