@@ -30,7 +30,8 @@ spec:
           automountServiceAccountToken: false
           containers:
             - name: importer
-              image: docker.io/fireflyiii/data-importer:version-2.3.2
+              # -cli variant: built for command-line/cron use (no web-server entrypoint)
+              image: docker.io/fireflyiii/data-importer:version-2.3.2-cli
               workingDir: /var/www/html
               command: ["php", "artisan", "importer:import", "/import/config.json"]
               env:
