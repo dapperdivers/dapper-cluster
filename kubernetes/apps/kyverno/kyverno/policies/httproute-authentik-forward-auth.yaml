@@ -15,6 +15,8 @@ metadata:
       by Host. The generated SecurityPolicy is kept in sync and removed when the
       HTTPRoute is deleted or the annotation is cleared (synchronize: true).
 spec:
+  # Generate for HTTPRoutes that already exist (not just on create/update).
+  generateExisting: true
   rules:
     - name: generate-forward-auth-securitypolicy
       match:
