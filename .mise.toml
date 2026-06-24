@@ -1,6 +1,7 @@
 [env]
 _.python.venv = { path = "{{config_root}}/.venv", create = true }
 KUBERNETES_DIR = '{{config_root}}/kubernetes'
+FLATE_PATH = '{{config_root}}/kubernetes/flux/cluster'
 KUBECONFIG = "{{env.HOME}}/.kube/config"
 SOPS_AGE_KEY_FILE = "{{config_root}}/age.key"
 TALOSCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/clusterconfig/talosconfig"
@@ -19,6 +20,7 @@ pre-commit = "latest"
 "aqua:cloudflare/cloudflared" = "2026.5.2"
 "aqua:FiloSottile/age" = "1.3.1"
 "aqua:fluxcd/flux2" = "2.8.8"
+"github:home-operations/flate" = "0.4.9"
 "aqua:getsops/sops" = "3.13.1"
 "aqua:helm/helm" = "4.2.0"
 "aqua:jqlang/jq" = "1.7.1"
