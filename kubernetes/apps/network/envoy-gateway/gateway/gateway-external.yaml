@@ -8,6 +8,12 @@ metadata:
     # external-dns --gateway-label-filter targets this so only external-Gateway
     # HTTPRoutes are published to public (Cloudflare) DNS.
     external-dns: "true"
+  annotations:
+    # external-dns (gateway-httproute source) derives the record TARGET from the
+    # Gateway, not per-route. Point all external routes at the Cloudflare Tunnel
+    # (proxied CNAME) — same endpoint cloudflared serves. A private VIP target is
+    # rejected by Cloudflare for proxied records.
+    external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
 spec:
   gatewayClassName: envoy
   infrastructure:

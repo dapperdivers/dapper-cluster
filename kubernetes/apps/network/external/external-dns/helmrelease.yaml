@@ -38,14 +38,11 @@ spec:
       - --crd-source-kind=DNSEndpoint
       - --events
       - --ignore-ingress-tls-spec
-      - --ingress-class=external
       # Only publish HTTPRoutes attached to the external Gateway (labeled
       # external-dns=true); internal-Gateway routes stay off public DNS.
       - --gateway-label-filter=external-dns=true
     policy: sync
-    # Dual-source during cutover: ingress (legacy) + gateway-httproute (new).
-    # Once external apps' ingress blocks are removed, drop "ingress".
-    sources: ["crd", "ingress", "gateway-httproute"]
+    sources: ["crd", "gateway-httproute"]
     txtPrefix: k8s.
     txtOwnerId: default
     domainFilters: ["${SECRET_DOMAIN}","${SECRET_DOMAIN_MEDIA}","${SECRET_DOMAIN_PERSONAL}","${SECRET_DOMAIN_DIVING}","${SECRET_DOMAIN_WIFE}"]
