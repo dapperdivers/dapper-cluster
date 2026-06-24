@@ -96,13 +96,22 @@ curl -sI https://newapp.${SECRET_DOMAIN}      # 302 -> sso... (gated). /api -> a
 
 ## B. Add a native-OIDC app
 
-App enforces auth itself, so **no `forward-auth` annotation** — just a plain route.
+App enforces auth itself, so **no `forward-auth` annotation** — just a plain route. OIDC apps live in a
+SEPARATE blueprint: `app/blueprints-oidc.yaml` (ConfigMap `authentik-oidc`, 2nd entry in the HR's
+`blueprints.configMaps`). Shared config is the `&oidc` anchor; each app overrides only `redirect_uris`.
 
+**Adopting an existing OIDC app** (already working): OMIT `client_id`/`client_secret` from the blueprint
+→ adoption preserves the live creds (which match the app's Infisical value), zero risk. That's how
+actual/open-webui/proxmox are done. DR caveat: re-enter the secret once on a from-scratch rebuild.
+
+**A brand-new OIDC app** needs the creds set, via `!Env` from the worker env:
 1. **Infisical**: create `NEWAPP_OIDC_CLIENT_ID` / `_SECRET` (for the app) and the SAME values as
-   `AUTHENTIK_NEWAPP_CLIENT_ID` / `_SECRET` (the `^AUTHENTIK.*` keys land in the worker env → blueprint `!Env`).
+   `AUTHENTIK_NEWAPP_CLIENT_ID` / `_SECRET` in authentik's scope (`^AUTHENTIK.*` → worker env → `!Env`).
+   NOTE: app secrets and the authentik worker use DIFFERENT Infisical stores (`infisical` vs
+   `infisical-authentik`), so this is a deliberate duplicate, not a shared key.
 2. **App HR**: OIDC env — issuer/discovery `https://sso.${SECRET_DOMAIN}/application/o/newapp/`,
    client_id/secret from its ExternalSecret. (See `selfhosted/actual` for the pattern.)
-3. **Blueprint** (`forward-auth.yaml` or a new key):
+3. **Blueprint** (`blueprints-oidc.yaml`), adding `client_id: !Env …` / `client_secret: !Env …` to attrs:
 ```yaml
   - model: authentik_providers_oauth2.oauth2provider
     identifiers: { name: newapp }
