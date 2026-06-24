@@ -5,3 +5,5 @@ kind: Kustomization
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
+  - ./importer-config.yaml
+  - ./importer-cronjob.yaml

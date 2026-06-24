@@ -1,0 +1,13 @@
+---
+# Placeholder import configuration for the SimpleFIN auto-import CronJob.
+# REPLACE config.json tomorrow with the file downloaded from the importer UI
+# after one successful manual SimpleFIN import (set dedup = Content-based first).
+# If the exported config contains the SimpleFIN access URL, move it to a SOPS
+# secret instead of this ConfigMap and point the CronJob volume at the secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: firefly-importer-config
+data:
+  config.json: |
+    {}

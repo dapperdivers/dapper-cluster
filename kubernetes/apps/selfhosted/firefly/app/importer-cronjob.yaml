@@ -1,0 +1,59 @@
+---
+# Daily SimpleFIN auto-import into Firefly III.
+# SUSPENDED until tomorrow's setup:
+#   1. Do ONE manual SimpleFIN import in the importer UI (firefly-importer.chelonianlabs.com)
+#   2. Download the "configuration file" it offers -> paste into the ConfigMap below
+#      (importer-config.yaml) as config.json. Set duplicate detection to Content-based.
+#   3. If that config embeds the SimpleFIN access URL (a secret), move it to a SOPS/Infisical
+#      secret mount instead of the ConfigMap.
+#   4. Flip `suspend: false` and let Flux reconcile.
+# SimpleFIN refreshes once / 24h and allows ~24 requests/day, so once-daily is correct.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: firefly-importer-cron
+spec:
+  schedule: "0 11 * * *" # daily 11:00 (after overnight bank posting + SimpleFIN refresh)
+  timeZone: America/Chicago
+  suspend: true
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          containers:
+            - name: importer
+              image: docker.io/fireflyiii/data-importer:version-2.3.2
+              workingDir: /var/www/html
+              command: ["php", "artisan", "importer:import", "/import/config.json"]
+              env:
+                - name: FIREFLY_III_URL
+                  value: "http://firefly-app.selfhosted.svc.cluster.local:8080"
+                - name: IMPORT_DIR_ALLOWLIST
+                  value: "/import"
+                - name: TZ
+                  value: America/Chicago
+              envFrom:
+                - secretRef:
+                    name: firefly-secret # FIREFLY_III_ACCESS_TOKEN (+ SIMPLEFIN_TOKEN once added)
+              volumeMounts:
+                - name: import-config
+                  mountPath: /import
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
+          volumes:
+            - name: import-config
+              configMap:
+                name: firefly-importer-config
