@@ -23,8 +23,3 @@ spec:
       - start: "0 2 * * 0"  # Sunday 2:00 AM
         duration: "6h"
         timezone: "America/Chicago"
-
-  drain:
-    deleteLocalData: true
-    ignoreDaemonSets: true
-    force: true
