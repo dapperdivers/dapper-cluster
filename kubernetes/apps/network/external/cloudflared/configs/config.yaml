@@ -1,31 +1,67 @@
 ---
+# cloudflared routes by Host to the external Envoy Gateway. Envoy selects its
+# HTTPS listener by TLS SNI, so each rule sets originServerName to a hostname
+# that matches the per-domain listener (apex listener = the apex; wildcard
+# listener = a subdomain). The Host header still selects the HTTPRoute.
+# Without this, cloudflared's SNI = the Envoy Service name → no listener match
+# → connection reset → 502.
 originRequest:
   noTLSVerify: true
 
 ingress:
   - hostname: "${SECRET_DOMAIN}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "${SECRET_DOMAIN}"
   - hostname: "*.${SECRET_DOMAIN}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "gateway.${SECRET_DOMAIN}"
 
   - hostname: "${SECRET_DOMAIN_MEDIA}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "${SECRET_DOMAIN_MEDIA}"
   - hostname: "*.${SECRET_DOMAIN_MEDIA}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "gateway.${SECRET_DOMAIN_MEDIA}"
 
   - hostname: "${SECRET_DOMAIN_PERSONAL}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "${SECRET_DOMAIN_PERSONAL}"
   - hostname: "*.${SECRET_DOMAIN_PERSONAL}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "gateway.${SECRET_DOMAIN_PERSONAL}"
 
   - hostname: "${SECRET_DOMAIN_DIVING}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "${SECRET_DOMAIN_DIVING}"
   - hostname: "*.${SECRET_DOMAIN_DIVING}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "gateway.${SECRET_DOMAIN_DIVING}"
 
   - hostname: "${SECRET_DOMAIN_WIFE}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "${SECRET_DOMAIN_WIFE}"
   - hostname: "*.${SECRET_DOMAIN_WIFE}"
     service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+      originServerName: "gateway.${SECRET_DOMAIN_WIFE}"
 
   - service: http_status:404
