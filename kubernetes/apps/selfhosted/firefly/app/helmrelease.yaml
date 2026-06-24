@@ -189,6 +189,29 @@ spec:
           - hosts:
               - *importerHost
             secretName: ${SECRET_DOMAIN/./-}-tls
+    # Gateway API (parallel-run). Multi-service app → explicit rules per service.
+    # Auth (header via ext-auth -> outpost) is added later as a SecurityPolicy.
+    route:
+      app:
+        hostnames: ["firefly.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
+      importer:
+        hostnames: ["firefly-importer.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+        rules:
+          - backendRefs:
+              - identifier: importer
+                port: http
 
     persistence:
       upload:

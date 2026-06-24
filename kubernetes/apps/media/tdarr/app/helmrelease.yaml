@@ -69,6 +69,13 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+    route:
+      app:
+        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-media
 
     persistence:
       config:

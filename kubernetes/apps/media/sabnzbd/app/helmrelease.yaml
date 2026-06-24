@@ -102,6 +102,13 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+    route:
+      app:
+        hostnames: ["sabnzbd.${SECRET_DOMAIN_MEDIA}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-media
     persistence:
       config:
         existingClaim: sabnzbd
