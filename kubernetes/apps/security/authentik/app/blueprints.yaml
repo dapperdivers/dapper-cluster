@@ -46,9 +46,9 @@ data:
             kubernetes_ingress_annotations: {}
             kubernetes_ingress_secret_name: ${SECRET_DOMAIN_MEDIA/./-}-tls
 
-  # All forward-auth (proxy provider) apps in ONE blueprint. The shared proxy-provider
-  # config is defined ONCE as a YAML anchor (&proxy); each app merges it (<<: *proxy) and
-  # overrides only what differs — host, name, slug, icon, group. Adding an app = ~6 lines.
+  # All forward-auth (proxy provider) apps. Shared config is the &proxy anchor;
+  # each app merges it (<<: *proxy) and overrides only host/name/slug/icon/group.
+  # GENERATED from live Authentik state; edit by hand going forward.
   forward-auth.yaml: |
     version: 1
     metadata:
@@ -62,7 +62,6 @@ data:
         refresh_token_validity: days=30
         intercept_header_auth: true
         basic_auth_enabled: false
-        skip_path_regex: ^/api([/?].*)$
         property_mappings:
           - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
           - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
@@ -70,20 +69,147 @@ data:
           - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-entitlements]]
           - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/proxy/scope-proxy]]
     entries:
-      # --- sonarr ---
+      # 4kradarr
       - model: authentik_providers_proxy.proxyprovider
-        state: present
+        identifiers: { name: Provider for 4k-Radarr }
+        id: 4kradarr-provider
+        attrs: { <<: *proxy, external_host: "https://4kradarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: 4kradarr }
+        attrs: { name: 4k-Radarr, group: media_internal, provider: !KeyOf 4kradarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/radarr.svg", meta_launch_url: "https://4kradarr.${SECRET_DOMAIN_MEDIA}" }
+      # prowlarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Prowlarr }
+        id: prowlarr-provider
+        attrs: { <<: *proxy, external_host: "https://prowlarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: prowlarr }
+        attrs: { name: Prowlarr, group: media_internal, provider: !KeyOf prowlarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/prowlarr.svg", meta_launch_url: "https://prowlarr.${SECRET_DOMAIN_MEDIA}" }
+      # 4ksonarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for 4k-Sonarr }
+        id: 4ksonarr-provider
+        attrs: { <<: *proxy, external_host: "https://4ksonarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: 4ksonarr }
+        attrs: { name: 4k-Sonarr, group: media_internal, provider: !KeyOf 4ksonarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sonarr.svg", meta_launch_url: "https://4ksonarr.${SECRET_DOMAIN_MEDIA}" }
+      # tautulli
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Tautulli }
+        id: tautulli-provider
+        attrs: { <<: *proxy, external_host: "https://tautulli.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: tautulli }
+        attrs: { name: Tautulli, group: media_internal, provider: !KeyOf tautulli-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/tautulli.svg", meta_launch_url: "https://tautulli.${SECRET_DOMAIN_MEDIA}" }
+      # radarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Radarr }
+        id: radarr-provider
+        attrs: { <<: *proxy, external_host: "https://radarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: radarr }
+        attrs: { name: Radarr, group: media_internal, provider: !KeyOf radarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/radarr.svg", meta_launch_url: "https://radarr.${SECRET_DOMAIN_MEDIA}" }
+      # sonarr
+      - model: authentik_providers_proxy.proxyprovider
         identifiers: { name: Provider for Sonarr }
         id: sonarr-provider
-        attrs:
-          <<: *proxy
-          external_host: https://sonarr.${SECRET_DOMAIN_MEDIA}
+        attrs: { <<: *proxy, external_host: "https://sonarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
       - model: authentik_core.application
-        state: present
         identifiers: { slug: sonarr }
-        attrs:
-          name: Sonarr
-          group: media_internal
-          provider: !KeyOf sonarr-provider
-          meta_launch_url: https://sonarr.${SECRET_DOMAIN_MEDIA}
-          meta_icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sonarr.svg
+        attrs: { name: Sonarr, group: media_internal, provider: !KeyOf sonarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sonarr.svg", meta_launch_url: "https://sonarr.${SECRET_DOMAIN_MEDIA}" }
+      # bazarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Bazarr }
+        id: bazarr-provider
+        attrs: { <<: *proxy, external_host: "https://bazarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: bazarr }
+        attrs: { name: Bazarr, group: media_internal, provider: !KeyOf bazarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/bazarr.svg", meta_launch_url: "https://bazarr.${SECRET_DOMAIN_MEDIA}" }
+      # sabnzbd
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Sabnzbd }
+        id: sabnzbd-provider
+        attrs: { <<: *proxy, external_host: "https://sabnzbd.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: sabnzbd }
+        attrs: { name: Sabnzbd, group: media_internal, provider: !KeyOf sabnzbd-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sabnzbd.svg", meta_launch_url: "https://sabnzbd.${SECRET_DOMAIN_MEDIA}" }
+      # n8n
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for N8N }
+        id: n8n-provider
+        attrs: { <<: *proxy, external_host: "https://n8n.${SECRET_DOMAIN}/" }
+      - model: authentik_core.application
+        identifiers: { slug: n8n }
+        attrs: { name: N8N, provider: !KeyOf n8n-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/n8n.svg", meta_launch_url: "https://n8n.${SECRET_DOMAIN}/" }
+      # docs
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Paperless-ngx }
+        id: docs-provider
+        attrs: { <<: *proxy, external_host: "https://docs.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: docs }
+        attrs: { name: Paperless NGX, provider: !KeyOf docs-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/paperless-ngx.svg", meta_launch_url: "https://docs.${SECRET_DOMAIN}" }
+      # search
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Searxng }
+        id: search-provider
+        attrs: { <<: *proxy, external_host: "https://search.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: search }
+        attrs: { name: Searxng, provider: !KeyOf search-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/searxng.svg", meta_launch_url: "https://search.${SECRET_DOMAIN}" }
+      # nzbget
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for nzbget }
+        id: nzbget-provider
+        attrs: { <<: *proxy, external_host: "https://nzbget.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: nzbget }
+        attrs: { name: nzbget, provider: !KeyOf nzbget-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/nzbget.svg", meta_launch_url: "https://nzbget.${SECRET_DOMAIN_MEDIA}" }
+      # tdarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Tdarr }
+        id: tdarr-provider
+        attrs: { <<: *proxy, external_host: "https://tdarr.${SECRET_DOMAIN_MEDIA}" }
+      - model: authentik_core.application
+        identifiers: { slug: tdarr }
+        attrs: { name: Tdarr, group: media_internal, provider: !KeyOf tdarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/png/tdarr.png", meta_launch_url: "https://tdarr.${SECRET_DOMAIN_MEDIA}" }
+      # 4kbazarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for 4k-Bazarr }
+        id: 4kbazarr-provider
+        attrs: { <<: *proxy, external_host: "https://4kbazarr.${SECRET_DOMAIN_MEDIA}" }
+      - model: authentik_core.application
+        identifiers: { slug: 4kbazarr }
+        attrs: { name: 4k-Bazarr, group: media_internal, provider: !KeyOf 4kbazarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/bazarr.svg", meta_launch_url: "https://4kbazarr.${SECRET_DOMAIN_MEDIA}" }
+      # huntarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Huntarr }
+        id: huntarr-provider
+        attrs: { <<: *proxy, external_host: "https://huntarr.${SECRET_DOMAIN_MEDIA}" }
+      - model: authentik_core.application
+        identifiers: { slug: huntarr }
+        attrs: { name: huntarr, group: media_internal, provider: !KeyOf huntarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/png/huntarr.png", meta_launch_url: "https://huntarr.${SECRET_DOMAIN_MEDIA}/" }
+      # posterizarr
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Posterizarr }
+        id: posterizarr-provider
+        attrs: { <<: *proxy, external_host: "https://posterizarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: posterizarr }
+        attrs: { name: Posterizarr, group: media_internal, provider: !KeyOf posterizarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/posterizarr.svg", meta_launch_url: "https://posterizarr.turlteassmedia.com" }
+      # kestra
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Kestra }
+        id: kestra-provider
+        attrs: { <<: *proxy, external_host: "https://kestra.${SECRET_DOMAIN}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: kestra }
+        attrs: { name: Kestra, group: home, provider: !KeyOf kestra-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/kestra.svg", meta_launch_url: "https://kestra.${SECRET_DOMAIN}" }
+      # firefly
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Firefly }
+        id: firefly-provider
+        attrs: { <<: *proxy, external_host: "https://firefly.${SECRET_DOMAIN}", skip_path_regex: "^/api([/?].*)?$" }
+      - model: authentik_core.application
+        identifiers: { slug: firefly }
+        attrs: { name: Firefly III, provider: !KeyOf firefly-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firefly-iii.svg", meta_launch_url: "https://firefly.${SECRET_DOMAIN}" }
