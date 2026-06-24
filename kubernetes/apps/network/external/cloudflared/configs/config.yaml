@@ -4,28 +4,28 @@ originRequest:
 
 ingress:
   - hostname: "${SECRET_DOMAIN}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
   - hostname: "*.${SECRET_DOMAIN}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
 
   - hostname: "${SECRET_DOMAIN_MEDIA}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
   - hostname: "*.${SECRET_DOMAIN_MEDIA}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
 
   - hostname: "${SECRET_DOMAIN_PERSONAL}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
   - hostname: "*.${SECRET_DOMAIN_PERSONAL}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
 
   - hostname: "${SECRET_DOMAIN_DIVING}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
   - hostname: "*.${SECRET_DOMAIN_DIVING}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
 
   - hostname: "${SECRET_DOMAIN_WIFE}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
   - hostname: "*.${SECRET_DOMAIN_WIFE}"
-    service: https://external-ingress-nginx-controller.network.svc.cluster.local:443
+    service: https://envoy-network-external-b1d9befd.network.svc.cluster.local:443
 
   - service: http_status:404
