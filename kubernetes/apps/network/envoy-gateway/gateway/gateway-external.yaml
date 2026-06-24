@@ -79,3 +79,65 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    # Apex (bare-domain) listeners — wildcard "*.domain" listeners do NOT match the
+    # bare apex. Certs carry both the apex and wildcard SANs, so the same secret works.
+    - name: https-apex-main
+      protocol: HTTPS
+      port: 443
+      hostname: "${SECRET_DOMAIN}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN/./-}-tls"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-apex-media
+      protocol: HTTPS
+      port: 443
+      hostname: "${SECRET_DOMAIN_MEDIA}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN_MEDIA/./-}-tls"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-apex-personal
+      protocol: HTTPS
+      port: 443
+      hostname: "${SECRET_DOMAIN_PERSONAL}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN_PERSONAL/./-}-tls"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-apex-diving
+      protocol: HTTPS
+      port: 443
+      hostname: "${SECRET_DOMAIN_DIVING}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN_DIVING/./-}-tls"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-apex-wife
+      protocol: HTTPS
+      port: 443
+      hostname: "${SECRET_DOMAIN_WIFE}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN_WIFE/./-}-tls"
+      allowedRoutes:
+        namespaces:
+          from: All

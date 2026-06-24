@@ -119,3 +119,17 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_PERSONAL/./-}-tls
+    # Gateway API (parallel-run). Apex host attaches to the apex listener too.
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.${SECRET_DOMAIN_PERSONAL}"
+          - "www.${SECRET_DOMAIN_PERSONAL}"
+          - "${SECRET_DOMAIN_PERSONAL}"
+        parentRefs:
+          - name: external
+            namespace: network
+            sectionName: https-personal
+          - name: external
+            namespace: network
+            sectionName: https-apex-personal

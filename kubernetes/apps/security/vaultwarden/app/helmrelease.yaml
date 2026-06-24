@@ -104,6 +104,37 @@ spec:
           - hosts:
               - *host
             secretName: "${SECRET_DOMAIN/./-}-tls"
+    # Gateway API (parallel-run). Websocket path splits to the websocket port;
+    # /notifications/hub/negotiate is more specific so it wins over /notifications/hub.
+    route:
+      app:
+        hostnames: ["vault.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: external
+            namespace: network
+            sectionName: https-main
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /notifications/hub/negotiate
+            backendRefs:
+              - identifier: app
+                port: http
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /notifications/hub
+            backendRefs:
+              - identifier: app
+                port: websocket
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
     persistence:
       config:
         existingClaim: vaultwarden

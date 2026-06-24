@@ -98,6 +98,20 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+    # Gateway API (parallel-run). Apex host attaches to the apex listener too.
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"
+          - "www.${SECRET_DOMAIN_MEDIA}"
+          - "${SECRET_DOMAIN_MEDIA}"
+        parentRefs:
+          - name: external
+            namespace: network
+            sectionName: https-media
+          - name: external
+            namespace: network
+            sectionName: https-apex-media
     persistence:
       config:
         existingClaim: overseerr
