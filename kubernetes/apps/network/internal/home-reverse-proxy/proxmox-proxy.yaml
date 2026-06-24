@@ -10,31 +10,6 @@ spec:
   externalName: circe.manor
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: &app circe-proxy
-  annotations:
-    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-spec:
-  ingressClassName: internal
-  tls:
-    - hosts:
-        - &host "circe.${SECRET_DOMAIN}"
-      secretName: ${SECRET_DOMAIN/./-}-tls
-  rules:
-    - host: *host
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: *app
-                port:
-                  number: 8006
----
 # Gateway API: Circe (Proxmox) self-signed HTTPS upstream
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: Backend
@@ -76,31 +51,6 @@ spec:
   type: ExternalName
   externalName: athena.manor
 
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: &app athena-proxy
-  annotations:
-    external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-spec:
-  ingressClassName: internal
-  tls:
-    - hosts:
-        - &host "athena.${SECRET_DOMAIN}"
-      secretName: ${SECRET_DOMAIN/./-}-tls
-  rules:
-    - host: *host
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: *app
-                port:
-                  number: 8006
 ---
 # Gateway API: Athena (Proxmox) self-signed HTTPS upstream
 apiVersion: gateway.envoyproxy.io/v1alpha1

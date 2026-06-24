@@ -9,31 +9,6 @@ spec:
   externalName: firewall.manor
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: &app firewall-proxy
-  annotations:
-    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-spec:
-  ingressClassName: internal
-  tls:
-    - hosts:
-        - &host "firewall.${SECRET_DOMAIN}"
-      secretName: ${SECRET_DOMAIN/./-}-tls
-  rules:
-    - host: *host
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: *app
-                port:
-                  number: 8443
----
 # Gateway API: route to the self-signed HTTPS upstream via an EG Backend
 # (insecureSkipVerify mirrors nginx backend-protocol: HTTPS without verification).
 apiVersion: gateway.envoyproxy.io/v1alpha1

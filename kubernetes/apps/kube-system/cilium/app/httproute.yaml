@@ -4,6 +4,12 @@ kind: HTTPRoute
 metadata:
   name: hubble-ui
   namespace: kube-system
+  annotations:
+    # Dashboard discovery (Homepage) — preserved from the old cilium ui.ingress.
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: Hubble
+    gethomepage.dev/icon: cilium.svg
+    gethomepage.dev/group: Monitoring
 spec:
   parentRefs:
     - name: internal

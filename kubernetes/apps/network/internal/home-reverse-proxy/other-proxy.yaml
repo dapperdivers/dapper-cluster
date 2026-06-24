@@ -9,30 +9,6 @@ spec:
   externalName: openmediavault-used.manor
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: &app used-nas-proxy
-  annotations:
-    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
-spec:
-  ingressClassName: internal
-  tls:
-    - hosts:
-        - &host "used.${SECRET_DOMAIN}"
-      secretName: ${SECRET_DOMAIN/./-}-tls
-  rules:
-    - host: *host
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: *app
-                port:
-                  number: 80
----
 # Gateway API: used-nas (OpenMediaVault) plain-HTTP upstream via EG Backend
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: Backend
