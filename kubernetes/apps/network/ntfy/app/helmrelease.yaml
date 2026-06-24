@@ -1,0 +1,103 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app ntfy
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: volsync
+      namespace: storage
+  values:
+    controllers:
+      ntfy:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/binwiederhier/ntfy
+              tag: v2.24.0
+            # Provision the admin user idempotently (password piped to the
+            # prompt; harmless if NTFY_PASSWORD is already honored), then serve.
+            command:
+              - /bin/sh
+              - -c
+              - |
+                printf '%s\n%s\n' "$NTFY_PASSWORD" "$NTFY_PASSWORD" \
+                  | ntfy user add --role=admin "$NTFY_ADMIN_USER" 2>/dev/null || true
+                exec ntfy serve
+            env:
+              TZ: ${TIME_ZONE}
+              NTFY_BASE_URL: https://ntfy.${SECRET_DOMAIN}
+              NTFY_LISTEN_HTTP: :8080
+              NTFY_BEHIND_PROXY: "true"
+              NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+              NTFY_AUTH_DEFAULT_ACCESS: deny-all
+              NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+              NTFY_CACHE_DURATION: 12h
+              NTFY_ENABLE_LOGIN: "true"
+            envFrom:
+              - secretRef:
+                  name: ntfy-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /v1/health
+                    port: &port 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 30
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+        hostnames: ["ntfy.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: external
+            namespace: network
+    persistence:
+      data:
+        existingClaim: ntfy
+        globalMounts:
+          - path: /var/lib/ntfy
