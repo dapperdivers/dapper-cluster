@@ -21,3 +21,6 @@ data:
   SMTP_VIP_GATEWAY: "10.100.0.27"
   NUT_VIP_GATEWAY: "10.100.0.28"
   WAZUH_VIP_GATEWAY: "10.100.0.29"
+  # Envoy Gateway (Gateway API migration) — parallel-run alongside nginx (.20/.22)
+  INTERNAL_GW_VIP: "10.100.0.31"
+  EXTERNAL_GW_VIP: "10.100.0.32"

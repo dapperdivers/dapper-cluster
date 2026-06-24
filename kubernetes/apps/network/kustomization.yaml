@@ -7,6 +7,7 @@ components:
   - ../../flux/components/common
 resources:
   - ./namespace.yaml
+  - ./envoy-gateway/ks.yaml
   - ./external/ks.yaml
   - ./internal/ks.yaml
   - ./multus/ks.yaml
