@@ -62,3 +62,32 @@ spec:
                   - x-authentik-groups
                   - x-authentik-uid
                   - x-authentik-name
+    # Namespaceless auth: the SecurityPolicy lives in the app namespace but its
+    # ext-auth backendRef points at the outpost Service in `security`. That
+    # cross-namespace ref needs a ReferenceGrant. ReferenceGrant has no namespace
+    # wildcard, so instead of maintaining a hand-written allowlist we generate one
+    # grant per source namespace on demand. synchronize: false keeps it sticky (a
+    # grant orphaned when the last annotated route in a ns is removed is harmless).
+    - name: generate-outpost-referencegrant
+      match:
+        any:
+          - resources:
+              kinds: ["HTTPRoute"]
+              annotations:
+                authentik.home.arpa/forward-auth: "true"
+      generate:
+        apiVersion: gateway.networking.k8s.io/v1beta1
+        kind: ReferenceGrant
+        name: "securitypolicy-to-outpost-{{ request.object.metadata.namespace }}"
+        namespace: security
+        synchronize: false
+        data:
+          spec:
+            from:
+              - group: gateway.envoyproxy.io
+                kind: SecurityPolicy
+                namespace: "{{ request.object.metadata.namespace }}"
+            to:
+              - group: ""
+                kind: Service
+                name: ak-outpost-authentik-embedded-outpost
