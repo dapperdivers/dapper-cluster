@@ -41,3 +41,26 @@ data:
       - model: authentik_core.application
         identifiers: { slug: actual }
         attrs: { name: Actual Budget, group: home, provider: !KeyOf actual-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/actual-budget.svg", meta_launch_url: "https://actual.${SECRET_DOMAIN}" }
+      # open-webui
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Provider for Open-WebUI }
+        id: openwebui-oidc
+        attrs:
+          <<: *oidc
+          redirect_uris:
+            - { matching_mode: strict, url: "https://chat.${SECRET_DOMAIN}/oauth/oidc/callback", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: chat }
+        attrs: { name: Open WebUI, group: public, provider: !KeyOf openwebui-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/open-webui.svg", meta_launch_url: "https://chat.${SECRET_DOMAIN}" }
+      # proxmox — two redirect URIs (athena + circe nodes)
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Provider for Proxmox }
+        id: proxmox-oidc
+        attrs:
+          <<: *oidc
+          redirect_uris:
+            - { matching_mode: strict, url: "https://athena.${SECRET_DOMAIN}", redirect_uri_type: authorization }
+            - { matching_mode: strict, url: "https://circe.${SECRET_DOMAIN}", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: proxmox }
+        attrs: { name: Proxmox, group: internal-proxmox, provider: !KeyOf proxmox-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/proxmox.svg", meta_launch_url: "https://proxmox-02.${SECRET_DOMAIN}" }
