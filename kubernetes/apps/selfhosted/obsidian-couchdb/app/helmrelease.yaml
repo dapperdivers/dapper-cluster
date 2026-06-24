@@ -88,6 +88,14 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+    # Gateway API (parallel-run alongside ingress; TLS terminates at the Gateway)
+    route:
+      app:
+        hostnames: ["obsidian-db.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
 
     persistence:
       config:

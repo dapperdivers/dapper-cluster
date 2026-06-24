@@ -107,3 +107,11 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+    # Gateway API (parallel-run alongside ingress; TLS terminates at the Gateway)
+    route:
+      app:
+        hostnames: ["rss.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
