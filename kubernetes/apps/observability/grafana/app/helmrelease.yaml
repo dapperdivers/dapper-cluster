@@ -328,21 +328,6 @@ spec:
         memory: 2Gi
     serviceMonitor:
       enabled: true
-    ingress:
-      enabled: true
-      ingressClassName: internal
-      annotations:
-        gethomepage.dev/enabled: "true"
-        gethomepage.dev/name: Grafana
-        gethomepage.dev/icon: si-grafana
-        gethomepage.dev/group: Monitoring
-        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-      hosts:
-        - &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
-      tls:
-        - secretName: ${SECRET_DOMAIN/./-}-tls
-          hosts:
-            - *host
     persistence:
       enabled: false
     testFramework:
