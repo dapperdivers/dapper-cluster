@@ -13,7 +13,6 @@ resources:
   - ./external-secrets.yaml
   - ./fairwinds.yaml
   - ./infisical.yaml
-  - ./ingress-nginx.yaml
   - ./intel.yaml
   - ./k8s-gateway.yaml
   - ./kyverno.yaml
