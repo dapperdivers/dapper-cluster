@@ -8,3 +8,4 @@ resources:
   - ./gateway-internal.yaml
   - ./gateway-external.yaml
   - ./httproutes-redirect.yaml
+  - ./clienttrafficpolicy.yaml
