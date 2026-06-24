@@ -8,7 +8,6 @@ metadata:
 spec:
   targetNamespace: *namespace
   components:
-    - ../../../../flux/components/gatus/external
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
   commonMetadata:
@@ -32,8 +31,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      GATUS_PATH: /web/index.html
-      GATUS_DOMAIN: ${SECRET_DOMAIN_MEDIA}
       VOLSYNC_CAPACITY: 120Gi
       VOLSYNC_CACHE_CAPACITY: 100Gi
       VOLSYNC_SCHEDULE: "0 */6 * * *"

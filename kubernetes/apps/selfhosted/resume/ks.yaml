@@ -7,8 +7,6 @@ metadata:
   namespace: &namespace selfhosted
 spec:
   targetNamespace: *namespace
-  components:
-    - ../../../../flux/components/gatus/external
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
@@ -28,5 +26,3 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      GATUS_SUBDOMAIN: resume
-      GATUS_DOMAIN: ${SECRET_DOMAIN_PERSONAL}

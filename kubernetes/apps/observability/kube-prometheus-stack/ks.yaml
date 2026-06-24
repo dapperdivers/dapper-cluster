@@ -7,8 +7,6 @@ metadata:
   namespace: &namespace observability
 spec:
   targetNamespace: *namespace
-  components:
-    - ../../../../flux/components/gatus/guarded
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
@@ -28,4 +26,3 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      GATUS_SUBDOMAIN: prometheus
