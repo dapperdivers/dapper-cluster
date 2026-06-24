@@ -69,6 +69,11 @@ by Flux.
 - `--auto` means adding any HTTPRoute on these gateways is auto-monitored. An external route that
   isn't `200` on its probe path **will false-alarm** until you add a `path:`/`conditions:` override or
   `enabled: "false"`.
+- **Probe path = the route's FIRST match rule, not `/`.** Apps whose HTTPRoute leads with a non-`/`
+  rule (websocket `/notifications/hub/negotiate`, `/api/...`, etc.) get probed on that path and 404 a
+  plain GET → false UNHEALTHY. Symptom: `success=false; errors=0` (it connected, wrong status) while
+  `curl https://host/` returns 200. Fix: add `path: /` (or `/alive`, `/healthz`) override. This bit
+  vaultwarden (its first rule is the SignalR `/notifications/hub/negotiate`).
 - **Never reuse a PVC that previously held the old kiwigrid `*-gatus-ep.config.yaml` dumps** — Gatus
   loads every `*.yaml` in `/config`, so leftover files collide with the sidecar output
   (`duplicate name+group → panic`). The HR has a `purge-legacy-configmaps` init container for this.
