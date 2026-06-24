@@ -1,54 +1,20 @@
 ---
 # Authentik blueprints delivered to the worker via the chart's blueprints.configMaps.
-# Only keys ending in `.yaml` are discovered + applied. GitOps entry point for
-# declarative Authentik config (providers/apps/outposts).
+# Only keys ending in `.yaml` are discovered + applied. GitOps source of truth for
+# Authentik proxy providers, applications, and the embedded-outpost assignment list.
 #
 # Adoption model: each entry matches an EXISTING object by `identifiers` (provider name /
-# app slug), taking over management in place — no duplicates, no disruption. Fields not
-# listed are left as-is (provider internal client_id/secret, outpost `providers` list).
+# app slug / outpost managed-id), taking over in place — no duplicates. Fields not listed
+# are left as-is (provider internal client_id/secret).
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: authentik-blueprints
   namespace: security
 data:
-  # Stop the embedded outpost reconciling a Kubernetes Ingress (forward-auth uses the
-  # outpost Service:9000, not an Ingress). `providers` omitted to preserve assignments.
-  embedded-outpost.yaml: |
-    version: 1
-    metadata:
-      name: embedded-outpost-config
-    entries:
-      - model: authentik_outposts.outpost
-        state: present
-        identifiers:
-          managed: goauthentik.io/outposts/embedded
-        attrs:
-          config:
-            log_level: info
-            docker_labels: null
-            authentik_host: https://sso.${SECRET_DOMAIN}
-            docker_network: null
-            container_image: null
-            docker_map_ports: true
-            refresh_interval: minutes=5
-            kubernetes_replicas: 1
-            kubernetes_namespace: security
-            authentik_host_browser: ""
-            object_naming_template: ak-outpost-%(name)s
-            authentik_host_insecure: false
-            kubernetes_json_patches: null
-            kubernetes_service_type: ClusterIP
-            kubernetes_image_pull_secrets: []
-            kubernetes_ingress_class_name: internal
-            kubernetes_disabled_components:
-              - ingress
-            kubernetes_ingress_annotations: {}
-            kubernetes_ingress_secret_name: ${SECRET_DOMAIN_MEDIA/./-}-tls
-
-  # All forward-auth (proxy provider) apps. Shared config is the &proxy anchor;
-  # each app merges it (<<: *proxy) and overrides only host/name/slug/icon/group.
-  # GENERATED from live Authentik state; edit by hand going forward.
+  # One blueprint = all forward-auth apps + the outpost. Shared proxy config is the
+  # &proxy anchor; each app merges it (<<: *proxy) and overrides host/name/slug/icon/group.
+  # GENERATED once from live state; hand-maintained going forward (add app = ~7 lines + 1 !KeyOf).
   forward-auth.yaml: |
     version: 1
     metadata:
@@ -164,4 +130,43 @@ data:
         attrs: { <<: *proxy, external_host: "https://firefly.${SECRET_DOMAIN}", skip_path_regex: "^/api([/?].*)?$" }
       - model: authentik_core.application
         identifiers: { slug: firefly }
-        attrs: { name: Firefly III, provider: !KeyOf firefly-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firefly-iii.svg", meta_launch_url: "https://firefly.${SECRET_DOMAIN}" }
+        attrs: { name: Firefly III, group: home, provider: !KeyOf firefly-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firefly-iii.svg", meta_launch_url: "https://firefly.${SECRET_DOMAIN}" }
+      # Embedded outpost: disables the k8s Ingress AND declaratively owns the assigned-
+      # provider list. Adding an app = its 2 entries above (with id:) + one !KeyOf line here.
+      - model: authentik_outposts.outpost
+        identifiers: { managed: goauthentik.io/outposts/embedded }
+        attrs:
+          config:
+            log_level: info
+            docker_labels: null
+            authentik_host: https://sso.${SECRET_DOMAIN}
+            docker_network: null
+            container_image: null
+            docker_map_ports: true
+            refresh_interval: minutes=5
+            kubernetes_replicas: 1
+            kubernetes_namespace: security
+            authentik_host_browser: ""
+            object_naming_template: ak-outpost-%(name)s
+            authentik_host_insecure: false
+            kubernetes_json_patches: null
+            kubernetes_service_type: ClusterIP
+            kubernetes_image_pull_secrets: []
+            kubernetes_ingress_class_name: internal
+            kubernetes_disabled_components:
+              - ingress
+            kubernetes_ingress_annotations: {}
+            kubernetes_ingress_secret_name: ${SECRET_DOMAIN_MEDIA/./-}-tls
+          providers:
+            - !KeyOf 4kradarr-provider
+            - !KeyOf prowlarr-provider
+            - !KeyOf 4ksonarr-provider
+            - !KeyOf tautulli-provider
+            - !KeyOf radarr-provider
+            - !KeyOf sonarr-provider
+            - !KeyOf bazarr-provider
+            - !KeyOf sabnzbd-provider
+            - !KeyOf tdarr-provider
+            - !KeyOf 4kbazarr-provider
+            - !KeyOf posterizarr-provider
+            - !KeyOf firefly-provider
