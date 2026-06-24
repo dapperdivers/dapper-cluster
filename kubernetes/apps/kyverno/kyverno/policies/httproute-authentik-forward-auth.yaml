@@ -39,21 +39,22 @@ spec:
                 name: "{{ request.object.metadata.name }}"
             extAuth:
               failOpen: false
+              # Forward the client headers the outpost needs: cookie (session/state
+              # validation on callback) + x-forwarded-* (correct https scheme/host).
+              # Without these the OAuth callback fails with HTTP 400. NOTE: this field
+              # is at spec.extAuth level, NOT under .http.
+              headersToExtAuth:
+                - host
+                - cookie
+                - x-forwarded-proto
+                - x-forwarded-host
+                - x-forwarded-for
               http:
                 backendRefs:
                   - name: ak-outpost-authentik-embedded-outpost
                     namespace: security
                     port: 9000
                 path: /outpost.goauthentik.io/auth/envoy
-                # Forward the client headers the outpost needs: cookie (session/state
-                # validation on callback) + x-forwarded-* (correct https scheme/host).
-                # Without these the OAuth callback fails with HTTP 400.
-                headersToExtAuth:
-                  - host
-                  - cookie
-                  - x-forwarded-proto
-                  - x-forwarded-host
-                  - x-forwarded-for
                 headersToBackend:
                   - set-cookie
                   - x-authentik-username
