@@ -145,6 +145,13 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
+    route:
+      app:
+        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"]
+        parentRefs:
+          - name: external
+            namespace: network
+            sectionName: https-media
     persistence:
       config:
         existingClaim: plex

@@ -173,6 +173,13 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+    route:
+      app:
+        hostnames: ["munin.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
     persistence:
       config:
         enabled: true

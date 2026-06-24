@@ -118,6 +118,27 @@ spec:
               - *shelfhost
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
 
+    route:
+      app:
+        hostnames: ["books.${SECRET_DOMAIN_MEDIA}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-media
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
+      shelfmark:
+        hostnames: ["shelfmark.${SECRET_DOMAIN_MEDIA}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-media
+        rules:
+          - backendRefs:
+              - identifier: shelfmark
+                port: http
     persistence:
       config:
         existingClaim: calibre-web

@@ -116,6 +116,13 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+    route:
+      app:
+        hostnames: ["speaches.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
     persistence:
       data:
         existingClaim: *app

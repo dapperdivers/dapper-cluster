@@ -117,6 +117,13 @@ spec:
           - hosts:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
+    route:
+      app:
+        hostnames: ["status.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: external
+            namespace: network
+            sectionName: https-main
     serviceAccount:
       gatus: {}
     persistence:

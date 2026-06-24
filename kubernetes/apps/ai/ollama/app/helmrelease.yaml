@@ -161,6 +161,14 @@ spec:
               - *host
             secretName: ${SECRET_DOMAIN/./-}-tls
 
+    route:
+      app:
+        hostnames: ["ollama.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+
     persistence:
       models:
         existingClaim: ollama-models

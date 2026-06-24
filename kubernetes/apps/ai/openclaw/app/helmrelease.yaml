@@ -495,6 +495,27 @@ spec:
           - hosts:
               - *synchost
             secretName: ${SECRET_DOMAIN/./-}-tls
+    route:
+      app:
+        hostnames: ["molt.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
+      syncthing:
+        hostnames: ["molt-syncthing.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+        rules:
+          - backendRefs:
+              - identifier: syncthing
+                port: http
     persistence:
       config:
         enabled: true

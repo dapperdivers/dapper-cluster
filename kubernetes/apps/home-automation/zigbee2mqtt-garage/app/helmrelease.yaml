@@ -142,6 +142,27 @@ spec:
           - hosts:
               - *code_host
             secretName: ${SECRET_DOMAIN/./-}-tls
+    route:
+      app:
+        hostnames: ["zigbee-garage.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
+      code-server:
+        hostnames: ["zigbee-garage-code.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: code-server
 
     persistence:
       config:

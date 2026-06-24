@@ -97,6 +97,14 @@ spec:
                   identifier: app
                   port: http
 
+    route:
+      app:
+        hostnames: ["outlook-bridge.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+            sectionName: https-main
+
     persistence:
       data:
         existingClaim: outlook-bridge-data
