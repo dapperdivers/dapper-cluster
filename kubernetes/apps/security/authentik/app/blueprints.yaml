@@ -1,0 +1,45 @@
+---
+# Authentik blueprints delivered to the worker via the chart's blueprints.configMaps.
+# Only keys ending in `.yaml` are discovered + applied. This is the GitOps entry point
+# for declarative Authentik config (providers/apps/outposts) going forward.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprints
+  namespace: security
+data:
+  # Manage the embedded outpost's config so it does NOT reconcile a Kubernetes Ingress
+  # (we route forward-auth via the outpost Service + Envoy SecurityPolicy, not an Ingress).
+  # Full config mirrored from the live outpost; only kubernetes_disabled_components changed.
+  # `providers` is intentionally omitted so existing assignments are preserved.
+  embedded-outpost.yaml: |
+    version: 1
+    metadata:
+      name: embedded-outpost-config
+    entries:
+      - model: authentik_outposts.outpost
+        state: present
+        identifiers:
+          managed: goauthentik.io/outposts/embedded
+        attrs:
+          config:
+            log_level: info
+            docker_labels: null
+            authentik_host: https://sso.${SECRET_DOMAIN}
+            docker_network: null
+            container_image: null
+            docker_map_ports: true
+            refresh_interval: minutes=5
+            kubernetes_replicas: 1
+            kubernetes_namespace: security
+            authentik_host_browser: ""
+            object_naming_template: ak-outpost-%(name)s
+            authentik_host_insecure: false
+            kubernetes_json_patches: null
+            kubernetes_service_type: ClusterIP
+            kubernetes_image_pull_secrets: []
+            kubernetes_ingress_class_name: internal
+            kubernetes_disabled_components:
+              - ingress
+            kubernetes_ingress_annotations: {}
+            kubernetes_ingress_secret_name: ${SECRET_DOMAIN_MEDIA/./-}-tls

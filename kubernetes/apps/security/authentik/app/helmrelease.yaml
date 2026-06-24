@@ -16,6 +16,11 @@ spec:
         namespace: flux-system
       interval: 10m
   values:
+    # Declarative Authentik config delivered to the worker. Keys ending in .yaml
+    # inside this ConfigMap are discovered + applied as blueprints.
+    blueprints:
+      configMaps:
+        - authentik-blueprints
     global:
       podAnnotations:
         reloader.stakater.com/auto: "true"
