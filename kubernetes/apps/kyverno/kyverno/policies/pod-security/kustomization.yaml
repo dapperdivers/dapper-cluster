@@ -6,5 +6,4 @@ resources:
   - ./disable-automount-sa-token.yaml
   - ./default-security-context.yaml
   - ./restrict-latest-tag.yaml
-  - ./external-ingress-rate-limit.yaml
   - ./require-probes.yaml
