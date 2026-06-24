@@ -61,6 +61,17 @@ spec:
               - get
               - list
               - watch
+          # Allow generate rules to manage Envoy Gateway SecurityPolicies
+          # (httproute-authentik-forward-auth policy).
+          - apiGroups:
+              - gateway.envoyproxy.io
+            resources:
+              - securitypolicies
+            verbs:
+              - create
+              - update
+              - patch
+              - delete
       resources:
         requests:
           cpu: 50m

@@ -193,6 +193,8 @@ spec:
     # Auth (header via ext-auth -> outpost) is added later as a SecurityPolicy.
     route:
       app:
+        annotations:
+          authentik.home.arpa/forward-auth: "true"
         hostnames: ["firefly.${SECRET_DOMAIN}"]
         parentRefs:
           - name: internal

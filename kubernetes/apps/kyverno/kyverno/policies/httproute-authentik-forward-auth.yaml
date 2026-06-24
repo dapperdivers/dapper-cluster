@@ -1,0 +1,52 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: httproute-authentik-forward-auth
+  annotations:
+    policies.kyverno.io/title: HTTPRoute Authentik forward-auth
+    policies.kyverno.io/subject: HTTPRoute, SecurityPolicy
+    policies.kyverno.io/description: >-
+      Generates an Envoy Gateway SecurityPolicy (ext-auth via the Authentik
+      embedded outpost) for any HTTPRoute annotated
+      authentik.home.arpa/forward-auth: "true". The Gateway-API equivalent of
+      the nginx auth-url annotation injection. The outpost selects the provider
+      by Host. The generated SecurityPolicy is kept in sync and removed when the
+      HTTPRoute is deleted or the annotation is cleared (synchronize: true).
+spec:
+  rules:
+    - name: generate-forward-auth-securitypolicy
+      match:
+        any:
+          - resources:
+              kinds: ["HTTPRoute"]
+              annotations:
+                authentik.home.arpa/forward-auth: "true"
+      generate:
+        apiVersion: gateway.envoyproxy.io/v1alpha1
+        kind: SecurityPolicy
+        name: "{{ request.object.metadata.name }}-forward-auth"
+        namespace: "{{ request.object.metadata.namespace }}"
+        synchronize: true
+        data:
+          spec:
+            targetRefs:
+              - group: gateway.networking.k8s.io
+                kind: HTTPRoute
+                name: "{{ request.object.metadata.name }}"
+            extAuth:
+              failOpen: false
+              http:
+                backendRefs:
+                  - name: ak-outpost-authentik-embedded-outpost
+                    namespace: security
+                    port: 9000
+                path: /outpost.goauthentik.io/auth/envoy
+                headersToBackend:
+                  - set-cookie
+                  - x-authentik-username
+                  - x-authentik-email
+                  - x-authentik-groups
+                  - x-authentik-uid
+                  - x-authentik-name

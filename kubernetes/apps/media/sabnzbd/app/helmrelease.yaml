@@ -104,6 +104,8 @@ spec:
             secretName: ${SECRET_DOMAIN_MEDIA/./-}-tls
     route:
       app:
+        annotations:
+          authentik.home.arpa/forward-auth: "true"
         hostnames: ["sabnzbd.${SECRET_DOMAIN_MEDIA}"]
         parentRefs:
           - name: internal
