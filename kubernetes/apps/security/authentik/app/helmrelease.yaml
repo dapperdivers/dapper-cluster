@@ -20,7 +20,8 @@ spec:
     # inside this ConfigMap are discovered + applied as blueprints.
     blueprints:
       configMaps:
-        - authentik-blueprints
+        - authentik-blueprints   # forward-auth proxy providers + apps + outpost
+        - authentik-oidc         # native-OIDC providers + apps
     global:
       podAnnotations:
         reloader.stakater.com/auto: "true"

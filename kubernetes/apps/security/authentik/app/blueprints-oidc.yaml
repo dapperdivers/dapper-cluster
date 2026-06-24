@@ -1,0 +1,43 @@
+---
+# Native-OIDC apps (the app is the OAuth client; NO forward-auth annotation on the route).
+# Separate ConfigMap from forward-auth — added to the chart's blueprints.configMaps list.
+#
+# Adoption model: identifiers match the existing provider name / app slug, taking over in
+# place. client_id/client_secret are intentionally OMITTED so adoption PRESERVES the live
+# credentials (which already match each app's Infisical value, so logins never break). The
+# blueprint owns all non-secret config. DR caveat: re-enter the 3 client secrets once on a
+# from-scratch rebuild (or wire !Env later).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-oidc
+  namespace: security
+data:
+  oidc.yaml: |
+    version: 1
+    metadata:
+      name: oidc-apps
+    context:
+      oidc_defaults: &oidc
+        client_type: confidential
+        sub_mode: hashed_user_id
+        include_claims_in_id_token: true
+        authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+        invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+        signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+        property_mappings:
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+    entries:
+      # actual — client_id/secret preserved (omitted); managed: redirects, scopes, flows, signing key.
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Actual Budget OIDC }
+        id: actual-oidc
+        attrs:
+          <<: *oidc
+          redirect_uris:
+            - { matching_mode: strict, url: "https://actual.${SECRET_DOMAIN}/openid/callback", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: actual }
+        attrs: { name: Actual Budget, group: home, provider: !KeyOf actual-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/actual-budget.svg", meta_launch_url: "https://actual.${SECRET_DOMAIN}" }

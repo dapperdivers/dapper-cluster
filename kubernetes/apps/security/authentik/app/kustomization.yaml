@@ -6,5 +6,6 @@ resources:
   - ./externalsecret.yaml
   - ./pvc.yaml
   - ./blueprints.yaml
+  - ./blueprints-oidc.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
