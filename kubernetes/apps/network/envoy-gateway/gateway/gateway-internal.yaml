@@ -15,7 +15,7 @@ metadata:
         hide-hostname: true
         hide-url: true
       alerts:
-        - type: pushover
+        - type: ntfy
 spec:
   gatewayClassName: envoy
   infrastructure:
