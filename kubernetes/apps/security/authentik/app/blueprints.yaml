@@ -1,12 +1,11 @@
 ---
 # Authentik blueprints delivered to the worker via the chart's blueprints.configMaps.
-# Only keys ending in `.yaml` are discovered + applied. This is the GitOps entry point
-# for declarative Authentik config (providers/apps/outposts).
+# Only keys ending in `.yaml` are discovered + applied. GitOps entry point for
+# declarative Authentik config (providers/apps/outposts).
 #
 # Adoption model: each entry matches an EXISTING object by `identifiers` (provider name /
-# app slug), so applying takes over management in place — no duplicates, no disruption.
-# Fields not listed are left as-is (e.g. the provider's internal client_id/secret, and the
-# embedded outpost's `providers` assignment list, which we deliberately never touch here).
+# app slug), taking over management in place — no duplicates, no disruption. Fields not
+# listed are left as-is (provider internal client_id/secret, outpost `providers` list).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -47,51 +46,44 @@ data:
             kubernetes_ingress_annotations: {}
             kubernetes_ingress_secret_name: ${SECRET_DOMAIN_MEDIA/./-}-tls
 
-  # Forward-auth (proxy provider) for Sonarr — adopts the live "Provider for Sonarr"
-  # + "sonarr" application. Template for the rest of the forward-auth apps.
-  sonarr.yaml: |
+  # All forward-auth (proxy provider) apps in ONE blueprint. The shared proxy-provider
+  # config is defined ONCE as a YAML anchor (&proxy); each app merges it (<<: *proxy) and
+  # overrides only what differs — host, name, slug, icon, group. Adding an app = ~6 lines.
+  forward-auth.yaml: |
     version: 1
     metadata:
-      name: app-sonarr
+      name: forward-auth-apps
+    context:
+      proxy_defaults: &proxy
+        mode: forward_single
+        authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+        invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+        access_token_validity: hours=24
+        refresh_token_validity: days=30
+        intercept_header_auth: true
+        basic_auth_enabled: false
+        skip_path_regex: ^/api([/?].*)$
+        property_mappings:
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-entitlements]]
+          - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/proxy/scope-proxy]]
     entries:
+      # --- sonarr ---
       - model: authentik_providers_proxy.proxyprovider
         state: present
-        identifiers:
-          name: Provider for Sonarr
+        identifiers: { name: Provider for Sonarr }
         id: sonarr-provider
         attrs:
-          mode: forward_single
+          <<: *proxy
           external_host: https://sonarr.${SECRET_DOMAIN_MEDIA}
-          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
-          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
-          access_token_validity: hours=24
-          refresh_token_validity: days=30
-          intercept_header_auth: true
-          basic_auth_enabled: false
-          skip_path_regex: |-
-            ^/api([/?].*)$
-            ^/identity.*$
-            ^/triggers.*$
-            ^/meshagents.*$
-            ^/meshsettings.*$
-            ^/agent.*$
-            ^/control.*$
-            ^/meshrelay.*$
-            ^/wl.*$
-          property_mappings:
-            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
-            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
-            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
-            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-entitlements]]
-            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/proxy/scope-proxy]]
       - model: authentik_core.application
         state: present
-        identifiers:
-          slug: sonarr
+        identifiers: { slug: sonarr }
         attrs:
           name: Sonarr
+          group: media_internal
           provider: !KeyOf sonarr-provider
           meta_launch_url: https://sonarr.${SECRET_DOMAIN_MEDIA}
           meta_icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sonarr.svg
-          policy_engine_mode: any
-          group: media_internal
