@@ -20,6 +20,12 @@ spec:
       strategy: rollback
       retries: 3
   values:
+    # Enable the Backend API so HTTPRoutes can target external/self-signed
+    # upstreams (home-reverse proxies, unifi) with tls.insecureSkipVerify.
+    config:
+      envoyGateway:
+        extensionApis:
+          enableBackend: true
     deployment:
       envoyGateway:
         resources:
