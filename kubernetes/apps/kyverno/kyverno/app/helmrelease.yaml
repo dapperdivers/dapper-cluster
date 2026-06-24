@@ -41,16 +41,6 @@ spec:
               - get
               - list
               - watch
-          # Explicit grant required for generate-policy validation (the wildcard
-          # above is not honored by Kyverno's permission check for generate targets).
-          - apiGroups:
-              - gateway.envoyproxy.io
-            resources:
-              - securitypolicies
-            verbs:
-              - get
-              - list
-              - watch
       container:
         resources:
           requests:
@@ -71,21 +61,6 @@ spec:
               - get
               - list
               - watch
-          # Allow generate rules to manage Envoy Gateway SecurityPolicies
-          # (httproute-authentik-forward-auth policy). Explicit grant required —
-          # Kyverno's generate permission check does not expand the wildcard above.
-          - apiGroups:
-              - gateway.envoyproxy.io
-            resources:
-              - securitypolicies
-            verbs:
-              - get
-              - list
-              - watch
-              - create
-              - update
-              - patch
-              - delete
       resources:
         requests:
           cpu: 50m
