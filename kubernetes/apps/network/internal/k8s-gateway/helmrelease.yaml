@@ -32,4 +32,4 @@ spec:
       annotations:
         lbipam.cilium.io/ips: "${KUBE_VIP_GATEWAY}"
       externalTrafficPolicy: Cluster
-    watchedResources: ["HTTPRoute", "Service"]
+    watchedResources: ["Ingress", "Service"]
