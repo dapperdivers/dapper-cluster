@@ -72,7 +72,7 @@ spec:
     # config.yaml, or gatus-sidecar.yaml.
     initContainers:
       - name: purge-legacy-configmaps
-        image: mirror.gcr.io/library/busybox:1.37
+        image: mirror.gcr.io/library/busybox:1.38
         command:
           - /bin/sh
           - -c
