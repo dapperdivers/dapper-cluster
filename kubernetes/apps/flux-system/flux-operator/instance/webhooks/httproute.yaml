@@ -6,6 +6,9 @@ metadata:
   namespace: flux-system
   annotations:
     external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+    # The receiver returns 404 on GET, so a default [STATUS]==200 probe would
+    # false-alarm. The central gatus config monitors it with the right condition.
+    gatus.home-operations.com/enabled: "false"
 spec:
   parentRefs:
     - name: external

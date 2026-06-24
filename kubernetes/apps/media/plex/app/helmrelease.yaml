@@ -127,6 +127,8 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_MEDIA}"
+          gatus.home-operations.com/endpoint: |-
+            path: /web/index.html
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"]
         parentRefs:
           - name: external

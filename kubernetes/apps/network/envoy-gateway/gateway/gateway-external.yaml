@@ -14,6 +14,14 @@ metadata:
     # (proxied CNAME) — same endpoint cloudflared serves. A private VIP target is
     # rejected by Cloudflare for proxied records.
     external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
+    # gatus-sidecar base config inherited by every HTTPRoute on this Gateway:
+    # a real HTTP probe (200) resolved via Cloudflare, grouped "external".
+    gatus.home-operations.com/endpoint: |-
+      group: external
+      client:
+        dns-resolver: tcp://1.1.1.1:53
+      alerts:
+        - type: pushover
 spec:
   gatewayClassName: envoy
   infrastructure:

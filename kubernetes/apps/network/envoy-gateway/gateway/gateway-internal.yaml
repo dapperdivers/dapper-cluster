@@ -4,6 +4,18 @@ kind: Gateway
 metadata:
   name: internal
   namespace: network
+  annotations:
+    # gatus-sidecar base config inherited by every HTTPRoute on this Gateway:
+    # guarded = DNS-only check (asserts the host does NOT resolve publicly),
+    # grouped "guarded". Reproduces the old gatus/guarded component.
+    gatus.home-operations.com/endpoint: |-
+      group: guarded
+      guarded: true
+      ui:
+        hide-hostname: true
+        hide-url: true
+      alerts:
+        - type: pushover
 spec:
   gatewayClassName: envoy
   infrastructure:

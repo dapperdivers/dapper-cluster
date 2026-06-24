@@ -74,6 +74,8 @@ spec:
       app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          gatus.home-operations.com/endpoint: |-
+            path: /talos_version
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:
           - name: external

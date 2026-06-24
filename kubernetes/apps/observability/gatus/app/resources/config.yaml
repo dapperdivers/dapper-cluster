@@ -1,9 +1,9 @@
 ---
 web:
-  port: ${WEB_PORT}
+  port: ${GATUS_WEB_PORT}
 storage:
   type: sqlite
-  path: /config/sqlite.db
+  path: ${GATUS_CONFIG_PATH}/sqlite.db
   caching: true
 metrics: true
 debug: false
