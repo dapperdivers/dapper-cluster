@@ -34,11 +34,13 @@ spec:
               # cards crashes llama.cpp on Pascal during the pre-load graph fit
               # (GGML_ASSERT n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS) — and ollama spreads
               # across every visible GPU by default, so we expose just one. A model must
-              # fit in one 16GB card. GPU 1/GPU 2 host ollama-1/ollama-2; all three
-              # instances are ollama-pool members (see service.yaml) serving the
-              # roundtable knights. molt stopped using local inference, so this
-              # card no longer needs to be reserved for openclaw.
-              NVIDIA_VISIBLE_DEVICES: GPU-093a9684-9b6e-111e-a37e-6bc4995bb37f
+              # fit in one 16GB card. ollama-2 holds the other surviving card; both are
+              # ollama-pool members (see service.yaml) serving the roundtable knights.
+              # 2026-06-25: the original card (GPU-093a9684…) was physically pulled from
+              # talos-node-gpu-1, leaving two P100s. This instance was re-pinned to the
+              # freed card that ollama-1 (disabled in kustomization.yaml) was reserved
+              # for, so the populated ollama-models PVC and the ollama.* route stay put.
+              NVIDIA_VISIBLE_DEVICES: GPU-79e61e98-91b9-7c6c-261a-ba1b8bafe6a6
               NVIDIA_DRIVER_CAPABILITIES: compute,utility
               # Store models on PVC — critical for persistence across restarts
               OLLAMA_MODELS: /models

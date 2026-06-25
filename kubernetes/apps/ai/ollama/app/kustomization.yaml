@@ -5,6 +5,10 @@ kind: Kustomization
 resources:
   - ./pvc.yaml
   - ./helmrelease.yaml
+  # ollama-1 stays disabled: only two P100s remain (GPU-093a9684 was pulled
+  # from talos-node-gpu-1 on 2026-06-25) and the base ollama instance is now
+  # pinned to ollama-1's old card (GPU-79e61e98). Re-enabling this without
+  # re-pinning would double-claim that GPU.
 #  - ./helmrelease-1.yaml
   - ./helmrelease-2.yaml
   - ./service.yaml
