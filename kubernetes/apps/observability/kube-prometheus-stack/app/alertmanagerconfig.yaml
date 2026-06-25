@@ -39,6 +39,18 @@ spec:
           - name: container
             value: skill-filter
             matchType: =
+      # Silence roundtable agent-sandbox churn: pods are ephemeral and restart/
+      # crashloop/not-ready constantly by design, so warning/info pod-lifecycle alerts
+      # there are expected noise. Drop all non-critical roundtable alerts; critical
+      # still pages (this matcher requires severity warning|info, so critical falls through).
+      - receiver: "null"
+        matchers:
+          - name: namespace
+            value: roundtable
+            matchType: =
+          - name: severity
+            value: "warning|info"
+            matchType: =~
       # Break the pushover self-notify loop: when a pushover send fails it raises
       # Alertmanager(Cluster)FailedToSendAlerts (severity=critical), which would
       # otherwise route back to the failing pushover channel and amplify. Send these
