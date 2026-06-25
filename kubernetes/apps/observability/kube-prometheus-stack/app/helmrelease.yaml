@@ -34,6 +34,9 @@ spec:
     cleanPrometheusOperatorObjectNames: true
     alertmanager:
       alertmanagerSpec:
+        # External hostname so notification "View in Alertmanager" links resolve
+        # off the cluster (LAN/VPN) instead of the in-cluster .svc address.
+        externalUrl: https://alertmanager.${SECRET_DOMAIN}
         # Apply the AlertmanagerConfig CRD cluster-wide instead of only to its own
         # namespace. Without this the operator auto-scopes the route to
         # namespace="observability", so alerts from every other namespace fall
@@ -67,6 +70,9 @@ spec:
       enabled: false
     prometheus:
       prometheusSpec:
+        # External hostname so each alert's generatorURL (the ntfy/pushover click
+        # link) deep-links to a resolvable host instead of the in-cluster .svc address.
+        externalUrl: https://prometheus.${SECRET_DOMAIN}
         replicas: 2
         scrapeInterval: 1m # Must match interval in Grafana Helm chart
         podMonitorSelectorNilUsesHelmValues: false

@@ -51,6 +51,13 @@ spec:
           - name: severity
             value: "warning|info"
             matchType: =~
+      # Roundtable-specific alerts that carry no namespace label (so the namespace
+      # matcher above misses them) — silence by name.
+      - receiver: "null"
+        matchers:
+          - name: alertname
+            value: "KnightMetricsAbsent|RoundtablePodRestarting"
+            matchType: =~
       # Break the pushover self-notify loop: when a pushover send fails it raises
       # Alertmanager(Cluster)FailedToSendAlerts (severity=critical), which would
       # otherwise route back to the failing pushover channel and amplify. Send these
