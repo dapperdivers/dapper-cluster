@@ -4,9 +4,15 @@ kind: HTTPRoute
 metadata:
   name: authentik-server
   namespace: security
+  annotations:
+    # Authentik is the IdP — it must be reachable wherever apps are (incl. publicly
+    # exposed apps like hass + mobile). On the external Gateway it's published to public
+    # DNS via the Cloudflare tunnel; LAN clients still reach it locally because
+    # k8s-gateway resolves it to the external VIP (10.100.0.22), no Cloudflare hairpin.
+    external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
 spec:
   parentRefs:
-    - name: internal
+    - name: external
       namespace: network
   hostnames: ["sso.${SECRET_DOMAIN}"]
   rules:
