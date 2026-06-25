@@ -20,6 +20,9 @@ data:
     context:
       oidc_defaults: &oidc
         client_type: confidential
+        # Blueprint-created oauth2 providers default grant_types to [] (rejects all
+        # grants -> "Invalid grant_type"). Must set it explicitly.
+        grant_types: [authorization_code, refresh_token]
         sub_mode: hashed_user_id
         include_claims_in_id_token: true
         authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
