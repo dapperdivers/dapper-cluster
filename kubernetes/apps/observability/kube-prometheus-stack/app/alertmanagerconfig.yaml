@@ -9,7 +9,7 @@ spec:
     groupBy: ["alertname", "job"]
     groupInterval: 10m
     groupWait: 1m
-    # Default (non-critical) -> ntfy. severity=critical is routed to pushover below.
+    # Default (non-critical) -> ntfy. severity=critical is routed to pushover + ntfy below.
     receiver: ntfy
     repeatInterval: 12h
     routes:
@@ -28,7 +28,37 @@ spec:
           - name: alertname
             value: Watchdog
             matchType: =
+      # Silence CPUThrottlingHigh for the roundtable skill-filter sidecar: it is a
+      # deliberately tiny 50m sidecar (managed in the roundtable repo), so throttling
+      # is expected, harmless, and unactionable. Alert stays live for real workloads.
+      - receiver: "null"
+        matchers:
+          - name: alertname
+            value: CPUThrottlingHigh
+            matchType: =
+          - name: container
+            value: skill-filter
+            matchType: =
+      # Break the pushover self-notify loop: when a pushover send fails it raises
+      # Alertmanager(Cluster)FailedToSendAlerts (severity=critical), which would
+      # otherwise route back to the failing pushover channel and amplify. Send these
+      # to ntfy only. MUST precede the critical->pushover route (first match wins).
+      - receiver: ntfy
+        matchers:
+          - name: alertname
+            value: "Alertmanager(Cluster)?FailedToSendAlerts"
+            matchType: =~
+      # Critical -> pushover (loud phone push) AND ntfy (reliable, unlimited,
+      # self-hosted failover). continue:true falls through to the ntfy critical
+      # route below so criticals are still delivered when pushover is rate-limited
+      # or over its monthly cap.
       - receiver: pushover
+        continue: true
+        matchers:
+          - name: severity
+            value: critical
+            matchType: =
+      - receiver: ntfy
         matchers:
           - name: severity
             value: critical

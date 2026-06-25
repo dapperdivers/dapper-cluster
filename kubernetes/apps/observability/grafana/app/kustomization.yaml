@@ -64,3 +64,11 @@ configMapGenerator:
       labels:
         grafana_dashboard: "1"
       disableNameSuffixHash: true
+  - name: grafana-dashboard-alert-history
+    namespace: observability
+    files:
+      - alert-history.json=dashboards/alert-history.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true

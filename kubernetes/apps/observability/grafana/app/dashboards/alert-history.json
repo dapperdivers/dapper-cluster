@@ -1,0 +1,196 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "datasource", "uid": "grafana" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Alert history derived from the Prometheus ALERTS series (Alertmanager itself keeps no history). Firing alerts over time, top alerts by burn, and current firing state.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "auto" },
+      "pluginVersion": "11.0.0",
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "count(ALERTS{alertstate=\"firing\", severity=~\"$severity\", namespace=~\"$namespace\"})", "instant": true, "legendFormat": "Firing" } ],
+      "title": "Firing now",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "auto" },
+      "pluginVersion": "11.0.0",
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "count(ALERTS{alertstate=\"firing\", severity=\"critical\", namespace=~\"$namespace\"})", "instant": true, "legendFormat": "Critical" } ],
+      "title": "Critical firing now",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Distinct alerts that fired at any point within the selected time range.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "blue", "value": null } ] }, "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "auto" },
+      "pluginVersion": "11.0.0",
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "count(count by (alertname, namespace) (count_over_time(ALERTS{alertstate=\"firing\", severity=~\"$severity\", namespace=~\"$namespace\"}[$__range])))", "instant": true, "legendFormat": "Distinct alerts" } ],
+      "title": "Distinct alerts (range)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "valueMode": "color" },
+      "pluginVersion": "11.0.0",
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "count by (severity) (ALERTS{alertstate=\"firing\", severity=~\"$severity\", namespace=~\"$namespace\"})", "instant": true, "legendFormat": "{{severity}}" } ],
+      "title": "Firing now by severity",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Number of alert instances firing over time, broken out by alert name. Spikes/plateaus = persistent flappers.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 25, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "lineInterpolation": "stepAfter", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 16, "x": 0, "y": 4 },
+      "id": 5,
+      "options": { "legend": { "calcs": [ "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "count by (alertname) (ALERTS{alertstate=\"firing\", severity=~\"$severity\", namespace=~\"$namespace\"})", "legendFormat": "{{alertname}}" } ],
+      "title": "Firing alerts over time (by alertname)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Firing alert instances over time grouped by severity.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 25, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "lineInterpolation": "stepAfter", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "none" },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "critical" }, "properties": [ { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "warning" }, "properties": [ { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "info" }, "properties": [ { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } } ] }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 4 },
+      "id": 6,
+      "options": { "legend": { "calcs": [ "max" ], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "count by (severity) (ALERTS{alertstate=\"firing\", severity=~\"$severity\", namespace=~\"$namespace\"})", "legendFormat": "{{severity}}" } ],
+      "title": "Firing over time (by severity)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Top alerts by total time spent firing within the selected range (sample count at 1m scrape interval ≈ minutes firing). The loudest alerts are at the top.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Samples firing (≈ min)" }, "properties": [ { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } }, { "id": "color", "value": { "mode": "continuous-BlPu" } } ] }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 13 },
+      "id": 7,
+      "options": { "cellHeight": "sm", "footer": { "countRows": false, "fields": "", "reducer": [ "sum" ], "show": false }, "showHeader": true, "sortBy": [ { "displayName": "Samples firing (≈ min)", "desc": true } ] },
+      "pluginVersion": "11.0.0",
+      "targets": [ { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "sort_desc(sum by (alertname, severity, namespace) (count_over_time(ALERTS{alertstate=\"firing\", severity=~\"$severity\", namespace=~\"$namespace\"}[$__range])))", "format": "table", "instant": true } ],
+      "title": "Top alerts by time firing (range)",
+      "transformations": [
+        { "id": "organize", "options": { "excludeByName": { "Time": true }, "indexByName": {}, "renameByName": { "alertname": "Alert", "severity": "Severity", "namespace": "Namespace", "Value": "Samples firing (≈ min)" } } }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [ "alerting", "alertmanager", "observability" ],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "Prometheus", "value": "Prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": [ "All" ], "value": [ "$__all" ] },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(ALERTS, severity)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Severity",
+        "multi": true,
+        "name": "severity",
+        "options": [],
+        "query": { "query": "label_values(ALERTS, severity)", "refId": "StandardVariableQuery" },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": [ "All" ], "value": [ "$__all" ] },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(ALERTS, namespace)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Namespace",
+        "multi": true,
+        "name": "namespace",
+        "options": [],
+        "query": { "query": "label_values(ALERTS, namespace)", "refId": "StandardVariableQuery" },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Alert History",
+  "uid": "alert-history",
+  "version": 1,
+  "weekStart": ""
+}
