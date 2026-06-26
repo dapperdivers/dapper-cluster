@@ -57,11 +57,14 @@ spec:
             severity: warning
         - alert: DatabaseDeadlockConflicts
           annotations:
-            description: There are over 10 deadlock conflicts in {{ $labels.pod }}
-            summary: Checks the number of database conflicts
+            description: Over 5 deadlock conflicts in the last hour on {{ $labels.pod }} (database {{ $labels.datname }}).
+            summary: Recent database deadlock conflicts
+          # Rate over a window, not the lifetime cumulative counter — otherwise the
+          # alert fires forever once a DB has ever had >10 deadlocks. This catches
+          # active deadlock storms and self-resolves ~1h after they stop.
           expr: |-
-            cnpg_pg_stat_database_deadlocks > 10
-          for: 1m
+            increase(cnpg_pg_stat_database_deadlocks[1h]) > 5
+          for: 5m
           labels:
             severity: warning
         - alert: ReplicaFailingReplication

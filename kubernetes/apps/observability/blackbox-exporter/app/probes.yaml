@@ -17,7 +17,7 @@ spec:
         - proxmox-04.manor
         - firewall.manor
         - zigbee-controller.manor
-        - zigbee-controller-garage.manor
+        # zigbee-controller-garage.manor removed 2026-06-26 — controller down/decommissioned
 ---
 kind: Probe
 apiVersion: monitoring.coreos.com/v1
