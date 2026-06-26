@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: helmrelease-default-maxhistory
+  annotations:
+    policies.kyverno.io/title: Default HelmRelease maxHistory
+    policies.kyverno.io/subject: HelmRelease
+    policies.kyverno.io/description: >-
+      Defaults spec.maxHistory to 3 on any HelmRelease that does not set its
+      own value, capping the Helm release-history Secrets retained in etcd
+      (the CRD default is 5, ~1MB each for CRD-heavy charts). HelmReleases that
+      declare maxHistory explicitly are left untouched via the +() add-if-absent
+      anchor, so an individual app can override up (e.g. 10) or down (e.g. 1).
+spec:
+  rules:
+    - name: default-maxhistory
+      match:
+        any:
+          - resources:
+              kinds: [HelmRelease]
+      mutate:
+        patchStrategicMerge:
+          spec:
+            +(maxHistory): 3
