@@ -5,18 +5,27 @@ ntfy:
   notification:
     # Dedicated topic so cluster alerts are separate from the gatus status topic.
     topic: alertmanager
-    priority: |
-      status == "firing" ? "high" : "default"
-    tags:
-      - tag: white_check_mark
-        condition: status == "resolved"
-      - tag: rotating_light
-        condition: status == "firing"
     templates:
-      title: |
-        {{ if eq .Status "resolved" }}Resolved: {{ end }}{{ index .Annotations "summary" }}
-      description: |
-        {{ index .Annotations "description" }}
+      # Title: severity emoji + alert name, scannable at a glance.
+      title: |-
+        {{ if eq .Status "resolved" }}✅ Resolved: {{ else if eq (index .Labels "severity") "critical" }}🚨 {{ else if eq (index .Labels "severity") "warning" }}⚠️ {{ else }}ℹ️ {{ end }}{{ index .Labels "alertname" }}
+      # Body: description (fallback summary/alertname) + a namespace/pod context line.
+      description: |-
+        {{ if index .Annotations "description" }}{{ index .Annotations "description" }}{{ else if index .Annotations "summary" }}{{ index .Annotations "summary" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}{{ if index .Labels "namespace" }}
+        📍 {{ index .Labels "namespace" }}{{ if index .Labels "pod" }} / {{ index .Labels "pod" }}{{ end }}{{ end }}
       headers:
-        X-Click: |
+        # Priority ladder: critical bypasses Do-Not-Disturb, warning makes sound,
+        # info/resolved are silent. ntfy reads this as the X-Priority header.
+        X-Priority: |-
+          {{ if eq .Status "resolved" }}low{{ else if eq (index .Labels "severity") "critical" }}urgent{{ else if eq (index .Labels "severity") "warning" }}high{{ else }}low{{ end }}
+        # First emoji tag becomes the phone notification icon (severity-coded);
+        # namespace is appended as a text chip.
+        X-Tags: |-
+          {{ if eq .Status "resolved" }}white_check_mark{{ else if eq (index .Labels "severity") "critical" }}rotating_light{{ else if eq (index .Labels "severity") "warning" }}warning{{ else }}information_source{{ end }}{{ if index .Labels "namespace" }},{{ index .Labels "namespace" }}{{ end }}
+        # Tapping the notification opens the Prometheus graph for this alert's query.
+        X-Click: |-
           {{ .GeneratorURL }}
+        # Action buttons (ntfy allows up to 3): jump to Prometheus, the Grafana
+        # Alert History dashboard, or a pre-filled Alertmanager silence for this alert.
+        X-Actions: |-
+          view, Prometheus, {{ .GeneratorURL }}; view, Grafana, https://grafana.chelonianlabs.com/d/alert-history; view, Silence, https://alertmanager.chelonianlabs.com/#/silences/new?filter=%7Balertname%3D%22{{ index .Labels "alertname" }}%22%7D
