@@ -80,6 +80,20 @@ A comprehensive monitoring stack is implemented:
 5. **Synthetic Monitoring**: Blackbox Exporter and Gatus
 6. **Status Page**: Public status indicators
 
+#### ExternalSecrets: prefer direct key references over `find`
+
+**Decision (the right call): fetch secrets by explicit key, not by `dataFrom.find`, whenever the key name is known.**
+
+- `data[].remoteRef.key` issues a single `GetSecret` call per key — cheap and direct.
+- `dataFrom.find` issues a **recursive `ListSecrets`** over the store path (`/` for the `infisical` store) on *every* refresh. The Infisical provider services it as `CallListSecretsV3Raw`, which Infisical Cloud **rate-limits (HTTP 429)**.
+
+This matters because the find pattern is currently near-universal in this repo (audited: 153/153 ExternalSecrets used `find`, ~317 find blocks, ~304 of them recursive over the `infisical` root). When many refresh together (controller restart, mass reconcile, an outage recovery) they burst past the rate limit and storm `UpdateFailed`/429. Two concentrated cases (`*-postgres-init`, `github-token` × ~20 namespaces) caused real incidents and were fixed first; `kometa` (15 finds), `zigbee2mqtt`, and `zigbee2mqtt-garage` followed as the heaviest remaining hitters.
+
+**Guidance going forward:**
+- New ExternalSecrets with known keys → use `data[].remoteRef.key`. This is also the external-secrets Infisical provider's documented "preferred for specific secrets" approach.
+- Reserve `dataFrom.find` for genuine *discovery* (unknown-ahead-of-time keys, e.g. `^PREFIX.*`). ~27 ESs legitimately need it (e.g. `home-assistant` pulls `.*`); leave those as `find`.
+- Convert remaining anchored-exact `find`/`find.path` ESs opportunistically (or in a verified batch) rather than a single high-risk big-bang — secrets are app-critical and GitOps auto-ships mistakes. A blunt, near-zero-risk mitigation for the rest is widening `refreshInterval`.
+
 ## Component Relationships
 
 ### Kubernetes Namespace Organization
