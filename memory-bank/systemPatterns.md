@@ -80,6 +80,17 @@ A comprehensive monitoring stack is implemented:
 5. **Synthetic Monitoring**: Blackbox Exporter and Gatus
 6. **Status Page**: Public status indicators
 
+#### ExternalSecrets: fetch by folder-scoped path, not root-recursive `find`
+
+Secrets in Infisical are organised into **folders** (e.g. `/Downloads`, `/Infrastructure`, `/External_Services`, `/Infrastructure/Postgres/<app>`). The `infisical` ClusterSecretStore is rooted at `/` with `recursive: true`. How an ExternalSecret references keys has a large effect on Infisical Cloud's rate limit (it 429s on `ListSecrets`/`CallListSecretsV3Raw`):
+
+- ❌ **Root-recursive `find`** (`dataFrom.find` with the store at `/`) lists **all ~230 secrets** every refresh. Multiple `find` blocks = multiple full-tree lists. This is the historical default and the main 429 source.
+- ❌ **Bare-key direct ref** (`remoteRef.key: KEY`) **does not work** — `GetSecret` is non-recursive at the store path (`/`), so a key in a subfolder returns `Secret does not exist`. (This broke a batch of ESs once; reverted.)
+- ✅ **Single known key → direct ref with the full path:** `remoteRef.key: /External_Services/FLUX_GITHUB_TOKEN` — one cheap `GetSecret`, no list.
+- ✅ **Several keys in one folder → one folder-scoped find:** `dataFrom: [{ find: { path: /Downloads } }]` — one `ListSecrets` of a small folder, and the `template` selects the keys it needs.
+
+**Rule of thumb:** never leave a `find` rooted at `/`. Use a path-qualified `remoteRef.key` for single keys, or scope a single `find` to the keys' folder for groups. To discover where a key lives, list secrets recursively via the Infisical API (universal-auth creds in `external-secrets/infiscal-auth-secret`) — each secret reports its `secretPath`. Audited state: 153 ESs, ~317 finds, ~304 rooted at `/`; convert opportunistically (postgres-init, github-token, kometa, zigbee2mqtt done) rather than a risky big-bang.
+
 ## Component Relationships
 
 ### Kubernetes Namespace Organization
