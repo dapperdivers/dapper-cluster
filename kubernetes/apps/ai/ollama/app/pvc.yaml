@@ -8,7 +8,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 50Gi
+      storage: 150Gi
   storageClassName: ceph-rbd
 ---
 # Per-instance model stores for the knight pool members. Each instance gets
@@ -23,7 +23,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 50Gi
+      storage: 150Gi
   storageClassName: ceph-rbd
 ---
 apiVersion: v1
@@ -35,5 +35,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 50Gi
+      storage: 150Gi
   storageClassName: ceph-rbd
