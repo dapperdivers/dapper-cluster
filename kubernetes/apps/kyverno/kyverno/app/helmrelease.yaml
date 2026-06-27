@@ -31,6 +31,17 @@ spec:
     grafana:
       enabled: true
     admissionController:
+      # HA: keep >1 admission replica so a single pod disruption (e.g. a tuppr
+      # node drain) never empties kyverno-svc endpoints. With failurePolicy=Fail
+      # webhooks, zero endpoints rejects cluster-wide writes and bricks the
+      # control plane (KCM/scheduler crashloop). antiAffinity is on by default,
+      # so replicas spread across nodes.
+      replicas: 3
+      podDisruptionBudget:
+        # Explicit PDB (chart auto-enables one when replicas>1, but make it
+        # declarative) so node drains can never evict all admission pods at once.
+        enabled: true
+        minAvailable: 1
       clusterRole:
         extraResources:
           - apiGroups:
