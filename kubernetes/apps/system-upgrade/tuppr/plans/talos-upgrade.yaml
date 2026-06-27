@@ -18,11 +18,8 @@ spec:
       kind: Node
       expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
 
-  # TEMPORARY: maintenance window removed to run the v1.13.3 -> v1.13.5 upgrade
-  # immediately (grows EPHEMERAL after the Proxmox disk resize). RESTORE this
-  # block once the rolling upgrade completes on all nodes.
-  # maintenance:
-  #   windows:
-  #     - start: "0 2 * * 0"  # Sunday 2:00 AM
-  #       duration: "6h"
-  #       timezone: "America/Chicago"
+  maintenance:
+    windows:
+      - start: "0 2 * * 0"  # Sunday 2:00 AM
+        duration: "6h"
+        timezone: "America/Chicago"
