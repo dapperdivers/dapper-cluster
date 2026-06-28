@@ -1,7 +1,36 @@
 [pre-commit]
 parallel = true
+skip = ["merge", "rebase"]
+
+[pre-commit.commands.format-mise]
+glob = [".mise.toml"]
+run = "mise fmt"
+stage_fixed = true
+
+[pre-commit.commands.format-json]
+glob = ["*.json", "*.json5", "*.jsonc"]
+run = "oxfmt {staged_files}"
+stage_fixed = true
+
+[pre-commit.commands.format-markdown]
+glob = ["*.md", "*.markdown", "*.mdx"]
+run = "oxfmt {staged_files}"
+stage_fixed = true
 
 [pre-commit.commands.format-yaml]
-run = "yamlfmt {staged_files}"
-glob = ["*.yaml"]
+glob = ["*.yaml", "*.yml"]
+# Never reformat SOPS-encrypted files — it breaks the MAC and makes them undecryptable
+exclude = '\.sops\.ya?ml$'
+run = "oxfmt {staged_files}"
 stage_fixed = true
+
+[pre-commit.commands.mise-lock]
+glob = [".mise.toml"]
+run = "mise lock && git add mise.lock"
+
+[pre-commit.commands.gitleaks]
+run = "gitleaks git --pre-commit --redact --staged --verbose"
+
+[pre-commit.commands.zizmor]
+glob = [".github/workflows/*.yaml", ".github/actions/**/action.yaml"]
+run = "zizmor --offline {staged_files}"

@@ -10,11 +10,13 @@ TALOSCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/clusterconfig/taloscon
 description = "Install dependencies"
 run = "uv pip install -r requirements.txt"
 
+[hooks]
+postinstall = "lefthook install"
+
 [tools]
 # Template tools
 python = "3.14.6"
 uv = "latest"
-pre-commit = "latest"
 # Operations tools
 "aqua:budimanjojo/talhelper" = "3.1.11"
 "aqua:cloudflare/cloudflared" = "2026.5.2"
@@ -31,7 +33,10 @@ pre-commit = "latest"
 "aqua:yannh/kubeconform" = "0.8.0"
 "ubi:BeryJu/korb" = "latest"
 "aqua:evilmartians/lefthook" = "2.1.9"
-"go:github.com/google/yamlfmt/cmd/yamlfmt" = "latest"
+# Formatting & linting (run via lefthook git hooks)
+oxfmt = "0.56.0"
+gitleaks = "8.30.1"
+zizmor = "1.26.1"
 helmfile = "latest"
 kubectl = "latest"
 task = "latest"
