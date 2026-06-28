@@ -13,7 +13,7 @@ resources:
   # - ./outlook-bridge/ks.yaml
 
   # Voice/Speech
-  # - ./speaches/ks.yaml
+  - ./speaches/ks.yaml
   # - ./voice-ingest/ks.yaml
 
   # LLM Inference Stack

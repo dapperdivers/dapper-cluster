@@ -106,6 +106,20 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
+        # STT transcription of longer audio can run well past Envoy's ~15s
+        # default route timeout, which otherwise returns "upstream request
+        # timeout" mid-request.
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
+            timeouts:
+              request: 300s
+              backendRequest: 300s
     persistence:
       data:
         existingClaim: *app
