@@ -34,8 +34,10 @@ spec:
               tag: 0.8.3-cuda-12.6.3
             env:
               TZ: ${TIME_ZONE}
-              # Use default to let CTranslate2 choose the best compute type for the GPU
-              WHISPER__COMPUTE_TYPE: default
+              # P100 is compute capability 6.0; CTranslate2 only supports float16
+              # at CC >= 7.0, so float16/int8 silently fall back to float32 here.
+              # Set float32 explicitly to match actual runtime behavior.
+              WHISPER__COMPUTE_TYPE: float32
               WHISPER__INFERENCE_DEVICE: cuda
               # Keep whisper model loaded in memory indefinitely (-1 = never unload)
               WHISPER__TTL: "-1"
