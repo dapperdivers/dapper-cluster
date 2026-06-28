@@ -152,6 +152,20 @@ spec:
         parentRefs:
           - name: internal
             namespace: network
+        # LLM generation can run far longer than Envoy's ~15s default route
+        # timeout (cold model load + tokens on the time-sliced P100), which
+        # otherwise returns "upstream request timeout" mid-generation.
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
+            timeouts:
+              request: 300s
+              backendRequest: 300s
 
     persistence:
       models:
