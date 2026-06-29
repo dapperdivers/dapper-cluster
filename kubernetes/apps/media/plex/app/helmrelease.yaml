@@ -126,9 +126,14 @@ spec:
     route:
       app:
         # Plex streams direct over the WAN via the dedicated media gateway, NOT
-        # the Cloudflare tunnel. external-dns derives the record target from the
+        # the Cloudflare tunnel. external-dns inherits the record target from the
         # media Gateway (grey-cloud ipv4 -> WAN), so no route-level target here.
+        # But the Gateway-level cloudflare-proxied=false is NOT inherited onto
+        # route records (external-dns falls back to the global --cloudflare-proxied
+        # default), so set it per-route: plex must be grey/DNS-only to bypass the
+        # Cloudflare proxy and reach the WAN directly.
         annotations:
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
           gatus.home-operations.com/endpoint: |-
             path: /web/index.html
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"]
