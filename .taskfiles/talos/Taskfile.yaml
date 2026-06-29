@@ -1,12 +1,13 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: '3'
+version: "3"
+
+set: [pipefail]
 
 tasks:
-
   generate-config:
     desc: Generate Talos configuration
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     cmd: talhelper genconfig
     preconditions:
       - test -f {{.TALHELPER_DIR}}/talconfig.yaml
@@ -16,7 +17,7 @@ tasks:
 
   apply-cluster:
     desc: Regenerate and apply Talos config to all nodes in the cluster
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     cmds:
       - task: generate-config
       - talhelper gencommand apply --extra-flags '--mode={{.MODE}} --timeout={{.TIMEOUT}}' | bash
@@ -30,7 +31,7 @@ tasks:
 
   apply-node:
     desc: Apply Talos config to a node [IP=required, INSECURE=false]
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     cmd: talhelper gencommand apply --node {{.IP}} --extra-flags '--mode={{.MODE}} --timeout={{.TIMEOUT}} {{if eq .INSECURE "true"}}--insecure{{end}}' | bash
     vars:
       MODE: '{{.MODE | default "auto"}}'
@@ -47,9 +48,9 @@ tasks:
 
   add-node:
     desc: Add a new node to the cluster [IP=required]
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     vars:
-      IP: '{{.IP}}'
+      IP: "{{.IP}}"
     requires:
       vars: [IP]
     preconditions:
@@ -64,8 +65,8 @@ tasks:
       - echo "Applying configuration to node {{.IP}}..."
       - task: apply-node
         vars:
-          IP: '{{.IP}}'
-          INSECURE: 'true'
+          IP: "{{.IP}}"
+          INSECURE: "true"
       - echo "Waiting for node to boot and join cluster (60 seconds)..."
       - sleep 60
       - echo "Verifying node status..."
@@ -74,7 +75,7 @@ tasks:
 
   upgrade-node:
     desc: Upgrade Talos on a single node [IP=required]
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     cmd: talhelper gencommand upgrade --node {{.IP}} --extra-flags "--image='{{.TALOS_IMAGE}}:{{.TALOS_VERSION}}' --timeout=120m" | bash
     vars:
       TALOS_IMAGE:
@@ -91,7 +92,7 @@ tasks:
 
   upgrade-k8s:
     desc: Upgrade Kubernetes
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     cmd: talhelper gencommand upgrade-k8s --extra-flags "--to '{{.KUBERNETES_VERSION}}'" | bash
     vars:
       KUBERNETES_VERSION:
@@ -103,7 +104,7 @@ tasks:
 
   upgrade-talos:
     desc: Upgrade Talos on all nodes
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     cmd: talhelper gencommand upgrade --extra-flags "--preserve --wait --timeout=30m" | bash
     preconditions:
       - talosctl config info
@@ -112,7 +113,7 @@ tasks:
 
   reset:
     desc: Resets nodes back to maintenance mode
-    dir: '{{.TALHELPER_DIR}}'
+    dir: "{{.TALHELPER_DIR}}"
     prompt: This will destroy your cluster and reset the nodes back to maintenance mode... continue?
     cmd: talhelper gencommand reset --extra-flags="--reboot {{- if eq .CLI_FORCE false }} --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL{{ end }} --graceful=false --wait=false" | bash
     preconditions:

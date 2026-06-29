@@ -1,6 +1,8 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: '3'
+version: "3"
+
+set: [pipefail]
 
 # Taskfile used to manage certain VolSync tasks for a given application, limitations are as followed.
 #   1. Fluxtomization, HelmRelease, PVC, ReplicationSource all have the same name (e.g. plex)
@@ -8,10 +10,9 @@ version: '3'
 #   3. Each application only has one PVC that is being replicated
 
 vars:
-  VOLSYNC_RESOURCES_DIR: '{{.ROOT_DIR}}/.taskfiles/volsync/resources'
+  VOLSYNC_RESOURCES_DIR: "{{.ROOT_DIR}}/.taskfiles/volsync/resources"
 
 tasks:
-
   state-*:
     desc: Suspend or resume Volsync
     cmds:
@@ -19,21 +20,23 @@ tasks:
       - flux --namespace storage {{.STATE}} helmrelease volsync
       - kubectl --namespace storage scale deployment volsync --replicas {{if eq .STATE "suspend"}}0{{else}}1{{end}}
     vars:
-      STATE: '{{index .MATCH 0}}'
+      STATE: "{{index .MATCH 0}}"
     preconditions:
       - '[[ "{{.STATE}}" == "suspend" || "{{.STATE}}" == "resume" ]]'
       - which flux kubectl
 
-  unlock: &un
-    desc: Unlock Restic repo using env vars from cluster secrets.
+  unlock:
+    desc: Unlock a Restic repo [NS=required] [REPO=required]
     vars:
-      NS: &ns-fail '{{ or .NS (fail "Missing `NS` environment variable!") }}'
-      REPO: &restic-repo '{{ or .REPO (fail "Missing `REPO` environment variable!") }}'
-      TS: '{{now | unixEpoch}}'
+      TS: "{{now | unixEpoch}}"
     cmds:
-      - kubectl patch --field-manager=flux-client-side-apply replicationsources -n {{.NS}} {{.REPO}} --type merge --patch '{"spec":{"restic":{"unlock":"{{.TS}}"}}}'
+      - kubectl patch --field-manager=flux-client-side-apply replicationsources --namespace {{.NS}} {{.REPO}} --type merge --patch '{"spec":{"restic":{"unlock":"{{.TS}}"}}}'
+    requires:
+      vars: [NS, REPO]
+    preconditions:
+      - which kubectl
   unlock-all:
-    dir: "/{{.ROOT_DIR}}"
+    desc: Unlock every Restic repo in the cluster [FAILCONTINUE=false]
     vars:
       FAILCONTINUE: '{{ .FAILCONTINUE | default "false" }}'
     cmds:
@@ -41,6 +44,8 @@ tasks:
         kubectl get replicationsources -A -o jsonpath='{range .items[*]}{"NS="}{.metadata.namespace}{" "}{"REPO="}{.metadata.name}{"\n"}{end}' | while read -r i; do
           task volsync:unlock ${i} || {{.FAILCONTINUE}}
         done
+    preconditions:
+      - which kubectl task
   snapshot:
     desc: Snapshot an app [NS=default] [APP=required]
     cmds:
@@ -56,12 +61,13 @@ tasks:
       - kubectl --namespace {{.NS}} get replicationsources {{.APP}}
       - which kubectl
   run:
-    desc: Unlock Restic repo using env vars from cluster secrets.
-    vars:
-      NS: *ns-fail
-      REPO: *restic-repo
+    desc: Run a restic command against a repo using its cluster secret [NS=required] [REPO=required]
     cmds:
-      - env $(kubectl get secrets -n {{.NS}} {{.REPO}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic {{.CLI_ARGS}}
+      - env $(kubectl get secrets --namespace {{.NS}} {{.REPO}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic {{.CLI_ARGS}}
+    requires:
+      vars: [NS, REPO]
+    preconditions:
+      - which kubectl yq restic
   restore:
     desc: Restore an app [NS=default] [APP=required] [REPO=APP] [PREVIOUS=required]
     cmds:
@@ -82,7 +88,7 @@ tasks:
       - kubectl --namespace {{.NS}} wait pod --for=condition=ready --selector="app.kubernetes.io/name={{.APP}}" --timeout=5m
     vars:
       NS: '{{.NS | default "default"}}'
-      REPO: '{{.REPO | default .APP}}'
+      REPO: "{{.REPO | default .APP}}"
       CONTROLLER:
         sh: kubectl --namespace {{.NS}} get deployment {{.APP}} &>/dev/null && echo deployment || echo statefulset
       CLAIM:

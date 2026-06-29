@@ -1,9 +1,10 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: '3'
+version: "3"
+
+set: [pipefail]
 
 tasks:
-
   browse-pvc:
     desc: Mount a PVC to an temp container [NS=default] [CLAIM=required]
     interactive: true
@@ -39,6 +40,19 @@ tasks:
     preconditions:
       - which kubectl
 
+  view-secret:
+    desc: Decode a Secret to plaintext [NS=default] [SECRET=required] [KEY=optional]
+    cmd: |
+      kubectl --namespace {{.NS}} get secret {{.SECRET}} --output json \
+        | jq -r '.data | {{if .KEY}}."{{.KEY}}" | @base64d{{else}}to_entries[] | "\(.key)=\(.value | @base64d)"{{end}}'
+    vars:
+      NS: '{{.NS | default "default"}}'
+    requires:
+      vars: [SECRET]
+    preconditions:
+      - kubectl --namespace {{.NS}} get secret {{.SECRET}}
+      - which kubectl jq
+
   cleanse-pods:
     desc: Cleanse pods with a Failed/Pending/Succeeded phase
     cmds:
@@ -48,6 +62,20 @@ tasks:
         cmd: kubectl delete pods --all-namespaces --field-selector status.phase={{.ITEM.PHASE}} --ignore-not-found=true
     preconditions:
       - which kubectl
+
+  restart-helmrelease:
+    desc: Reinstall a HelmRelease by uninstalling and reconciling it [NS=default] [HR=required]
+    cmds:
+      - helm --namespace {{.NS}} uninstall {{.HR}}
+      - flux --namespace {{.NS}} reconcile helmrelease {{.HR}}
+      - echo "HelmRelease {{.HR}} reinstalled — monitor with kubectl get pods -n {{.NS}} -w"
+    vars:
+      NS: '{{.NS | default "default"}}'
+    requires:
+      vars: [HR]
+    preconditions:
+      - flux --namespace {{.NS}} get helmrelease {{.HR}}
+      - which flux helm
 
   # https://docs.github.com/en/enterprise-cloud@latest/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/deploying-runner-scale-sets-with-actions-runner-controller#upgrading-arc
   upgrade-arc:

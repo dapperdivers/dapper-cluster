@@ -1,50 +1,31 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: '3'
+version: "3"
 
 set: [pipefail]
 shopt: [globstar]
 
 vars:
-  KUBERNETES_DIR: '{{.ROOT_DIR}}/kubernetes'
-  PRIVATE_DIR: '{{.ROOT_DIR}}/.private'
-  TALHELPER_DIR: '{{.ROOT_DIR}}/kubernetes/bootstrap/talos'
-  TALOSCONFIG: '{{.ROOT_DIR}}/kubernetes/bootstrap/talos/clusterconfig/talosconfig'
+  KUBERNETES_DIR: "{{.ROOT_DIR}}/kubernetes"
+  PRIVATE_DIR: "{{.ROOT_DIR}}/.private"
+  TALHELPER_DIR: "{{.ROOT_DIR}}/kubernetes/bootstrap/talos"
+  TALOSCONFIG: "{{.ROOT_DIR}}/kubernetes/bootstrap/talos/clusterconfig/talosconfig"
 
 env:
-  KUBERNETES_DIR: '{{.KUBERNETES_DIR}}'
-  KUBECONFIG: '{{.ROOT_DIR}}/kubeconfig'
-  SOPS_AGE_KEY_FILE: '{{.ROOT_DIR}}/age.key'
-  TALOSCONFIG: '{{.TALOSCONFIG}}'
+  KUBERNETES_DIR: "{{.KUBERNETES_DIR}}"
+  KUBECONFIG: "{{.ROOT_DIR}}/kubeconfig"
+  SOPS_AGE_KEY_FILE: "{{.ROOT_DIR}}/age.key"
+  TALOSCONFIG: "{{.TALOSCONFIG}}"
 
 includes:
   bootstrap: .taskfiles/bootstrap
   kubernetes: .taskfiles/kubernetes
   talos: .taskfiles/talos
   volsync: .taskfiles/volsync
-  migration:
-    taskfile: .taskfiles/migration/Taskfile.yaml
-    vars:
-      ROOT_DIR: '{{.ROOT_DIR}}'
-  storage:
-    taskfile: .taskfiles/storage/Taskfile.yaml
-    vars:
-      ROOT_DIR: '{{.ROOT_DIR}}'
-  yaml:
-    taskfile: .taskfiles/yaml/Taskfile.yaml
-    vars:
-      ROOT_DIR: '{{.ROOT_DIR}}'
-  resources:
-    taskfile: .taskfiles/resources/Taskfile.yaml
-    vars:
-      ROOT_DIR: '{{.ROOT_DIR}}'
-  pod-logs:
-    taskfile: .taskfiles/pod-logs/Taskfile.yaml
-    vars:
-      ROOT_DIR: '{{.ROOT_DIR}}'
+  yaml: .taskfiles/yaml
+  pod-logs: .taskfiles/pod-logs
 
 tasks:
-
   default: task --list
 
   reconcile:
