@@ -90,7 +90,7 @@ Check the app's manifests for misconfigurations:
 - **OS**: Talos Linux (immutable, no SSH - use `talosctl` for node-level debugging)
 - **CNI**: Cilium with L2 announcements
 - **Storage**: Rook-Ceph (ceph-rbd for RWO, cephfs for RWX), VolSync for backups
-- **Ingress**: NGINX (internal class), Envoy Gateway
+- **Routing**: Envoy Gateway (internal `10.100.0.20` / external `10.100.0.22`) via HTTPRoutes; nginx is gone. See the `gateway-route` skill.
 - **Databases**: CloudNative-PG (postgres), Dragonfly (redis)
 - **Secrets**: External Secrets Operator with Infisical backend
 
