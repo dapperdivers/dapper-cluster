@@ -25,6 +25,14 @@ tasks:
       - '[[ "{{.STATE}}" == "suspend" || "{{.STATE}}" == "resume" ]]'
       - which flux kubectl
 
+  list:
+    desc: List every ReplicationSource and its last backup time
+    cmd: |
+      kubectl get replicationsources -A \
+        -o custom-columns=NAMESPACE:.metadata.namespace,APP:.metadata.name,LAST-SYNC:.status.lastSyncTime,DURATION:.status.lastSyncDuration
+    preconditions:
+      - which kubectl
+
   unlock:
     desc: Unlock a Restic repo [NS=required] [REPO=required]
     vars:

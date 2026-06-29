@@ -244,6 +244,9 @@ task bootstrap:apps
 ### Volume Management
 
 ```bash
+# List all VolSync backups and their last sync time
+task volsync:list
+
 # Unlock a single / every VolSync Restic repo
 task volsync:unlock NS=<ns> REPO=<name>
 task volsync:unlock-all

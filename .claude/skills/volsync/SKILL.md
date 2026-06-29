@@ -95,6 +95,7 @@ task volsync:unlock-all                            # sweep every ReplicationSour
 
 Related Taskfile helpers (`.taskfiles/volsync/Taskfile.yaml`):
 
+- `task volsync:list` — show every ReplicationSource and its last backup time.
 - `task volsync:snapshot NS=<ns> APP=<app>` — trigger a manual backup and wait for the job.
 - `task volsync:run NS=<ns> REPO=<app> -- snapshots` — run an arbitrary restic command (e.g. list snapshots).
 - `task volsync:restore NS=<ns> APP=<app> PREVIOUS=<n>` — restore an app from a backup.
