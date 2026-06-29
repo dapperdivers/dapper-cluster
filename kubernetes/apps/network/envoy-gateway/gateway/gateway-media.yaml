@@ -1,0 +1,109 @@
+---
+# Dedicated EnvoyProxy for the media Gateway. Unlike the class-wide proxy
+# (externalTrafficPolicy: Cluster, which SNATs and hides the client IP), this
+# one uses Local so the real remote client IP survives to Envoy's access logs —
+# required for per-IP rate-limiting and CrowdSec accuracy on the WAN-facing
+# media surface. A gateway-scoped parametersRef fully REPLACES the class-wide
+# config for this gateway, so it must restate the Kubernetes provider.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: envoy-proxy-media-config
+  namespace: network
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        # Required for Cilium L2 announcements (matches the class-wide proxy).
+        # Local preserves the source IP; Cilium announces the VIP from a node
+        # running a ready envoy-media pod.
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              externalTrafficPolicy: Local
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: media
+  namespace: network
+  labels:
+    # external-dns --gateway-label-filter targets this so its HTTPRoutes are
+    # published to public (Cloudflare) DNS.
+    external-dns: "true"
+  annotations:
+    # This gateway is reached DIRECTLY over the home WAN, NOT via the Cloudflare
+    # Tunnel. external-dns derives the record TARGET from the Gateway: point all
+    # media routes at the auto-updating grey-cloud DDNS record (ipv4 -> WAN), and
+    # force the CNAME unproxied so traffic bypasses Cloudflare entirely.
+    external-dns.alpha.kubernetes.io/target: "ipv4.${SECRET_DOMAIN_MEDIA}"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    # gatus-sidecar base config inherited by every HTTPRoute on this Gateway:
+    # a real HTTP probe (200) resolved via public DNS, grouped "external".
+    gatus.home-operations.com/endpoint: |-
+      group: external
+      client:
+        dns-resolver: tcp://1.1.1.1:53
+      alerts:
+        - type: ntfy
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    # Cilium LB-IPAM pins this VIP onto the managed Envoy LoadBalancer Service.
+    annotations:
+      lbipam.cilium.io/ips: "${MEDIA_VIP_GATEWAY}"
+    # Use the media-only EnvoyProxy (Local) instead of the class-wide one.
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: envoy-proxy-media-config
+  listeners:
+    - name: https-media
+      protocol: HTTPS
+      port: 443
+      hostname: "*.${SECRET_DOMAIN_MEDIA}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN_MEDIA/./-}-tls"
+      # Plex (and later Jellyfin) routes live in the media namespace.
+      allowedRoutes:
+        namespaces:
+          from: All
+    # Apex (bare-domain) listener — the wildcard listener does not match the
+    # bare apex. The cert carries both apex and wildcard SANs, so the same
+    # secret works.
+    - name: https-apex-media
+      protocol: HTTPS
+      port: 443
+      hostname: "${SECRET_DOMAIN_MEDIA}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN_MEDIA/./-}-tls"
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+# HSTS on every response from the media Gateway (mirrors external-hsts). Good
+# for the Jellyfin web UI and any other secure-context media host. No "preload"
+# on purpose (preload is a hard-to-undo public-list commitment).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: media-hsts
+  namespace: network
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: media
+  headers:
+    lateResponseHeaders:
+      set:
+        - name: Strict-Transport-Security
+          value: "max-age=31536000; includeSubDomains"

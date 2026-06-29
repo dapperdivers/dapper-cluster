@@ -7,6 +7,7 @@ resources:
   - ./envoyproxy.yaml
   - ./gateway-internal.yaml
   - ./gateway-external.yaml
+  - ./gateway-media.yaml
   - ./httproutes-redirect.yaml
   - ./clienttrafficpolicy.yaml
   - ./podmonitor.yaml
