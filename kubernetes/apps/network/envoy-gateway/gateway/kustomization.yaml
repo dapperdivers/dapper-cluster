@@ -9,3 +9,4 @@ resources:
   - ./gateway-external.yaml
   - ./httproutes-redirect.yaml
   - ./clienttrafficpolicy.yaml
+  - ./podmonitor.yaml

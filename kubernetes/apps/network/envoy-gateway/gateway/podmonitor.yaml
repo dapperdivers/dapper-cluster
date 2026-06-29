@@ -1,0 +1,17 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: envoy-proxy
+spec:
+  # Both managed proxies (external + internal). Envoy already serves the
+  # /stats/prometheus endpoint on the "metrics" port (19001) by default;
+  # this just scrapes it. Per-route byte counters land as
+  # envoy_cluster_upstream_cx_{rx,tx}_bytes_total{envoy_cluster_name="httproute/<ns>/<app>/rule/0"}.
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: envoy-gateway
+      app.kubernetes.io/component: proxy
+  podMetricsEndpoints:
+    - port: metrics
+      path: /stats/prometheus
