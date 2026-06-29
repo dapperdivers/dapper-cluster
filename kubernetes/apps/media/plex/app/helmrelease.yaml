@@ -140,6 +140,22 @@ spec:
         parentRefs:
           - name: media
             namespace: network
+        # Plex needs long-lived connections that blow past Envoy's ~15s default
+        # route timeout: transcode-decision can take >15s to spin up, video
+        # streams/direct-play run for hours, and /:/eventsource/notifications is
+        # an SSE stream held open the whole session. Without this, Envoy returns
+        # 504 "upstream request timeout" (UT). 0s disables the timeout.
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: 32400
+            timeouts:
+              request: 0s
+              backendRequest: 0s
     persistence:
       config:
         existingClaim: plex
