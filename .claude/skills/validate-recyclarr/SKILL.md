@@ -1,7 +1,7 @@
 ---
 name: validate-recyclarr
 description: Validate recyclarr.yml config against official documentation
-tools: Read, WebFetch, WebSearch, Grep, Glob
+allowed-tools: Read, WebFetch, WebSearch, Grep, Glob
 ---
 
 # Recyclarr Configuration Validator
@@ -16,12 +16,15 @@ The recyclarr.yml config is located at:
 ## Validation Process
 
 ### Step 1: Read the Current Configuration
+
 First, read the recyclarr.yml file to understand the current configuration.
 
 ### Step 2: Search Official Documentation
+
 Use WebSearch and WebFetch to search the following Recyclarr documentation sources for the latest information:
 
 **Primary Documentation URLs:**
+
 - Config Reference: https://recyclarr.dev/wiki/yaml/config-reference/
 - Quality Definitions: https://recyclarr.dev/wiki/yaml/config-reference/quality-definition/
 - Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
@@ -30,6 +33,7 @@ Use WebSearch and WebFetch to search the following Recyclarr documentation sourc
 - Include Templates: https://recyclarr.dev/wiki/yaml/config-reference/include/
 
 **TRaSH Guides Integration:**
+
 - Sonarr Templates: https://recyclarr.dev/wiki/guide-configs/sonarr/
 - Radarr Templates: https://recyclarr.dev/wiki/guide-configs/radarr/
 
@@ -68,6 +72,7 @@ For each instance (sonarr, sonarr-uhd, radarr, radarr-uhd), validate:
 ### Step 4: Search for Updates
 
 Use WebSearch to find:
+
 ```
 site:recyclarr.dev "breaking changes" OR "deprecated" OR "new feature" 2024 2025
 ```
@@ -102,28 +107,34 @@ Provide a detailed report with:
 ## Recyclarr Configuration Validation Report
 
 ### Instances Found
+
 - [ ] sonarr (1080p)
 - [ ] sonarr-uhd (4K)
 - [ ] radarr (HD)
 - [ ] radarr-uhd (4K)
 
 ### Template Validation
+
 | Instance | Template | Status | Notes |
-|----------|----------|--------|-------|
-| ... | ... | ... | ... |
+| -------- | -------- | ------ | ----- |
+| ...      | ...      | ...    | ...   |
 
 ### Custom Format Validation
+
 | Trash ID | Name | Status | Notes |
-|----------|------|--------|-------|
-| ... | ... | ... | ... |
+| -------- | ---- | ------ | ----- |
+| ...      | ...  | ...    | ...   |
 
 ### Issues Found
+
 1. [SEVERITY] Description - Link to docs
 
 ### Recommendations
+
 1. Description - Link to docs
 
 ### Documentation References
+
 - [Link description](url)
 ```
 

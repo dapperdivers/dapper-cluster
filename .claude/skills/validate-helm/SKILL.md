@@ -1,7 +1,7 @@
 ---
 name: validate-helm
 description: Validate HelmRelease configurations against chart schemas, diagnose helm validation errors, and fix app-template compatibility issues
-tools: Read, Edit, MultiEdit, Bash, Grep, Glob
+allowed-tools: Read, Edit, MultiEdit, Bash, Grep, Glob
 ---
 
 # Helm Validation
@@ -21,6 +21,7 @@ KUBECONFIG=~/projects/dapper-cluster/kubeconfig kubectl get hr -A | grep -v "Tru
 ### 2. Analyze the HelmRelease
 
 Read the helmrelease.yaml and determine:
+
 - **app-template**: uses `chartRef: { kind: OCIRepository, name: app-template }` — provided by the common component's repos
 - **Traditional chart**: uses `chart.spec` with a `HelmRepository` sourceRef
 - Current error messages from the cluster
@@ -28,10 +29,12 @@ Read the helmrelease.yaml and determine:
 ### 3. Validate Against Schema
 
 **Schema URLs (must match the yaml-language-server comment at top of file):**
+
 - app-template: `https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json`
 - Generic Flux HR: `https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json`
 
 Common validation errors:
+
 - "Additional property X is not allowed"
 - "Must validate all the schemas (allOf)"
 - "Invalid type" errors
@@ -44,6 +47,7 @@ Common validation errors:
 **app-template values order:** `controllers -> defaultPodOptions -> service -> ingress -> persistence`
 
 **app-template patterns:**
+
 - Controller named after the app: `controllers.<app-name>.containers.app`
 - Service references controller: `service.app.controller: <app-name>`
 - Ingress uses service identifier: `service.identifier: app, port: http`
@@ -69,6 +73,7 @@ KUBECONFIG=~/projects/dapper-cluster/kubeconfig flux reconcile hr <name> -n <nam
 ## Report
 
 Provide:
+
 - **Chart**: What chart/version is in use
 - **Errors Found**: Specific validation problems
 - **Fixes Applied**: What was changed and why

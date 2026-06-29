@@ -1,12 +1,31 @@
 ---
 name: debug-k8s
 description: Troubleshoot Kubernetes pods, services, networking, storage, and resource issues across the dapper-cluster
-tools: Bash, Read, Grep, Glob
+allowed-tools: Bash, Read, Grep, Glob
 ---
 
 # Kubernetes Debugging
 
 Troubleshoot issues on the dapper-cluster. Takes an optional argument for the target resource (e.g., `/debug-k8s litellm` or `/debug-k8s kube-system`).
+
+## Prefer the repo Taskfiles
+
+This repo ships `task` helpers that wrap the most common debugging actions and
+**set `KUBECONFIG` automatically** (run from the repo root). Reach for these
+before hand-rolling `kubectl` — fall back to raw commands only for ad-hoc reads:
+
+| Need                                | Task                                                              |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| Decode a Secret to plaintext        | `task kubernetes:view-secret SECRET=<name> [NS=<ns>] [KEY=<key>]` |
+| Pull a log/file out of a pod        | `task pod-logs:download APP=<app> NS=<ns> FILE_PATH=<path>`       |
+| List pods in a namespace            | `task pod-logs:list-pods NS=<ns>`                                 |
+| Shell onto a Talos node             | `task kubernetes:node-shell NODE=<node>`                          |
+| Inspect a PVC's contents            | `task kubernetes:browse-pvc CLAIM=<pvc> NS=<ns>`                  |
+| Clear Failed/Pending/Succeeded pods | `task kubernetes:cleanse-pods`                                    |
+| Force a Git→cluster reconcile       | `task reconcile`                                                  |
+| Reinstall a wedged HelmRelease      | `task kubernetes:restart-helmrelease HR=<name> NS=<ns>`           |
+
+`task --list` shows everything. See also the `flux-check` skill for Flux issues.
 
 ## Instructions
 
@@ -61,6 +80,7 @@ KUBECONFIG=~/projects/dapper-cluster/kubeconfig kubectl get kustomizations.kusto
 ### 7. Cross-Reference with Git
 
 Check the app's manifests for misconfigurations:
+
 - `kubernetes/apps/<namespace>/<app>/ks.yaml` - Flux Kustomization
 - `kubernetes/apps/<namespace>/<app>/app/helmrelease.yaml` - HelmRelease
 - `kubernetes/apps/<namespace>/<app>/app/externalsecret.yaml` - Secrets
@@ -77,6 +97,7 @@ Check the app's manifests for misconfigurations:
 ## Report
 
 Provide:
+
 - **Issue**: What's broken
 - **Root Cause**: Why
 - **Evidence**: Relevant logs/events
