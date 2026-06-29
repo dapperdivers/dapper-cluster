@@ -68,8 +68,13 @@ spec:
                 cpu: 4000m
                 memory: 12Gi
               limits:
-                cpu: 8000m
-                memory: 32Gi
+                # No CPU limit on purpose: few users / few concurrent transcodes,
+                # so let a software transcode use the whole 16-core box without
+                # CFS throttling (a hard limit stalls realtime playback even with
+                # idle cores). Under contention the cpu *request* (+ Mayastor's
+                # own requests on these storage nodes) still protects storage.
+                # 48Gi so the 15Gi /transcode tmpfs + Plex + buffers fit (node has 128Gi)
+                memory: 48Gi
           imagemaid:
             image:
               repository: docker.io/kometateam/imagemaid
