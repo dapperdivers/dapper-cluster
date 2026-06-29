@@ -35,7 +35,14 @@ spec:
         memory: 512Mi
     image:
       repository: nvcr.io/nvidia/k8s/dcgm-exporter
-      tag: 3.1.7-3.1.4-ubuntu20.04
+      # Pinned to the image that ships with chart 4.8.2 (DCGM 4.5.3). The old
+      # 3.1.7-3.1.4-ubuntu20.04 pin (2022) no longer starts on the current Talos
+      # 6.18 kernel/runtime — containerd timed out creating the shim task
+      # (RunContainerError, 1000+ restarts over ~47h). Pascal P100s lack DCGM
+      # profiling (DCP) support, but the chart already defaults its arguments to
+      # default-counters.csv (no DCGM_FI_PROF_* fields), so that limitation is
+      # avoided — basic GPU telemetry (util/mem/temp/power/clocks) works on Pascal.
+      tag: 4.5.3-4.8.2-distroless
     extraEnv:
       - name: NVIDIA_DRIVER_CAPABILITIES
         value: all
