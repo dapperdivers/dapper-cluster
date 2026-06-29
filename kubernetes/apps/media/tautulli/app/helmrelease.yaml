@@ -33,6 +33,10 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               TAUTULLI__PORT: &port 8181
+              # Tautulli v2.15.3+ maps TAUTULLI_<UPPER_KEY> env vars onto config.ini
+              # settings, so general settings can be GitOps-declared instead of clicked
+              # in the GUI. Enables TheMovieDB metadata lookup (API key already present).
+              TAUTULLI_THEMOVIEDB_LOOKUP: "1"
             probes:
               liveness: &probes
                 enabled: true
