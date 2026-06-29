@@ -68,18 +68,16 @@ spec:
 
         - alert: PlexHighCPUUsage
           annotations:
-            summary: Plex CPU usage is critically high
+            summary: Plex CPU usage is high
             description: >-
-              Plex container in {{ $labels.namespace }}/{{ $labels.pod }} is using
-              {{ $value | humanizePercentage }} of its CPU limit for more than 10 minutes.
-              This may impact streaming quality.
+              Plex container in {{ $labels.namespace }}/{{ $labels.pod }} has been using
+              {{ $value | humanize }} CPU cores for more than 10 minutes. There is no CPU
+              limit, so this is absolute usage — sustained high load means heavy/parallel
+              software transcoding (expect possible buffering and node/storage pressure).
           expr: |
-            (
+            sum by (namespace, pod) (
               rate(container_cpu_usage_seconds_total{namespace="media", pod=~"plex-.*", container="app"}[5m])
-              /
-              container_spec_cpu_quota{namespace="media", pod=~"plex-.*", container="app"}
-              * 100000
-            ) > 0.90
+            ) > 12
           for: 10m
           labels:
             severity: warning
