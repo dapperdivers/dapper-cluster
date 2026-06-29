@@ -125,13 +125,15 @@ spec:
             protocol: UDP
     route:
       app:
+        # Plex streams direct over the WAN via the dedicated media gateway, NOT
+        # the Cloudflare tunnel. external-dns derives the record target from the
+        # media Gateway (grey-cloud ipv4 -> WAN), so no route-level target here.
         annotations:
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN_MEDIA}"
           gatus.home-operations.com/endpoint: |-
             path: /web/index.html
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"]
         parentRefs:
-          - name: external
+          - name: media
             namespace: network
     persistence:
       config:
