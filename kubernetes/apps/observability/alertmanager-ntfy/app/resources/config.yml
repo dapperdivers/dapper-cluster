@@ -3,8 +3,12 @@ http:
 ntfy:
   baseurl: http://ntfy.network.svc.cluster.local:8080
   notification:
-    # Dedicated topic so cluster alerts are separate from the gatus status topic.
-    topic: alertmanager
+    # Topic routing via gval expression (alexbakker/alertmanager-ntfy v1.2.1):
+    # media-namespace alerts (Plex) -> "plex" topic; everything else stays on
+    # "alertmanager". A plain word stays literal; this expression is auto-detected
+    # because it contains chars outside ^[-_A-Za-z0-9]{1,64}$. Accessor verified
+    # against source: labels["<name>"] (top-level, JSON-tag keys).
+    topic: 'labels["namespace"] == "media" ? "plex" : "alertmanager"'
     templates:
       # Title: severity emoji + alert name, scannable at a glance.
       title: |-
