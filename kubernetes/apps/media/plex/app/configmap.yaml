@@ -65,7 +65,7 @@ data:
 
   # Transcoding
   PLEX_PREFERENCE_22: "TranscoderTempDirectory=/transcode" # Use memory-backed transcode directory
-  PLEX_PREFERENCE_23: "TranscoderThrottleBuffer=120" # Buffer 120s before throttling (default: 300s)
+  PLEX_PREFERENCE_23: "TranscoderThrottleBuffer=600" # Large buffer: transcoder runs ahead on easy scenes, banks a cushion for hard scenes
 
   # Bandwidth Settings (unlimited - 2.5Gbps uplink)
   PLEX_PREFERENCE_24: "WanTotalMaxUploadRate=0" # Unlimited total upload bandwidth (0 = unlimited)
@@ -79,9 +79,9 @@ data:
   # Hardware acceleration is DISABLED — leaving it on makes Plex try a nonexistent
   # GPU device and stall the transcode decision.
   PLEX_PREFERENCE_26: "HardwareAcceleratedCodecs=0" # No usable GPU; software decode
-  PLEX_PREFERENCE_27: "TranscoderQuality=0" # Auto (let Plex balance for CPU realtime)
+  PLEX_PREFERENCE_27: "TranscoderQuality=2" # Prefer higher quality (beefy box, few users); avoid 3 which can fall behind realtime on 4K
   PLEX_PREFERENCE_28: "TranscodeCountLimit=4" # Cap concurrent CPU transcodes (16-core node)
-  PLEX_PREFERENCE_29: "TranscoderToneMapping=0" # HDR tone-mapping is too costly on CPU
+  PLEX_PREFERENCE_29: "TranscoderToneMapping=1" # HDR->SDR tone-mapping ON for correct colors (CPU-heavy; pre-make Optimized Versions for 4K HDR)
   PLEX_PREFERENCE_30: "HardwareAcceleratedEncoders=0" # No NVENC on P100; software encode
 
   # Content Detection Features
