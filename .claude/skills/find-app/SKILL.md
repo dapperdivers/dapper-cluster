@@ -1,7 +1,7 @@
 ---
 name: find-app
 description: Search for Kubernetes application configurations and scaffold them to match the dapper-cluster template structure
-tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch, WebSearch
+allowed-tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch, WebSearch
 ---
 
 # Find & Scaffold App
@@ -21,6 +21,7 @@ https://kubesearch.dev/search/?q=<app-name>
 ```
 
 Also check ArtifactHub for official Helm charts. Prioritize:
+
 - Configurations using bjw-s app-template (easiest to integrate)
 - Well-maintained repos with recent updates
 - Configurations already using Flux CD
@@ -28,7 +29,8 @@ Also check ArtifactHub for official Helm charts. Prioritize:
 ### 2. Determine Namespace
 
 Check existing namespaces in `kubernetes/apps/` and pick the most appropriate one:
-- `media/` - media server stack (*arr, plex, etc.)
+
+- `media/` - media server stack (\*arr, plex, etc.)
 - `selfhosted/` - productivity/utility apps
 - `ai/` - AI/ML workloads
 - `home-automation/` - home assistant, esphome, etc.
@@ -315,12 +317,13 @@ spec:
         name:
           regexp: ^APP_.*
     - find:
-        path: POSTGRES_SUPER_USER
-    - find:
-        path: POSTGRES_SUPER_PASS
-    - find:
-        path: POSTGRES_SUPER_HOST_RW
+        name:
+          regexp: ^POSTGRES_SUPER_(USER|PASS|HOST_RW)$
 ```
+
+> **Use `find: name: { regexp }`, never `find: path:`.** Infisical keys live in nested
+> folders (`/Infrastructure/Postgres`), and `find: path:` does a folder match that resolves
+> to nothing — this once broke ExternalSecrets cluster-wide. See the `externalsecrets` skill.
 
 ### 4. Register in Namespace Kustomization
 
@@ -353,6 +356,7 @@ resources:
 ## Report
 
 Provide:
+
 - **App**: What it does, what chart/image is used
 - **Files Created**: List of scaffolded files
 - **Dependencies**: Any prerequisites (secrets in Infisical, databases, PVCs)

@@ -1,7 +1,7 @@
 ---
 name: volsync
 description: Add VolSync-backed persistent storage to a dapper-cluster app, or fix a new app whose PVC is stuck Pending on first deploy. Covers the volsync repository+operations components, required substitutions, and the create-the-backup-directory-first bootstrap trap.
-tools: Read, Edit, Write, Bash, Grep, Glob
+allowed-tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
 # VolSync persistence

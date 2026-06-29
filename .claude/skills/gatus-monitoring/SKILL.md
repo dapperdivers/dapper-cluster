@@ -1,7 +1,7 @@
 ---
 name: gatus-monitoring
 description: Add or tune Gatus uptime monitoring for a dapper-cluster app. Use when an app should appear on the status page, a Gatus check is flapping/false-alarming, or you need a probe path/condition/opt-out. Covers the gatus-sidecar HTTPRoute auto-discovery model.
-tools: Read, Edit, Write, Bash, Grep, Glob
+allowed-tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
 # Gatus monitoring (gatus-sidecar)
@@ -30,13 +30,13 @@ Add a YAML fragment to the app's `route.<key>.annotations`. It deep-merges over 
 (child wins on scalars):
 
 ```yaml
-    route:
-      app:
-        annotations:
-          gatus.home-operations.com/endpoint: |-
-            path: /healthz                       # probe a specific path (default: route's first match path, else /)
-            conditions: ["[STATUS] == 200"]      # override conditions
-            interval: 2m                          # override interval (default 1m)
+route:
+  app:
+    annotations:
+      gatus.home-operations.com/endpoint: |-
+        path: /healthz                       # probe a specific path (default: route's first match path, else /)
+        conditions: ["[STATUS] == 200"]      # override conditions
+        interval: 2m                          # override interval (default 1m)
 ```
 
 Real examples in-repo: `media/plex` (`path: /web/index.html`), `media/overseerr`
@@ -47,8 +47,8 @@ Real examples in-repo: `media/plex` (`path: /web/index.html`), `media/overseerr`
 For routes that return non-200 by design (webhooks) or you simply don't want monitored:
 
 ```yaml
-        annotations:
-          gatus.home-operations.com/enabled: "false"
+annotations:
+  gatus.home-operations.com/enabled: "false"
 ```
 
 Example: `flux-system/.../webhooks/httproute.yaml` (returns 404; it's instead monitored by hand in the
@@ -64,7 +64,7 @@ by Flux.
 
 ## Gotchas
 
-- `guarded` keys on **presence**, not value — `guarded: false` is *still guarded*. Omit the key to
+- `guarded` keys on **presence**, not value — `guarded: false` is _still guarded_. Omit the key to
   un-guard.
 - `--auto` means adding any HTTPRoute on these gateways is auto-monitored. An external route that
   isn't `200` on its probe path **will false-alarm** until you add a `path:`/`conditions:` override or
@@ -92,5 +92,6 @@ kubectl logs -n observability "$pod" -c gatus | grep -c "Reading configuration f
 Offline render check: `flate build hr gatus -p ./kubernetes/flux/cluster`.
 
 ## Related
+
 - Memory: `project_gatus_sidecar_migration.md`, `project_ntfy_alerting.md` (alert routing / pushover limit).
 - Skill: `externalsecrets` (the gatus pushover/ntfy tokens come via an ExternalSecret).

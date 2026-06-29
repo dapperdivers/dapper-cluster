@@ -1,7 +1,7 @@
 ---
 name: flux-check
 description: Troubleshoot FluxCD reconciliation issues, check Flux component status, and diagnose GitOps deployment problems
-tools: Read, Edit, Bash, Grep, Glob
+allowed-tools: Read, Edit, Bash, Grep, Glob
 ---
 
 # FluxCD Troubleshooting
@@ -37,6 +37,7 @@ KUBECONFIG=~/projects/dapper-cluster/kubeconfig flux get sources all -A | grep -
 ### 3. Diagnose Root Causes
 
 For each failing resource:
+
 - Check the resource's status conditions for error messages
 - Review controller logs: `flux logs --tail=50 --kind=kustomization --name=<name>`
 - Common causes: YAML syntax errors, dependency ordering, authentication failures, resource conflicts
@@ -44,11 +45,13 @@ For each failing resource:
 ### 4. Cross-Reference with Git
 
 Check the app's manifests for issues:
+
 - ks.yaml at `kubernetes/apps/<namespace>/<app>/ks.yaml`
 - HelmRelease at `kubernetes/apps/<namespace>/<app>/app/helmrelease.yaml`
 - Namespace kustomization at `kubernetes/apps/<namespace>/kustomization.yaml`
 
 All namespace kustomizations must include `components: [../../flux/components/common]` which provides:
+
 - OCI repos (app-template from bjw-s-labs)
 - SOPS decryption
 - Cluster substitutions (`${SECRET_DOMAIN}`, `${TIME_ZONE}`, etc.)
@@ -61,9 +64,15 @@ Apply targeted fixes by editing the relevant YAML files.
 ### 6. Verify Resolution
 
 ```bash
-KUBECONFIG=~/projects/dapper-cluster/kubeconfig flux reconcile source git flux-system
+# Quickest: the repo task pulls Git + reconciles flux-system (sets KUBECONFIG for you)
+task reconcile
+
+# Reconcile a specific Kustomization
 KUBECONFIG=~/projects/dapper-cluster/kubeconfig flux reconcile kustomization <name> -n flux-system
 ```
+
+For a HelmRelease stuck in a bad state, `task kubernetes:restart-helmrelease HR=<name> NS=<ns>`
+uninstalls and reconciles it cleanly.
 
 ## Key Reminders
 
@@ -77,6 +86,7 @@ KUBECONFIG=~/projects/dapper-cluster/kubeconfig flux reconcile kustomization <na
 ## Report
 
 Provide:
+
 - **Status**: What's failing and what's healthy
 - **Root Cause**: Why it's failing
 - **Fix Applied**: What was changed
