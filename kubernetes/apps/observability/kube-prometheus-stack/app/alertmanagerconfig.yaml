@@ -28,16 +28,20 @@ spec:
           - name: alertname
             value: Watchdog
             matchType: =
-      # Silence CPUThrottlingHigh for the roundtable skill-filter sidecar: it is a
-      # deliberately tiny 50m sidecar (managed in the roundtable repo), so throttling
-      # is expected, harmless, and unactionable. Alert stays live for real workloads.
+      # CPUThrottlingHigh (info severity) is unactionable noise here. The throttled
+      # workloads are upstream operators/controllers (emqx-operator, infisical,
+      # intel-device-plugin, silence-operator, flux controllers, roundtable-operator)
+      # carrying small chart-default CPU limits. CFS throttling does NOT restart them
+      # — observed restarts are synchronized leader-election exits tied to etcd
+      # instability, not CPU starvation. Right-sizing is advisory only (Goldilocks
+      # VPAs run updateMode:Off and recommend requests, not the limits that cause
+      # throttling), so this alert has no action. Dropped from notifications; still
+      # visible in the Alertmanager UI. Was previously scoped to the skill-filter
+      # sidecar only; broadened to the whole alertname (1400+ fire/resolve cycles/7d).
       - receiver: "null"
         matchers:
           - name: alertname
             value: CPUThrottlingHigh
-            matchType: =
-          - name: container
-            value: skill-filter
             matchType: =
       # Silence roundtable agent-sandbox churn: pods are ephemeral and restart/
       # crashloop/not-ready constantly by design, so warning/info pod-lifecycle alerts
