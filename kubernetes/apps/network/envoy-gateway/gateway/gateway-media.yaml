@@ -1,10 +1,11 @@
 ---
 # Dedicated EnvoyProxy for the media Gateway. Unlike the class-wide proxy
 # (externalTrafficPolicy: Cluster, which SNATs and hides the client IP), this
-# one uses Local so the real remote client IP survives to Envoy's access logs —
-# required for per-IP rate-limiting and CrowdSec accuracy on the WAN-facing
-# media surface. A gateway-scoped parametersRef fully REPLACES the class-wide
-# config for this gateway, so it must restate the Kubernetes provider.
+# one uses Local so the real remote client IP survives all the way to Plex
+# (Envoy forwards it via X-Forwarded-For) — so Tautulli logs real remote
+# viewer IPs, and a future Envoy rate-limit/CrowdSec policy can see per-IP.
+# A gateway-scoped parametersRef fully REPLACES the class-wide config for this
+# gateway, so it must restate the Kubernetes provider.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -14,10 +15,28 @@ spec:
   provider:
     type: Kubernetes
     kubernetes:
+      # Run Envoy as a DaemonSet (one pod per node) instead of the default
+      # single Deployment. externalTrafficPolicy: Local only forwards to a
+      # node-LOCAL backend, and Cilium L2 can announce the VIP from ANY node
+      # (the l2-policy selects all nodes, with no endpoint-awareness). A pod on
+      # every node guarantees the announcer always has a local backend — no
+      # blackhole. The control-plane toleration is required because the L2
+      # announcer can be a control-plane node (the internal gw already is), and
+      # those carry a NoSchedule taint a default DaemonSet would skip.
+      envoyDaemonSet:
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  tolerations:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: Exists
+                      effect: NoSchedule
       envoyService:
-        # Required for Cilium L2 announcements (matches the class-wide proxy).
-        # Local preserves the source IP; Cilium announces the VIP from a node
-        # running a ready envoy-media pod.
+        # Preserve the real client source IP (no SNAT). Paired with the
+        # DaemonSet above so every potential L2 announcer has a local backend.
         patch:
           type: StrategicMerge
           value:
