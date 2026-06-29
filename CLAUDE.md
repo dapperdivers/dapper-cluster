@@ -1,11 +1,13 @@
 # Dapper Cluster - Home Operations Repository
 
 ## Overview
+
 This is a GitOps-managed Kubernetes home cluster running on Talos Linux with Flux CD for automated deployments. The infrastructure follows Infrastructure as Code (IaC) principles with comprehensive monitoring, automation, and self-healing capabilities.
 
 ## Repository Structure
 
 ### Core Directories
+
 - **`kubernetes/`** - Main Kubernetes manifests and configurations
 - **`docs/`** - Documentation built with mdBook
 - **`memory-bank/`** - Claude Code memory files for context persistence
@@ -13,6 +15,7 @@ This is a GitOps-managed Kubernetes home cluster running on Talos Linux with Flu
 - **`resource-recommendations/`** - VPA and resource optimization data
 
 ### Kubernetes Applications Structure (`kubernetes/apps/`)
+
 - **`actions-runner-system/`** - GitHub Actions self-hosted runners
 - **`ai/`** - AI/ML workloads (LiteLLM, n8n, Ollama, Open WebUI, Wyoming Whisper)
 - **`cert-manager/`** - TLS certificate management
@@ -23,7 +26,7 @@ This is a GitOps-managed Kubernetes home cluster running on Talos Linux with Flu
 - **`home-automation/`** - Home automation stack (ESPHome, Home Assistant, Node-RED, Zigbee2MQTT)
 - **`kube-system/`** - Core Kubernetes system components
 - **`kyverno/`** - Policy engine for Kubernetes
-- **`media/`** - Media server stack (Plex, *arr apps, Overseerr, etc.)
+- **`media/`** - Media server stack (Plex, \*arr apps, Overseerr, etc.)
 - **`network/`** - Networking components (Ingress, DNS, SMTP relay)
 - **`observability/`** - Monitoring stack (Prometheus, Grafana, Loki, Gatus)
 - **`openebs-system/`** - OpenEBS storage system
@@ -32,18 +35,19 @@ This is a GitOps-managed Kubernetes home cluster running on Talos Linux with Flu
 - **`storage/`** - Storage providers and volume management
 - **`system-upgrade/`** - Automated system upgrades
 
-
 ## Key Patterns
 
 ### Common Components Pattern
 
 **IMPORTANT**: All namespace-level kustomizations should inherit common components by including:
+
 ```yaml
 components:
   - ../../flux/components/common
 ```
 
 The common components at `/kubernetes/flux/components/common/` provide:
+
 - Namespace creation
 - Shared repository definitions (app-template, etc.)
 - SOPS secret management configuration
@@ -58,7 +62,7 @@ The common components at `/kubernetes/flux/components/common/` provide:
    kind: Kustomization
    namespace: <namespace>
    components:
-     - ../../flux/components/common  # Always include this!
+     - ../../flux/components/common # Always include this!
    resources:
      - ./<app-name>/ks.yaml
    ```
@@ -99,6 +103,7 @@ Each application follows this standardized structure:
 ### File Naming Standards
 
 #### Core Infrastructure Files
+
 - **`ks.yaml`**: Flux Kustomization (always at app root level)
 - **`kustomization.yaml`**: Kustomize resource lists (in each directory)
 - **`helmrelease.yaml`**: Combined HelmRepository + HelmRelease definitions
@@ -106,12 +111,14 @@ Each application follows this standardized structure:
 - **`kustomizeconfig.yaml`**: Kustomize configuration (in `helm/` subdirectory)
 
 #### Security and Configuration
+
 - **`secret.sops.yaml`**: SOPS-encrypted secrets (single resource)
 - **`secrets.sops.yaml`**: SOPS-encrypted secrets (multiple resources)
 - **`configmap.yaml`**: Application configuration
 - **`namespace.yaml`**: Namespace definitions (when not using common components)
 
 #### Network and Gateway Resources
+
 - **`certificate.yaml`**: TLS certificate definitions
 - **`external.yaml`**: External-facing Gateway resources
 - **`internal.yaml`**: Internal Gateway resources
@@ -123,6 +130,7 @@ Each application follows this standardized structure:
 - **`security-policy.yaml`**: Security policies (OIDC, CORS, rate limiting)
 
 #### Storage and Backup
+
 - **`pvc.yaml`**: PersistentVolumeClaim definitions
 - **`storageclass.yaml`**: StorageClass definitions
 - **`schedule.yaml`**: K8up backup schedules
@@ -130,6 +138,7 @@ Each application follows this standardized structure:
 - **`prune.yaml`**: Backup pruning configurations
 
 #### Cluster Management
+
 - **`clusterissuer.yaml`**: cert-manager ClusterIssuer definitions
 - **`receiver.yaml`**: Flux webhook receivers
 - **`crds.yaml`**: Custom Resource Definitions (often just comments referencing Helm)
@@ -137,6 +146,7 @@ Each application follows this standardized structure:
 ### Resource Type Placement
 
 #### By Directory Structure
+
 - **Flux Resources**: `ks.yaml` files at app/component root
 - **Helm Charts**: `helmrelease.yaml` in `app/` directory
 - **Helm Values**: `helm/values.yaml` with `helm/kustomizeconfig.yaml`
@@ -146,13 +156,13 @@ Each application follows this standardized structure:
 - **Custom Resources**: Named by resource type (e.g., `serviceaccount.yaml`, `rbac.yaml`)
 
 #### By Resource Category
+
 - **Storage Resources**: `pvc.yaml`, `storageclass.yaml` in storage applications
 - **Security Policies**: `security-policy.yaml` for authentication, authorization, CORS
 - **DNS/Networking**: `dnsendpoint.yaml`, `httproute.yaml` for external connectivity
 - **Backup Resources**: `schedule.yaml`, `check.yaml`, `prune.yaml` for K8up operations
 - **Certificate Management**: `clusterissuer.yaml`, `certificate.yaml` for TLS
 - **Monitoring/Observability**: Resources often embedded in `envoyproxy.yaml` or separate files
-
 
 ### Multi-Component Applications
 
@@ -172,6 +182,7 @@ For complex applications with multiple components (like Cilium with app + gatewa
 ```
 
 ### Bootstrap & Configuration (`kubernetes/bootstrap/`)
+
 - **`talos/`** - Talos Linux cluster configuration
   - `clusterconfig/` - Node-specific configurations
   - `patches/` - Cluster patches and customizations
@@ -179,11 +190,13 @@ For complex applications with multiple components (like Cilium with app + gatewa
 - **`apps/`** - Helmfile for initial application deployment
 
 ### Flux Configuration (`kubernetes/flux/`)
+
 - **`cluster/`** - Cluster-wide Flux resources
 - **`components/`** - Reusable components and templates
 - **`meta/`** - Helm repositories and metadata
 
 ## Key Technologies
+
 - **OS**: Talos Linux (immutable Kubernetes-focused OS)
 - **GitOps**: Flux CD v2
 - **Networking**: Cilium CNI with L2 announcements
@@ -195,57 +208,78 @@ For complex applications with multiple components (like Cilium with app + gatewa
 
 ## Common Tasks
 
+Run `task` (or `task default`) with no arguments to list every available task.
+
 ### Cluster Operations
+
 ```bash
-# Check cluster status
-task kubernetes:check
+# Force Flux to reconcile from Git
+task reconcile
 
-# Apply Kubernetes resources
-task kubernetes:apply
+# Decode a Secret to plaintext [NS=default] [SECRET=required] [KEY=optional]
+task kubernetes:view-secret SECRET=<name>
 
-# View cluster resources
-task resources:summary
+# Sync all ExternalSecrets
+task kubernetes:sync-secrets
+
+# Reinstall a HelmRelease [NS=default] [HR=required]
+task kubernetes:restart-helmrelease HR=<name>
 ```
 
 ### Talos Operations
+
 ```bash
 # Generate Talos configuration
-task talos:genconfig
+task talos:generate-config
 
-# Apply Talos configuration
-task talos:apply
+# Apply config to all nodes / a single node [IP=required]
+task talos:apply-cluster
+task talos:apply-node IP=<ip>
 
-# Bootstrap cluster
-task talos:bootstrap
+# Bootstrap the cluster (then the apps)
+task bootstrap:talos
+task bootstrap:apps
 ```
 
 ### Volume Management
-```bash
-# Unlock VolSync volumes
-task volsync:unlock
 
-# List VolSync jobs
+```bash
+# List all VolSync backups and their last sync time
 task volsync:list
+
+# Unlock a single / every VolSync Restic repo
+task volsync:unlock NS=<ns> REPO=<name>
+task volsync:unlock-all
+
+# Snapshot or restore an app [NS=default] [APP=required]
+task volsync:snapshot APP=<name>
+task volsync:restore APP=<name> PREVIOUS=<n>
 ```
 
 ## Application Categories
 
 ### Media Stack
+
 Complete media automation with Plex, Sonarr, Radarr, Prowlarr, Overseerr, and related tools for both standard and UHD content.
 
 ### Home Automation
+
 Comprehensive home automation using Home Assistant, ESPHome, Node-RED, and Zigbee2MQTT for device management.
 
 ### AI/ML Services
+
 Local AI inference with Ollama, LiteLLM proxy, Open WebUI, and automation workflows via n8n.
 
 ### Observability
+
 Full-stack monitoring with Prometheus metrics, Grafana dashboards, Loki logging, and Gatus uptime monitoring.
 
 ### Self-hosted Applications
+
 Various productivity and utility applications including Paperless-NGX, Actual budget, Atuin shell history, and more.
 
 ## External Integrations
+
 - **DNS**: External DNS with Cloudflare
 - **Ingress**: NGINX ingress controllers (internal/external)
 - **Certificates**: Let's Encrypt via cert-manager
@@ -253,6 +287,7 @@ Various productivity and utility applications including Paperless-NGX, Actual bu
 - **Secrets**: Infisical for secret management
 
 ## Security Features
+
 - Age-encrypted secrets with SOPS
 - Authentik SSO for application access
 - Network policies via Cilium
@@ -260,6 +295,7 @@ Various productivity and utility applications including Paperless-NGX, Actual bu
 - Regular automated security updates
 
 ## Backup Strategy
+
 - VolSync for application data replication
 - PostgreSQL automated backups via CloudNative-PG
 - Configuration stored in Git for disaster recovery
@@ -267,7 +303,6 @@ Various productivity and utility applications including Paperless-NGX, Actual bu
 This cluster represents a production-ready home lab environment with enterprise-grade tooling and practices scaled for personal use.
 
 ## Important Notes
-
 
 - Never commit unencrypted secrets
 - Always test Talos config changes on a single node first

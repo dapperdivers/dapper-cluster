@@ -1,164 +1,58 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: '3'
+version: "3"
 
+set: [pipefail]
+
+# yaml-tools.sh parses --exclude and --dry-run itself, so every task can pass
+# CLI_ARGS straight through. Invoke options after `--`, e.g.:
+#   task yaml:standardize-all -- --exclude bootstrap --dry-run
 vars:
-  SCRIPT_PATH: '{{.ROOT_DIR}}/.taskfiles/yaml/yaml-tools.sh'
+  SCRIPT_PATH: "{{.ROOT_DIR}}/.taskfiles/yaml/yaml-tools.sh"
 
 tasks:
   standardize:
     desc: Standardize a single YAML file by ordering keys according to conventions
-    cmds:
-      - "bash {{.SCRIPT_PATH}} standardize {{.CLI_ARGS | default ''}}"
-    preconditions:
+    cmd: bash {{.SCRIPT_PATH}} standardize {{.CLI_ARGS | default ""}}
+    preconditions: &script-exists
       - sh: test -f "{{.SCRIPT_PATH}}"
         msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
 
   standardize-all:
     desc: Standardize all YAML files in the kubernetes directory
-    cmds:
-      - |
-        CLI_ARGS="{{.CLI_ARGS}}"
-        exclude_args=""
-        while [[ "$CLI_ARGS" == *"--exclude"* ]]; do
-          pattern="${CLI_ARGS#*--exclude }"
-          pattern="${pattern%% --exclude*}"
-          pattern="${pattern%% --*}"
-          exclude_args="$exclude_args --exclude $pattern"
-          CLI_ARGS="${CLI_ARGS%%--exclude $pattern*}${CLI_ARGS#*--exclude $pattern}"
-          # Clean up any double spaces created by the substitution
-          CLI_ARGS="${CLI_ARGS/  / }"
-          # Trim leading/trailing spaces
-          CLI_ARGS="${CLI_ARGS## }"
-          CLI_ARGS="${CLI_ARGS%% }"
-        done
-
-        # Handle remaining args (like --dry-run)
-        remaining_args=""
-        if [[ "$CLI_ARGS" == *"--dry-run"* ]]; then
-          remaining_args="$remaining_args --dry-run"
-        fi
-
-        bash {{.SCRIPT_PATH}} standardize-all $exclude_args $remaining_args
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} standardize-all {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   validate:
     desc: Validate a single YAML file using kubeconform or kubectl
-    cmds:
-      - "bash {{.SCRIPT_PATH}} validate {{.CLI_ARGS | default ''}}"
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} validate {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   validate-all:
     desc: Validate all YAML files in the kubernetes directory
-    cmds:
-      - |
-        CLI_ARGS="{{.CLI_ARGS}}"
-        exclude_args=""
-        while [[ "$CLI_ARGS" == *"--exclude"* ]]; do
-          pattern="${CLI_ARGS#*--exclude }"
-          pattern="${pattern%% --exclude*}"
-          pattern="${pattern%% --*}"
-          exclude_args="$exclude_args --exclude $pattern"
-          CLI_ARGS="${CLI_ARGS%%--exclude $pattern*}${CLI_ARGS#*--exclude $pattern}"
-          # Clean up any double spaces created by the substitution
-          CLI_ARGS="${CLI_ARGS/  / }"
-          # Trim leading/trailing spaces
-          CLI_ARGS="${CLI_ARGS## }"
-          CLI_ARGS="${CLI_ARGS%% }"
-        done
-
-        # Handle remaining args
-        remaining_args=""
-        if [[ "$CLI_ARGS" == *"--dry-run"* ]]; then
-          remaining_args="$remaining_args --dry-run"
-        fi
-
-        bash {{.SCRIPT_PATH}} validate-all $exclude_args $remaining_args
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} validate-all {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   diff:
     desc: Show diff between original and standardized YAML without making changes
-    cmds:
-      - "bash {{.SCRIPT_PATH}} diff {{.CLI_ARGS | default ''}}"
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} diff {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   diff-all:
     desc: Show diffs for all files without making changes
-    cmds:
-      - |
-        CLI_ARGS="{{.CLI_ARGS}}"
-        exclude_args=""
-        while [[ "$CLI_ARGS" == *"--exclude"* ]]; do
-          pattern="${CLI_ARGS#*--exclude }"
-          pattern="${pattern%% --exclude*}"
-          pattern="${pattern%% --*}"
-          exclude_args="$exclude_args --exclude $pattern"
-          CLI_ARGS="${CLI_ARGS%%--exclude $pattern*}${CLI_ARGS#*--exclude $pattern}"
-          # Clean up any double spaces created by the substitution
-          CLI_ARGS="${CLI_ARGS/  / }"
-          # Trim leading/trailing spaces
-          CLI_ARGS="${CLI_ARGS## }"
-          CLI_ARGS="${CLI_ARGS%% }"
-        done
-
-        # Handle remaining args
-        remaining_args=""
-        if [[ "$CLI_ARGS" == *"--dry-run"* ]]; then
-          remaining_args="$remaining_args --dry-run"
-        fi
-
-        bash {{.SCRIPT_PATH}} diff-all $exclude_args $remaining_args
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} diff-all {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   verify:
     desc: Standardize a YAML file and verify it still works (standardize + validate)
-    cmds:
-      - "bash {{.SCRIPT_PATH}} verify {{.CLI_ARGS | default ''}}"
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} verify {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   verify-all:
     desc: Standardize all YAML files and verify they still work (standardize-all + validate-all)
-    cmds:
-      - |
-        CLI_ARGS="{{.CLI_ARGS}}"
-        exclude_args=""
-        while [[ "$CLI_ARGS" == *"--exclude"* ]]; do
-          pattern="${CLI_ARGS#*--exclude }"
-          pattern="${pattern%% --exclude*}"
-          pattern="${pattern%% --*}"
-          exclude_args="$exclude_args --exclude $pattern"
-          CLI_ARGS="${CLI_ARGS%%--exclude $pattern*}${CLI_ARGS#*--exclude $pattern}"
-          # Clean up any double spaces created by the substitution
-          CLI_ARGS="${CLI_ARGS/  / }"
-          # Trim leading/trailing spaces
-          CLI_ARGS="${CLI_ARGS## }"
-          CLI_ARGS="${CLI_ARGS%% }"
-        done
-
-        # Handle remaining args
-        remaining_args=""
-        if [[ "$CLI_ARGS" == *"--dry-run"* ]]; then
-          remaining_args="$remaining_args --dry-run"
-        fi
-
-        bash {{.SCRIPT_PATH}} verify-all $exclude_args $remaining_args
-    preconditions:
-      - sh: test -f "{{.SCRIPT_PATH}}"
-        msg: "yaml-tools.sh script not found at {{.SCRIPT_PATH}}"
+    cmd: bash {{.SCRIPT_PATH}} verify-all {{.CLI_ARGS | default ""}}
+    preconditions: *script-exists
 
   install-deps:
     desc: Install required dependencies for YAML standardization
-    cmds:
-      - pip install ruamel.yaml
+    cmd: pip install ruamel.yaml

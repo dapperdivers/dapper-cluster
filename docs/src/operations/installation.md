@@ -26,22 +26,26 @@ graph TD
 ## Hardware Requirements
 
 ### Control Plane Nodes (3x)
+
 - CPU: 4 cores per node
 - RAM: 16GB per node
 - Role: Cluster control plane
 
 ### GPU Worker Node (1x)
+
 - CPU: 16 cores
 - RAM: 128GB
 - GPU: 4x NVIDIA Tesla P100
 - Role: GPU-accelerated workloads
 
 ### Worker Nodes (2x)
+
 - CPU: 16 cores per node
 - RAM: 128GB per node
 - Role: General workloads
 
 ## Software Prerequisites
+
 1. Operating System
    - Linux distribution
    - Updated system packages
@@ -58,6 +62,7 @@ graph TD
 ## Initial Setup
 
 ### 1. Repository Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/username/dapper-cluster.git
@@ -80,6 +85,7 @@ graph LR
 ```
 
 #### Edit Configuration
+
 ```yaml
 cluster:
   name: dapper-cluster
@@ -92,10 +98,11 @@ storage:
   ceph:
     # External Ceph cluster connection
     # Configured via Rook operator after bootstrap
-    monitors: []  # Set during Rook deployment
+    monitors: [] # Set during Rook deployment
 ```
 
 ### 3. Secrets Management
+
 - Generate age key
 - Configure SOPS
 - Encrypt sensitive files
@@ -112,12 +119,14 @@ graph TD
 ```
 
 #### Bootstrap Commands
-```bash
-# Initialize flux
-task flux:bootstrap
 
-# Verify installation
-task cluster:verify
+```bash
+# Bootstrap Talos, then deploy apps (installs Flux)
+task bootstrap:talos
+task bootstrap:apps
+
+# Force Flux to reconcile from Git
+task reconcile
 
 # Verify GPU support
 kubectl get nodes -o wide
@@ -127,6 +136,7 @@ nvidia-smi # on GPU node
 ## Post-Installation
 
 ### 1. Verify Components
+
 - Check control plane health
 - Verify worker node status
 - Test GPU functionality
@@ -135,12 +145,14 @@ nvidia-smi # on GPU node
 - Verify network connectivity
 
 ### 2. Deploy Applications
+
 - Deploy core services
 - Configure monitoring
 - Setup backup systems
 - Deploy GPU-enabled workloads
 
 ### 3. Security Setup
+
 - Configure network policies
 - Setup certificate management
 - Enable monitoring and alerts
@@ -180,6 +192,7 @@ Common installation issues and solutions:
 ## Maintenance
 
 ### Regular Tasks
+
 1. System updates
 2. Certificate renewal
 3. Backup verification
@@ -187,6 +200,7 @@ Common installation issues and solutions:
 5. GPU driver updates
 
 ### Health Checks
+
 - Component status
 - Resource usage
 - Storage capacity
@@ -196,6 +210,7 @@ Common installation issues and solutions:
 ## Next Steps
 
 After successful installation:
+
 1. Review [Architecture Overview](../architecture/overview.md)
 2. Configure [Storage](../architecture/storage.md)
 3. Setup [Network](../architecture/network.md)

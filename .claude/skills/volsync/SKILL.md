@@ -39,11 +39,11 @@ compatible uid/gid).
 **2. `helmrelease.yaml`** — mount the PVC the `operations` component creates (named `${APP}`):
 
 ```yaml
-    persistence:
-      data:
-        existingClaim: ntfy           # == ${APP}
-        globalMounts:
-          - path: /var/lib/ntfy
+persistence:
+  data:
+    existingClaim: ntfy # == ${APP}
+    globalMounts:
+      - path: /var/lib/ntfy
 ```
 
 **3. Restic secrets** — the components pull repo creds from Infisical via ExternalSecrets that use the
@@ -94,8 +94,11 @@ task volsync:unlock-all                            # sweep every ReplicationSour
 ```
 
 Related Taskfile helpers (`.taskfiles/volsync/Taskfile.yaml`):
+
+- `task volsync:list` — show every ReplicationSource and its last backup time.
 - `task volsync:snapshot NS=<ns> APP=<app>` — trigger a manual backup and wait for the job.
-- `task volsync:list` — list VolSync jobs.
+- `task volsync:run NS=<ns> REPO=<app> -- snapshots` — run an arbitrary restic command (e.g. list snapshots).
+- `task volsync:restore NS=<ns> APP=<app> PREVIOUS=<n>` — restore an app from a backup.
 
 A stuck **restore** (the bootstrap trap above) is different from a stuck **backup** (stale lock): the
 former needs the backup directory to exist; the latter needs an unlock.
@@ -112,6 +115,7 @@ If the mover never runs, check the `${app}-volsync*` Secrets synced (ExternalSec
 backup directory exists.
 
 ## Related
+
 - Skill: `externalsecrets` (restic repo creds resolution).
 - Component docs: `kubernetes/flux/components/volsync/README.md`, `ARCHITECTURE.md`.
 - Memory: `project_infisical_find_path_bug.md` (the find:path bug once broke all volsync restic secrets).
