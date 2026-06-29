@@ -33,7 +33,7 @@ uv = "latest"
 "ubi:BeryJu/korb" = "latest"
 "aqua:evilmartians/lefthook" = "2.1.9"
 # Formatting & linting (run via lefthook git hooks)
-oxfmt = "0.56.0"
+oxfmt = "0.57.0"
 gitleaks = "8.30.1"
 zizmor = "1.26.1"
 helmfile = "latest"
