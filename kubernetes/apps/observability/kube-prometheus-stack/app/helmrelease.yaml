@@ -32,6 +32,15 @@ spec:
     crds:
       enabled: false
     cleanPrometheusOperatorObjectNames: true
+    defaultRules:
+      disabled:
+        # Stock etcd-mixin rule that fires when (in_use/total) < 0.5. Our etcd is
+        # ~430MB of a 1024MB quota (~42%), and Cilium L2 lease churn makes the
+        # ratio oscillate around 0.5 → ~9 firing/resolve cycles per member per
+        # day with no actionable remedy. etcdExcessiveDatabaseGrowth and
+        # etcdDatabaseQuotaLowSpace already cover the real "approaching quota"
+        # risk, so disabling this loses no safety. See project_etcd_flapping.
+        etcdDatabaseHighFragmentationRatio: true
     alertmanager:
       alertmanagerSpec:
         # External hostname so notification "View in Alertmanager" links resolve
