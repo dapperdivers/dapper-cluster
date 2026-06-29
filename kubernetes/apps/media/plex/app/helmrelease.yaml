@@ -18,10 +18,6 @@ spec:
       strategy: rollback
       retries: 3
   dependsOn:
-    - name: intel-device-plugin-gpu
-      namespace: kube-system
-    - name: nvidia-device-plugin
-      namespace: kube-system
     - name: volsync
       namespace: storage
   values:
@@ -30,8 +26,21 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
-          nodeSelector:
-            nvidia.feature.node.kubernetes.io/gpu: "true"
+          # The P100 (GP100) has no NVENC encoder, so hardware transcoding is
+          # impossible on the GPU node — Plex was stalling on a dead NVENC path.
+          # Pin Plex to the high-CPU large nodes (16 cores each) for software
+          # transcoding instead.
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - talos-node-large-1
+                          - talos-node-large-2
+                          - talos-node-large-3
         containers:
           app:
             image:
@@ -42,8 +51,6 @@ spec:
               PLEX_LAN_NETWORKS: 192.168.1.0/24,10.100.0.0/24,10.69.0.0/16
               PLEX_ADVERTISE_URL: https://plex.${SECRET_DOMAIN_MEDIA}:443,http://${PLEX_VIP_GATEWAY}:32400
               PLEX_NO_AUTH_NETWORKS: 192.168.1.0/24,10.69.0.0/16
-              NVIDIA_DRIVER_CAPABILITIES: all
-              NVIDIA_VISIBLE_DEVICES: all
             envFrom:
               - configMapRef:
                   name: plex-preferences
@@ -55,11 +62,9 @@ spec:
               requests:
                 cpu: 4000m
                 memory: 12Gi
-                nvidia.com/gpu: 1
               limits:
                 cpu: 8000m
                 memory: 32Gi
-                nvidia.com/gpu: 1
           imagemaid:
             image:
               repository: docker.io/kometateam/imagemaid
@@ -82,7 +87,6 @@ spec:
               limits:
                 memory: 2Gi
     defaultPodOptions:
-      runtimeClassName: nvidia
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -97,7 +101,7 @@ spec:
         type: LoadBalancer
         controller: *app
         annotations:
-          lbipam.cilium.io/ips: &ip ${PLEX_VIP_GATEWAY}
+          lbipam.cilium.io/ips: ${PLEX_VIP_GATEWAY}
         ports:
           http:
             port: &port 32400
@@ -152,7 +156,7 @@ spec:
                   value: /
             backendRefs:
               - identifier: app
-                port: 32400
+                port: *port
             timeouts:
               request: 0s
               backendRequest: 0s
