@@ -20,8 +20,8 @@ spec:
     # inside this ConfigMap are discovered + applied as blueprints.
     blueprints:
       configMaps:
-        - authentik-blueprints   # forward-auth proxy providers + apps + outpost
-        - authentik-oidc         # native-OIDC providers + apps
+        - authentik-blueprints # forward-auth proxy providers + apps + outpost
+        - authentik-oidc # native-OIDC providers + apps
     global:
       podAnnotations:
         reloader.stakater.com/auto: "true"
@@ -53,6 +53,29 @@ spec:
         db: 1
         port: 6379
     server:
+      # HA: a single replica made every gunicorn worker-recycle / slow boot a
+      # user-visible stall — Envoy "upstream request timeout" + flaky OIDC 401s
+      # (a ~60s auth code expiring mid-stall). Two replicas + a PDB keep sso up
+      # through recycles, rollouts, and node drains.
+      replicas: 2
+      pdb:
+        enabled: true
+        minAvailable: 1
+      resources:
+        requests:
+          cpu: 200m
+          memory: 768Mi
+        # memory cap only — NO cpu limit on purpose: a cpu limit would reintroduce
+        # throttling during slow boots/bursts (the very stalls we're fixing).
+        limits:
+          memory: 1536Mi
+      # gunicorn server boot has been observed up to ~60s; tolerate slow starts
+      # (~240s) so a fresh replica isn't killed mid-boot into a crashloop.
+      startupProbe:
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        timeoutSeconds: 15
+        failureThreshold: 24
       podSecurityContext:
         fsGroup: 150
       securityContext:
