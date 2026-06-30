@@ -28,14 +28,16 @@ instance:
         target:
           group: kustomize.toolkit.fluxcd.io
           kind: Kustomization
-      - # Increase the number of workers
+      - # Worker concurrency (base for all controllers; kustomize-controller is
+        # raised separately below). Kept low to flatten the per-push reconcile
+        # burst against Ceph-RBD-backed etcd rather than maximize throughput.
         patch: |
           - op: add
             path: /spec/template/spec/containers/0/args/-
-            value: --concurrent=10
+            value: --concurrent=4
           - op: add
             path: /spec/template/spec/containers/0/args/-
-            value: --requeue-dependency=5s
+            value: --requeue-dependency=30s
         target:
           kind: Deployment
           name: (kustomize-controller|helm-controller|source-controller)
@@ -73,11 +75,14 @@ instance:
         target:
           kind: Deployment
           name: kustomize-controller
-      - # Enable in-memory kustomize builds
+      - # Enable in-memory kustomize builds + kustomize-controller concurrency.
+        # Overrides the base --concurrent=4 above; the single GitRepository source
+        # fans out to ~116 Kustomizations on every push, so this caps how wide
+        # that burst applies in parallel (lower = gentler on etcd, slower sync).
         patch: |
           - op: add
             path: /spec/template/spec/containers/0/args/-
-            value: --concurrent=20
+            value: --concurrent=5
           - op: replace
             path: /spec/template/spec/volumes/0
             value:
