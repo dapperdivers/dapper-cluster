@@ -92,18 +92,6 @@ instance:
         target:
           kind: Deployment
           name: kustomize-controller
-      - # Disable strict postBuild substitution (default true since Flux 2.x).
-        # Grafana dashboards (${ds_prometheus}) and app config templates
-        # (posterizarr ${FANARTTV_API_KEY}) embed ${...} meant for downstream
-        # consumers, not Flux — strict mode false-positives on them.
-        # TODO: proper fix is $$-escaping those files so we can re-enable strict.
-        patch: |
-          - op: add
-            path: /spec/template/spec/containers/0/args/-
-            value: --feature-gates=StrictPostBuildSubstitutions=false
-        target:
-          kind: Deployment
-          name: kustomize-controller
       - # Enable Helm repositories caching
         patch: |
           - op: add
