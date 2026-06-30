@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name:  &app kometa
+  name: &app kometa
 spec:
   interval: 30m
   chartRef:
@@ -92,11 +92,19 @@ spec:
     defaultPodOptions:
       affinity:
         podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: plex
-            topologyKey: kubernetes.io/hostname
+          # Prefer (not require) co-location with Plex. The shared volumes
+          # (kometa config + plex-posters-cephfs assets) are RWX CephFS, so
+          # multi-node mounts work fine — co-location is just a locality
+          # optimization now. A hard requirement shackled this 4-CPU job to
+          # Plex's node, which can fill past its CPU request and leave Kometa
+          # Pending until activeDeadlineSeconds reaps it (DeadlineExceeded).
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: plex
+                topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -112,8 +120,8 @@ spec:
       assets:
         existingClaim: plex-posters-cephfs
         globalMounts:
-        - path: /assets
-          subPath: assets
+          - path: /assets
+            subPath: assets
       git:
         type: emptyDir
         globalMounts:
