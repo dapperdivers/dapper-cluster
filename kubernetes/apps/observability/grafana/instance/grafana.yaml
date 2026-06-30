@@ -63,14 +63,15 @@ spec:
               env:
                 - name: GF_INSTALL_PLUGINS
                   value: grafana-clock-panel,grafana-piechart-panel,grafana-worldmap-panel,natel-discrete-panel,pr0ps-trackmap-panel,victoriametrics-logs-datasource,vonage-status-panel
-                # Admin user stays "admin" — the grafana-operator authenticates to
-                # the instance API as "admin" over basic auth (which must stay
-                # enabled). Only the password is overridden from our secret.
-                - name: GF_SECURITY_ADMIN_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: grafana-secret
-                      key: admin-password
+                # Admin credentials are owned by the operator: it generates the
+                # `grafana-admin-credentials` Secret (user `admin`), injects it,
+                # AND uses it to authenticate to the instance API over basic auth.
+                # Do NOT override GF_SECURITY_ADMIN_USER/PASSWORD here — that
+                # desyncs the operator from the real admin and breaks dashboard
+                # provisioning (403 folders:create). Break-glass password:
+                #   kubectl get secret grafana-admin-credentials -n observability \
+                #     -o jsonpath='{.data.GF_SECURITY_ADMIN_PASSWORD}' | base64 -d
+                # Day-to-day login is Authentik OIDC.
                 - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
                   valueFrom:
                     secretKeyRef:
