@@ -93,10 +93,11 @@ instance:
           kind: Deployment
           name: kustomize-controller
       - # Disable strict postBuild substitution (default true since Flux 2.x).
-        # Grafana dashboards (${ds_prometheus}) and app config templates
-        # (posterizarr ${FANARTTV_API_KEY}) embed ${...} meant for downstream
-        # consumers, not Flux — strict mode false-positives on them.
-        # TODO: proper fix is $$-escaping those files so we can re-enable strict.
+        # Grafana dashboards and app config templates (e.g. posterizarr) embed
+        # dollar-brace template vars meant for downstream consumers, not Flux;
+        # strict mode false-positives on them. Follow-up: escape those files so
+        # the gate can be re-enabled. (Comment kept free of dollar-brace on
+        # purpose: this configmap is itself postBuild-substituted.)
         patch: |
           - op: add
             path: /spec/template/spec/containers/0/args/-
