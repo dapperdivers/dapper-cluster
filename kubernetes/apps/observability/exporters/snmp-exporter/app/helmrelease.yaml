@@ -27,18 +27,55 @@ spec:
       namespace: observability
   values:
     fullnameOverride: *app
+    # Restart the pod when snmp-exporter-secret rotates (community change).
+    podAnnotations:
+      reloader.stakater.com/auto: "true"
+    # The exporter ships a complete snmp.yml (modules incl. if_mib + default
+    # public_v1/public_v2 auths) baked into the image at /etc/snmp_exporter.
+    # We DON'T set .Values.config (that would force us to vendor the whole
+    # ~2MB generated file). Instead we merge the bundled config with a small
+    # secret-mounted auths fragment via repeated --config.file, so the
+    # read-only community string never lands in Git.
+    extraArgs:
+      - "--config.file=/etc/snmp_exporter/snmp.yml"
+      - "--config.file=/etc/snmp-secret/snmp-auth.yml"
+    extraSecretMounts:
+      - name: snmp-auth
+        mountPath: /etc/snmp-secret/snmp-auth.yml
+        subPath: snmp-auth.yml
+        secretName: snmp-exporter-secret
+        readOnly: true
+        defaultMode: 420
     serviceMonitor:
       enabled: true
-      params:
-        #- name: apcups
-        #  module: ["apcups"]
-        #  target:
-        #  auth: ["public_v2"]
-        #- name: dell
-        #  module: ["dell"]
-        #  target: 192.168.1.82
-        #  auth: ["public_v2"]
-      path: /snmp
+      # if_mib only keeps cardinality (and thus Prometheus/Ceph write load)
+      # negligible; 60s is plenty for interface counters and error trends.
+      interval: 60s
       scrapeTimeout: 10s
+      module:
+        - if_mib
+      # auth "ro_v2" comes from the secret-mounted fragment; "public_v2" is the
+      # image default (community: public), used for the CSS326 until its
+      # community is changed in the SwOS web UI.
+      params:
+        - name: brocade-core # 192.168.1.20 ICX6610 core / L3
+          target: 192.168.1.20
+          auth: ["ro_v2"]
+        - name: arista-dist # 192.168.1.21 7050 distribution (Ceph 40G)
+          target: 192.168.1.21
+          auth: ["ro_v2"]
+        - name: aruba-access # 192.168.1.26 S2500 house access / PoE
+          target: 192.168.1.26
+          auth: ["ro_v2"]
+        - name: nray-house # 192.168.1.7 60GHz bridge (house)
+          target: 192.168.1.7
+          auth: ["ro_v2"]
+        - name: nray-shop # 192.168.1.8 60GHz bridge (garage)
+          target: 192.168.1.8
+          auth: ["ro_v2"]
+        - name: css326-bridge # 192.168.1.27 SwOS bridge aggregation
+          target: 192.168.1.27
+          auth: ["public_v2"]
+      path: /snmp
       relabelings:
         - { sourceLabels: ["__param_target"], targetLabel: instance }

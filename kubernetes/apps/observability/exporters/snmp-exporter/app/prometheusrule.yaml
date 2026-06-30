@@ -19,3 +19,41 @@ spec:
           for: 30s
           labels:
             severity: critical
+    - name: snmp-network.rules
+      rules:
+        # Fires only on ports the operator has DESCRIBED with an infra keyword
+        # (uplink/lag/po#/trunk/ceph/bridge/core/sfp) so unused, undescribed
+        # access ports never alarm. Set ifAlias (port description) on the
+        # uplink / LAG-member / Ceph links you care about to arm this.
+        - alert: SNMPInterfaceDown
+          expr: |
+            (ifOperStatus{ifAlias=~"(?i).*(uplink|lag|lacp|po\\d|port-?channel|trunk|ceph|bridge|core|sfp).*"} == 2)
+              and on (instance, ifIndex)
+            (ifAdminStatus == 1)
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: >
+              {{ $labels.target }} interface {{ $labels.ifName }} is down ({{ $labels.ifAlias }})
+            description: >
+              Admin-up infrastructure interface {{ $labels.ifName }} on {{ $labels.target }}
+              ({{ $labels.instance }}) — "{{ $labels.ifAlias }}" — has been operationally down
+              for 5m. A LAG/uplink member down means a degraded (or, if unredundant, severed) link.
+        # Error/discard rate on any interface. Universally a cabling / duplex /
+        # optic / saturation problem, so not scoped by description; the 1/s
+        # threshold over 15m filters transient blips.
+        - alert: SNMPInterfaceErrors
+          expr: |
+            rate(ifInErrors[5m]) + rate(ifOutErrors[5m])
+              + rate(ifInDiscards[5m]) + rate(ifOutDiscards[5m]) > 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: >
+              {{ $labels.target }} interface {{ $labels.ifName }} error/discard rate elevated
+            description: >
+              {{ $labels.ifName }} on {{ $labels.target }} ({{ $labels.instance }}) is logging
+              {{ printf "%.1f" $value }} errors+discards/sec (avg 5m) — check cabling, duplex,
+              optic, or link saturation.
