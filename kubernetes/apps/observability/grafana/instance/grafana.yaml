@@ -88,3 +88,22 @@ spec:
                   memory: 512Mi
                 limits:
                   memory: 2Gi
+          # Grafana runs as uid/gid 10001; fsGroup makes the persisted volume
+          # group-writable so it can store its sqlite DB (operator-pushed
+          # dashboards/datasources live there and must survive pod restarts).
+          securityContext:
+            fsGroup: 10001
+            fsGroupChangePolicy: OnRootMismatch
+          volumes:
+            # Override the operator's default emptyDir for /var/lib/grafana with
+            # the persistent claim created from spec.persistentVolumeClaim below.
+            - name: grafana-data
+              persistentVolumeClaim:
+                claimName: grafana-pvc
+  persistentVolumeClaim:
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: ceph-rbd
