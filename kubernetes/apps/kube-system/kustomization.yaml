@@ -17,4 +17,5 @@ resources:
   - ./gpu-plugins/intel-device-plugin/ks.yaml
   - ./node-feature-discovery/ks.yaml
   - ./nut-upsd/ks.yaml
+  - ./prometheus-operator-crds/ks.yaml
   - ./reflector/ks.yaml
