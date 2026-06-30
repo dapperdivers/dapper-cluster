@@ -5,6 +5,7 @@ This document covers the Kubernetes application-level networking. For physical n
 ## Container Networking (CNI)
 
 ### Cilium CNI
+
 The cluster uses **Cilium** as the primary Container Network Interface (CNI):
 
 - **Pod CIDR**: 10.69.0.0/16 (native routing mode)
@@ -16,12 +17,14 @@ The cluster uses **Cilium** as the primary Container Network Interface (CNI):
 - **BPF Masquerading**: Enabled for outbound traffic
 
 **Key Features**:
+
 - High-performance eBPF data plane
 - Native Kubernetes network policy support
 - L2 announcements for external load balancer IPs
 - Advanced observability and monitoring
 
 ### Multus CNI (Multiple Networks)
+
 **Multus** provides additional network interfaces to pods beyond the primary Cilium network:
 
 - **Primary Use**: IoT network attachment (VLAN-based isolation)
@@ -30,34 +33,31 @@ The cluster uses **Cilium** as the primary Container Network Interface (CNI):
 - **Purpose**: Enable pods to connect to additional networks (e.g., IoT devices, legacy systems)
 
 Pods can request additional networks via annotations:
+
 ```yaml
 metadata:
   annotations:
     k8s.v1.cni.cncf.io/networks: macvlan-conf
 ```
 
-## Ingress Controllers
+## Gateway API (Envoy Gateway)
 
-The cluster uses **dual ingress-nginx controllers** for traffic routing:
+The cluster routes all HTTP(S) traffic through **Envoy Gateway** (Gateway API), not Ingress objects. A single `GatewayClass` named `envoy` backs three `Gateway` resources, each with its own Cilium LB-IPAM load-balancer IP:
 
-### Internal Ingress
-- **Class**: `internal` (default)
-- **Purpose**: Internal services, private DNS
-- **Version**: v4.13.3
-- **Load Balancer**: Cilium L2 announcement
-- **DNS**: Synced to internal DNS via k8s-gateway and External-DNS (UniFi webhook)
+| Gateway    | IP          | Purpose                                                        |
+| ---------- | ----------- | -------------------------------------------------------------- |
+| `internal` | 10.100.0.20 | Private services, resolved by k8s-gateway                      |
+| `external` | 10.100.0.22 | Public services, reached via Cloudflare Tunnel                 |
+| `media`    | 10.100.0.31 | WAN-direct media services (Plex/Jellyfin), bypasses the tunnel |
 
-### External Ingress
-- **Class**: `external`
-- **Purpose**: Public-facing services
-- **Version**: v4.13.3
-- **Load Balancer**: Cilium L2 announcement
-- **DNS**: Synced to Cloudflare via External-DNS
-- **Tunnel**: Cloudflared for secure access
+Each Gateway terminates TLS using wildcard certificates (cert-manager) and exposes per-domain HTTPS listeners for the cluster's domains. Applications attach to a Gateway by creating an `HTTPRoute` whose hostname matches a listener — the listener is auto-selected by hostname, so routes generally don't pin a `sectionName`. Plain HTTP (port 80) listeners redirect to HTTPS.
+
+**Authentication**: Login protection is applied declaratively at the Gateway via Authentik. Apps annotated for forward-auth get a Kyverno-generated `SecurityPolicy` (ext-auth to the Authentik outpost); some apps use native Authentik OIDC instead. See the `authentik-auth` repo skill.
 
 ## Load Balancer IP Management
 
 ### Cilium L2 Announcements
+
 Cilium's L2 announcement feature provides load balancer IPs for services:
 
 - **How it works**: Cilium announces load balancer IPs via L2 (ARP/NDP)
@@ -70,9 +70,10 @@ Cilium's L2 announcement feature provides load balancer IPs for services:
 
 **Configuration**: See `kubernetes/apps/kube-system/cilium/config/l2.yaml`
 
-This enables both ingress controllers to receive external IPs that are accessible from the broader network.
+This is how each Envoy Gateway (and any other LoadBalancer service) receives an external IP accessible from the broader network.
 
 ### Network Policies
+
 ```mermaid
 graph LR
     subgraph Policies
@@ -94,32 +95,27 @@ graph LR
 ## DNS Configuration
 
 ### Internal DNS (k8s-gateway)
-- **Purpose**: DNS server for internal ingresses
-- **Domain**: Internal cluster services
-- **Integration**: Works with External-DNS for automatic record creation
 
-### External-DNS (Dual Instances)
+- **Purpose**: Authoritative DNS for the cluster's private domains
+- **Answers**: Hostnames resolve to the `internal` Envoy Gateway LB IP (10.100.0.20)
+- **Delegation**: The OPNsense resolver forwards the private domains to k8s-gateway
 
-**Instance 1: Internal DNS**
-- **Provider**: UniFi (via webhook provider)
-- **Target**: UDM Pro Max
-- **Ingress Class**: `internal`
-- **Purpose**: Sync private DNS records for internal services
+### External DNS (Cloudflare)
 
-**Instance 2: External DNS**
-- **Provider**: Cloudflare
-- **Ingress Class**: `external`
-- **Purpose**: Sync public DNS records for externally accessible services
+- **Provider**: Cloudflare (single ExternalDNS instance)
+- **Source**: Watches `HTTPRoute`/`Gateway` resources on the public domains
+- **Purpose**: Publishes public DNS records; external traffic enters via the Cloudflare Tunnel (cloudflared)
 
 ### How DNS Works
-1. Create an Ingress with class `internal` or `external`
-2. External-DNS watches for new/updated ingresses
-3. Appropriate External-DNS instance syncs DNS records to target provider
-4. Services become accessible via their configured hostnames
+
+1. Create an `HTTPRoute` attached to the `internal`, `external`, or `media` Gateway
+2. Internal hostnames are answered by k8s-gateway; public hostnames are synced to Cloudflare by ExternalDNS
+3. Services become reachable at their configured hostnames
 
 ## Security
 
 ### Network Policies
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -128,23 +124,28 @@ metadata:
 spec:
   podSelector: {}
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
 ```
 
 ### TLS Configuration
+
 - Automatic certificate management via cert-manager
-- Let's Encrypt integration
-- Internal PKI for service mesh
+- Let's Encrypt integration (wildcard certs per domain)
+- TLS terminated at the Envoy Gateways
 
-## Service Mesh
+## Traffic Flow
 
-### Traffic Flow
 ```mermaid
 graph LR
-    subgraph Ingress
-        External[External Traffic]
-        Traefik[Traefik]
+    subgraph Edge
+        CF[Cloudflare Tunnel]
+        LAN[LAN Clients]
+    end
+
+    subgraph Gateways
+        EXT[external Gateway]
+        INT[internal Gateway]
     end
 
     subgraph Services
@@ -153,12 +154,15 @@ graph LR
         DB[Database]
     end
 
-    External --> Traefik
-    Traefik --> App1
-    Traefik --> App2
+    CF --> EXT
+    LAN --> INT
+    EXT --> App1
+    INT --> App2
     App1 --> DB
     App2 --> DB
 ```
+
+External clients reach public services through the Cloudflare Tunnel into the `external` Gateway; LAN clients resolve private hostnames via k8s-gateway and hit the `internal` Gateway directly.
 
 ## Best Practices
 
@@ -189,6 +193,7 @@ graph LR
 ## Troubleshooting
 
 Common network issues and resolution steps:
+
 1. **Connectivity Issues**
    - Check network policies
    - Verify DNS resolution

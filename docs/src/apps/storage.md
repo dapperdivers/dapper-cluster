@@ -1,8 +1,6 @@
 # Storage Applications
 
-> **Note (2025-12-01):** CephFS filesystem was recreated after a failed recovery. All CephFS data pools are empty. Static PVs now use dedicated pools: `cephfs_data`, `cephfs_media`, `cephfs_backups`.
-
-This document covers the storage-related applications and services running in the cluster.
+This document covers the storage-related applications and services running in the cluster. All persistent storage is backed by the external Ceph cluster on the Proxmox hosts; CephFS uses the `cephfs_data`, `cephfs_media`, and `cephfs_backups` pools.
 
 ## Storage Stack Overview
 
@@ -39,6 +37,7 @@ graph TD
 **Purpose**: Manages connection to external Ceph cluster and provides CSI drivers
 
 The Rook operator is the bridge between Kubernetes and the external Ceph cluster. It:
+
 - Manages CSI driver deployments
 - Maintains connection to Ceph monitors
 - Handles authentication and secrets
@@ -47,12 +46,14 @@ The Rook operator is the bridge between Kubernetes and the external Ceph cluster
 **Configuration**: `kubernetes/apps/rook-ceph/rook-ceph-operator/app/helmrelease.yaml`
 
 **Current Setup**:
+
 - **CephFS Driver**: Enabled ✅
 - **RBD Driver**: Enabled ✅
 - **Connection Mode**: External cluster
 - **Network**: Public network 10.150.0.0/24
 
 **Key Resources**:
+
 ```bash
 # Check operator status
 kubectl -n rook-ceph get pods -l app=rook-ceph-operator
@@ -89,11 +90,13 @@ spec:
 ```
 
 **Monitor Configuration**: Defined in ConfigMap `rook-ceph-mon-endpoints`
+
 - Contains Ceph monitor IP addresses
 - Critical for cluster connectivity
 - Automatically referenced by CSI drivers
 
 **Authentication**: Stored in Secret `rook-ceph-mon`
+
 - Contains `client.kubernetes` Ceph credentials
 - Encrypted with SOPS
 - Referenced by all CSI operations
@@ -102,20 +105,22 @@ spec:
 
 **Namespace**: `rook-ceph`
 **Type**: DaemonSet (nodes) + Deployment (provisioner)
-**Purpose**: Enable Kubernetes to mount CephFS volumes
+**Purpose**: Enable Kubernetes to mount RBD and CephFS volumes
 
-**Components**:
-1. **csi-cephfsplugin** (DaemonSet)
-   - Runs on every node
-   - Mounts CephFS volumes to pods
-   - Handles node-level operations
+Both the RBD and CephFS CSI drivers are deployed:
 
-2. **csi-cephfsplugin-provisioner** (Deployment)
-   - Creates/deletes CephFS subvolumes
-   - Handles dynamic provisioning
-   - Manages volume expansion
+**RBD (block, RWO)**:
+
+1. **csi-rbdplugin** (DaemonSet) — maps/unmaps RBD images on each node
+2. **csi-rbdplugin-provisioner** (Deployment) — creates/deletes RBD images, snapshots, expansion
+
+**CephFS (shared filesystem, RWX)**:
+
+1. **csi-cephfsplugin** (DaemonSet) — mounts CephFS volumes on each node
+2. **csi-cephfsplugin-provisioner** (Deployment) — creates/deletes CephFS subvolumes, expansion
 
 **Monitoring**:
+
 ```bash
 # Check CSI pods
 kubectl -n rook-ceph get pods -l app=csi-cephfsplugin
@@ -131,27 +136,52 @@ kubectl -n rook-ceph get pods -l app=csi-cephfsplugin-provisioner
 
 **Configuration**: `kubernetes/apps/rook-ceph/rook-ceph-cluster/app/storageclasses.yaml`
 
-#### cephfs-shared (Default)
+Live classes: `ceph-rbd` (default), `cephfs-shared`, `cephfs-static`, `cephfs-backups`.
 
-Primary storage class for all dynamic provisioning:
+#### ceph-rbd (Default)
+
+RBD block storage; the default class for any PVC without an explicit `storageClassName`.
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-rbd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  pool: rook-pvc-pool
+  imageFeatures: layering
+  csi.storage.k8s.io/fstype: ext4
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+```
+
+**Usage**: Default for all PVCs without an explicit storageClassName (RWO block)
+
+#### cephfs-shared
+
+Dynamically-provisioned shared filesystem for RWX workloads (`cephfs_data` pool).
 
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: cephfs-shared
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
 provisioner: rook-ceph.cephfs.csi.ceph.com
 parameters:
   clusterID: rook-ceph
   fsName: cephfs
   pool: cephfs_data
+  subvolumeGroup: csi
+  mounter: kernel
 allowVolumeExpansion: true
 reclaimPolicy: Delete
 ```
 
-**Usage**: Default for all PVCs without explicit storageClassName
+**Usage**: Set `storageClassName: cephfs-shared` when an app needs ReadWriteMany
 
 #### cephfs-static
 
@@ -168,6 +198,10 @@ provisioner: rook-ceph.cephfs.csi.ceph.com
 
 **Usage**: Requires manual PV creation, see examples below
 
+#### cephfs-backups
+
+CephFS class on the `cephfs_backups` pool with `Retain` reclaim policy, used for VolSync Restic repositories.
+
 ### VolSync
 
 **Namespace**: `storage`
@@ -178,12 +212,14 @@ VolSync provides automated backup of all stateful applications using Restic.
 
 **Configuration**: `kubernetes/apps/storage/volsync/app/helmrelease.yaml`
 
-**Backup Repository**: CephFS-backed PVC
-- **Location**: `volsync-cephfs-pvc` (5Ti)
+**Backup Repository**: CephFS-backed PVC (`cephfs_backups` pool)
+
+- **Location**: `volsync-cephfs-pvc`
 - **Path**: `/repository/{APP}/` for each application
-- **Previous**: NFS on vault.manor (migrated to CephFS)
+- **Restore/cache PVCs**: default to `ceph-rbd`
 
 **How It Works**:
+
 1. Applications create `ReplicationSource` resources
 2. VolSync creates backup pods with mover containers
 3. Mover mounts both application PVC and repository PVC
@@ -191,6 +227,7 @@ VolSync provides automated backup of all stateful applications using Restic.
 5. Retention policies keep configured snapshot count
 
 **Backup Pattern**:
+
 ```yaml
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
@@ -200,7 +237,7 @@ metadata:
 spec:
   sourcePVC: my-app-data
   trigger:
-    schedule: "0 * * * *"  # Hourly
+    schedule: "0 * * * *" # Hourly
   restic:
     repository: my-app-restic-secret
     retain:
@@ -347,6 +384,7 @@ spec:
 ### Creating a New Static PV
 
 **Step 1**: Create directory in CephFS (on Proxmox Ceph node)
+
 ```bash
 # SSH to a Proxmox node and mount CephFS
 ceph-fuse /mnt/cephfs
@@ -356,6 +394,7 @@ fusermount -u /mnt/cephfs
 ```
 
 **Step 2**: Create PV manifest
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -378,11 +417,12 @@ spec:
       fsName: cephfs
       staticVolume: "true"
       rootPath: /my-app
-      pool: cephfs_data  # Or cephfs_media, cephfs_backups
+      pool: cephfs_data # Or cephfs_media, cephfs_backups
       mounter: kernel
 ```
 
 **Step 3**: Create PVC manifest
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -400,6 +440,7 @@ spec:
 ```
 
 **Step 4**: Apply and verify
+
 ```bash
 kubectl apply -f pv.yaml
 kubectl apply -f pvc.yaml
@@ -424,6 +465,7 @@ kubectl get pvc -n my-namespace my-pvc -w
 ### Troubleshooting Mount Issues
 
 **PVC stuck in Pending**:
+
 ```bash
 # Check PVC events
 kubectl describe pvc -n <namespace> <pvc-name>
@@ -436,6 +478,7 @@ kubectl get sc cephfs-shared
 ```
 
 **Pod can't mount volume**:
+
 ```bash
 # Check pod events
 kubectl describe pod -n <namespace> <pod-name>
@@ -451,6 +494,7 @@ kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status
 ```
 
 **Slow I/O performance**:
+
 ```bash
 # Check MDS performance
 kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status
@@ -486,21 +530,25 @@ Monitor these via Prometheus/Grafana:
 ### Useful Queries
 
 **Check all PVCs by size**:
+
 ```bash
 kubectl get pvc -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,SIZE:.spec.resources.requests.storage,STORAGECLASS:.spec.storageClassName --sort-by=.spec.resources.requests.storage
 ```
 
-**Find PVCs using old storage classes**:
+**Group PVCs by storage class**:
+
 ```bash
-kubectl get pvc -A -o json | jq -r '.items[] | select(.spec.storageClassName == "nfs-csi" or .spec.storageClassName == "mayastor-etcd-localpv") | "\(.metadata.namespace)/\(.metadata.name) - \(.spec.storageClassName)"'
+kubectl get pvc -A -o json | jq -r '.items[] | "\(.spec.storageClassName)\t\(.metadata.namespace)/\(.metadata.name)"' | sort
 ```
 
 **Check Ceph cluster capacity**:
+
 ```bash
 kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph df
 ```
 
 **Monitor VolSync backups**:
+
 ```bash
 # Check all ReplicationSources
 kubectl get replicationsource -A
@@ -522,6 +570,7 @@ kubectl get replicationsource -n <namespace> <app> -o jsonpath='{.status.lastSyn
 ### Restore Procedures
 
 **Restore to original PVC**:
+
 ```bash
 # Scale down application
 kubectl scale deployment -n <namespace> <app> --replicas=0
@@ -534,6 +583,7 @@ kubectl scale deployment -n <namespace> <app> --replicas=1
 ```
 
 **Restore to new PVC**:
+
 1. Create ReplicationDestination pointing to new PVC
 2. VolSync will restore data from repository
 3. Update application to use new PVC
@@ -542,6 +592,7 @@ kubectl scale deployment -n <namespace> <app> --replicas=1
 ### Disaster Recovery
 
 **Complete cluster rebuild**:
+
 1. Deploy new Kubernetes cluster
 2. Install Rook with same external Ceph connection
 3. Recreate storage classes
@@ -549,6 +600,7 @@ kubectl scale deployment -n <namespace> <app> --replicas=1
 5. Restore all applications from backups
 
 **CephFS corruption**:
+
 1. Check Ceph health and repair if possible
 2. If unrecoverable, restore from VolSync backups
 3. VolSync repository is on CephFS, so ensure repository is intact
@@ -576,30 +628,12 @@ kubectl scale deployment -n <namespace> <app> --replicas=1
 - **Restic Encryption**: Repository encryption with per-app keys
 - **Snapshot Access**: Controlled via ReplicationSource ownership
 
-## Current Status
+## Pools
 
-### RBD Block Storage ✅ Complete
-
-RBD block storage is now fully operational:
-- **RBD driver**: Enabled
-- **RBD pool**: `rook-pvc-pool` (32 PGs, replicated size 2, snappy compression)
-- **Storage class**: `ceph-rbd` (default)
-- **Use for**: Databases, single-pod applications requiring high performance
-
-### CephFS Pools ✅ Complete
-
-CephFS now has three dedicated data pools:
+- **rook-pvc-pool**: RBD block pool backing `ceph-rbd` (databases and single-pod apps)
 - **cephfs_data**: General application data (minio, paperless, etc.)
-- **cephfs_media**: Large media files (plex, sonarr, etc.)
+- **cephfs_media**: Large media files (plex, \*arr, etc.)
 - **cephfs_backups**: VolSync backup repositories
-
-### Planned Improvements
-
-- Ceph dashboard integration
-- Advanced monitoring dashboards
-- Automated capacity alerts
-- Storage QoS policies
-- Cross-cluster replication
 
 ## References
 

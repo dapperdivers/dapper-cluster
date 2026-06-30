@@ -40,10 +40,9 @@ This file captures important patterns, preferences, and project intelligence for
 
 ## Storage
 
-- OpenEBS Mayastor provides high-performance block storage
-- PersistentVolumeClaims use specific StorageClasses based on performance needs
-- VolSync handles backup and replication of PVCs
-- Some applications mount NFS shares from the separate NAS system
+- All storage is an external Ceph cluster on Proxmox, via Rook in external mode
+- `ceph-rbd` (RWO block) is the default StorageClass; `cephfs-shared`/`cephfs-static` provide RWX
+- VolSync handles backup and replication of PVCs (Restic, `cephfs_backups` pool)
 - Backup procedures are defined in the volsync taskfile
 
 ## Security Practices
@@ -108,8 +107,8 @@ DO NOT read or modify:
 
 - Prometheus collects metrics from all components
 - Grafana provides visualization through dashboards
-- Alertmanager routes alerts to Pushover
-- Loki aggregates logs from all applications
+- Alertmanager routes alerts to ntfy and Pushover (critical)
+- VictoriaLogs aggregates logs from all applications (Fluent-bit shippers)
 - Gatus provides a public status page
 - Regular health checks monitor critical services
 

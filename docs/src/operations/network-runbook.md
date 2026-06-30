@@ -5,6 +5,7 @@
 This runbook provides step-by-step procedures for common network operations, troubleshooting, and emergency recovery scenarios for the Dapper Cluster network.
 
 **Quick Reference:**
+
 - [Network Topology Documentation](../architecture/network-topology.md)
 - Brocade Core: 192.168.1.20
 - Arista Distribution: 192.168.1.21
@@ -30,18 +31,21 @@ This runbook provides step-by-step procedures for common network operations, tro
 #### SSH to Switches
 
 **Brocade ICX6610:**
+
 ```bash
 ssh admin@192.168.1.20
 # [TODO: Document default credentials location]
 ```
 
 **Arista 7050:**
+
 ```bash
 ssh admin@192.168.1.21
 # [TODO: Document default credentials location]
 ```
 
 **Aruba S2500-48p:**
+
 ```bash
 ssh admin@192.168.1.26
 # [TODO: Document default credentials location]
@@ -50,6 +54,7 @@ ssh admin@192.168.1.26
 #### Console Access
 
 **When SSH is unavailable:**
+
 ```bash
 # [TODO: Document console server or direct serial access]
 # Brocade: Serial settings [TODO: baud rate, etc]
@@ -95,6 +100,7 @@ show logging | grep -i error
 #### Check VLAN Assignments
 
 **Brocade:**
+
 ```bash
 show vlan
 
@@ -108,6 +114,7 @@ show vlan ethernet 1/1/1
 ```
 
 **Arista:**
+
 ```bash
 show vlan
 
@@ -121,6 +128,7 @@ show interfaces status
 #### Verify Trunk Ports
 
 **Brocade:**
+
 ```bash
 # Show trunk configuration
 show interface brief | include Trunk
@@ -131,6 +139,7 @@ show interface ethernet 1/1/42
 ```
 
 **Arista:**
+
 ```bash
 # Show trunk ports
 show interface trunk
@@ -160,6 +169,7 @@ show interface ethernet 1/1/42
 ```
 
 **Expected Output When Working:**
+
 ```
 LAG "brocade-to-arista" (lag-id [X]) has 2 active ports:
   ethernet 1/1/41 (40Gb) - Active
@@ -181,6 +191,7 @@ show interface ethernet 50 port-channel
 ```
 
 **Expected Output When Working:**
+
 ```
 Port-Channel1:
   Active Ports: 2
@@ -194,6 +205,7 @@ Port-Channel1:
 #### Real-Time Interface Statistics
 
 **Brocade:**
+
 ```bash
 # Show interface rates
 show interface ethernet 1/1/41 | include rate
@@ -207,6 +219,7 @@ monitor interface ethernet 1/1/41
 ```
 
 **Arista:**
+
 ```bash
 # Show interface counters
 show interface ethernet 49 counters
@@ -221,12 +234,14 @@ watch 1 show interface ethernet 49 counters rate
 #### Identify Top Talkers
 
 **Brocade:**
+
 ```bash
 # [TODO: Document method to identify top talkers]
 # May require SNMP monitoring or sFlow
 ```
 
 **Arista:**
+
 ```bash
 # Check interface utilization
 show interface counters utilization
@@ -240,6 +255,7 @@ show interface counters utilization
 #### From Your Workstation
 
 **Test Management Plane:**
+
 ```bash
 # Ping all management interfaces
 ping -c 4 192.168.1.20  # Brocade
@@ -253,6 +269,7 @@ ping -c 100 192.168.1.8 | tail -3
 ```
 
 **Test Server Network (VLAN 100):**
+
 ```bash
 # Test Kubernetes nodes
 ping -c 4 10.100.0.40   # K8s VIP
@@ -262,6 +279,7 @@ ping -c 4 10.100.0.52   # talos-control-3
 ```
 
 **Test from Kubernetes Nodes:**
+
 ```bash
 # SSH to a Talos node (if enabled) or use kubectl exec
 kubectl exec -it -n default <pod-name> -- sh
@@ -275,6 +293,7 @@ ping 8.8.8.8       # Internet
 #### MTU Testing (Jumbo Frames)
 
 **Test VLAN 150/200 MTU 9000:**
+
 ```bash
 # From a host on VLAN 150
 ping -M do -s 8972 10.150.0.10
@@ -288,6 +307,7 @@ ping -M do -s 8972 10.150.0.10
 #### Path Testing
 
 **Trace route across networks:**
+
 ```bash
 # From your workstation
 traceroute 10.100.0.50
@@ -306,12 +326,14 @@ traceroute 10.100.0.50
 ### Issue: No Connectivity to Garage Switches
 
 **Symptoms:**
+
 - Cannot ping/SSH to Brocade (192.168.1.20) or Arista (192.168.1.21)
 - Can ping Aruba switch (192.168.1.26)
 
 **Diagnosis:**
 
 1. **Test wireless bridge:**
+
    ```bash
    ping 192.168.1.7   # Mikrotik House
    ping 192.168.1.8   # Mikrotik Shop
@@ -321,6 +343,7 @@ traceroute 10.100.0.50
    - If neither respond: **Mikrotik issue or config problem**
 
 2. **Check Aruba-to-Mikrotik connection:**
+
    ```bash
    # SSH to Aruba
    ssh admin@192.168.1.26
@@ -332,6 +355,7 @@ traceroute 10.100.0.50
 **Resolution:**
 
 **If wireless bridge is down:**
+
 1. Check Mikrotik radios web interface (192.168.1.7, 192.168.1.8)
 2. Check alignment and signal strength
 3. Verify power to both radios
@@ -339,6 +363,7 @@ traceroute 10.100.0.50
 5. **Emergency:** Use physical console access to switches in garage
 
 **If Mikrotik is up but switches unreachable:**
+
 1. Check VLAN 1 configuration on trunk ports
 2. Verify Mikrotik is not blocking traffic
 3. Check Brocade port connected to Mikrotik is up
@@ -346,6 +371,7 @@ traceroute 10.100.0.50
 ### Issue: Kubernetes Pods Can't Access Storage
 
 **Symptoms:**
+
 - Pods stuck in `ContainerCreating`
 - PVC stuck in `Pending`
 - Errors about unable to mount CephFS
@@ -353,12 +379,14 @@ traceroute 10.100.0.50
 **Diagnosis:**
 
 1. **Check Rook/Ceph health:**
+
    ```bash
    kubectl -n rook-ceph get cephcluster
    kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
    ```
 
 2. **Check network connectivity from Kubernetes nodes to Ceph monitors:**
+
    ```bash
    # From a Talos node or debug pod
    ping 10.150.0.10   # Test VLAN 150 connectivity
@@ -368,6 +396,7 @@ traceroute 10.100.0.50
    ```
 
 3. **Verify VLAN 150 MTU:**
+
    ```bash
    # Test jumbo frames
    ping -M do -s 8972 10.150.0.10
@@ -381,11 +410,13 @@ traceroute 10.100.0.50
 **Resolution:**
 
 **If MTU mismatch:**
+
 1. Verify MTU 9000 on all VLAN 150 interfaces
 2. Check Proxmox bridge MTU settings
 3. Check switch port MTU configuration
 
 **If connectivity issue:**
+
 1. Check VLAN 150 is properly tagged on trunk ports
 2. Verify Proxmox host network configuration
 3. Check Brocade routing for VLAN 150
@@ -393,6 +424,7 @@ traceroute 10.100.0.50
 ### Issue: Slow Ceph Performance
 
 **Symptoms:**
+
 - Slow pod startup times
 - High I/O latency in applications
 - Ceph health warnings about slow ops
@@ -400,6 +432,7 @@ traceroute 10.100.0.50
 **Diagnosis:**
 
 1. **Check Ceph cluster health:**
+
    ```bash
    kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph health detail
    kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph osd perf
@@ -408,12 +441,14 @@ traceroute 10.100.0.50
 2. **Check network bandwidth utilization:**
 
    **On Brocade (VLAN 150 - Ceph Public):**
+
    ```bash
    # Check 10Gb bonds to Proxmox hosts
    show interface ethernet 1/1/[TODO: ports] | include rate
    ```
 
    **On Arista (VLAN 200 - Ceph Cluster):**
+
    ```bash
    # Check 40Gb links to Proxmox hosts
    show interface ethernet [TODO: ports] counters rate
@@ -427,14 +462,17 @@ traceroute 10.100.0.50
 **Resolution:**
 
 **If Brocade-Arista link is bottleneck:**
+
 - **Primary Issue:** Only one 40Gb link active (see below to enable second link)
 - Enabling second 40Gb link will double bandwidth to 80Gbps
 
 **If MTU not configured:**
+
 - Verify MTU 9000 on VLAN 150 and 200
 - Check each hop in the path
 
 **If switch CPU is high:**
+
 - Check for broadcast storms
 - Verify STP is working correctly
 - Look for loops in topology
@@ -442,6 +480,7 @@ traceroute 10.100.0.50
 ### Issue: Network Loop / Broadcast Storm
 
 **Symptoms:**
+
 - Network performance severely degraded
 - High CPU usage on switches
 - Connectivity flapping
@@ -450,6 +489,7 @@ traceroute 10.100.0.50
 **Diagnosis:**
 
 1. **Check for duplicate MAC addresses:**
+
    ```bash
    # Brocade
    show mac-address
@@ -458,6 +498,7 @@ traceroute 10.100.0.50
    ```
 
 2. **Check STP status:**
+
    ```bash
    # Brocade
    show spanning-tree
@@ -474,7 +515,9 @@ traceroute 10.100.0.50
 **Resolution:**
 
 **Immediate (Emergency):**
+
 1. **Disable one link causing loop:**
+
    ```bash
    # On Arista (already done in current config)
    configure
@@ -483,6 +526,7 @@ traceroute 10.100.0.50
    ```
 
 2. **Verify spanning-tree is enabled:**
+
    ```bash
    # Brocade
    show spanning-tree
@@ -493,11 +537,13 @@ traceroute 10.100.0.50
    ```
 
 **Permanent Fix:**
+
 - Configure proper LAG/port-channel (see section below)
 
 ### Issue: Proxmox Host Loses Network Connectivity
 
 **Symptoms:**
+
 - Cannot ping Proxmox host management IP
 - VMs on host also offline
 - IPMI still accessible
@@ -505,11 +551,13 @@ traceroute 10.100.0.50
 **Diagnosis:**
 
 1. **Access via IPMI console:**
+
    ```bash
    # [TODO: Document IPMI access method]
    ```
 
 2. **Check bond status on Proxmox:**
+
    ```bash
    # From Proxmox console
    ip link show
@@ -529,11 +577,13 @@ traceroute 10.100.0.50
 **Resolution:**
 
 **If bond is down on Proxmox:**
+
 1. Check physical cables
 2. Restart networking on Proxmox (WARNING: will disrupt VMs)
 3. Check switch port status
 
 **If ports down on switch:**
+
 1. Check for error counters
 2. Re-enable port if administratively down
 3. Check for physical issues (SFP, cable)
@@ -541,6 +591,7 @@ traceroute 10.100.0.50
 ### Issue: High Latency Across Wireless Bridge
 
 **Symptoms:**
+
 - Ping times to garage > 10ms (normally 1-2ms)
 - Slow access to services in garage
 - Packet loss
@@ -548,6 +599,7 @@ traceroute 10.100.0.50
 **Diagnosis:**
 
 1. **Test latency:**
+
    ```bash
    ping -c 100 192.168.1.8
 
@@ -564,6 +616,7 @@ traceroute 10.100.0.50
    - Look for interference
 
 3. **Test with iperf:**
+
    ```bash
    # On server side (garage)
    iperf3 -s
@@ -577,12 +630,14 @@ traceroute 10.100.0.50
 **Resolution:**
 
 **If signal degraded:**
+
 1. Check for obstructions (trees, weather)
 2. Check alignment
 3. Check for interference sources
 4. Consider backup link or failover
 
 **If bandwidth saturated:**
+
 1. Identify high-bandwidth users/applications
 2. Implement QoS if available
 3. Consider upgrade to higher bandwidth link
@@ -594,6 +649,7 @@ traceroute 10.100.0.50
 ### Complete Network Outage (Wireless Bridge Down)
 
 **Impact:**
+
 - No remote access to garage infrastructure
 - Kubernetes cluster still functions internally
 - No internet access from garage
@@ -602,6 +658,7 @@ traceroute 10.100.0.50
 **Emergency Access Methods:**
 
 1. **Physical console access:**
+
    ```bash
    # [TODO: Document where console cables are stored]
    # Connect laptop directly to switch console port
@@ -634,6 +691,7 @@ traceroute 10.100.0.50
 ### Core Switch (Brocade) Failure
 
 **Impact:**
+
 - Loss of VLAN 150/200 routing
 - Kubernetes cluster degraded (storage issues)
 - Loss of 10Gb connectivity to Proxmox hosts
@@ -657,6 +715,7 @@ traceroute 10.100.0.50
 ### Spanning Tree Failure / Network Loop
 
 **Impact:**
+
 - Network completely unusable
 - High CPU on all switches
 - Broadcast storm
@@ -664,6 +723,7 @@ traceroute 10.100.0.50
 **Emergency Actions:**
 
 1. **Disconnect Brocade-Arista links:**
+
    ```bash
    # On Arista (fastest access if SSH still works)
    configure
@@ -679,6 +739,7 @@ traceroute 10.100.0.50
 3. **Wait for network to stabilize** (30-60 seconds)
 
 4. **Reconnect ONE link only:**
+
    ```bash
    # On Arista
    configure
@@ -691,6 +752,7 @@ traceroute 10.100.0.50
 ### Accidental Configuration Change
 
 **Symptoms:**
+
 - Network suddenly degraded after change
 - New errors appearing
 - Connectivity loss
@@ -700,6 +762,7 @@ traceroute 10.100.0.50
 1. **Rollback configuration:**
 
    **Brocade:**
+
    ```bash
    # Show configuration history
    show configuration
@@ -709,6 +772,7 @@ traceroute 10.100.0.50
    ```
 
    **Arista:**
+
    ```bash
    # Show rollback options
    show configuration sessions
@@ -728,6 +792,7 @@ traceroute 10.100.0.50
 ### Configure Brocade-Arista LAG (Fix Loop Issue)
 
 **Prerequisites:**
+
 - Maintenance window scheduled
 - Both 40Gb QSFP+ cables connected and working
 - Console access to both switches available
@@ -900,6 +965,7 @@ interface ethernet 1/1/42
 **Example: Adding VLAN 300 for IoT devices**
 
 **Step 1: Plan VLAN**
+
 - VLAN ID: 300
 - Network: [TODO: e.g., 10.30.0.0/24]
 - Gateway: [TODO: Which device?]
@@ -995,18 +1061,21 @@ ping -M do -s 8972 10.150.0.10
 ### Key Metrics to Monitor
 
 **Switch Health:**
+
 - CPU utilization (should be <30% normally)
 - Memory utilization (should be <70%)
 - Temperature (within operating range)
 - Power supply status
 
 **Interface Health:**
+
 - Error counters (input/output errors)
 - CRC errors
 - Interface resets
 - Utilization percentage
 
 **Traffic Patterns:**
+
 - Bandwidth utilization per interface
 - Top talkers per VLAN
 - Broadcast/multicast rates
@@ -1016,12 +1085,14 @@ ping -M do -s 8972 10.150.0.10
 **[TODO: Document monitoring setup]**
 
 **Options:**
+
 1. SNMP monitoring to Prometheus
 2. sFlow for traffic analysis
-3. Switch logging to Loki
+3. Switch logging to VictoriaLogs
 4. Grafana dashboards
 
 **Example Prometheus Targets:**
+
 ```yaml
 # [TODO: Example prometheus config for SNMP exporter]
 ```
@@ -1030,14 +1101,14 @@ ping -M do -s 8972 10.150.0.10
 
 **Normal Operating Conditions:**
 
-| Metric | Expected Value | Alert Threshold |
-|--------|---------------|-----------------|
-| Wireless Bridge Latency | 1-2ms | > 5ms |
-| Wireless Bridge Loss | 0% | > 1% |
-| Brocade CPU | < 20% | > 60% |
-| Arista CPU | < 15% | > 50% |
-| 40Gb Link Utilization | < 50% | > 80% |
-| 10Gb Link Utilization | < 60% | > 85% |
+| Metric                  | Expected Value | Alert Threshold |
+| ----------------------- | -------------- | --------------- |
+| Wireless Bridge Latency | 1-2ms          | > 5ms           |
+| Wireless Bridge Loss    | 0%             | > 1%            |
+| Brocade CPU             | < 20%          | > 60%           |
+| Arista CPU              | < 15%          | > 50%           |
+| 40Gb Link Utilization   | < 50%          | > 80%           |
+| 10Gb Link Utilization   | < 60%          | > 85%           |
 
 **[TODO: Add baseline measurements]**
 
@@ -1052,6 +1123,7 @@ ping -M do -s 8972 10.150.0.10
 - [ ] Schedule maintenance window
 - [ ] Notify all users
 - [ ] Back up switch configurations
+
   ```bash
   # Brocade
   show running-config > backup-$(date +%Y%m%d).cfg
@@ -1059,6 +1131,7 @@ ping -M do -s 8972 10.150.0.10
   # Arista
   show running-config > backup-$(date +%Y%m%d).cfg
   ```
+
 - [ ] Document current state
 - [ ] Have rollback plan ready
 - [ ] Ensure console access available
@@ -1089,16 +1162,19 @@ ping -M do -s 8972 10.150.0.10
 ### Regular Maintenance Tasks
 
 **Weekly:**
+
 - Review switch logs for errors/warnings
 - Check interface error counters
 - Verify wireless bridge performance
 
 **Monthly:**
+
 - Review bandwidth utilization trends
 - Check for firmware updates
 - Verify backup configurations are current
 
 **Quarterly:**
+
 - Review and update network documentation
 - Test emergency procedures
 - Review and optimize switch configurations
@@ -1134,6 +1210,7 @@ copy running-config usb:/brocade-backup-$(date +%Y%m%d).cfg
 ```
 
 **Storage Location:**
+
 - [TODO: Document where configurations are backed up]
 - Consider: Git repository for version control
 - Consider: Automated daily backups via Ansible
@@ -1242,21 +1319,12 @@ write memory
 
 **[TODO: Fill in contact information]**
 
-| Role | Name | Contact | Escalation Level |
-|------|------|---------|-----------------|
-| Primary Network Admin | [TODO] | [TODO] | 1 |
-| Secondary Contact | [TODO] | [TODO] | 2 |
-| Vendor Support - Brocade | [TODO] | [TODO] | 3 |
-| Vendor Support - Arista | [TODO] | [TODO] | 3 |
-
----
-
-## Change Log
-
-| Date | Change | Person | Impact | Notes |
-|------|--------|--------|--------|-------|
-| 2025-10-14 | Initial runbook created | Claude | None | Baseline documentation |
-| [TODO] | [TODO] | [TODO] | [TODO] | [TODO] |
+| Role                     | Name   | Contact | Escalation Level |
+| ------------------------ | ------ | ------- | ---------------- |
+| Primary Network Admin    | [TODO] | [TODO]  | 1                |
+| Secondary Contact        | [TODO] | [TODO]  | 2                |
+| Vendor Support - Brocade | [TODO] | [TODO]  | 3                |
+| Vendor Support - Arista  | [TODO] | [TODO]  | 3                |
 
 ---
 

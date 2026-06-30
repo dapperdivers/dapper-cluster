@@ -49,48 +49,55 @@ This is a mono repository for my home infrastructure and Kubernetes cluster. I t
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f331/512.gif" alt="🌱" width="20" height="20"> Kubernetes
 
-My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). Storage is provided by multiple solutions including NFS via democratic-csi and local storage options.
+My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). All persistent storage is provided by an external [Ceph](https://ceph.io/) cluster running on the Proxmox hosts, connected to Kubernetes via [Rook](https://rook.io/) in external-cluster mode.
 
 **Storage Architecture:**
-- **NFS Storage**: democratic-csi for shared filesystem access
-- **Local Storage**: Talos local storage for high-performance workloads
-- **Legacy Storage**: 2x Unraid VMs providing media storage (migration in progress)
-- **Network**: Multi-tier network with 40Gb links for storage traffic
-- **Total Capacity**: 476.96TB raw across 76 drives
+
+- **Block (RBD)**: `ceph-rbd` (default StorageClass) for databases and single-pod workloads (RWO)
+- **Shared filesystem (CephFS)**: `cephfs-shared` / `cephfs-static` / `cephfs-backups` for multi-pod and media workloads (RWX)
+- **Backups**: [VolSync](https://github.com/backube/volsync) (Restic) snapshots of every stateful PVC
+- **Ceph cluster**: Ceph 18.2.x (Reef) on Proxmox, dedicated 40Gb storage network (VLAN 200)
 
 There is a template over at [onedr0p/cluster-template](https://github.com/onedr0p/cluster-template) if you want to try and follow along with some of the practices used here.
 
 ### Core Components
 
 **Networking:**
-- [cilium](https://github.com/cilium/cilium): eBPF-based CNI with kube-proxy replacement, L2 announcements, and advanced networking features.
+
+- [cilium](https://github.com/cilium/cilium): eBPF-based CNI with kube-proxy replacement, L2 announcements, and LB-IPAM.
 - [multus-cni](https://github.com/k8snetworkplumbingwg/multus-cni): Multiple network interfaces per pod for IoT and legacy network integration.
-- [ingress-nginx](https://github.com/kubernetes/ingress-nginx): Dual ingress controllers (internal + external) for service routing.
-- [external-dns](https://github.com/kubernetes-sigs/external-dns): Automatic DNS management (internal via UniFi, external via Cloudflare).
-- [k8s-gateway](https://github.com/ori-edge/k8s_gateway): Internal DNS server for cluster services.
+- [envoy-gateway](https://gateway.envoyproxy.io/): Gateway API implementation; internal, external, and media Gateways route traffic via HTTPRoutes.
+- [external-dns](https://github.com/kubernetes-sigs/external-dns): Syncs public DNS records to Cloudflare.
+- [k8s-gateway](https://github.com/ori-edge/k8s_gateway): Authoritative internal DNS for cluster hostnames.
 - [cloudflared](https://github.com/cloudflare/cloudflared): Secure Cloudflare tunnels for external access.
 
 **Storage:**
-- [democratic-csi](https://github.com/democratic-csi/democratic-csi): NFS storage provisioner for shared workloads.
-- [volsync](https://github.com/backube/volsync): PVC backup and recovery.
+
+- [rook-ceph](https://rook.io/): Connects Kubernetes to the external Proxmox Ceph cluster and provides the RBD + CephFS CSI drivers.
+- [volsync](https://github.com/backube/volsync): PVC backup and recovery (Restic).
 
 **Security & Secrets:**
+
 - [cert-manager](https://github.com/cert-manager/cert-manager): Automated SSL/TLS certificate management.
 - [external-secrets](https://github.com/external-secrets/external-secrets): Secrets management using [Infisical](https://infisical.com/).
 - [sops](https://github.com/getsops/sops): Encrypted secrets in Git.
 
 **Observability:**
+
 - [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus-stack): Prometheus, Grafana, and Alertmanager.
-- [loki](https://github.com/grafana/loki): Log aggregation and query.
-- [promtail](https://github.com/grafana/promtail): Log shipper for Loki.
+- [victoria-logs](https://github.com/VictoriaMetrics/VictoriaLogs): Log aggregation and query.
+- [fluent-bit](https://github.com/fluent/fluent-bit): Log shipper into VictoriaLogs.
 - [gatus](https://github.com/TwiN/gatus): Service health monitoring and status page.
+- [ntfy](https://ntfy.sh/): Self-hosted push notifications for Gatus and Alertmanager alerts.
 
 **GPU & Hardware:**
+
 - [nvidia-device-plugin](https://github.com/NVIDIA/k8s-device-plugin): GPU support for 4x Tesla P100 GPUs.
 - [intel-device-plugin](https://github.com/intel/intel-device-plugins-for-kubernetes): Intel hardware acceleration.
 - [node-feature-discovery](https://github.com/kubernetes-sigs/node-feature-discovery): Automatic hardware capability detection.
 
 **GitOps & Automation:**
+
 - [actions-runner-controller](https://github.com/actions/actions-runner-controller): Self-hosted GitHub runners.
 - [spegel](https://github.com/spegel-org/spegel): Stateless cluster-local OCI registry mirror.
 - [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller): Automated Talos system upgrades.
@@ -126,9 +133,9 @@ graph TD
     classDef helmRelease fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
 
     %% Nodes
-    A>Kustomization: democratic-csi]:::kustomization
-    B[HelmRelease: democratic-csi]:::helmRelease
-    C[Kustomization: democratic-csi-driver]:::kustomization
+    A>Kustomization: rook-ceph-operator]:::kustomization
+    B[HelmRelease: rook-ceph-operator]:::helmRelease
+    C[Kustomization: rook-ceph-cluster]:::kustomization
     D>Kustomization: plex]:::kustomization
     E[HelmRelease: plex]:::helmRelease
 
@@ -205,6 +212,7 @@ graph TB
 ```
 
 **Key Features:**
+
 - Dual locations connected via 60GHz wireless (1Gbps)
 - Multi-tier switching: Core (Brocade), Distribution (Arista), Access (Aruba)
 - Dedicated 40Gb storage network on Arista
@@ -236,6 +244,10 @@ graph TB
         W1["talos-node-large-1<br/>10.100.0.54<br/>16 CPU / 128GB"]:::worker
         W2["talos-node-large-2<br/>10.100.0.55<br/>16 CPU / 128GB"]:::worker
         W3["talos-node-large-3<br/>10.100.0.56<br/>16 CPU / 128GB"]:::worker
+        S1["talos-node-small-1<br/>10.100.0.60<br/>6 CPU / 16GB"]:::worker
+        S2["talos-node-small-2<br/>10.100.0.61<br/>6 CPU / 16GB"]:::worker
+        S3["talos-node-small-3<br/>10.100.0.62<br/>6 CPU / 16GB"]:::worker
+        S4["talos-node-small-4<br/>10.100.0.63<br/>6 CPU / 16GB"]:::worker
     end
 
     VIP -.-> CP1
@@ -247,9 +259,10 @@ graph TB
 ```
 
 **Cluster Configuration:**
-- **Total Nodes:** 7 (3 control plane, 4 workers)
-- **Total Resources:** 76 CPU cores, 560GB RAM, 4x Tesla P100 GPUs
-- **OS:** Talos Linux
+
+- **Total Nodes:** 11 (3 control plane, 8 workers)
+- **Workers:** 1x GPU (4x Tesla P100), 3x large (16 CPU / 128GB), 4x small (6 CPU / 16GB)
+- **OS:** Talos Linux (Kubernetes v1.36)
 - **CNI:** Cilium with eBPF (10.69.0.0/16 pod CIDR)
 - **API VIP:** 10.100.0.40 (shared across control plane)
 
@@ -287,6 +300,7 @@ graph LR
 ```
 
 **Network Details:**
+
 - **VLAN 1:** Switch management, IPMI, gateway: OPNsense
 - **VLAN 100:** Kubernetes nodes, gateway: OPNsense, internet access
 - **VLAN 150:** Storage client connections, jumbo frames, L2 only
@@ -306,22 +320,22 @@ While most of my infrastructure and workloads are self-hosted I do rely upon the
 
 Alternative solutions to the first two of these problems would be to host a Kubernetes cluster in the cloud and deploy applications like [HCVault](https://www.vaultproject.io/), [Vaultwarden](https://github.com/dani-garcia/vaultwarden), [ntfy](https://ntfy.sh/), and [Gatus](https://gatus.io/); however, maintaining another cluster and monitoring another group of workloads would be more work and probably be more or equal out to the same costs as described below.
 
-| Service                                         | Use                                                               | Cost           |
-|-------------------------------------------------|-------------------------------------------------------------------|----------------|
-| [Infisical](https://infisical.com/)            | Secrets with [External Secrets](https://external-secrets.io/)     | Free           |
-| [Cloudflare](https://www.cloudflare.com/)       | Domain and S3                                                     | Free           |
-| [GCP](https://cloud.google.com/)                | Voice interactions with Home Assistant over Google Assistant      | Free           |
-| [GitHub](https://github.com/)                   | Hosting this repository and continuous integration/deployments    | Free           |
-| [Migadu](https://migadu.com/)                   | Email hosting                                                     | ~$20/yr        |
-| [Pushover](https://pushover.net/)               | Kubernetes Alerts and application notifications                   | $5 OTP         |
-| [UptimeRobot](https://uptimerobot.com/)         | Monitoring internet connectivity and external facing applications | Free           |
-|                                                 |                                                                   | Total: ~$2/mo  |
+| Service                                   | Use                                                               | Cost          |
+| ----------------------------------------- | ----------------------------------------------------------------- | ------------- |
+| [Infisical](https://infisical.com/)       | Secrets with [External Secrets](https://external-secrets.io/)     | Free          |
+| [Cloudflare](https://www.cloudflare.com/) | Domain and S3                                                     | Free          |
+| [GCP](https://cloud.google.com/)          | Voice interactions with Home Assistant over Google Assistant      | Free          |
+| [GitHub](https://github.com/)             | Hosting this repository and continuous integration/deployments    | Free          |
+| [Migadu](https://migadu.com/)             | Email hosting                                                     | ~$20/yr       |
+| [Pushover](https://pushover.net/)         | Kubernetes Alerts and application notifications                   | $5 OTP        |
+| [UptimeRobot](https://uptimerobot.com/)   | Monitoring internet connectivity and external facing applications | Free          |
+|                                           |                                                                   | Total: ~$2/mo |
 
 ---
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f30e/512.gif" alt="🌎" width="20" height="20"> DNS
 
-In my cluster there are two instances of [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) running. One for syncing private DNS records to my `UDM Pro Max` using [ExternalDNS webhook provider for UniFi](https://github.com/kashalls/external-dns-unifi-webhook), while another instance syncs public DNS to `Cloudflare`. This setup is managed by creating ingresses with two specific classes: `internal` for private DNS and `external` for public DNS. The `external-dns` instances then syncs the DNS records to their respective platforms accordingly.
+Internal name resolution is handled by [k8s-gateway](https://github.com/ori-edge/k8s_gateway), which is authoritative for my private domains and answers with the internal Envoy Gateway's load-balancer IP. My OPNsense resolver forwards those domains to it. Public records are synced to `Cloudflare` by a single [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) instance, and external traffic reaches the cluster through a [Cloudflare Tunnel](https://github.com/cloudflare/cloudflared). Whether a service is internal- or external-facing is determined by which Gateway its `HTTPRoute` attaches to.
 
 ---
 
@@ -329,53 +343,59 @@ In my cluster there are two instances of [ExternalDNS](https://github.com/kubern
 
 ### Compute Infrastructure
 
-| Device | CPU | RAM | Storage | Network | Function |
-|--------|-----|-----|---------|---------|----------|
-| **Proxmox-01** | Intel Xeon E3-1230 V2<br/>(4 cores @ 3.30GHz) | 16GB | 24x 4TB HDD | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Primary Storage |
-| **Proxmox-02** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz) | 196GB | 2x 120GB ZFS mirror | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph |
+| Device         | CPU                                                | RAM   | Storage                                             | Network                                     | Function                                  |
+| -------------- | -------------------------------------------------- | ----- | --------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| **Proxmox-01** | Intel Xeon E3-1230 V2<br/>(4 cores @ 3.30GHz)      | 16GB  | 24x 4TB HDD                                         | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Ceph OSDs                                 |
+| **Proxmox-02** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz)       | 196GB | 2x 120GB ZFS mirror                                 | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph                         |
 | **Proxmox-03** | 2x Intel Xeon E5-2697A v4<br/>(64 cores @ 2.60GHz) | 516GB | 1x 3.92TB SSD + 1x 800GB<br/>**4x Tesla P100 16GB** | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph<br/>**GPU Passthrough** |
-| **Proxmox-04** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz) | 196GB | 8x 10TB + 1x 3.84TB + 1x 800GB | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph |
+| **Proxmox-04** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz)       | 196GB | 8x 10TB + 1x 3.84TB + 1x 800GB                      | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph                         |
 
 **Total Cluster Resources:**
+
 - **CPU:** 116 cores total
 - **RAM:** 924GB total
-- **Storage:** 476.96TB raw (76 drives across all hosts + JBOD)
+- **Storage:** 476.96TB raw (76 drives across all hosts + JBOD), pooled into the external Ceph cluster
 - **GPU:** 4x NVIDIA Tesla P100 16GB (64GB VRAM total)
 - **Network:** Multi-tier switching with 40Gb Ceph network
 
 ### Kubernetes VMs (Talos Linux)
 
-| VM Name | vCPU | RAM | Host | Role | Notes |
-|---------|------|-----|------|------|-------|
-| talos-control-1 | 4 | 16GB | Proxmox-03 | Control Plane | |
-| talos-control-2 | 4 | 16GB | Proxmox-04 | Control Plane | |
-| talos-control-3 | 4 | 16GB | Proxmox-02 | Control Plane | |
-| talos-node-gpu-1 | 16 | 128GB | Proxmox-03 | Worker | 4x P100 GPU passthrough |
-| talos-node-large-1 | 16 | 128GB | Proxmox-03 | Worker | |
-| talos-node-large-2 | 16 | 128GB | Proxmox-03 | Worker | |
-| talos-node-large-3 | 16 | 128GB | Proxmox-03 | Worker | |
+| VM Name            | vCPU | RAM   | Host            | Role          | Notes                   |
+| ------------------ | ---- | ----- | --------------- | ------------- | ----------------------- |
+| talos-control-1    | 4    | 16GB  | Proxmox-03      | Control Plane |                         |
+| talos-control-2    | 4    | 16GB  | Proxmox-04      | Control Plane |                         |
+| talos-control-3    | 4    | 16GB  | Proxmox-02      | Control Plane |                         |
+| talos-node-gpu-1   | 16   | 128GB | Proxmox-03      | Worker        | 4x P100 GPU passthrough |
+| talos-node-large-1 | 16   | 128GB | Proxmox-03      | Worker        |                         |
+| talos-node-large-2 | 16   | 128GB | Proxmox-03      | Worker        |                         |
+| talos-node-large-3 | 16   | 128GB | Proxmox-03      | Worker        |                         |
+| talos-node-small-1 | 6    | 16GB  | Proxmox cluster | Worker        |                         |
+| talos-node-small-2 | 6    | 16GB  | Proxmox cluster | Worker        |                         |
+| talos-node-small-3 | 6    | 16GB  | Proxmox cluster | Worker        |                         |
+| talos-node-small-4 | 6    | 16GB  | Proxmox cluster | Worker        |                         |
 
-**Kubernetes Cluster Totals:** 76 vCPU, 560GB RAM, 4x Tesla P100 GPUs
+**Kubernetes Cluster Totals:** 100 vCPU, 624GB RAM, 4x Tesla P100 GPUs
 
 ### Network Equipment
 
-| Device | Model | Location | Role | Specs |
-|--------|-------|----------|------|-------|
-| **OPNsense Router** | Custom (i3-4130T) | House | Gateway/Firewall | 2C/4T @ 2.90GHz, 16GB RAM, 2.5Gb ATT Fiber |
-| **Brocade ICX6610** | Enterprise Switch | Garage | Core L3 Switch | 48x 1/10Gb ports, 4x 40Gb QSFP+, VLAN routing |
-| **Arista 7050** | Data Center Switch | Garage | Distribution | 48x 10Gb SFP+, 4x 40Gb QSFP+ |
-| **Aruba S2500-48p** | Access Switch | House | PoE Access | 48x 1Gb PoE+ ports |
-| **Mikrotik NRay60** | 60GHz Radio (x2) | Both | Wireless Bridge | 1Gbps point-to-point link |
+| Device              | Model              | Location | Role             | Specs                                         |
+| ------------------- | ------------------ | -------- | ---------------- | --------------------------------------------- |
+| **OPNsense Router** | Custom (i3-4130T)  | House    | Gateway/Firewall | 2C/4T @ 2.90GHz, 16GB RAM, 2.5Gb ATT Fiber    |
+| **Brocade ICX6610** | Enterprise Switch  | Garage   | Core L3 Switch   | 48x 1/10Gb ports, 4x 40Gb QSFP+, VLAN routing |
+| **Arista 7050**     | Data Center Switch | Garage   | Distribution     | 48x 10Gb SFP+, 4x 40Gb QSFP+                  |
+| **Aruba S2500-48p** | Access Switch      | House    | PoE Access       | 48x 1Gb PoE+ ports                            |
+| **Mikrotik NRay60** | 60GHz Radio (x2)   | Both     | Wireless Bridge  | 1Gbps point-to-point link                     |
 
 ### Storage
 
-**Storage Distribution:**
-- **Proxmox-01:** 24x 4TB HDD (96TB) - Unraid VM
-- **Proxmox-03:** 3x 4TB + 7x 10TB + 2x 12TB (106TB) - Unraid VM
+**Storage Distribution (Ceph OSDs across Proxmox hosts):**
+
+- **Proxmox-01:** 24x 4TB HDD (96TB)
+- **Proxmox-03:** 3x 4TB + 7x 10TB + 2x 12TB (106TB)
 - **Proxmox-04:** 8x 10TB + 1x 3.84TB + 1x 800GB (84.64TB)
 - **JBOD Shelf:** 18x 10TB + 1x 3.84TB + 1x 800GB (184.64TB)
 - **Total Raw Capacity:** 476.96TB across 76 drives
-- **Network:** Dedicated 40Gb network for storage traffic
+- **Network:** Dedicated 40Gb network for Ceph traffic (VLAN 200)
 
 ---
 
