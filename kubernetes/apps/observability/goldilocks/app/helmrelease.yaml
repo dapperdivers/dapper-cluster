@@ -38,6 +38,14 @@ spec:
       pullPolicy: Always
     vpa:
       enabled: true
+      recommender:
+        # Advisory-only (all VPAs are updateMode: Off) — no need for minute-fresh
+        # recommendations. Hourly loop + Prometheus history storage keeps this
+        # off etcd (no VPACheckpoint writes) and slashes status-write churn.
+        extraArgs:
+          recommender-interval: 1h
+          storage: prometheus
+          prometheus-address: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
     dashboard:
       enabled: true
       resources:
