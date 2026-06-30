@@ -118,6 +118,12 @@ ConfigMap `authentik-oidc`).
 Full recipe — adopting an existing app vs. creating a new one, the `!Env` creds
 pattern, and the blueprint YAML — see [`references/oidc.md`](references/oidc.md).
 
+**Non-web-app consumers (Proxmox VE and similar appliances)** follow the same Authentik
+blueprint side, but the _consumer_ is configured **outside Git** (PVE realm lives in
+`/etc/pve/domains.cfg`, set via `ssh`+`pveum`, not an app HR). Recipe + the
+issuer-trailing-slash / group-naming / headless-validation gotchas are in
+[`references/oidc.md`](references/oidc.md) → "Non-web-app OIDC consumers".
+
 ---
 
 ## Gotchas
@@ -134,3 +140,11 @@ pattern, and the blueprint YAML — see [`references/oidc.md`](references/oidc.m
   retire an app, remove its entries AND `DELETE` the live provider+app via the API (apps first).
 - `blueprints.yaml` was bootstrapped once from live state by a throwaway script; it is **hand-maintained
   now** (no codegen in the Flux flow).
+- **OIDC issuer trailing slash:** strict OIDC consumers (e.g. Proxmox) exact-match the configured
+  issuer against Authentik's discovery `issuer`, which is published **with** a trailing slash
+  (`.../application/o/<slug>/`). Drop it and the consumer rejects every token. See oidc.md.
+- **Groups need no extra scope mapping:** Authentik's default `profile` scope already emits a `groups`
+  claim (names) and `preferred_username`; with `include_claims_in_id_token` they're in the ID token.
+- **Flaky OIDC login (timeout _or_ 401) is usually transient Authentik slowness, not config** — single
+  `authentik-server` replica stalls; the 401 is the ~60s auth code expiring mid-stall. See memory
+  `project-authentik-stability`.
