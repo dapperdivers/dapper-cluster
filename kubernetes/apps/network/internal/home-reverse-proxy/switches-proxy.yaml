@@ -57,6 +57,12 @@ spec:
         - { group: gateway.envoyproxy.io, kind: Backend, name: brocade-proxy }
 ---
 # ---- Mikrotik CSS326 (SwOS — web-only switch, :80) ----
+# SwOS's HTTP server is CASE-SENSITIVE on header names and only accepts a
+# capitalised `Authorization:`. Browsers speak HTTP/2 to the gateway (header
+# names lowercase per spec), so Envoy was forwarding `authorization:` to the
+# HTTP/1.0 switch → ignored → perpetual 401 login loop. The EnvoyPatchPolicy
+# below forces proper-cased header keys on this upstream cluster. (root-caused
+# 2026-06-30; see memory project-css326-proxy-header-case.)
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: Backend
 metadata:
@@ -78,6 +84,36 @@ spec:
   rules:
     - backendRefs:
         - { group: gateway.envoyproxy.io, kind: Backend, name: css326-proxy }
+---
+# Force Envoy to emit proper-cased HTTP/1 header names ("Authorization", not
+# "authorization") to the CSS326 upstream so its case-sensitive SwOS parser
+# accepts the digest auth reply. Requires extensionApis.enableEnvoyPatchPolicy
+# on the Envoy Gateway HelmRelease. Cluster name is EG-generated as
+# httproute/<ns>/<route>/rule/<idx>; re-verify if the route is renamed.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: css326-proper-case-headers
+  namespace: network
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: internal
+  type: JSONPatch
+  jsonPatches:
+    - type: "type.googleapis.com/envoy.config.cluster.v3.Cluster"
+      name: httproute/network/css326-proxy/rule/0
+      operation:
+        op: add
+        path: /typed_extension_protocol_options
+        value:
+          envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+            "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+            explicit_http_config:
+              http_protocol_options:
+                header_key_format:
+                  proper_case_words: {}
 ---
 # ---- Mikrotik NRay-house (WebFig, :80) ----
 apiVersion: gateway.envoyproxy.io/v1alpha1

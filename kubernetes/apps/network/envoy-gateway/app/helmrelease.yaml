@@ -22,10 +22,13 @@ spec:
   values:
     # Enable the Backend API so HTTPRoutes can target external/self-signed
     # upstreams (home-reverse proxies, unifi) with tls.insecureSkipVerify.
+    # enableEnvoyPatchPolicy: raw-xDS patch so Envoy emits proper-cased header
+    # names to the CSS326 SwOS switch (case-sensitive Authorization parser).
     config:
       envoyGateway:
         extensionApis:
           enableBackend: true
+          enableEnvoyPatchPolicy: true
     deployment:
       envoyGateway:
         resources:
