@@ -89,3 +89,22 @@ data:
       - model: authentik_core.application
         identifiers: { slug: home-assistant }
         attrs: { name: Home Assistant, group: home, provider: !KeyOf hass-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/home-assistant.svg", meta_launch_url: "https://hass.${SECRET_DOMAIN}" }
+      # grafana (generic_oauth) — NEW provider; Authentik generates client_id/secret
+      # on first apply (read them out into Infisical GRAFANA_OIDC_CLIENT_ID/_SECRET).
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Grafana OIDC }
+        id: grafana-oidc
+        attrs:
+          <<: *oidc
+          redirect_uris:
+            - { matching_mode: strict, url: "https://grafana.${SECRET_DOMAIN}/login/generic_oauth", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: grafana }
+        attrs: { name: Grafana, group: internal, provider: !KeyOf grafana-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/grafana.svg", meta_launch_url: "https://grafana.${SECRET_DOMAIN}" }
+      # Grafana Admins — members get Grafana role Admin via the groups claim
+      # (role_attribute_path in the Grafana CR). Others land as Viewer.
+      - model: authentik_core.group
+        identifiers: { name: Grafana Admins }
+        attrs:
+          users:
+            - !Find [authentik_core.user, [username, mackleyder]]

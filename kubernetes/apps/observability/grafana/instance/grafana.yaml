@@ -21,6 +21,20 @@ spec:
       org_role: Viewer
     auth.basic:
       enabled: "false"
+    auth.generic_oauth:
+      enabled: "true"
+      name: Authentik
+      icon: signin
+      # client_id / client_secret come from env (GF_AUTH_GENERIC_OAUTH_*) so the
+      # secret never lands in the rendered grafana.ini ConfigMap.
+      scopes: openid email profile
+      auth_url: https://sso.${SECRET_DOMAIN}/application/o/authorize/
+      token_url: https://sso.${SECRET_DOMAIN}/application/o/token/
+      api_url: https://sso.${SECRET_DOMAIN}/application/o/userinfo/
+      # Authentik groups → Grafana roles; everyone else lands as Viewer.
+      role_attribute_path: "contains(groups[*], 'Grafana Admins') && 'Admin' || contains(groups[*], 'Grafana Editors') && 'Editor' || 'Viewer'"
+      allow_assign_grafana_admin: "true"
+      use_pkce: "true"
     date_formats:
       use_browser_locale: "true"
     explore:
@@ -61,6 +75,16 @@ spec:
                     secretKeyRef:
                       name: grafana-secret
                       key: admin-password
+                - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-oidc-secret
+                      key: client-id
+                - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-oidc-secret
+                      key: client-secret
               resources:
                 requests:
                   cpu: 100m
