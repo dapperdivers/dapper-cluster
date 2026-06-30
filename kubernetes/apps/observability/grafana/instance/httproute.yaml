@@ -17,5 +17,5 @@ spec:
   hostnames: ["grafana.${SECRET_DOMAIN}"]
   rules:
     - backendRefs:
-        - name: grafana
-          port: 80
+        - name: grafana-service
+          port: 3000
