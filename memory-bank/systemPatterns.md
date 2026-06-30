@@ -61,13 +61,12 @@ Security is implemented in multiple layers:
 
 #### Storage Architecture
 
-The storage architecture uses Rook Ceph with an external cluster:
+The storage architecture uses Rook Ceph connected to an external Ceph cluster on the Proxmox hosts:
 
-1. **Unified Storage**: Rook Ceph connecting to external Proxmox Ceph cluster
-2. **CephFS Filesystem**: Shared filesystem storage with ReadWriteMany support for all workloads
-3. **Static PVs**: Pre-existing data mounted via static PVs (media, minio, paperless)
-4. **Backup Strategy**: VolSync with CephFS backend for PVC backups
-5. **Future**: RBD block storage planned for performance-critical workloads (Phase 2)
+1. **Unified Storage**: Rook Ceph (external mode) connecting to the Proxmox Ceph cluster; no in-cluster Ceph daemons
+2. **RBD Block (default)**: `ceph-rbd` StorageClass (RWO) for databases and single-pod workloads
+3. **CephFS Filesystem**: `cephfs-shared` (RWX) for shared/multi-pod workloads; `cephfs-static` for pre-existing paths (media, minio, paperless)
+4. **Backup Strategy**: VolSync (Restic) with the `cephfs_backups` pool; restore/cache PVCs default to `ceph-rbd`
 
 #### Observability Stack
 
@@ -75,10 +74,10 @@ A comprehensive monitoring stack is implemented:
 
 1. **Metrics**: Prometheus (via kube-prometheus-stack)
 2. **Visualization**: Grafana dashboards
-3. **Alerting**: Alertmanager with Pushover notifications
-4. **Logging**: Loki and Promtail
+3. **Alerting**: Alertmanager → ntfy and Pushover (critical)
+4. **Logging**: VictoriaLogs with Fluent-bit shippers
 5. **Synthetic Monitoring**: Blackbox Exporter and Gatus
-6. **Status Page**: Public status indicators
+6. **Status Page**: Gatus + Kromgo public status indicators
 
 #### ExternalSecrets: fetch by folder-scoped path, not root-recursive `find`
 
@@ -118,6 +117,7 @@ Most applications follow a consistent deployment pattern:
 3. **HelmRelease** (`app/helmrelease.yaml`): Defines the Helm chart, values, and dependencies
 
 Example structure:
+
 ```
 kubernetes/apps/[category]/[application]/
 ├── ks.yaml                  # Top-level kustomization
@@ -132,9 +132,8 @@ kubernetes/apps/[category]/[application]/
 Services communicate primarily through:
 
 1. **Kubernetes Services**: Internal DNS-based discovery
-2. **Ingress Resources**: For HTTP/HTTPS traffic routing
-3. **Network Policies**: Controlling which services can communicate
-4. **Service Meshes**: For advanced routing and security (when implemented)
+2. **Envoy Gateway (Gateway API)**: HTTPRoutes route HTTP/HTTPS traffic via the internal/external/media Gateways
+3. **Network Policies**: Controlling which services can communicate (Cilium)
 
 ## Design Patterns and Principles
 

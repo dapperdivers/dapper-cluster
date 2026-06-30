@@ -15,8 +15,8 @@ graph TD
     end
 
     subgraph Worker Nodes
-        W1[Worker 1<br>16 CPU, 128GB]
-        W2[Worker 2<br>16 CPU, 128GB]
+        L[3x Large<br>16 CPU, 128GB]
+        S[4x Small<br>6 CPU, 16GB]
     end
 
     subgraph GPU Node
@@ -30,6 +30,7 @@ graph TD
 ## Core Components
 
 ### Control Plane
+
 - **High Availability**: 3-node control plane configuration
 - **Resource Allocation**: 4 CPU, 16GB RAM per node
 - **Components**:
@@ -39,10 +40,11 @@ graph TD
   - Scheduler
 
 ### Worker Nodes
-- **General Purpose Workers**: 2 nodes
-- **Resources per Node**:
-  - 16 CPU cores
-  - 128GB RAM
+
+- **General Purpose Workers**: 7 nodes (3 large + 4 small)
+- **Resources**:
+  - Large: 16 CPU cores, 128GB RAM (x3)
+  - Small: 6 CPU cores, 16GB RAM (x4)
 - **Workload Types**:
   - Application deployments
   - Database workloads
@@ -50,6 +52,7 @@ graph TD
   - Monitoring systems
 
 ### GPU Node
+
 - **Specialized Worker**: 1 node
 - **Hardware**:
   - 16 CPU cores
@@ -80,9 +83,9 @@ graph TD
         GPUNode[GPU Node]
 
         subgraph Services
-            Ingress[Ingress Controller]
+            Gateway[Envoy Gateway]
             CoreDNS[CoreDNS]
-            CNI[Network Plugin]
+            CNI[Cilium CNI]
         end
     end
 
@@ -98,23 +101,25 @@ graph TD
 
 ## Storage Architecture
 
+All persistent storage is backed by an external Ceph cluster on the Proxmox hosts, accessed through Rook's CSI drivers.
+
 ```mermaid
 graph TD
     subgraph Storage Classes
-        NFS[NFS Storage Class]
-        OpenEBS[OpenEBS Storage Class]
+        RBD[ceph-rbd<br/>RWO block]
+        CEPHFS[cephfs-shared / cephfs-static<br/>RWX filesystem]
     end
 
     subgraph Persistent Volumes
-        NFS --> NFS_PV[NFS PVs]
-        OpenEBS --> Local_PV[Local PVs]
+        RBD --> RBD_PV[RBD PVs]
+        CEPHFS --> FS_PV[CephFS PVs]
     end
 
     subgraph Workload Types
-        NFS_PV --> Media[Media Storage]
-        NFS_PV --> Shared[Shared Config]
-        Local_PV --> DB[Databases]
-        Local_PV --> Cache[Cache Storage]
+        RBD_PV --> DB[Databases]
+        RBD_PV --> App[Single-pod apps]
+        FS_PV --> Media[Media Storage]
+        FS_PV --> Shared[Shared Config]
     end
 ```
 
@@ -129,6 +134,7 @@ graph TD
 ## Scalability
 
 The cluster architecture is designed to be scalable:
+
 - High-availability control plane (3 nodes)
 - Expandable worker node pool
 - Specialized GPU node for compute-intensive tasks
@@ -162,16 +168,19 @@ graph LR
 ## Resource Management
 
 ### Control Plane
+
 - Reserved for kubernetes control plane components
 - Optimized for control plane operations
 - High availability configuration
 
 ### Worker Nodes
+
 - General purpose workloads
 - Balanced resource allocation
 - Flexible scheduling options
 
 ### GPU Node
+
 - Dedicated for GPU workloads
 - NVIDIA GPU operator integration
 - Specialized resource scheduling

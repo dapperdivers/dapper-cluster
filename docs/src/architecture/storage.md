@@ -1,10 +1,8 @@
 # Storage Architecture
 
-> **Note (2025-12-01):** CephFS filesystem was recreated after a failed recovery. All CephFS data pools are empty. The cluster now uses three dedicated CephFS data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
-
 ## Storage Overview
 
-The Dapper Cluster uses Rook Ceph as its primary storage solution, providing unified storage for all Kubernetes workloads. The external Ceph cluster runs on Proxmox hosts and is connected to the Kubernetes cluster via Rook's external cluster mode.
+The Dapper Cluster uses Rook Ceph as its only storage solution, providing unified block and shared-filesystem storage for all Kubernetes workloads. The external Ceph cluster (Ceph 18.2.x Reef) runs on the Proxmox hosts and is connected to Kubernetes via Rook's external cluster mode. CephFS uses three data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
 
 ```mermaid
 graph TD
@@ -38,57 +36,82 @@ graph TD
 
 ### Why Rook Ceph?
 
-The cluster migrated from OpenEBS Mayastor and various NFS backends to Rook Ceph for several key reasons:
+The cluster uses Rook Ceph (external mode) for several key reasons:
 
 1. **Unified Storage Platform**: Single storage solution for all workload types
-2. **External Cluster Design**: Leverages existing Proxmox Ceph cluster infrastructure
-3. **High Performance**: Direct Ceph integration without NFS overhead
+2. **External Cluster Design**: Leverages the Proxmox Ceph cluster infrastructure
+3. **High Performance**: Direct Ceph integration over the dedicated 40Gb storage network
 4. **Scalability**: Native Ceph scalability for growing storage needs
 5. **Feature Rich**: Snapshots, cloning, expansion, and advanced storage features
 6. **ReadWriteMany Support**: CephFS provides shared filesystem access
 7. **Production Proven**: Mature, widely-adopted storage solution
 
-### Migration History
-
-- **Previous**: OpenEBS Mayastor (block storage) + Unraid NFS backends (shared storage)
-- **Current**: Rook Ceph with CephFS and RBD (unified storage platform)
-- **In Progress**: Decommissioning Unraid servers (tower/tower-2) in favor of Ceph
-
 ## Current Storage Classes
 
-### CephFS Shared Storage (Default)
+The live storage classes are: `ceph-rbd` (default), `cephfs-shared`, `cephfs-static`, and `cephfs-backups`.
 
-**Storage Class**: `cephfs-shared`
+### RBD Block Storage (Default)
 
-Primary storage class for all workloads requiring dynamic provisioning.
+**Storage Class**: `ceph-rbd`
+
+The default storage class. Any PVC without an explicit `storageClassName` is provisioned as an RBD block volume.
 
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: cephfs-shared
+  name: ceph-rbd
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-provisioner: rook-ceph.cephfs.csi.ceph.com
+provisioner: rook-ceph.rbd.csi.ceph.com
 parameters:
   clusterID: rook-ceph
-  fsName: cephfs
-  pool: cephfs_data
+  pool: rook-pvc-pool
+  imageFeatures: layering
+  csi.storage.k8s.io/fstype: ext4
 allowVolumeExpansion: true
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 ```
 
 **Characteristics**:
+
+- **Access Mode**: ReadWriteOnce (RWO) - single-pod exclusive access
+- **Use Cases**: Databases, etcd, and any single-pod app needing high IOPS
+- **Performance**: Superior to CephFS for block workloads
+- **Default**: Yes
+
+### CephFS Shared Storage
+
+**Storage Class**: `cephfs-shared`
+
+Dynamically-provisioned shared filesystem for workloads needing RWX.
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cephfs-shared
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: cephfs
+  pool: cephfs_data
+  subvolumeGroup: csi
+  mounter: kernel
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+```
+
+**Characteristics**:
+
 - **Access Mode**: ReadWriteMany (RWX) - Multiple pods can read/write simultaneously
 - **Use Cases**:
   - Applications requiring shared storage
-  - Media applications
-  - Backup repositories (VolSync)
   - Configuration storage
-  - General application storage
+  - General multi-pod application storage
 - **Performance**: Good performance for most workloads, shared filesystem overhead
-- **Default**: Yes - all PVCs without explicit storageClassName use this
 
 ### CephFS Static Storage
 
@@ -97,16 +120,17 @@ volumeBindingMode: Immediate
 Used for pre-existing CephFS paths that need to be mounted into Kubernetes.
 
 **Characteristics**:
+
 - **Access Mode**: ReadWriteMany (RWX)
 - **Use Cases**:
-  - Mounting existing data directories (e.g., `/truenas/*` paths)
+  - Mounting existing CephFS directories (e.g., `/media`)
   - Large media libraries
   - Shared configuration repositories
-  - Data migration scenarios
 - **Provisioning**: Manual - requires creating both PV and PVC
 - **Pattern**: See "Static PV Pattern" section below
 
 **Example**: Media storage at `/media` on cephfs_media pool
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -133,50 +157,23 @@ spec:
       mounter: kernel
 ```
 
-### RBD Block Storage
+### CephFS Backups
 
-**Storage Classes**: `ceph-rbd`, `ceph-bulk`
+**Storage Class**: `cephfs-backups`
 
-High-performance block storage using Ceph RADOS Block Devices.
+Dedicated CephFS class on the `cephfs_backups` pool with a `Retain` reclaim policy, used for backup repositories so data survives PVC deletion.
 
 **Characteristics**:
-- **Access Mode**: ReadWriteOnce (RWO) - Single pod exclusive access
-- **Performance**: Superior to CephFS for block workloads (databases, etc.)
-- **Thin Provisioning**: Efficient storage allocation
-- **Features**: Snapshots, clones, fast resizing
 
-**Use Cases**:
-- PostgreSQL and other databases
-- Stateful applications requiring block storage
-- Applications needing high IOPS
-- Workloads migrating from OpenEBS Mayastor
-
-**Storage Classes**:
-- `ceph-rbd`: General-purpose RBD storage
-- `ceph-bulk`: Erasure-coded pool for large, less-critical data
-
-### Legacy Unraid NFS Storage (Being Decommissioned)
-
-**Storage Class**: `used-nfs` (no storage class for static tower/tower-2 PVs)
-
-Legacy NFS storage from Unraid servers, currently being migrated to Ceph.
-
-**Servers**:
-- `tower.manor` - Primary Unraid server (100Ti NFS) - **Decommissioning**
-- `tower-2.manor` - Secondary Unraid server (100Ti NFS) - **Decommissioning**
-
-**Current Status**:
-- Some media applications still use hybrid approach during migration
-- Active data migration to CephFS in progress
-- Will be fully retired once migration complete
-
-**Migration Plan**: All workloads being moved to Ceph (CephFS or RBD as appropriate)
+- **Access Mode**: ReadWriteMany (RWX)
+- **Reclaim Policy**: Retain
+- **Use Cases**: VolSync Restic repositories and other backup data
 
 ## Storage Provisioning Patterns
 
 ### Dynamic Provisioning (Default)
 
-For most applications, simply create a PVC and Kubernetes will automatically provision storage:
+For most applications, simply create a PVC and Kubernetes will automatically provision storage. With no `storageClassName`, the default `ceph-rbd` (RWO block) class is used; set `storageClassName: cephfs-shared` when you need RWX:
 
 ```yaml
 apiVersion: v1
@@ -186,11 +183,11 @@ metadata:
   namespace: my-namespace
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
-  # No storageClassName specified = uses default (cephfs-shared)
+  # No storageClassName specified = uses default (ceph-rbd, RWO)
 ```
 
 ### Static PV Pattern
@@ -198,6 +195,7 @@ spec:
 For mounting pre-existing CephFS paths:
 
 **Step 1**: Create PersistentVolume
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -219,12 +217,13 @@ spec:
       clusterID: rook-ceph
       fsName: cephfs
       staticVolume: "true"
-      rootPath: /my-data  # Path in CephFS
-      pool: cephfs_data   # Target data pool
-      mounter: kernel     # Kernel mounter for better performance
+      rootPath: /my-data # Path in CephFS
+      pool: cephfs_data # Target data pool
+      mounter: kernel # Kernel mounter for better performance
 ```
 
 **Step 2**: Create matching PersistentVolumeClaim
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -242,33 +241,33 @@ spec:
 ```
 
 **Current Static PVs in Use**:
+
 - `media-cephfs-pv` → `/media` on cephfs_media pool (100Ti)
 - `minio-cephfs-pv` → `/minio` on cephfs_data pool (10Ti)
 - `paperless-cephfs-pv` → `/paperless` on cephfs_data pool (5Ti)
 
 ## Storage Decision Matrix
 
-| Workload Type | Storage Class | Access Mode | Rationale |
-|---------------|---------------|-------------|-----------|
-| Databases (PostgreSQL, etc.) | `ceph-rbd` | RWO | Best performance for block storage workloads |
-| Media Libraries | `cephfs-static` or `cephfs-shared` | RWX | Shared access for media servers |
-| Media Downloads | `cephfs-shared` | RWX | Multi-pod write access |
-| Application Data (single pod) | `ceph-rbd` | RWO | High performance block storage |
-| Application Data (multi-pod) | `cephfs-shared` | RWX | Concurrent access required |
-| Backup Repositories | `cephfs-shared` | RWX | VolSync requires RWX |
-| Shared Config | `cephfs-shared` | RWX | Multiple pods need access |
-| Bulk Storage | `ceph-bulk` or `cephfs-static` | RWO/RWX | Large datasets, erasure coding |
-| Legacy Apps (during migration) | `used-nfs` | RWX | Temporary until Unraid decom complete |
+| Workload Type                 | Storage Class                      | Access Mode | Rationale                                    |
+| ----------------------------- | ---------------------------------- | ----------- | -------------------------------------------- |
+| Databases (PostgreSQL, etc.)  | `ceph-rbd`                         | RWO         | Best performance for block storage workloads |
+| Media Libraries               | `cephfs-static` or `cephfs-shared` | RWX         | Shared access for media servers              |
+| Media Downloads               | `cephfs-shared`                    | RWX         | Multi-pod write access                       |
+| Application Data (single pod) | `ceph-rbd`                         | RWO         | High performance block storage               |
+| Application Data (multi-pod)  | `cephfs-shared`                    | RWX         | Concurrent access required                   |
+| Backup Repositories           | `cephfs-backups`                   | RWX         | Retain policy, dedicated pool                |
+| Shared Config                 | `cephfs-shared`                    | RWX         | Multiple pods need access                    |
+| Large media libraries         | `cephfs-static`                    | RWX         | Pre-existing CephFS paths                    |
 
 ## Backup Strategy
 
-### VolSync with CephFS
+### VolSync
 
-All persistent data is backed up using VolSync, which now uses CephFS for its repository storage:
+All persistent data is backed up using VolSync:
 
 - **Backup Frequency**: Hourly snapshots via ReplicationSource
-- **Repository Storage**: CephFS PVC (migrated from NFS)
-- **Backend**: Restic repositories on CephFS
+- **Repository Storage**: CephFS (`cephfs-backups` pool), Restic repositories
+- **Restore/cache PVCs**: Default to `ceph-rbd`
 - **Retention**: Configurable per-application
 - **Recovery**: Supports restore to same or different PVC
 
@@ -291,6 +290,7 @@ The external Ceph cluster uses two networks:
 ### Connection Method
 
 Kubernetes connects to Ceph via:
+
 1. **Rook Operator**: Manages connection to external cluster
 2. **CSI Drivers**: cephfs.csi.ceph.com for CephFS volumes
 3. **Mon Endpoints**: ConfigMap with Ceph monitor addresses
@@ -318,23 +318,27 @@ Kubernetes connects to Ceph via:
 ### Common Operations
 
 **Expand a PVC**:
+
 ```bash
 kubectl patch pvc my-pvc -p '{"spec":{"resources":{"requests":{"storage":"20Gi"}}}}'
 ```
 
 **Check storage usage**:
+
 ```bash
 kubectl get pvc -A
 kubectl exec -it <pod> -- df -h
 ```
 
 **Monitor Ceph cluster health**:
+
 ```bash
 kubectl -n rook-ceph get cephcluster
 kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
 ```
 
 **List CephFS mounts**:
+
 ```bash
 kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status
 ```
@@ -342,12 +346,14 @@ kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status
 ### Troubleshooting
 
 **PVC stuck in Pending**:
+
 ```bash
 kubectl describe pvc <pvc-name>
 kubectl -n rook-ceph logs -l app=rook-ceph-operator
 ```
 
 **Slow performance**:
+
 ```bash
 # Check Ceph cluster health
 kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph health detail
@@ -360,6 +366,7 @@ kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph osd perf
 ```
 
 **Mount issues**:
+
 ```bash
 # Check CSI driver logs
 kubectl -n rook-ceph logs -l app=csi-cephfsplugin
@@ -367,26 +374,6 @@ kubectl -n rook-ceph logs -l app=csi-cephfsplugin
 # Verify connection to monitors
 kubectl -n rook-ceph get configmap rook-ceph-mon-endpoints -o yaml
 ```
-
-## Current Migration Status
-
-### Completed
-- ✅ RBD storage classes implemented and available
-- ✅ CephFS as default storage class
-- ✅ VolSync migrated to CephFS backend
-- ✅ Static PV pattern established for existing data
-- ✅ Migrated from OpenEBS Mayastor to Ceph RBD
-
-### In Progress
-- 🔄 Decommissioning Unraid NFS servers (tower/tower-2)
-- 🔄 Migrating remaining media workloads from NFS to CephFS
-- 🔄 Consolidating all storage onto Ceph platform
-
-### Future Enhancements
-- 📋 Additional RBD pool with SSD backing for critical workloads
-- 📋 Erasure coding optimization for bulk media storage
-- 📋 Advanced snapshot scheduling and retention policies
-- 📋 Ceph performance tuning and optimization
 
 ## Best Practices
 

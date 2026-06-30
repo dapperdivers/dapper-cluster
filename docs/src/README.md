@@ -28,18 +28,19 @@ graph TD
 ## Hardware Specifications
 
 ### Control Plane
+
 - 3 nodes for high availability
 - 4 CPU cores per node
 - 16GB RAM per node
 - Dedicated to cluster control plane operations
 
 ### Worker Nodes
-- 2 general-purpose worker nodes
-- 16 CPU cores per node
-- 128GB RAM per node
-- Handles general workloads and applications
+
+- 8 worker nodes total: 1 GPU node, 3 large (16 CPU / 128GB), 4 small (6 CPU / 16GB)
+- Handles general workloads, databases, media, and applications
 
 ### GPU Node
+
 - Specialized GPU worker node
 - 16 CPU cores
 - 128GB RAM
@@ -51,8 +52,8 @@ graph TD
 - High-availability Kubernetes cluster
 - GPU acceleration support
 - Automated deployment using Flux CD
-- Secure secrets management with SOPS
-- NFS and OpenEBS storage integration
+- Secure secrets management with SOPS + External Secrets (Infisical)
+- External Ceph storage (RBD + CephFS) via Rook
 - Comprehensive monitoring and observability
 - Media services automation
 
@@ -74,8 +75,8 @@ graph TD
 
     Core Services --> Applications
 
-    Storage --> |NFS/OpenEBS| Applications
-    Network --> |Ingress/DNS| Applications
+    Storage --> |Ceph RBD/CephFS| Applications
+    Network --> |Envoy Gateway/DNS| Applications
 ```
 
 ## Documentation Structure
@@ -100,6 +101,7 @@ graph TD
 ## Getting Started
 
 For new users, we recommend starting with:
+
 1. [Architecture Overview](architecture/overview.md) - Understanding the cluster design
 2. [Installation Guide](operations/installation.md) - Setting up the cluster
 3. [Application Stack](apps/media.md) - Deploying applications

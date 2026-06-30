@@ -22,9 +22,4 @@
 - [Maintenance](operations/maintenance.md)
 - [Troubleshooting](operations/troubleshooting.md)
 - [Network Operations](operations/network-runbook.md)
-  - [40GB Ceph Network Upgrade](operations/network-configs/README.md)
-
-# Planning
-
-- [Monitoring Stack Gap Analysis](planning/monitoring-stack-gap-analysis-2025-10-17.md)
-- [VPA Resource Updates](planning/vpa-resource-updates-plan.md)
+- [VolSync Resource Flow](planning/volsync-resource-flow.md)

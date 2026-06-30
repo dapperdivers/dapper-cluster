@@ -7,12 +7,14 @@ The Dapper Cluster network spans two physical locations (garage/shop and house) 
 ## Network Locations
 
 ### Garage/Shop (Server Room)
+
 - Primary compute infrastructure
 - Core and distribution switches
 - 4x Proxmox hosts running Talos/Kubernetes
 - High-speed storage network
 
 ### House
+
 - Access layer switch
 - OPNsense router/firewall
 - Client devices
@@ -24,36 +26,36 @@ The Dapper Cluster network spans two physical locations (garage/shop and house) 
 
 ### Core Network Equipment
 
-| Device | Model | Management IP | Location | Role | Notes |
-|--------|-------|---------------|----------|------|-------|
-| Brocade Core | ICX6610 | 192.168.1.20 | Garage | Core/L3 Switch | Manages VLAN 150, 200 routing |
-| Arista Distribution | 7050 | 192.168.1.21 | Garage | Distribution Switch | High-speed 40Gb interconnects |
-| Aruba Access | S2500-48p | 192.168.1.26 | House | Access Switch | PoE, client devices |
-| OPNsense Router | i3-4130T - 16GB | 192.168.1.1 | House | Router/Firewall | Manages VLAN 1, 100 routing |
-| Mikrotik Radio (House) | NRay60 | 192.168.1.7 | House | Wireless Bridge | 1Gbps to garage |
-| Mikrotik Radio (Shop) | NRay60 | 192.168.1.8 | Garage | Wireless Bridge | 1Gbps to house |
-| Mikrotik Switch | CSS326-24G-2S | 192.168.1.27 | Garage | Wireless Bridge - Brocade Core | Always up interconnect |
+| Device                 | Model           | Management IP | Location | Role                           | Notes                         |
+| ---------------------- | --------------- | ------------- | -------- | ------------------------------ | ----------------------------- |
+| Brocade Core           | ICX6610         | 192.168.1.20  | Garage   | Core/L3 Switch                 | Manages VLAN 150, 200 routing |
+| Arista Distribution    | 7050            | 192.168.1.21  | Garage   | Distribution Switch            | High-speed 40Gb interconnects |
+| Aruba Access           | S2500-48p       | 192.168.1.26  | House    | Access Switch                  | PoE, client devices           |
+| OPNsense Router        | i3-4130T - 16GB | 192.168.1.1   | House    | Router/Firewall                | Manages VLAN 1, 100 routing   |
+| Mikrotik Radio (House) | NRay60          | 192.168.1.7   | House    | Wireless Bridge                | 1Gbps to garage               |
+| Mikrotik Radio (Shop)  | NRay60          | 192.168.1.8   | Garage   | Wireless Bridge                | 1Gbps to house                |
+| Mikrotik Switch        | CSS326-24G-2S   | 192.168.1.27  | Garage   | Wireless Bridge - Brocade Core | Always up interconnect        |
 
 ### Compute Infrastructure
 
-| Device | Management IP | IPMI IP | Location | Links | Notes |
-|--------|---------------|---------|----------|-------|-------|
-| Proxmox Host 1 | 192.168.1.62  | 192.168.1.162 | Garage | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
-| Proxmox Host 2 | 192.168.1.63 | 192.168.1.165 | Garage | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
-| Proxmox Host 3 | 192.168.1.64 | 192.168.1.163 | Garage | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
-| Proxmox Host 4 | 192.168.1.66 | 192.168.1.164 | Garage | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
+| Device         | Management IP | IPMI IP       | Location | Links   | Notes                    |
+| -------------- | ------------- | ------------- | -------- | ------- | ------------------------ |
+| Proxmox Host 1 | 192.168.1.62  | 192.168.1.162 | Garage   | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
+| Proxmox Host 2 | 192.168.1.63  | 192.168.1.165 | Garage   | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
+| Proxmox Host 3 | 192.168.1.64  | 192.168.1.163 | Garage   | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
+| Proxmox Host 4 | 192.168.1.66  | 192.168.1.164 | Garage   | 6 total | 3x 1Gb, 2x 10Gb, 1x 40Gb |
 
 ### Kubernetes Nodes (VMs on Proxmox)
 
-| Hostname | Primary IP (VLAN 100) | Storage IP (VLAN 150) | Role | Host |
-|----------|----------------------|---------------------|------|------|
-| talos-control-1 | 10.100.0.50 | 10.150.0.10 | Control Plane | Proxmox-03 |
-| talos-control-2 | 10.100.0.51 | 10.150.0.11 | Control Plane | Proxmox-04 |
-| talos-control-3 | 10.100.0.52 | 10.150.0.12 | Control Plane | Proxmox-02 |
-| talos-node-gpu-1 | 10.100.0.53 | 10.150.0.13 | Worker (GPU) | Proxmox-03 |
-| talos-node-large-1 | 10.100.0.54 | 10.150.0.14 | Worker | Proxmox-03 |
-| talos-node-large-2 | 10.100.0.55 | 10.150.0.15 | Worker | Proxmox-03 |
-| talos-node-large-3 | 10.100.0.56 | 10.150.0.16 | Worker | Proxmox-03 |
+| Hostname           | Primary IP (VLAN 100) | Storage IP (VLAN 150) | Role          | Host       |
+| ------------------ | --------------------- | --------------------- | ------------- | ---------- |
+| talos-control-1    | 10.100.0.50           | 10.150.0.10           | Control Plane | Proxmox-03 |
+| talos-control-2    | 10.100.0.51           | 10.150.0.11           | Control Plane | Proxmox-04 |
+| talos-control-3    | 10.100.0.52           | 10.150.0.12           | Control Plane | Proxmox-02 |
+| talos-node-gpu-1   | 10.100.0.53           | 10.150.0.13           | Worker (GPU)  | Proxmox-03 |
+| talos-node-large-1 | 10.100.0.54           | 10.150.0.14           | Worker        | Proxmox-03 |
+| talos-node-large-2 | 10.100.0.55           | 10.150.0.15           | Worker        | Proxmox-03 |
+| talos-node-large-3 | 10.100.0.56           | 10.150.0.16           | Worker        | Proxmox-03 |
 
 **Kubernetes Cluster VIP:** 10.100.0.40 (shared across control plane nodes)
 
@@ -61,20 +63,22 @@ The Dapper Cluster network spans two physical locations (garage/shop and house) 
 
 ## VLAN Configuration
 
-| VLAN ID | Network | Subnet | Gateway | MTU | Purpose | Gateway Device | Notes |
-|---------|---------|--------|---------|-----|---------|----------------|-------|
-| 1 | LAN | 192.168.1.0/24 | 192.168.1.1 | 1500 | Management, clients | OPNsense | Default VLAN |
-| 100 | SERVERS | 10.100.0.0/24 | 10.100.0.1 | 1500 | Kubernetes nodes, VMs | OPNsense | Primary server network |
-| 150 | CEPH-PUBLIC | 10.150.0.0/24 | None (internal) | 9000 | Ceph client/monitor | Brocade | Jumbo frames enabled, no gateway needed |
-| 200 | CEPH-CLUSTER | 10.200.0.0/24 | None (internal) | 9000 | Ceph OSD replication | Arista | Jumbo frames enabled, no gateway needed |
+| VLAN ID | Network      | Subnet         | Gateway         | MTU  | Purpose               | Gateway Device | Notes                                   |
+| ------- | ------------ | -------------- | --------------- | ---- | --------------------- | -------------- | --------------------------------------- |
+| 1       | LAN          | 192.168.1.0/24 | 192.168.1.1     | 1500 | Management, clients   | OPNsense       | Default VLAN                            |
+| 100     | SERVERS      | 10.100.0.0/24  | 10.100.0.1      | 1500 | Kubernetes nodes, VMs | OPNsense       | Primary server network                  |
+| 150     | CEPH-PUBLIC  | 10.150.0.0/24  | None (internal) | 9000 | Ceph client/monitor   | Brocade        | Jumbo frames enabled, no gateway needed |
+| 200     | CEPH-CLUSTER | 10.200.0.0/24  | None (internal) | 9000 | Ceph OSD replication  | Arista         | Jumbo frames enabled, no gateway needed |
 
 ### Kubernetes Internal Networks
-| Network | CIDR | Purpose | MTU |
-|---------|------|---------|-----|
-| Pod Network | 10.69.0.0/16 | Cilium pod CIDR | 1500 |
+
+| Network         | CIDR         | Purpose             | MTU  |
+| --------------- | ------------ | ------------------- | ---- |
+| Pod Network     | 10.69.0.0/16 | Cilium pod CIDR     | 1500 |
 | Service Network | 10.96.0.0/16 | Kubernetes services | 1500 |
 
 ### VLAN Tagging Summary
+
 - **Tagged (Trunked):** All inter-switch links, Proxmox host uplinks (for VM traffic)
 - **Untagged Access Ports:** Client devices on appropriate VLANs
 - **[TODO: Document which VLANs are allowed on which trunk ports]**
@@ -165,12 +169,14 @@ graph LR
 ```
 
 **Per-Host Link Summary:**
+
 - **IPMI:** 1x 1Gb to Brocade (dedicated management)
 - **Proxmox Management:** 2x 1Gb LACP bond to Brocade (Proxmox host IP)
 - **VM Traffic:** 2x 10Gb LACP bond to Brocade (bridges for VMs, VLAN 100, 150)
 - **Ceph Cluster:** 1x 40Gb to Arista (VLAN 200 only)
 
 **Total Bandwidth per Host:**
+
 - To Brocade: 23 Gbps (3 + 20 Gbps)
 - To Arista: 40 Gbps
 
@@ -195,6 +201,7 @@ graph LR
 ```
 
 **CURRENT ISSUE:**
+
 - 2x 40Gb links are configured as separate trunk ports (default VLAN 1, passing all VLANs)
 - This creates a layer 2 loop
 - ONE port disabled on Arista side as workaround
@@ -244,6 +251,7 @@ graph TB
 ### Layer 3 Routing
 
 **Primary Gateways:**
+
 - **OPNsense** (at house):
   - VLAN 1: 192.168.1.1
   - VLAN 100: 10.100.0.1
@@ -258,6 +266,7 @@ graph TB
   - VIP's that route back to the gateway at 192.168.1.1 or 10.100.0.1
 
 **[TODO: Document inter-VLAN routing rules]**
+
 - Can VLAN 150/200 reach the internet? USER-TODO: (Need to check not sure)
 - Are there firewall rules blocking inter-VLAN traffic?
 - How does Ceph traffic route if needed?
@@ -267,9 +276,11 @@ graph TB
 ## Traffic Flows
 
 ### VLAN 1 (Management) - 192.168.1.0/24
+
 **Purpose:** Switch management, IPMI, admin access
 
 **Flow:**
+
 ```
 Client (House)
   → Aruba Switch
@@ -279,6 +290,7 @@ Client (House)
 ```
 
 **Devices:**
+
 - All switch management IPs
 - Proxmox IPMI interfaces
 - Admin workstations
@@ -287,9 +299,11 @@ Client (House)
 ---
 
 ### VLAN 100 (Servers) - 10.100.0.0/24
+
 **Purpose:** Kubernetes nodes, VM primary network
 
 **Flow:**
+
 ```
 Talos Node (10.100.0.50-56)
   → Proxmox VM Bridge (10Gb bond)
@@ -298,6 +312,7 @@ Talos Node (10.100.0.50-56)
 ```
 
 **Key Services:**
+
 - Kubernetes API: 10.100.0.40:6443 (VIP)
 - Talos nodes: 10.100.0.50-56
 
@@ -306,11 +321,13 @@ Talos Node (10.100.0.50-56)
 ---
 
 ### VLAN 150 (Ceph Public) - 10.150.0.0/24
+
 **Purpose:** Ceph client connections, monitor communication, CSI drivers
 
 **MTU:** 9000 (Jumbo frames)
 
 **Flow:**
+
 ```
 Kubernetes Pod (needs storage)
   → Rook CSI Driver
@@ -321,6 +338,7 @@ Kubernetes Pod (needs storage)
 ```
 
 **Key Services:**
+
 - Ceph Monitors: 10.150.0.4, 10.150.0.2
 - Kubernetes nodes: 10.150.0.10-16 (secondary IPs)
 - Rook CSI drivers connect via this network
@@ -329,6 +347,7 @@ Kubernetes Pod (needs storage)
 **Internet Access:** Not needed (Ceph storage network)
 
 **Performance:**
+
 - 2x 10Gb bonded links per host
 - Jumbo frames (MTU 9000)
 - Shared with VLAN 100 on same physical bond
@@ -336,11 +355,13 @@ Kubernetes Pod (needs storage)
 ---
 
 ### VLAN 200 (Ceph Cluster) - 10.200.0.0/24
+
 **Purpose:** Ceph OSD replication, cluster heartbeat (backend traffic)
 
 **MTU:** 9000 (Jumbo frames)
 
 **Flow:**
+
 ```
 Ceph OSD on Proxmox Host 1
   → 40Gb link to Arista
@@ -350,6 +371,7 @@ Ceph OSD on Proxmox Host 1
 ```
 
 **Key Characteristics:**
+
 - **Dedicated high-speed path:** Uses 40Gb links exclusively
 - **East-west traffic only:** OSD-to-OSD replication
 - **Does NOT traverse Brocade** for data path
@@ -359,6 +381,7 @@ Ceph OSD on Proxmox Host 1
 **Internet Access:** Not needed (Ceph backend replication only)
 
 **Performance:**
+
 - 40Gbps per host to Arista
 - Dedicated bandwidth (not shared with other traffic)
 - Jumbo frames critical for large object transfers
@@ -370,12 +393,12 @@ USER-TODO: Need to choose/ configure
 
 ### Traffic Segregation Summary
 
-| VLAN | Physical Path | Bandwidth | MTU | Shared? |
-|------|--------------|-----------|-----|---------|
-| 1 (Management) | 1Gb/10Gb to Brocade | Shared | 1500 | Yes |
-| 100 (Servers) | 2x 10Gb bond to Brocade | 20 Gbps | 1500 | Yes (with VLAN 150) |
-| 150 (Ceph Public) | 2x 10Gb bond to Brocade | 20 Gbps | 9000 | Yes (with VLAN 100) |
-| 200 (Ceph Cluster) | 1x 40Gb to Arista | 40 Gbps | 9000 | No (dedicated) |
+| VLAN               | Physical Path           | Bandwidth | MTU  | Shared?             |
+| ------------------ | ----------------------- | --------- | ---- | ------------------- |
+| 1 (Management)     | 1Gb/10Gb to Brocade     | Shared    | 1500 | Yes                 |
+| 100 (Servers)      | 2x 10Gb bond to Brocade | 20 Gbps   | 1500 | Yes (with VLAN 150) |
+| 150 (Ceph Public)  | 2x 10Gb bond to Brocade | 20 Gbps   | 9000 | Yes (with VLAN 100) |
+| 200 (Ceph Cluster) | 1x 40Gb to Arista       | 40 Gbps   | 9000 | No (dedicated)      |
 
 ---
 
@@ -386,6 +409,7 @@ USER-TODO: Need to choose/ configure
 **Role:** Core L3 switch, VLAN routing for 150/200
 
 **Port Assignments:**
+
 ```
 [TODO: Document port assignments]
 
@@ -398,6 +422,7 @@ Example:
 ```
 
 **VLAN Interfaces (SVI):**
+
 ```
 [TODO: Brocade config snippet]
 
@@ -414,6 +439,7 @@ interface ve 200
 ```
 
 **Static Routes:**
+
 ```
 [TODO: Document static routes to OPNsense]
 ```
@@ -423,6 +449,7 @@ interface ve 200
 **Role:** High-speed distribution for VLAN 200 (Ceph cluster)
 
 **Port Assignments:**
+
 ```
 [TODO: Document port assignments]
 
@@ -432,6 +459,7 @@ Example:
 ```
 
 **Configuration:**
+
 ```
 [TODO: Arista config snippet for port-channel]
 ```
@@ -457,6 +485,7 @@ Example:
 **Target State:** Both 40Gb links in LACP port-channel
 
 **Brocade Configuration:**
+
 ```
 [TODO: Brocade LACP config]
 
@@ -473,6 +502,7 @@ interface ethernet 1/1/42
 ```
 
 **Arista Configuration:**
+
 ```
 [TODO: Arista LACP config]
 
@@ -497,10 +527,12 @@ interface Ethernet50
 ### Bandwidth Allocation
 
 **Total Uplink Capacity (Garage to House):**
+
 - 1 Gbps (Mikrotik 60GHz bridge)
 - **Bottleneck:** All VLAN 1 and internet-bound traffic limited to 1Gbps
 
 **Garage Internal Bandwidth:**
+
 - Brocade to Hosts: 92 Gbps aggregate (12x 1Gb + 8x 10Gb bonds)
 - Arista to Hosts: 160 Gbps (4x 40Gb)
 - Brocade-Arista: 40 Gbps (when LAG working: 80 Gbps)
@@ -508,11 +540,13 @@ interface Ethernet50
 ### Expected Traffic Patterns
 
 **High Bandwidth Flows:**
+
 1. Ceph OSD replication (VLAN 200) - 40Gb per host
 2. Ceph client I/O (VLAN 150) - 20Gb shared per host
 3. VM network traffic (VLAN 100) - 20Gb shared per host
 
 **Constrained Flows:**
+
 1. Internet access - limited to 1Gbps wireless bridge
 2. Management traffic - shared 1Gbps wireless bridge
 
@@ -523,6 +557,7 @@ interface Ethernet50
 ### Connectivity Testing
 
 **Test Management Access:**
+
 ```bash
 # From any client
 ping 192.168.1.20  # Brocade
@@ -535,12 +570,14 @@ ping 192.168.1.8   # Mikrotik Shop
 ```
 
 **Test VLAN 100 (Servers):**
+
 ```bash
 ping 10.100.0.40   # Kubernetes VIP
 ping 10.100.0.50   # Talos control-1
 ```
 
 **Test VLAN 150 (Ceph Public):**
+
 ```bash
 ping 10.150.0.10   # Talos control-1 storage interface
 ```
@@ -548,6 +585,7 @@ ping 10.150.0.10   # Talos control-1 storage interface
 ### Check Link Aggregation Status
 
 **Brocade:**
+
 ```
 show lag
 show interface ethernet 1/1/41
@@ -555,6 +593,7 @@ show interface ethernet 1/1/42
 ```
 
 **Arista:**
+
 ```
 show port-channel summary
 show interface ethernet 49
@@ -564,12 +603,14 @@ show interface ethernet 50
 ### Monitor Traffic
 
 **Brocade:**
+
 ```
 show interface ethernet 1/1/41 | include rate
 show interface ethernet 1/1/42 | include rate
 ```
 
 **Check VLAN configuration:**
+
 ```
 show vlan
 show interface brief
@@ -617,15 +658,6 @@ show interface brief
 - [ ] Consider redundant wireless link or fiber between buildings
 - [ ] Implement proper change management for switch configs
 - [ ] [TODO: Add your planned improvements]
-
----
-
-## Change Log
-
-| Date | Change | Person | Notes |
-|------|--------|--------|-------|
-| 2025-10-14 | Initial documentation created | Claude | Baseline network topology documentation |
-| [TODO] | [TODO] | [TODO] | [TODO] |
 
 ---
 

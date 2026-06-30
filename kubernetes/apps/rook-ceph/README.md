@@ -6,17 +6,17 @@ This directory contains the configuration for connecting Kubernetes to an extern
 
 **Status**: ✅ PRODUCTION
 
-This configuration connects the Kubernetes cluster to an external Ceph 18.2.7 (Reef) cluster via Rook v1.18.6 in external mode. Both RBD and CephFS storage drivers are active and operational.
-
-> **Note (2025-12-01):** CephFS filesystem was recreated after a failed recovery. All CephFS data pools are empty. Static PVs have been updated to use the new pool structure: `cephfs_data`, `cephfs_media`, `cephfs_backups`.
+This configuration connects the Kubernetes cluster to an external Ceph 18.2.7 (Reef) cluster via Rook v1.18.x in external mode. Both RBD and CephFS storage drivers are active and operational. CephFS uses three data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
 
 ### External Ceph Cluster
+
 - **Version**: Ceph 18.2.7 (Reef)
 - **Location**: Proxmox hosts (10.150.0.0/24)
 - **Monitors**: proxmox-02, proxmox-03, proxmox-04
 - **Connection**: External cluster mode (no Ceph daemons in Kubernetes)
 
 ### Rook Configuration
+
 - **Rook Version**: v1.18.6
 - **Operator**: Deployed via Helm
 - **CSI Drivers**: Both RBD and CephFS enabled
@@ -48,21 +48,18 @@ rook-ceph/
 ## Storage Classes
 
 ### Active Storage Classes
-| Class Name | Pool | Type | Default | Use Case |
-|------------|------|------|---------|----------|
-| `ceph-rbd` | rook-pvc-pool | RBD (RWO) | ✅ Yes | General application storage (default) |
-| `cephfs-shared` | cephfs_data | CephFS (RWX) | No | Shared storage, multi-pod access |
-| `cephfs-backups` | cephfs_backups | CephFS (RWX) | No | Backups with Retain reclaim policy |
+
+| Class Name       | Pool           | Type         | Default | Use Case                                                     |
+| ---------------- | -------------- | ------------ | ------- | ------------------------------------------------------------ |
+| `ceph-rbd`       | rook-pvc-pool  | RBD (RWO)    | ✅ Yes  | General application storage (default)                        |
+| `cephfs-shared`  | cephfs_data    | CephFS (RWX) | No      | Shared storage, multi-pod access                             |
+| `cephfs-static`  | (static PVs)   | CephFS (RWX) | No      | Mounting pre-existing CephFS paths (media, minio, paperless) |
+| `cephfs-backups` | cephfs_backups | CephFS (RWX) | No      | Backups with Retain reclaim policy                           |
 
 **Snapshot Classes**:
+
 - `ceph-rbd-snapshot` - RBD snapshots with Delete retention
 - `cephfs-snapshot` - CephFS snapshots with Delete retention
-
-### Planned Storage Classes
-| Class Name | Pool | Type | Use Case |
-|------------|------|------|----------|
-| `ceph-ssd-critical` | ssd-db | RBD | Databases, etcd, critical apps (when pool created) |
-| `ceph-bulk` | media-bulk | RBD (EC) | Media, backups, large files (when pool created) |
 
 ## Network
 
@@ -72,18 +69,14 @@ rook-ceph/
 
 ## Documentation
 
-### Setup & Deployment
-- **📋 Quick Start**: `docs/rook-phase1-quickstart.md` - Initial deployment guide
-- **📖 Deployment Steps**: `docs/rook-deployment-steps.md` - Detailed step-by-step guide
-- **🔧 Complete Setup**: `docs/rook-external-ceph-setup.md` - Full documentation with troubleshooting
-
-### Migration & History
-- **🚀 RBD Integration**: `docs/rook-phase2-migration.md` - RBD driver migration guide
-- **📜 Migration History**: Migrated from OpenEBS Mayastor → CephFS → CephFS + RBD
+- **Storage architecture**: `docs/src/architecture/storage.md`
+- **Storage applications**: `docs/src/apps/storage.md`
+- **Storage classes**: `rook-ceph-cluster/app/storageclasses.yaml`
 
 ## Operations
 
 ### Verify Cluster Health
+
 ```bash
 # Check CephCluster resource
 kubectl -n rook-ceph get cephcluster
@@ -99,6 +92,7 @@ kubectl get sc
 ```
 
 ### Monitor Storage
+
 ```bash
 # Check Ceph capacity
 kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph df
@@ -111,6 +105,7 @@ kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph fs status cephfs
 ```
 
 ### Common Operations
+
 ```bash
 # Expand a PVC
 kubectl patch pvc <pvc-name> -n <namespace> -p '{"spec":{"resources":{"requests":{"storage":"20Gi"}}}}'
@@ -131,11 +126,13 @@ kubectl get pvc -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadat
 **Current Configuration**: ✅ Fully GitOps-Managed
 
 The HelmRelease configuration sets `grpcTimeoutInSeconds: 600` which applies **10-minute timeouts** to all CSI sidecar containers:
+
 - ✅ RBD provisioner sidecars: `--timeout=10m0s`
 - ✅ CephFS provisioner sidecars: `--timeout=10m0s`
 - ✅ Kubernetes API rate limits: 100 QPS, 200 burst (increased for snapshot operations)
 
 **Verification**:
+
 ```bash
 # Verify CSI timeout configuration
 kubectl -n rook-ceph get deployment csi-rbdplugin-provisioner -o yaml | grep "timeout="
@@ -144,5 +141,3 @@ kubectl -n rook-ceph get deployment csi-cephfsplugin-provisioner -o yaml | grep 
 ```
 
 **No manual patches required** - all timeout configuration is managed via the HelmRelease in `rook-ceph-operator/app/helmrelease.yaml`.
-
-**Reference**: See `docs/troubleshooting/2025-10-30-rook-version-comparison-analysis.md` for historical context on timeout issues.

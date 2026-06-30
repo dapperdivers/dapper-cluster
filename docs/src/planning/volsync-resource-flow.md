@@ -1,7 +1,6 @@
 # VolSync Resource Flow and Cleanup Guide
 
-**Date:** 2025-10-21
-**Purpose:** Document VolSync resource hierarchy and cleanup procedures for infrastructure changes
+Reference for the VolSync resource hierarchy and the cleanup procedures used when making storage/infrastructure changes.
 
 ## Overview
 
@@ -212,14 +211,15 @@ For static PVs pointing to existing CephFS directories:
 
 ```yaml
 volumeAttributes:
-  clusterID: rook-ceph          # References mon-endpoints ConfigMap
-  fsName: cephfs                 # CephFS filesystem name
-  staticVolume: "true"           # REQUIRED for static PVs
-  pool: k8s-backups             # Data pool (doesn't affect mount path)
-  rootPath: "/k8s-backups/volsync/${APP}"  # FULL path in filesystem
+  clusterID: rook-ceph # References mon-endpoints ConfigMap
+  fsName: cephfs # CephFS filesystem name
+  staticVolume: "true" # REQUIRED for static PVs
+  pool: k8s-backups # Data pool (doesn't affect mount path)
+  rootPath: "/k8s-backups/volsync/${APP}" # FULL path in filesystem
 ```
 
 **Important Notes:**
+
 - `staticVolume: "true"` is **mandatory** - without it, CSI driver won't properly discover monitors
 - `pool` parameter specifies which data pool stores the data, NOT the mount path
 - `rootPath` must be the **full filesystem path** where data exists
@@ -228,17 +228,19 @@ volumeAttributes:
 ### Why Pool Doesn't Change Mount Path
 
 The `pool` parameter in CephFS tells Ceph which data pool to use for **new data storage**, but:
+
 - Mount paths are at the **filesystem level**, not pool level
 - All pools share the same namespace/directory structure
 - Path `/k8s-backups/volsync/archon` exists in the filesystem regardless of pool
 - The `pool` only matters for data placement on OSDs
 
 Example:
+
 ```
 Filesystem: cephfs
   ├── /volumes/csi/...          (data in cephfs_data pool)
   ├── /k8s-backups/volsync/...  (data in k8s-backups pool)
-  └── /truenas/k8s/...          (data could be in different pool)
+  └── /media/...                (data in cephfs_media pool)
 ```
 
 ## Troubleshooting
@@ -277,6 +279,7 @@ rpc error: code = Aborted desc = an operation with the given Volume ID already e
 ### What Gets Deleted
 
 When following cleanup procedures:
+
 - ✅ Kubernetes PVs/PVCs (metadata only)
 - ✅ ReplicationSource/Destination CRDs
 - ✅ Temporary cache volumes
@@ -285,6 +288,7 @@ When following cleanup procedures:
 ### What Gets Preserved
 
 The cleanup procedures **DO NOT** delete:
+
 - ✅ Actual restic repository data in `/k8s-backups/volsync/${APP}/`
 - ✅ Application data in source PVCs
 - ✅ R2/remote backup data
@@ -334,33 +338,29 @@ kubectl scale deployment volsync -n storage --replicas=1
 kubectl get ks volsync -n storage
 ```
 
-## Lessons Learned (2025-10-21)
+## Known Failure Modes
 
-### Issue: Mount failures with "missing required field monitors"
+### Mount failure: "missing required field monitors"
 
-**Root Cause:** Missing `staticVolume: "true"` attribute in PV spec
-**Impact:** CSI driver couldn't discover monitors from ConfigMap
-**Resolution:** Added `staticVolume: "true"` to volumeAttributes
+**Cause:** Missing `staticVolume: "true"` attribute in the PV spec — the CSI driver can't discover monitors from the ConfigMap without it.
+**Fix:** Add `staticVolume: "true"` to `volumeAttributes`.
 
-### Issue: Mount failures with "No such file or directory"
+### Mount failure: "No such file or directory"
 
-**Root Cause:** `rootPath: "/volsync/${APP}"` but data at `/k8s-backups/volsync/${APP}`
-**Impact:** Paths didn't exist, mounts failed
-**Resolution:** Changed rootPath to `/k8s-backups/volsync/${APP}`
+**Cause:** `rootPath` doesn't match the actual filesystem path (e.g. `/volsync/${APP}` vs `/k8s-backups/volsync/${APP}`).
+**Fix:** Set `rootPath` to the full path where the data exists.
 
-### Issue: Cache PVCs stuck provisioning
+### Cache PVCs stuck provisioning
 
-**Root Cause:** Orphaned RBD volume IDs from rapid delete/create cycles
-**Impact:** "Volume ID already exists" errors
-**Resolution:** Delete stuck PVCs, let VolSync recreate with fresh UIDs
+**Cause:** Orphaned RBD volume IDs from rapid delete/create cycles ("Volume ID already exists").
+**Fix:** Delete the stuck PVCs and let VolSync recreate them with fresh UIDs.
 
-### Issue: Persistent "Volume ID already exists" after mass PVC deletion (2025-10-21)
+### Persistent "Volume ID already exists" after mass PVC deletion
 
-**Root Cause:** Released PVs blocking Ceph RBD volume IDs after PVC deletion
-**Impact:** New PVCs couldn't provision - Ceph saw volume IDs as "already exists"
-**Context:** During migration from CephFS to RBD, deleted 25 app PVCs but PVs remained in "Released" state
+**Cause:** When many PVCs are deleted at once, their PVs linger in `Released` state and keep holding the Ceph RBD volume IDs. New PVCs reuse those IDs and fail to provision.
 
-**Complete Resolution Steps:**
+**Resolution steps:**
+
 ```bash
 # 1. Identify the deadlock
 kubectl get pvc -A | grep Pending  # PVCs stuck
@@ -386,6 +386,7 @@ flux reconcile kustomization -n <namespace> <app>
 ```
 
 **Why this worked:**
+
 - PVCs were deleted → PVs became "Released" but not deleted (reclaimPolicy: Delete doesn't apply immediately)
 - Released PVs held references to Ceph RBD volume IDs
 - New PVCs got same UIDs, tried to create volumes with existing IDs
