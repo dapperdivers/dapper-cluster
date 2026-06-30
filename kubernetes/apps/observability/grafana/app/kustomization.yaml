@@ -79,4 +79,9 @@ configMapGenerator:
     options:
       labels:
         grafana_dashboard: "1"
+      annotations:
+        # Route to a named folder — Grafana blocks new provisioned dashboards
+        # from saving into the General folder (folderId 0). Sidecar reads this
+        # via folderAnnotation: grafana_folder.
+        grafana_folder: Network
       disableNameSuffixHash: true
