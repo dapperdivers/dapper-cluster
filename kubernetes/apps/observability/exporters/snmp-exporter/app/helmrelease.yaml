@@ -76,6 +76,11 @@ spec:
         - name: css326-bridge # 192.168.1.27 SwOS bridge aggregation
           target: 192.168.1.27
           auth: ["public_v2"]
+        - name: opnsense # 10.100.0.1 firewall (VLAN100 gateway); os-net-snmp
+          target: 10.100.0.1
+          # firewall gets host metrics too: load average (ucd) + RAM/disk (hrStorage)
+          module: ["if_mib", "ucd_la_table", "hrStorage"]
+          auth: ["ro_v2"]
       path: /snmp
       relabelings:
         - { sourceLabels: ["__param_target"], targetLabel: instance }
