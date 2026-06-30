@@ -72,3 +72,11 @@ configMapGenerator:
       labels:
         grafana_dashboard: "1"
       disableNameSuffixHash: true
+  - name: grafana-dashboard-snmp-network
+    namespace: observability
+    files:
+      - snmp-network.json=dashboards/snmp-network.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+      disableNameSuffixHash: true
