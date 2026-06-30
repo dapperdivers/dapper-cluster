@@ -1,0 +1,126 @@
+---
+# Switch management WebUIs, fronted by the internal gateway's valid cert (TLS terminates there).
+# No .manor DNS records for these, so EG Backend ip endpoints target the IPs directly.
+# Most serve plain HTTP :80; Aruba is HTTPS :4343 (self-signed → insecureSkipVerify).
+# Arista (.21) is SSH-only — no WebUI. CSS326 SwOS 303-redirects / -> http://192.168.1.27/index.html
+# (absolute IP); browse https://css326.${SECRET_DOMAIN}/index.html directly.
+# ---- Aruba S2500-48P (ArubaOS MAS WebUI, :4343) ----
+# Factory cert (securelogin.arubanetworks.com) had keyUsage=certSign-only → rejected by Chrome
+# (ERR_SSL_KEY_USAGE_INCOMPATIBLE) AND Envoy/BoringSSL (KEY_USAGE_BIT_INCORRECT, not bypassable by
+# insecureSkipVerify). Replaced on-switch with a self-signed cert (digitalSignature+keyEncipherment)
+# via `web-server switch-cert aruba-web`; insecureSkipVerify stays because the replacement is self-signed.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: aruba-proxy
+  namespace: network
+spec:
+  endpoints:
+    - ip: { address: 192.168.1.26, port: 4343 }
+  tls:
+    insecureSkipVerify: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: aruba-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - { name: internal, namespace: network }
+  hostnames: ["aruba.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - { group: gateway.envoyproxy.io, kind: Backend, name: aruba-proxy }
+---
+# ---- Brocade ICX6610 (FastIron web UI, :80) ----
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: brocade-proxy
+  namespace: network
+spec:
+  endpoints:
+    - ip: { address: 192.168.1.20, port: 80 }
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: brocade-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - { name: internal, namespace: network }
+  hostnames: ["brocade.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - { group: gateway.envoyproxy.io, kind: Backend, name: brocade-proxy }
+---
+# ---- Mikrotik CSS326 (SwOS — web-only switch, :80) ----
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: css326-proxy
+  namespace: network
+spec:
+  endpoints:
+    - ip: { address: 192.168.1.27, port: 80 }
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: css326-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - { name: internal, namespace: network }
+  hostnames: ["css326.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - { group: gateway.envoyproxy.io, kind: Backend, name: css326-proxy }
+---
+# ---- Mikrotik NRay-house (WebFig, :80) ----
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: nray-house-proxy
+  namespace: network
+spec:
+  endpoints:
+    - ip: { address: 192.168.1.7, port: 80 }
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nray-house-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - { name: internal, namespace: network }
+  hostnames: ["nray-house.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - { group: gateway.envoyproxy.io, kind: Backend, name: nray-house-proxy }
+---
+# ---- Mikrotik NRay-shop (WebFig, :80) ----
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: nray-shop-proxy
+  namespace: network
+spec:
+  endpoints:
+    - ip: { address: 192.168.1.8, port: 80 }
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nray-shop-proxy
+  namespace: network
+spec:
+  parentRefs:
+    - { name: internal, namespace: network }
+  hostnames: ["nray-shop.${SECRET_DOMAIN}"]
+  rules:
+    - backendRefs:
+        - { group: gateway.envoyproxy.io, kind: Backend, name: nray-shop-proxy }
