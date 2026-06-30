@@ -2,4 +2,5 @@ machine:
   network:
     disableSearchDomain: true
     nameservers:
-      - 10.100.0.1
+      - 10.100.0.1 # OPNsense (house, primary)
+      - 10.100.0.2 # garage resolver (fallback)
