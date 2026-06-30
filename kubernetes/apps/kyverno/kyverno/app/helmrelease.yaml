@@ -28,6 +28,19 @@ spec:
     features:
       mutatingAdmissionPolicies:
         enabled: false
+      # Reports are for config monitoring, not enforcement — trim their etcd
+      # write churn. Drop transient admission (ephemeral) reports, only record
+      # validate-rule results (not mutate/generate), and re-scan daily.
+      admissionReports:
+        enabled: false
+      reporting:
+        validate: true
+        mutate: false
+        mutateExisting: false
+        generate: false
+        imageVerify: false
+      backgroundScan:
+        backgroundScanInterval: 24h
     grafana:
       enabled: true
     admissionController:
@@ -45,9 +58,9 @@ spec:
       clusterRole:
         extraResources:
           - apiGroups:
-              - '*'
+              - "*"
             resources:
-              - '*'
+              - "*"
             verbs:
               - get
               - list
@@ -65,9 +78,9 @@ spec:
       clusterRole:
         extraResources:
           - apiGroups:
-              - '*'
+              - "*"
             resources:
-              - '*'
+              - "*"
             verbs:
               - get
               - list
@@ -77,16 +90,16 @@ spec:
           cpu: 50m
           memory: 128Mi
         limits:
-            memory: 384Mi
+          memory: 384Mi
       serviceMonitor:
         enabled: true
     reportsController:
       clusterRole:
         extraResources:
           - apiGroups:
-              - '*'
+              - "*"
             resources:
-              - '*'
+              - "*"
             verbs:
               - get
               - list
@@ -96,7 +109,7 @@ spec:
           cpu: 100m
           memory: 128Mi
         limits:
-            memory: 384Mi
+          memory: 384Mi
       serviceMonitor:
         enabled: true
     cleanupController:
@@ -105,6 +118,6 @@ spec:
           cpu: 100m
           memory: 128Mi
         limits:
-            memory: 384Mi
+          memory: 384Mi
       serviceMonitor:
         enabled: true
