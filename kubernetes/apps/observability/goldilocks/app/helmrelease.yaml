@@ -40,12 +40,12 @@ spec:
       enabled: true
       recommender:
         # Advisory-only (all VPAs are updateMode: Off) — no need for minute-fresh
-        # recommendations. Hourly loop + Prometheus history storage keeps this
-        # off etcd (no VPACheckpoint writes) and slashes status-write churn.
+        # recommendations. An hourly loop alone cuts status + checkpoint writes to
+        # ~0.1/s (171 objects/hour), so default checkpoint storage is fine; the
+        # Prometheus history backend was dropped (its queries assume the old
+        # cadvisor label schema and error against kube-prometheus-stack).
         extraArgs:
           recommender-interval: 1h
-          storage: prometheus
-          prometheus-address: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
     dashboard:
       enabled: true
       resources:
