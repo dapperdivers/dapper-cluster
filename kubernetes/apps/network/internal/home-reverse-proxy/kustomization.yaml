@@ -3,7 +3,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./aruba-proxy.yaml
+  - ./switches-proxy.yaml
   - ./firewall-proxy.yaml
   - ./proxmox-proxy.yaml
   - ./other-proxy.yaml
