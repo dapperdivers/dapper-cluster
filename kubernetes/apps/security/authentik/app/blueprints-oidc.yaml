@@ -55,18 +55,28 @@ data:
       - model: authentik_core.application
         identifiers: { slug: chat }
         attrs: { name: Open WebUI, group: public, provider: !KeyOf openwebui-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/open-webui.svg", meta_launch_url: "https://chat.${SECRET_DOMAIN}" }
-      # proxmox — two redirect URIs (athena + circe nodes)
+      # proxmox — redirect URIs match the URLs users browse to: the cluster proxy
+      # (proxmox.${SECRET_DOMAIN}, LB across proxmox-01..04) + the standalone athena node.
+      # PVE builds redirect_uri from the request Host, so both proxied hosts must be listed.
       - model: authentik_providers_oauth2.oauth2provider
         identifiers: { name: Provider for Proxmox }
         id: proxmox-oidc
         attrs:
           <<: *oidc
           redirect_uris:
+            - { matching_mode: strict, url: "https://proxmox.${SECRET_DOMAIN}", redirect_uri_type: authorization }
             - { matching_mode: strict, url: "https://athena.${SECRET_DOMAIN}", redirect_uri_type: authorization }
-            - { matching_mode: strict, url: "https://circe.${SECRET_DOMAIN}", redirect_uri_type: authorization }
       - model: authentik_core.application
         identifiers: { slug: proxmox }
-        attrs: { name: Proxmox, group: internal-proxmox, provider: !KeyOf proxmox-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/proxmox.svg", meta_launch_url: "https://proxmox-02.${SECRET_DOMAIN}" }
+        attrs: { name: Proxmox, group: internal-proxmox, provider: !KeyOf proxmox-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/proxmox.svg", meta_launch_url: "https://proxmox.${SECRET_DOMAIN}" }
+      # proxmox-admins — the PVE `authentik` realm syncs this (via the groups claim) to a
+      # PVE group named `proxmox-admins-authentik`, which holds Administrator on / (ACL set
+      # on the PVE side; /etc/pve/domains.cfg is not GitOps-managed). Membership is declared here.
+      - model: authentik_core.group
+        identifiers: { name: proxmox-admins }
+        attrs:
+          users:
+            - !Find [authentik_core.user, [username, mackleyder]]
       # home-assistant (hass-oidc-auth component) — NEW provider; Authentik generates
       # client_id/secret on first apply (read them out for HA's configuration.yaml).
       - model: authentik_providers_oauth2.oauth2provider
