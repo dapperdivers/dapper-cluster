@@ -1,0 +1,57 @@
+# kube-apiserver OIDC authentication — Structured Authentication Configuration.
+#
+# Authentik gives every application its OWN issuer URL (…/application/o/<slug>/), so the
+# legacy single-issuer --oidc-* flags can only ever trust one app. This uses the k8s
+# Structured Authentication Config (apiserver.config.k8s.io/v1, GA in 1.30) to trust
+# MULTIPLE issuers — one JWT authenticator per app, each scoped to its own audience.
+# Both map preferred_username -> user and groups -> groups with the `oidc:` prefix, so
+# the oidc-rbac ClusterRoleBindings apply identically regardless of which app issued the
+# token. x509 cert auth (talosconfig / admin kubeconfig) remains the break-glass.
+#
+# Delivery: machine.files writes the config to the control-plane nodes;
+# apiServer.extraVolumes mounts it read-only into the static pod; --authentication-config
+# points the apiserver at it. --authentication-config is mutually exclusive with --oidc-*.
+#
+# Adding a new OIDC-to-apiserver app (e.g. another dashboard) = add a jwt authenticator
+# block below with that app's issuer + audience.
+cluster:
+  apiServer:
+    extraArgs:
+      authentication-config: /etc/kubernetes/authentication/config.yaml
+    extraVolumes:
+      - hostPath: /etc/kubernetes/authentication
+        mountPath: /etc/kubernetes/authentication
+        readonly: true
+machine:
+  files:
+    - op: create
+      path: /etc/kubernetes/authentication/config.yaml
+      permissions: 0o644
+      content: |
+        apiVersion: apiserver.config.k8s.io/v1
+        kind: AuthenticationConfiguration
+        jwt:
+          # kubectl CLI (kubelogin)
+          - issuer:
+              url: "https://sso.chelonianlabs.com/application/o/kubectl/"
+              audiences:
+                - "kubectl"
+            claimMappings:
+              username:
+                claim: "preferred_username"
+                prefix: "oidc:"
+              groups:
+                claim: "groups"
+                prefix: "oidc:"
+          # Headlamp web dashboard
+          - issuer:
+              url: "https://sso.chelonianlabs.com/application/o/headlamp/"
+              audiences:
+                - "headlamp"
+            claimMappings:
+              username:
+                claim: "preferred_username"
+                prefix: "oidc:"
+              groups:
+                claim: "groups"
+                prefix: "oidc:"
