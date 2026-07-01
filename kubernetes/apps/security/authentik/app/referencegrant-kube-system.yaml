@@ -1,0 +1,20 @@
+---
+# STATIC ReferenceGrant for the hubble-ui forward-auth SecurityPolicy (kube-system).
+# Everywhere else Kyverno generates securitypolicy-to-outpost-<ns> on demand, but
+# Kyverno globally excludes kube-system, so this one is hand-written. Same shape as
+# the generated grants; lives here because it must be in the security namespace
+# (it authorizes cross-namespace refs TO the outpost Service).
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: securitypolicy-to-outpost-kube-system
+  namespace: security
+spec:
+  from:
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: kube-system
+  to:
+    - group: ""
+      kind: Service
+      name: ak-outpost-authentik-embedded-outpost

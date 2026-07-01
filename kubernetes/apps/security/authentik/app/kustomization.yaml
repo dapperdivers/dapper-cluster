@@ -9,3 +9,4 @@ resources:
   - ./blueprints-oidc.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
+  - ./referencegrant-kube-system.yaml

@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./helmrelease.yaml
   - ./httproute.yaml
+  - ./securitypolicy.yaml
   - ./ocirepository.yaml
 configMapGenerator:
   - name: cilium-helm-values
