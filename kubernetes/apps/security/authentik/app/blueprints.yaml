@@ -131,6 +131,69 @@ data:
       - model: authentik_core.application
         identifiers: { slug: firefly }
         attrs: { name: Firefly III, group: home, provider: !KeyOf firefly-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firefly-iii.svg", meta_launch_url: "https://firefly.${SECRET_DOMAIN}" }
+      # peanut — UPS dashboard; app itself runs AUTH_DISABLED (no built-in auth)
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for PeaNUT }
+        id: peanut-provider
+        attrs: { <<: *proxy, external_host: "https://ups.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: peanut }
+        attrs: { name: PeaNUT, group: internal, provider: !KeyOf peanut-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/peanut.svg", meta_launch_url: "https://ups.${SECRET_DOMAIN}" }
+      # prometheus — no built-in auth
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Prometheus }
+        id: prometheus-provider
+        attrs: { <<: *proxy, external_host: "https://prometheus.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: prometheus }
+        attrs: { name: Prometheus, group: internal, provider: !KeyOf prometheus-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/prometheus.svg", meta_launch_url: "https://prometheus.${SECRET_DOMAIN}" }
+      # alertmanager — no built-in auth (Prometheus pushes alerts in-cluster, unaffected)
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Alertmanager }
+        id: alertmanager-provider
+        attrs: { <<: *proxy, external_host: "https://alertmanager.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: alertmanager }
+        attrs: { name: Alertmanager, group: internal, provider: !KeyOf alertmanager-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/prometheus.svg", meta_launch_url: "https://alertmanager.${SECRET_DOMAIN}" }
+      # hubble-ui — read-only network observability, no built-in auth
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Hubble }
+        id: hubble-provider
+        attrs: { <<: *proxy, external_host: "https://hubble.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: hubble }
+        attrs: { name: Hubble, group: internal, provider: !KeyOf hubble-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/cilium.svg", meta_launch_url: "https://hubble.${SECRET_DOMAIN}" }
+      # goldilocks — VPA dashboard, no built-in auth
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Goldilocks }
+        id: goldilocks-provider
+        attrs: { <<: *proxy, external_host: "https://goldilocks.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: goldilocks }
+        attrs: { name: Goldilocks, group: internal, provider: !KeyOf goldilocks-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/kubernetes.svg", meta_launch_url: "https://goldilocks.${SECRET_DOMAIN}" }
+      # blackbox-exporter — probe UI, no built-in auth (Prometheus scrapes in-cluster, unaffected)
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Blackbox Exporter }
+        id: blackbox-provider
+        attrs: { <<: *proxy, external_host: "https://blackbox-exporter.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: blackbox-exporter }
+        attrs: { name: Blackbox Exporter, group: internal, provider: !KeyOf blackbox-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/prometheus.svg", meta_launch_url: "https://blackbox-exporter.${SECRET_DOMAIN}" }
+      # zigbee2mqtt code-servers — sidecars run `--auth none` (a shell into the pod)
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Zigbee Code }
+        id: zigbeecode-provider
+        attrs: { <<: *proxy, external_host: "https://zigbee-code.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: zigbee-code }
+        attrs: { name: Zigbee Code, group: home, provider: !KeyOf zigbeecode-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/coder.svg", meta_launch_url: "https://zigbee-code.${SECRET_DOMAIN}" }
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Zigbee Garage Code }
+        id: zigbeegaragecode-provider
+        attrs: { <<: *proxy, external_host: "https://zigbee-garage-code.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: zigbee-garage-code }
+        attrs: { name: Zigbee Garage Code, group: home, provider: !KeyOf zigbeegaragecode-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/coder.svg", meta_launch_url: "https://zigbee-garage-code.${SECRET_DOMAIN}" }
       # Embedded outpost: disables the k8s Ingress AND declaratively owns the assigned-
       # provider list. Adding an app = its 2 entries above (with id:) + one !KeyOf line here.
       - model: authentik_outposts.outpost
@@ -170,3 +233,11 @@ data:
             - !KeyOf 4kbazarr-provider
             - !KeyOf posterizarr-provider
             - !KeyOf firefly-provider
+            - !KeyOf peanut-provider
+            - !KeyOf prometheus-provider
+            - !KeyOf alertmanager-provider
+            - !KeyOf hubble-provider
+            - !KeyOf goldilocks-provider
+            - !KeyOf blackbox-provider
+            - !KeyOf zigbeecode-provider
+            - !KeyOf zigbeegaragecode-provider

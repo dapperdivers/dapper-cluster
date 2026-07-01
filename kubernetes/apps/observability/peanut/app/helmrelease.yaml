@@ -51,6 +51,8 @@ spec:
 
     route:
       app:
+        annotations:
+          authentik.home.arpa/forward-auth: "true"
         hostnames: ["ups.${SECRET_DOMAIN}"]
         parentRefs:
           - name: internal

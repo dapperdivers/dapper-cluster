@@ -5,6 +5,7 @@ metadata:
   name: hubble-ui
   namespace: kube-system
   annotations:
+    authentik.home.arpa/forward-auth: "true"
     # Dashboard discovery (Homepage) — preserved from the old cilium ui.ingress.
     gethomepage.dev/enabled: "true"
     gethomepage.dev/name: Hubble
