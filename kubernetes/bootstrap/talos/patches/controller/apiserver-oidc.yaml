@@ -19,6 +19,19 @@
 #
 # Adding a new OIDC-to-apiserver app (e.g. another dashboard) = add a jwt authenticator
 # block below with that app's issuer + audience.
+#
+# TODO (fold in NEXT time the embedded config below changes — every content change
+# reboots each control-plane node, not worth a dedicated roll; the primary gate already
+# exists as Authentik policy bindings on the kubectl/headlamp applications):
+#   - claimValidationRules per authenticator, e.g.
+#       claimValidationRules:
+#         - expression: 'claims.groups.exists(g, g in ["kubernetes-admins", "kubernetes-viewers"])'
+#           message: "not a member of a kubernetes access group"
+#   - uid claim mapping (audit-stable identity; preferred_username is user-editable):
+#       uid: { claim: "sub" }
+# NOTE: never add an `anonymous:` section to the config — Talos sets
+# --anonymous-auth=false and the combination is rejected by the apiserver
+# (siderolabs/talos#11324).
 cluster:
   apiServer:
     extraArgs:
