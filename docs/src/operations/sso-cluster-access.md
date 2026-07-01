@@ -56,7 +56,7 @@ users:
           - get-token
           - --oidc-issuer-url=https://sso.chelonianlabs.com/application/o/kubectl/
           - --oidc-client-id=kubectl
-          - --oidc-use-pkce
+          - --oidc-pkce-method=S256
           - --oidc-extra-scope=profile
           - --oidc-extra-scope=email
           - --oidc-extra-scope=offline_access
@@ -68,7 +68,7 @@ Then add a context that pairs this user with the existing cluster, e.g.:
 kubectl config set-context dapper-oidc --cluster=<existing-cluster> --user=oidc
 ```
 
-`--oidc-use-pkce` means no client secret is needed; `offline_access` gives a refresh
+`--oidc-pkce-method=S256` means no client secret is needed; `offline_access` gives a refresh
 token so you are not re-prompted every hour.
 
 Verify:

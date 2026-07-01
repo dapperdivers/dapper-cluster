@@ -12,6 +12,7 @@ resources:
   - ./emqx.yaml
   - ./external-secrets.yaml
   - ./fairwinds.yaml
+  - ./headlamp.yaml
   - ./infisical.yaml
   - ./intel.yaml
   - ./k8s-gateway.yaml

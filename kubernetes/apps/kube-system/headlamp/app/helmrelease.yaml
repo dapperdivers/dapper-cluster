@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: headlamp
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: headlamp
+      version: 0.43.0
+      sourceRef:
+        kind: HelmRepository
+        name: headlamp
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    fullnameOverride: headlamp
+    config:
+      oidc:
+        # client_id/secret/issuer/scopes come from the Infisical-backed secret below.
+        externalSecret:
+          enabled: true
+          name: headlamp-oidc-secret
+          hasScopes: true
+    # Per-user RBAC: Headlamp forwards the logged-in user's OIDC token to the apiserver,
+    # so the pod SA must NOT hold cluster perms. The chart's default binds the SA to
+    # cluster-admin — disable it, or everyone reaching Headlamp would be admin.
+    clusterRoleBinding:
+      create: false
+    serviceAccount:
+      create: true
+    ingress:
+      enabled: false

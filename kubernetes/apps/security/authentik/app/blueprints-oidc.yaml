@@ -147,3 +147,33 @@ data:
             - !Find [authentik_core.user, [username, mackleyder]]
       - model: authentik_core.group
         identifiers: { name: kubernetes-viewers }
+      # Headlamp (web k8s dashboard) — confidential OIDC client, per-user RBAC via
+      # token pass-through (Headlamp forwards the user's id_token to the apiserver).
+      # The apiserver runs --oidc-client-id=kubectl, so the token's aud MUST contain
+      # `kubectl`; Headlamp's own verifier needs `headlamp`. This scope mapping sets
+      # aud to BOTH (apiserver does array-contains matching). Requested via the
+      # `kubernetes-audience` scope in Headlamp's OIDC_SCOPES.
+      - model: authentik_providers_oauth2.scopemapping
+        identifiers: { name: Kubernetes API audience }
+        id: k8s-audience
+        attrs:
+          scope_name: kubernetes-audience
+          description: "Sets token aud to [headlamp, kubectl] so kube-apiserver (oidc-client-id=kubectl) accepts Headlamp-forwarded tokens"
+          expression: |
+            return {"aud": ["headlamp", "kubectl"]}
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Headlamp OIDC }
+        id: headlamp-oidc
+        attrs:
+          <<: *oidc
+          client_id: headlamp   # pinned; Authentik still generates the client_secret (→ Infisical HEADLAMP_OIDC_CLIENT_SECRET)
+          property_mappings:     # re-list the anchor's 3 + the audience mapping (override replaces the whole list)
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !KeyOf k8s-audience
+          redirect_uris:
+            - { matching_mode: strict, url: "https://headlamp.${SECRET_DOMAIN}/oidc-callback", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: headlamp }
+        attrs: { name: Headlamp, group: internal, provider: !KeyOf headlamp-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/headlamp.svg", meta_launch_url: "https://headlamp.${SECRET_DOMAIN}" }
