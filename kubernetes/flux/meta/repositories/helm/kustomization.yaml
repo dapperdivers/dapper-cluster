@@ -28,5 +28,4 @@ resources:
   - ./vllm.yaml
   - ./nats.yaml
   - ./opencti.yaml
-  - ./wazuh.yaml
   - ./roundtable.yaml
