@@ -221,12 +221,11 @@
               "pod": true,
               "service": true,
               "target": true,
-              "ifIndex": true,
-              "ifDescr": true
+              "ifIndex": true
             },
             "renameByName": {
               "ifName": "Interface",
-              "ifAlias": "Description",
+              "ifDescr": "Description",
               "Value #A": "Admin",
               "Value #B": "Status",
               "Value #C": "Speed (Mb/s)",
@@ -237,7 +236,7 @@
             },
             "indexByName": {
               "ifName": 0,
-              "ifAlias": 1,
+              "ifDescr": 1,
               "Value #A": 2,
               "Value #B": 3,
               "Value #C": 4,
@@ -421,7 +420,7 @@
         {
           "refId": "A",
           "expr": "rate(ifHCInOctets{target=\"$device\", ifName=~\"$interface\"}[5m]) * 8",
-          "legendFormat": "{{ifName}} {{ifAlias}}"
+          "legendFormat": "{{ifName}}  {{ifDescr}}"
         }
       ],
       "fieldConfig": {
@@ -445,7 +444,7 @@
         {
           "refId": "A",
           "expr": "rate(ifHCOutOctets{target=\"$device\", ifName=~\"$interface\"}[5m]) * 8",
-          "legendFormat": "{{ifName}} {{ifAlias}}"
+          "legendFormat": "{{ifName}}  {{ifDescr}}"
         }
       ],
       "fieldConfig": {
