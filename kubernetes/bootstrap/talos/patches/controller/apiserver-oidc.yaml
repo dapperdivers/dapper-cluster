@@ -21,10 +21,13 @@
 # block below with that app's issuer + audience.
 #
 # Hardening (both authenticators):
-#   - claimValidationRules: the apiserver itself rejects tokens whose groups claim has
-#     no kubernetes-* access group — a second gate independent of the Authentik policy
-#     bindings on the kubectl/headlamp applications. CEL errors fail CLOSED (a token
-#     with no groups claim at all is rejected, which is the desired direction).
+#   - userValidationRules: the apiserver itself rejects tokens that don't map to a
+#     kubernetes-* access group — a second gate independent of the Authentik policy
+#     bindings on the kubectl/headlamp applications. CEL errors fail CLOSED. NOTE:
+#     this check must live in userValidationRules (post-mapping, `user.groups` is a
+#     typed list(string)) — in claimValidationRules `claims.groups` is type `any`,
+#     and CEL comprehensions over `any` FAIL COMPILATION -> apiserver crash-loop on
+#     restart (hit live on control-1, 2026-07-01).
 #   - uid <- sub: audit-stable identity. preferred_username is user-editable in
 #     Authentik; sub (sub_mode: hashed_user_id) is immutable. Never bind kind: User
 #     RBAC to oidc: usernames.
@@ -62,8 +65,8 @@ machine:
                 prefix: "oidc:"
               uid:
                 claim: "sub"
-            claimValidationRules:
-              - expression: 'claims.groups.exists(g, g in ["kubernetes-admins", "kubernetes-viewers"])'
+            userValidationRules:
+              - expression: 'user.groups.exists(g, g in ["oidc:kubernetes-admins", "oidc:kubernetes-viewers"])'
                 message: "not a member of a kubernetes access group"
           # Headlamp web dashboard
           - issuer:
@@ -79,6 +82,6 @@ machine:
                 prefix: "oidc:"
               uid:
                 claim: "sub"
-            claimValidationRules:
-              - expression: 'claims.groups.exists(g, g in ["kubernetes-admins", "kubernetes-viewers"])'
+            userValidationRules:
+              - expression: 'user.groups.exists(g, g in ["oidc:kubernetes-admins", "oidc:kubernetes-viewers"])'
                 message: "not a member of a kubernetes access group"
