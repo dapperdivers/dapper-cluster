@@ -1,0 +1,464 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "title": "Network / Switch Ports",
+  "uid": "snmp-switch-ports",
+  "tags": ["network", "snmp", "switch"],
+  "timezone": "",
+  "schemaVersion": 39,
+  "time": { "from": "now-3h", "to": "now" },
+  "refresh": "1m",
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "label": "Datasource"
+      },
+      {
+        "name": "device",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+        "query": "label_values(ifIndex, target)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "text": "brocade-core", "value": "brocade-core" },
+        "label": "Device",
+        "sort": 1
+      },
+      {
+        "name": "interface",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+        "query": "label_values(ifHCInOctets{target=\"$device\"}, ifName)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" },
+        "label": "Interface",
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Ports total",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [{ "refId": "A", "expr": "count(ifOperStatus{target=\"$device\"}) or vector(0)" }],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "text" } },
+        "overrides": []
+      },
+      "options": { "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Ports up",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        { "refId": "A", "expr": "count(ifOperStatus{target=\"$device\"} == 1) or vector(0)" }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } },
+        "overrides": []
+      },
+      "options": { "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Down (admin-up)",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count((ifOperStatus{target=\"$device\"} == 2) and on (instance, ifIndex) (ifAdminStatus == 1)) or vector(0)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Error+discard rate",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifInErrors{target=\"$device\"}[5m]) + rate(ifOutErrors{target=\"$device\"}[5m]) + rate(ifInDiscards{target=\"$device\"}[5m]) + rate(ifOutDiscards{target=\"$device\"}[5m])) or vector(0)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background", "graphMode": "area", "textMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Aggregate inbound",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(ifHCInOctets{target=\"$device\"}[5m]) * 8) or vector(0)" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bps", "color": { "mode": "fixed", "fixedColor": "blue" } },
+        "overrides": []
+      },
+      "options": { "colorMode": "value", "graphMode": "area", "textMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Aggregate outbound",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCOutOctets{target=\"$device\"}[5m]) * 8) or vector(0)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bps", "color": { "mode": "fixed", "fixedColor": "purple" } },
+        "overrides": []
+      },
+      "options": { "colorMode": "value", "graphMode": "area", "textMode": "value" }
+    },
+    {
+      "type": "table",
+      "title": "Ports on $device",
+      "description": "Per-port status, negotiated speed, live throughput and error/discard rates. Click column headers to sort.",
+      "gridPos": { "h": 13, "w": 24, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(ifAdminStatus{target=\"$device\"}, \"__name__\", \"\", \"__name__\", \".*\")"
+        },
+        {
+          "refId": "B",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(ifOperStatus{target=\"$device\"}, \"__name__\", \"\", \"__name__\", \".*\")"
+        },
+        {
+          "refId": "C",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(ifHighSpeed{target=\"$device\"}, \"__name__\", \"\", \"__name__\", \".*\")"
+        },
+        {
+          "refId": "D",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(rate(ifHCInOctets{target=\"$device\"}[5m]) * 8, \"__name__\", \"\", \"__name__\", \".*\")"
+        },
+        {
+          "refId": "E",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(rate(ifHCOutOctets{target=\"$device\"}[5m]) * 8, \"__name__\", \"\", \"__name__\", \".*\")"
+        },
+        {
+          "refId": "F",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(rate(ifInErrors{target=\"$device\"}[5m]) + rate(ifInDiscards{target=\"$device\"}[5m]), \"__name__\", \"\", \"__name__\", \".*\")"
+        },
+        {
+          "refId": "G",
+          "instant": true,
+          "format": "table",
+          "expr": "label_replace(rate(ifOutErrors{target=\"$device\"}[5m]) + rate(ifOutDiscards{target=\"$device\"}[5m]), \"__name__\", \"\", \"__name__\", \".*\")"
+        }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true,
+              "endpoint": true,
+              "container": true,
+              "namespace": true,
+              "pod": true,
+              "service": true,
+              "target": true,
+              "ifIndex": true,
+              "ifDescr": true
+            },
+            "renameByName": {
+              "ifName": "Interface",
+              "ifAlias": "Description",
+              "Value #A": "Admin",
+              "Value #B": "Status",
+              "Value #C": "Speed (Mb/s)",
+              "Value #D": "In",
+              "Value #E": "Out",
+              "Value #F": "In err+disc",
+              "Value #G": "Out err+disc"
+            },
+            "indexByName": {
+              "ifName": 0,
+              "ifAlias": 1,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5,
+              "Value #E": 6,
+              "Value #F": 7,
+              "Value #G": 8
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": { "text": "Up", "color": "green", "index": 0 },
+                      "2": { "text": "Down", "color": "red", "index": 1 },
+                      "3": { "text": "Testing", "index": 2 }
+                    }
+                  }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Admin" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": { "text": "Up", "color": "green", "index": 0 },
+                      "2": { "text": "Down", "color": "text", "index": 1 },
+                      "3": { "text": "Testing", "index": 2 }
+                    }
+                  }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Speed (Mb/s)" },
+            "properties": [
+              { "id": "unit", "value": "locale" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "In" },
+            "properties": [{ "id": "unit", "value": "bps" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Out" },
+            "properties": [{ "id": "unit", "value": "bps" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "In err+disc" },
+            "properties": [
+              { "id": "unit", "value": "pps" },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "gradient" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "steps": [
+                    { "color": "transparent", "value": null },
+                    { "color": "red", "value": 0.001 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Out err+disc" },
+            "properties": [
+              { "id": "unit", "value": "pps" },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "gradient" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "steps": [
+                    { "color": "transparent", "value": null },
+                    { "color": "red", "value": 0.001 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false },
+        "sortBy": [{ "displayName": "Interface", "desc": false }]
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Link utilization %  ·  $interface",
+      "description": "Throughput as a percentage of negotiated link speed (ifHighSpeed). Ports reporting 0 speed are omitted.",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (rate(ifHCInOctets{target=\"$device\", ifName=~\"$interface\"}[5m]) * 8) / ignoring(__name__) (ifHighSpeed{target=\"$device\", ifName=~\"$interface\"} > 0) / 1e6",
+          "legendFormat": "{{ifName}} in"
+        },
+        {
+          "refId": "B",
+          "expr": "100 * (rate(ifHCOutOctets{target=\"$device\", ifName=~\"$interface\"}[5m]) * 8) / ignoring(__name__) (ifHighSpeed{target=\"$device\", ifName=~\"$interface\"} > 0) / 1e6",
+          "legendFormat": "{{ifName}} out"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["max", "mean"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Errors + discards  ·  $interface",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(ifInErrors{target=\"$device\", ifName=~\"$interface\"}[5m]) + rate(ifInDiscards{target=\"$device\", ifName=~\"$interface\"}[5m])",
+          "legendFormat": "{{ifName}} in"
+        },
+        {
+          "refId": "B",
+          "expr": "rate(ifOutErrors{target=\"$device\", ifName=~\"$interface\"}[5m]) + rate(ifOutDiscards{target=\"$device\", ifName=~\"$interface\"}[5m])",
+          "legendFormat": "{{ifName}} out"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "showPoints": "auto" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Inbound throughput  ·  $interface",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(ifHCInOctets{target=\"$device\", ifName=~\"$interface\"}[5m]) * 8",
+          "legendFormat": "{{ifName}} {{ifAlias}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["max", "mean"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Outbound throughput  ·  $interface",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(ifHCOutOctets{target=\"$device\", ifName=~\"$interface\"}[5m]) * 8",
+          "legendFormat": "{{ifName}} {{ifAlias}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["max", "mean"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    }
+  ]
+}

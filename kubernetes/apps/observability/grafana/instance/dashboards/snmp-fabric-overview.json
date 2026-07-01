@@ -1,0 +1,407 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "title": "Network / Fabric Overview",
+  "uid": "snmp-fabric-overview",
+  "tags": ["network", "snmp", "switch"],
+  "timezone": "",
+  "schemaVersion": 39,
+  "time": { "from": "now-3h", "to": "now" },
+  "refresh": "1m",
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "label": "Datasource"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "table",
+      "title": "Fabric health — click a device to drill into its ports",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "format": "table",
+          "expr": "count by (target) (ifOperStatus == 1)"
+        },
+        {
+          "refId": "B",
+          "instant": true,
+          "format": "table",
+          "expr": "count by (target) ((ifOperStatus == 2) and on (instance, ifIndex) (ifAdminStatus == 1))"
+        },
+        {
+          "refId": "C",
+          "instant": true,
+          "format": "table",
+          "expr": "sum by (target) (rate(ifHCInOctets[5m]) * 8)"
+        },
+        {
+          "refId": "D",
+          "instant": true,
+          "format": "table",
+          "expr": "sum by (target) (rate(ifHCOutOctets[5m]) * 8)"
+        },
+        {
+          "refId": "E",
+          "instant": true,
+          "format": "table",
+          "expr": "sum by (target) (rate(ifInErrors[5m]) + rate(ifOutErrors[5m]) + rate(ifInDiscards[5m]) + rate(ifOutDiscards[5m]))"
+        }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "renameByName": {
+              "target": "Device",
+              "Value #A": "Ports up",
+              "Value #B": "Down (admin-up)",
+              "Value #C": "Aggregate in",
+              "Value #D": "Aggregate out",
+              "Value #E": "Err+discard rate"
+            },
+            "indexByName": {
+              "target": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Device" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open $${__value.text} port detail",
+                    "url": "/d/snmp-switch-ports?var-device=$${__value.text}&$${__url_time_range}",
+                    "targetBlank": false
+                  }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Down (admin-up)" },
+            "properties": [
+              { "id": "noValue", "value": "0" },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "gradient" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "steps": [
+                    { "color": "transparent", "value": null },
+                    { "color": "red", "value": 1 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Aggregate in" },
+            "properties": [{ "id": "unit", "value": "bps" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Aggregate out" },
+            "properties": [{ "id": "unit", "value": "bps" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Err+discard rate" },
+            "properties": [
+              { "id": "unit", "value": "pps" },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "gradient" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "steps": [
+                    { "color": "transparent", "value": null },
+                    { "color": "yellow", "value": 0.5 },
+                    { "color": "red", "value": 5 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": { "show": false },
+        "sortBy": [{ "displayName": "Device", "desc": false }]
+      }
+    },
+    {
+      "type": "row",
+      "title": "House",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "OPNsense · .1",
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"opnsense\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"opnsense\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=opnsense&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Aruba S2500 · .26",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"aruba-access\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"aruba-access\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=aruba-access&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "NRay house · .7",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"nray-house\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"nray-house\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "orange" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=nray-house&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Garage / Shop",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+    },
+    {
+      "type": "stat",
+      "title": "NRay shop · .8",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"nray-shop\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"nray-shop\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "orange" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=nray-shop&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CSS326 · .27",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"css326-bridge\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"css326-bridge\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=css326-bridge&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Brocade ICX6610 · .20 (core)",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"brocade-core\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"brocade-core\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=brocade-core&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Arista 7050 · .21 (dist)",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ifHCInOctets{target=\"arista-dist\"}[5m]) * 8) + sum(rate(ifHCOutOctets{target=\"arista-dist\"}[5m]) * 8)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "noValue": "unreachable",
+          "links": [
+            {
+              "title": "Open port detail",
+              "url": "/d/snmp-switch-ports?var-device=arista-dist&$${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    }
+  ]
+}
