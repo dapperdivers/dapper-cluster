@@ -122,7 +122,7 @@ data:
         attrs: { <<: *proxy, external_host: "https://posterizarr.${SECRET_DOMAIN_MEDIA}", skip_path_regex: "^/api([/?].*)?$" }
       - model: authentik_core.application
         identifiers: { slug: posterizarr }
-        attrs: { name: Posterizarr, group: media_internal, provider: !KeyOf posterizarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/posterizarr.svg", meta_launch_url: "https://posterizarr.turlteassmedia.com" }
+        attrs: { name: Posterizarr, group: media_internal, provider: !KeyOf posterizarr-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/posterizarr.svg", meta_launch_url: "https://posterizarr.${SECRET_DOMAIN_MEDIA}" }
       # firefly
       - model: authentik_providers_proxy.proxyprovider
         identifiers: { name: Provider for Firefly }
