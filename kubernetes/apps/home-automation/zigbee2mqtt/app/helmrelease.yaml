@@ -92,13 +92,18 @@ spec:
             image:
               repository: ghcr.io/coder/code-server
               tag: 4.126.0@sha256:e1f03b5faaefd63ba6c7173a5290c6ec0526ac907f23acfe6bc949dd965279e4
-            args: [
-              "--auth", "none",
-              "--user-data-dir", "/app/data/.vscode",
-              "--extensions-dir", "/app/data/.vscode",
-              "--port", "12321",
-              "/app/data"
-            ]
+            args:
+              [
+                "--auth",
+                "none",
+                "--user-data-dir",
+                "/app/data/.vscode",
+                "--extensions-dir",
+                "/app/data/.vscode",
+                "--port",
+                "12321",
+                "/app/data",
+              ]
     service:
       app:
         controller: zigbee2mqtt
@@ -121,6 +126,8 @@ spec:
               - identifier: app
                 port: http
       code-server:
+        annotations:
+          authentik.home.arpa/forward-auth: "true"
         hostnames: ["zigbee-code.${SECRET_DOMAIN}"]
         parentRefs:
           - name: internal

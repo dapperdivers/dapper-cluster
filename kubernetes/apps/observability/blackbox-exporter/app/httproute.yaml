@@ -4,6 +4,8 @@ kind: HTTPRoute
 metadata:
   name: blackbox-exporter
   namespace: observability
+  annotations:
+    authentik.home.arpa/forward-auth: "true"
 spec:
   parentRefs:
     - name: internal
