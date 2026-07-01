@@ -1,0 +1,38 @@
+---
+# STATIC forward-auth SecurityPolicy for hubble-ui. Everywhere else this is generated
+# by the Kyverno ClusterPolicy (httproute-authentik-forward-auth) from the route
+# annotation — but Kyverno globally excludes kube-system (resourceFilters + webhook
+# namespaceSelector), so this namespace needs the hand-written equivalent. Keep in
+# sync with the template in kyverno/policies/httproute-authentik-forward-auth.yaml.
+# The companion ReferenceGrant lives in the authentik app (security namespace).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: hubble-ui-forward-auth
+  namespace: kube-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: hubble-ui
+  extAuth:
+    failOpen: false
+    headersToExtAuth:
+      - host
+      - cookie
+      - x-forwarded-proto
+      - x-forwarded-host
+      - x-forwarded-for
+    http:
+      backendRefs:
+        - name: ak-outpost-authentik-embedded-outpost
+          namespace: security
+          port: 9000
+      path: /outpost.goauthentik.io/auth/envoy
+      headersToBackend:
+        - set-cookie
+        - x-authentik-username
+        - x-authentik-email
+        - x-authentik-groups
+        - x-authentik-uid
+        - x-authentik-name
