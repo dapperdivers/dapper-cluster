@@ -71,3 +71,20 @@ spec:
         - group: gateway.envoyproxy.io
           kind: Backend
           name: proxmox-proxy
+---
+# noVNC consoles need session affinity: vncproxy issues a one-time ticket +
+# listener on one node; the follow-up vncwebsocket must land on the same node.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: proxmox-proxy
+  namespace: network
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: proxmox-proxy
+  loadBalancer:
+    type: ConsistentHash
+    consistentHash:
+      type: SourceIP
