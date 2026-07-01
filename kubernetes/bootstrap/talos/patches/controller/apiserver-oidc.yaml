@@ -12,6 +12,11 @@
 # apiServer.extraVolumes mounts it read-only into the static pod; --authentication-config
 # points the apiserver at it. --authentication-config is mutually exclusive with --oidc-*.
 #
+# IMPORTANT: machine.files MUST write to a writable host path (/var/...). Writing under
+# /etc/kubernetes makes Talos overlay that dir read-only, which breaks the kubelet's own
+# PKI writes and takes the node NotReady. So the file lives at /var/lib/... on the host and
+# is mounted into the apiserver pod at /etc/kubernetes/authentication (container-only).
+#
 # Adding a new OIDC-to-apiserver app (e.g. another dashboard) = add a jwt authenticator
 # block below with that app's issuer + audience.
 cluster:
@@ -19,13 +24,13 @@ cluster:
     extraArgs:
       authentication-config: /etc/kubernetes/authentication/config.yaml
     extraVolumes:
-      - hostPath: /etc/kubernetes/authentication
-        mountPath: /etc/kubernetes/authentication
+      - hostPath: /var/lib/kubernetes/authentication # writable host path (NOT /etc/kubernetes)
+        mountPath: /etc/kubernetes/authentication # container-only mount point
         readonly: true
 machine:
   files:
     - op: create
-      path: /etc/kubernetes/authentication/config.yaml
+      path: /var/lib/kubernetes/authentication/config.yaml # writable host path
       permissions: 0o644
       content: |
         apiVersion: apiserver.config.k8s.io/v1
