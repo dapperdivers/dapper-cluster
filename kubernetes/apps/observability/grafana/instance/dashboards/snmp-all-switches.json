@@ -22,7 +22,7 @@
       {
         "name": "device",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "datasource": { "type": "prometheus", "uid": "$${datasource}" },
         "query": "label_values(ifIndex, target)",
         "refresh": 2,
         "includeAll": true,
@@ -46,7 +46,7 @@
       "type": "stat",
       "title": "Ports up",
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         { "refId": "A", "expr": "count(ifOperStatus{target=\"$device\"} == 1) or vector(0)" }
       ],
@@ -56,7 +56,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=${device}&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=$${device}&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -74,7 +74,7 @@
       "type": "stat",
       "title": "Down (admin-up)",
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -104,7 +104,7 @@
       "type": "stat",
       "title": "Inbound",
       "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         { "refId": "A", "expr": "sum(rate(ifHCInOctets{target=\"$device\"}[5m]) * 8) or vector(0)" }
       ],
@@ -123,7 +123,7 @@
       "type": "stat",
       "title": "Outbound",
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -145,7 +145,7 @@
       "type": "stat",
       "title": "Error+discard rate",
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -177,7 +177,7 @@
       "type": "stat",
       "title": "Ports total",
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [{ "refId": "A", "expr": "count(ifOperStatus{target=\"$device\"}) or vector(0)" }],
       "fieldConfig": {
         "defaults": { "color": { "mode": "fixed", "fixedColor": "text" } },
@@ -194,7 +194,7 @@
       "type": "timeseries",
       "title": "Per-port throughput (top 10 in / out)",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",

@@ -26,7 +26,7 @@
       "type": "table",
       "title": "Fabric health — click a device to drill into its ports",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -94,8 +94,8 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "Open ${__value.text} port detail",
-                    "url": "/d/snmp-switch-ports?var-device=${__value.text}&${__url_time_range}",
+                    "title": "Open $${__value.text} port detail",
+                    "url": "/d/snmp-switch-ports?var-device=$${__value.text}&$${__url_time_range}",
                     "targetBlank": false
                   }
                 ]
@@ -170,7 +170,7 @@
       "type": "stat",
       "title": "OPNsense · .1",
       "gridPos": { "h": 5, "w": 8, "x": 0, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -185,7 +185,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=opnsense&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=opnsense&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -203,7 +203,7 @@
       "type": "stat",
       "title": "Aruba S2500 · .26",
       "gridPos": { "h": 5, "w": 8, "x": 8, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -218,7 +218,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=aruba-access&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=aruba-access&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -236,7 +236,7 @@
       "type": "stat",
       "title": "NRay house · .7",
       "gridPos": { "h": 5, "w": 8, "x": 16, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -251,7 +251,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=nray-house&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=nray-house&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -275,7 +275,7 @@
       "type": "stat",
       "title": "NRay shop · .8",
       "gridPos": { "h": 5, "w": 6, "x": 0, "y": 15 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -290,7 +290,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=nray-shop&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=nray-shop&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -308,7 +308,7 @@
       "type": "stat",
       "title": "CSS326 · .27",
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 15 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -323,7 +323,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=css326-bridge&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=css326-bridge&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -341,7 +341,7 @@
       "type": "stat",
       "title": "Brocade ICX6610 · .20 (core)",
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 15 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -356,7 +356,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=brocade-core&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=brocade-core&$${__url_time_range}",
               "targetBlank": false
             }
           ]
@@ -374,7 +374,7 @@
       "type": "stat",
       "title": "Arista 7050 · .21 (dist)",
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 15 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "$${datasource}" },
       "targets": [
         {
           "refId": "A",
@@ -389,7 +389,7 @@
           "links": [
             {
               "title": "Open port detail",
-              "url": "/d/snmp-switch-ports?var-device=arista-dist&${__url_time_range}",
+              "url": "/d/snmp-switch-ports?var-device=arista-dist&$${__url_time_range}",
               "targetBlank": false
             }
           ]
