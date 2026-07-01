@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Wrapper injected via .mise.toml [env]._.path: inside dapper-cluster, plain
+# `claude` launches in an isolated git worktree so concurrent sessions don't
+# fight over the main checkout's branch state (see CLAUDE.md "Git Workflow").
+set -euo pipefail
+
+# Drop this script's directory from PATH so `claude` resolves to the real CLI.
+self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vFx "$self_dir" | paste -sd:)"
+export PATH
+
+add_worktree=true
+
+# Already inside a linked worktree (git-dir != common-dir): don't nest.
+if [ "$(git rev-parse --absolute-git-dir 2>/dev/null)" != "$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" ]; then
+  add_worktree=false
+fi
+
+# Subcommands manage the install/config, not a session.
+case "${1:-}" in
+  mcp|config|update|doctor|install|migrate-installer|setup-token|plugin|agents)
+    add_worktree=false ;;
+esac
+
+# Flags that resume an existing session or already request a worktree.
+for arg in "$@"; do
+  case "$arg" in
+    -w|--worktree|-c|--continue|-r|--resume|-p|--print|-h|--help|-v|--version)
+      add_worktree=false
+      break ;;
+  esac
+done
+
+if ! $add_worktree; then
+  exec claude "$@"
+elif [ $# -eq 0 ]; then
+  exec claude --worktree
+else
+  # Name the worktree explicitly so a positional prompt isn't eaten as the name.
+  exec claude --worktree "wt-$(date +%Y%m%d-%H%M%S)" "$@"
+fi

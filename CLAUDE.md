@@ -4,6 +4,15 @@
 
 This is a GitOps-managed Kubernetes home cluster running on Talos Linux with Flux CD for automated deployments. The infrastructure follows Infrastructure as Code (IaC) principles with comprehensive monitoring, automation, and self-healing capabilities.
 
+## Git Workflow (Concurrent Claude Sessions)
+
+Multiple Claude Code sessions often run against this repo at once. To avoid branch collisions:
+
+- **The main checkout (`~/projects/dapper-cluster`) stays on `main` and clean.** Never switch branches, commit, or rebase there — a PreToolUse hook blocks `git checkout`/`git switch` in the main checkout.
+- **Do all work in a git worktree.** Inside the repo, plain `claude` launches with `--worktree` automatically (mise PATH wrapper in `.claude/bin/`). If a session finds itself in the main checkout, it should move to a worktree with the EnterWorktree tool before editing.
+- **Branch from `origin/main`** (fetch first), never from whatever local HEAD happens to be.
+- **Ship changes as PRs.** Flux reconciles from GitHub, never from the local checkout, so nothing ever needs to land in the main working copy.
+
 ## Repository Structure
 
 ### Core Directories

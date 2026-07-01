@@ -1,5 +1,7 @@
 [env]
 _.python.venv = { path = "{{config_root}}/.venv", create = true }
+# Repo-local wrappers (claude → claude --worktree; see .claude/bin/)
+_.path = ["{{config_root}}/.claude/bin"]
 KUBERNETES_DIR = '{{config_root}}/kubernetes'
 FLATE_PATH = '{{config_root}}/kubernetes/flux/cluster'
 KUBECONFIG = "{{env.HOME}}/.kube/config"
