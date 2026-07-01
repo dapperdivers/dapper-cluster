@@ -14,15 +14,27 @@ admin kubeconfig, which remains the untouchable **break-glass** path.
 
 The kube-apiserver runs multiple authenticators at once — OIDC is _additive_. The
 apiserver validates the x509 admin cert entirely locally against the cluster CA, so
-it works even if Authentik is completely down. The OIDC flags use the legacy
-`--oidc-*` form, which fetches JWKS lazily: an unreachable Authentik degrades only
-OIDC token validation, it never blocks apiserver startup.
+it works even if Authentik is completely down. OIDC uses the **structured
+Authentication Configuration** (`apiserver.config.k8s.io/v1`): one `jwt` authenticator
+per Authentik issuer — Authentik gives every application its own issuer URL, so the
+kubectl CLI and Headlamp each get their own entry. JWKS is fetched lazily, so an
+unreachable Authentik degrades only OIDC token validation, never apiserver startup.
 
-- **Provider**: Authentik `Kubernetes OIDC`, public/PKCE client, `client_id: kubectl`.
-- **Issuer**: `https://sso.chelonianlabs.com/application/o/kubectl/` (trailing slash required).
-- **apiserver flags**: `kubernetes/bootstrap/talos/patches/controller/cluster.yaml`.
+- **Providers**: Authentik `Kubernetes OIDC` (public/PKCE, `client_id: kubectl`) and
+  `Headlamp OIDC` (confidential, `client_id: headlamp`).
+- **Issuers**: `https://sso.chelonianlabs.com/application/o/kubectl/` and
+  `…/o/headlamp/` (trailing slash required).
+- **apiserver config**: `kubernetes/bootstrap/talos/patches/controller/apiserver-oidc.yaml`
+  — the auth config is written via `machine.files` to `/var/lib/kubernetes/authentication/`
+  (must be a writable `/var` path — a `machine.files` entry under `/etc/kubernetes` makes
+  Talos overlay that dir read-only and breaks the kubelet's PKI writes) and mounted into
+  the apiserver pod. Adding another OIDC app = one more `jwt:` block. Applying this patch
+  requires a per-node reboot (`machine.files` changes are not immediate-mode).
 - **RBAC**: `kubernetes/apps/kube-system/oidc-rbac/` binds
-  `oidc:kubernetes-admins` → `cluster-admin` and `oidc:kubernetes-viewers` → `view`.
+  `oidc:kubernetes-admins` → `cluster-admin` and `oidc:kubernetes-viewers` → `view`;
+  both issuers map claims with the same `oidc:` prefix, so bindings apply to both.
+- **Headlamp**: `https://headlamp.chelonianlabs.com` — same login, per-user RBAC via
+  token pass-through.
 
 ## Access tiers
 
