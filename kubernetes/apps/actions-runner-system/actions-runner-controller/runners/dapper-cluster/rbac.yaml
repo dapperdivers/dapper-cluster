@@ -4,14 +4,38 @@ kind: ServiceAccount
 metadata:
   name: dapper-cluster-runner
 ---
+# Scoped to what containerMode: kubernetes needs (worker pods/jobs in this
+# namespace), matching chelonianlabs-runner. NOT cluster-admin: this runner
+# executes pull_request-triggered workflows on a public repo.
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: Role
+metadata:
+  name: dapper-cluster-runner
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["get", "create"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "delete", "get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: dapper-cluster-runner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
+  kind: Role
+  name: dapper-cluster-runner
 subjects:
   - kind: ServiceAccount
     name: dapper-cluster-runner
