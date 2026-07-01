@@ -20,15 +20,14 @@
 # Adding a new OIDC-to-apiserver app (e.g. another dashboard) = add a jwt authenticator
 # block below with that app's issuer + audience.
 #
-# TODO (fold in NEXT time the embedded config below changes — every content change
-# reboots each control-plane node, not worth a dedicated roll; the primary gate already
-# exists as Authentik policy bindings on the kubectl/headlamp applications):
-#   - claimValidationRules per authenticator, e.g.
-#       claimValidationRules:
-#         - expression: 'claims.groups.exists(g, g in ["kubernetes-admins", "kubernetes-viewers"])'
-#           message: "not a member of a kubernetes access group"
-#   - uid claim mapping (audit-stable identity; preferred_username is user-editable):
-#       uid: { claim: "sub" }
+# Hardening (both authenticators):
+#   - claimValidationRules: the apiserver itself rejects tokens whose groups claim has
+#     no kubernetes-* access group — a second gate independent of the Authentik policy
+#     bindings on the kubectl/headlamp applications. CEL errors fail CLOSED (a token
+#     with no groups claim at all is rejected, which is the desired direction).
+#   - uid <- sub: audit-stable identity. preferred_username is user-editable in
+#     Authentik; sub (sub_mode: hashed_user_id) is immutable. Never bind kind: User
+#     RBAC to oidc: usernames.
 # NOTE: never add an `anonymous:` section to the config — Talos sets
 # --anonymous-auth=false and the combination is rejected by the apiserver
 # (siderolabs/talos#11324).
@@ -61,6 +60,11 @@ machine:
               groups:
                 claim: "groups"
                 prefix: "oidc:"
+              uid:
+                claim: "sub"
+            claimValidationRules:
+              - expression: 'claims.groups.exists(g, g in ["kubernetes-admins", "kubernetes-viewers"])'
+                message: "not a member of a kubernetes access group"
           # Headlamp web dashboard
           - issuer:
               url: "https://sso.chelonianlabs.com/application/o/headlamp/"
@@ -73,3 +77,8 @@ machine:
               groups:
                 claim: "groups"
                 prefix: "oidc:"
+              uid:
+                claim: "sub"
+            claimValidationRules:
+              - expression: 'claims.groups.exists(g, g in ["kubernetes-admins", "kubernetes-viewers"])'
+                message: "not a member of a kubernetes access group"
