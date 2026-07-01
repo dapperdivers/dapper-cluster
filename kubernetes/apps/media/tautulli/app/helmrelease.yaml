@@ -100,8 +100,18 @@ spec:
     persistence:
       config:
         existingClaim: tautulli
+      # JBOPS must live inside Tautulli's data dir (/config): Tautulli >=2.15
+      # refuses to execute scripts from mounted paths outside it
+      # ("Script folder is on a mounted path which is not allowed").
+      # git-sync writes to a subPath of the config PVC, which the app
+      # container sees at /config/add-ons via its existing /config mount.
       add-ons:
-        type: emptyDir
+        existingClaim: tautulli
+        advancedMounts:
+          tautulli:
+            jbops:
+              - path: /add-ons
+                subPath: add-ons
       cache:
         existingClaim: tautulli-cache
         globalMounts:
