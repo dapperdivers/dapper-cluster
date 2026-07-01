@@ -287,6 +287,7 @@ controlPlane:
   patches:
     - "@./patches/controller/admission-controller-patch.yaml"
     - "@./patches/controller/cluster.yaml"
+    - "@./patches/controller/apiserver-oidc.yaml"
     - "@./patches/controller/machine-gh-actions.yaml"
     - "@./patches/global/machine-talos-api.yaml"
 

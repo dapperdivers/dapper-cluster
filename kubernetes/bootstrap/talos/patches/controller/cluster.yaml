@@ -12,17 +12,8 @@ cluster:
       max-mutating-requests-inflight: "400"
       # Reduce watch cache memory usage
       default-watch-cache-size: "100"
-      # Authentik OIDC login (kubectl via kubelogin). Additive to x509 cert auth,
-      # which stays the untouchable break-glass. Legacy flags on purpose: the
-      # apiserver fetches JWKS lazily, so a down/unreachable Authentik never blocks
-      # apiserver startup (only OIDC token validation degrades; cert auth is intact).
-      # Issuer needs the trailing slash. sso.* uses a public LE cert -> no oidc-ca-file.
-      oidc-issuer-url: "https://sso.chelonianlabs.com/application/o/kubectl/"
-      oidc-client-id: "kubectl"
-      oidc-username-claim: "preferred_username"
-      oidc-username-prefix: "oidc:"
-      oidc-groups-claim: "groups"
-      oidc-groups-prefix: "oidc:"
+      # OIDC authentication (structured multi-issuer) lives in its own patch:
+      # ./patches/controller/apiserver-oidc.yaml
     resources:
       requests:
         cpu: 500m
