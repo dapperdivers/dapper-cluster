@@ -31,6 +31,18 @@ spec:
         max_packet_size = 100MB
         retain_available = true
       }
+      # zigbee2mqtt's retained bridge/devices payload is >1MB and Home Assistant
+      # fetches thousands of retained discovery messages at once on reconnect;
+      # the 1MB / 1000-per-second defaults silently drop both.
+      retainer {
+        max_payload_size = "5MB"
+        delivery_rate = "infinity"
+        max_publish_rate = "infinity"
+        flow_control {
+          batch_read_number = 0
+          batch_deliver_limiter = "infinity"
+        }
+      }
   coreTemplate:
     spec:
       # Single core node: EMQX 6.x is Enterprise; the built-in free Developer
