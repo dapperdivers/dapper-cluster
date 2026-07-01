@@ -44,7 +44,7 @@ spec:
               TZ: "${TIME_ZONE}"
 
               # Optional services
-              PAPERLESS_TIKA_ENABLED: 'true'
+              PAPERLESS_TIKA_ENABLED: "true"
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg.selfhosted.svc.cluster.local:3000
               PAPERLESS_TIKA_ENDPOINT: http://127.0.0.1:9998
 
@@ -53,34 +53,39 @@ spec:
               PAPERLESS_DATA_DIR: /data/local
               PAPERLESS_MEDIA_ROOT: /media/paperless
               PAPERLESS_FILENAME_FORMAT: "{created_year}/{correspondent}/{title}"
-              PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: 'true'
+              PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: "true"
 
               # Logging
-              PAPERLESS_LOGROTATE_MAX_BACKUPS: '20'
+              PAPERLESS_LOGROTATE_MAX_BACKUPS: "20"
 
               # Hosting and security
               PAPERLESS_URL: "https://docs.${SECRET_DOMAIN}"
+              # Authentik OIDC (django-allauth). Provider config JSON (contains the
+              # client_secret) comes from the ExternalSecret as
+              # PAPERLESS_SOCIALACCOUNT_PROVIDERS. Local admin login stays enabled
+              # as fallback; link SSO via Profile -> Connect social account.
+              PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
 
               # OCR settings
               PAPERLESS_OCR_LANGUAGE: eng
               PAPERLESS_OCR_SKIP_ARCHIVE_FILE: with_text
-              PAPERLESS_OCR_DESKEW: 'false'
-              PAPERLESS_OCR_ROTATE_PAGES: 'false'
+              PAPERLESS_OCR_DESKEW: "false"
+              PAPERLESS_OCR_ROTATE_PAGES: "false"
 
               # Software tweaks
-              PAPERLESS_TASK_WORKERS: '2'
-              PAPERLESS_THREADS_PER_WORKER: '2'
+              PAPERLESS_TASK_WORKERS: "2"
+              PAPERLESS_THREADS_PER_WORKER: "2"
               PAPERLESS_TIME_ZONE: "${TIME_ZONE}"
 
               # Document consumption
-              PAPERLESS_CONSUMER_POLLING: '30'
-              PAPERLESS_CONSUMER_DELETE_DUPLICATES: 'true'
-              PAPERLESS_CONSUMER_RECURSIVE: 'true'
-              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: 'true'
+              PAPERLESS_CONSUMER_POLLING: "30"
+              PAPERLESS_CONSUMER_DELETE_DUPLICATES: "true"
+              PAPERLESS_CONSUMER_RECURSIVE: "true"
+              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
               PAPERLESS_FILENAME_DATE_ORDER: YMD
 
               # Docker-specific options
-              PAPERLESS_PORT: '8000'
+              PAPERLESS_PORT: "8000"
             envFrom:
               - secretRef:
                   name: paperless-ngx-secret

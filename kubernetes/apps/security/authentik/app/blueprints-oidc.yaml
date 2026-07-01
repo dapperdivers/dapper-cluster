@@ -211,3 +211,19 @@ data:
         attrs:
           group: !Find [authentik_core.group, [name, kubernetes-viewers]]
           enabled: true
+      # paperless-ngx — native OIDC via django-allauth (paperless >= 2.5). Pinned
+      # client_id (headlamp pattern); Authentik generates the client_secret on first
+      # apply -> copy into Infisical as PAPERLESS_OIDC_CLIENT_SECRET. The redirect
+      # path embeds allauth's provider_id ("authentik", set in
+      # PAPERLESS_SOCIALACCOUNT_PROVIDERS on the app side).
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Paperless OIDC }
+        id: paperless-oidc
+        attrs:
+          <<: *oidc
+          client_id: paperless
+          redirect_uris:
+            - { matching_mode: strict, url: "https://docs.${SECRET_DOMAIN}/accounts/oidc/authentik/login/callback/", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: paperless }
+        attrs: { name: Paperless-ngx, group: home, provider: !KeyOf paperless-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/paperless-ngx.svg", meta_launch_url: "https://docs.${SECRET_DOMAIN}" }
