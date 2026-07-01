@@ -21,5 +21,6 @@
 - [Installation](operations/installation.md)
 - [Maintenance](operations/maintenance.md)
 - [Troubleshooting](operations/troubleshooting.md)
+- [SSO Cluster Access](operations/sso-cluster-access.md)
 - [Network Operations](operations/network-runbook.md)
 - [VolSync Resource Flow](planning/volsync-resource-flow.md)
