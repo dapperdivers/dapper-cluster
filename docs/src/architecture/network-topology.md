@@ -68,6 +68,36 @@ All switch management interfaces sit on VLAN 1 (192.168.1.0/24).
 
 ---
 
+## DNS Resolution (verified 2026-07-01)
+
+Name resolution is layered, with a garage-local failover so the cluster keeps resolving through a
+60GHz bridge outage:
+
+- **OPNsense Unbound** — `192.168.1.1` / `10.100.0.1` (house). **Primary resolver** for all VLANs:
+  recursive + DNSBL filtering, and forwards the internal split-horizon domains to the in-cluster
+  k8s-gateway.
+- **Garage Unbound** — `10.100.0.2` (Proxmox LXC `unbound-garage`, CT 110 on proxmox-04, VLAN 100).
+  **Failover resolver**, garage-local. Mirrors the house: forwards the same internal domains to
+  k8s-gateway, and forwards everything else **upstream to OPNsense** (`10.100.0.1`) so external DNS
+  still passes the firewall's DNSBL/logging.
+- **k8s-gateway** — LB VIP `10.100.0.21`. Authoritative for the internal split-horizon domains
+  (`chelonianlabs.com`, `turtleassmedia.com`, `derekmackley.com`, `dapperdivers.com`), returning
+  in-cluster gateway VIPs. Both resolvers above delegate these domains to it.
+
+Talos node resolvers (`machine.network.nameservers`, all 11 nodes): **`10.100.0.1` primary,
+`10.100.0.2` fallback**. During a bridge cut the garage resolver keeps internal + cached names
+resolving; external names need WAN and are unavailable regardless.
+
+## Network Boot (PXE)
+
+`netboot.xyz` runs as Proxmox LXC `netboot-xyz` (CT 111, `192.168.1.10`, mgmt VLAN). OPNsense DHCP
+hands PXE clients on **both VLAN 1 and VLAN 100** `next-server 192.168.1.10` plus the netboot.xyz
+bootloader over TFTP, which chainloads the netboot.xyz menu over HTTP. Talos VMs boot **disk-first**
+and only fall through to PXE if the disk is unbootable; netboot.xyz's built-in **Talos** entry can
+then boot the stock Talos image into maintenance mode for `talosctl`.
+
+---
+
 ## Inter-Site Path (house ↔ garage)
 
 The only data path between buildings is the 60GHz wireless bridge. The verified end-to-end chain:

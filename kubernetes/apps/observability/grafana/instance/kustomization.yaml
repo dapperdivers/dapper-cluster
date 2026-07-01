@@ -16,11 +16,6 @@ configMapGenerator:
       - media-storage.json=dashboards/media-storage.json
     options:
       disableNameSuffixHash: true
-  - name: grafana-dashboard-node-exporter
-    files:
-      - node-exporter.json=dashboards/node-exporter.json
-    options:
-      disableNameSuffixHash: true
   - name: grafana-dashboard-k8s-cluster
     files:
       - k8s-cluster.json=dashboards/k8s-cluster.json
@@ -29,16 +24,6 @@ configMapGenerator:
   - name: grafana-dashboard-flux
     files:
       - flux.json=dashboards/flux.json
-    options:
-      disableNameSuffixHash: true
-  - name: grafana-dashboard-ceph
-    files:
-      - ceph.json=dashboards/ceph.json
-    options:
-      disableNameSuffixHash: true
-  - name: grafana-dashboard-cert-manager
-    files:
-      - cert-manager.json=dashboards/cert-manager.json
     options:
       disableNameSuffixHash: true
   - name: grafana-dashboard-ingress-nginx

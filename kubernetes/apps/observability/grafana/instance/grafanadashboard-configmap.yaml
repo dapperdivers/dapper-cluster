@@ -18,21 +18,6 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: node-exporter
-spec:
-  allowCrossNamespaceImport: true
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
-  resyncPeriod: 1h
-  configMapRef:
-    name: grafana-dashboard-node-exporter
-    key: node-exporter.json
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDashboard
-metadata:
   name: k8s-cluster
 spec:
   allowCrossNamespaceImport: true
@@ -58,36 +43,6 @@ spec:
   configMapRef:
     name: grafana-dashboard-flux
     key: flux.json
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDashboard
-metadata:
-  name: ceph
-spec:
-  allowCrossNamespaceImport: true
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
-  resyncPeriod: 1h
-  configMapRef:
-    name: grafana-dashboard-ceph
-    key: ceph.json
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDashboard
-metadata:
-  name: cert-manager
-spec:
-  allowCrossNamespaceImport: true
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
-  resyncPeriod: 1h
-  configMapRef:
-    name: grafana-dashboard-cert-manager
-    key: cert-manager.json
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
