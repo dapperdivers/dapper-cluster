@@ -89,3 +89,51 @@ spec:
   configMapRef:
     name: grafana-dashboard-snmp-network
     key: snmp-network.json
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: snmp-switch-ports
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folder: Network
+  resyncPeriod: 1h
+  configMapRef:
+    name: grafana-dashboard-snmp-switch-ports
+    key: snmp-switch-ports.json
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: snmp-fabric-overview
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folder: Network
+  resyncPeriod: 1h
+  configMapRef:
+    name: grafana-dashboard-snmp-fabric-overview
+    key: snmp-fabric-overview.json
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: snmp-all-switches
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folder: Network
+  resyncPeriod: 1h
+  configMapRef:
+    name: grafana-dashboard-snmp-all-switches
+    key: snmp-all-switches.json

@@ -41,3 +41,18 @@ configMapGenerator:
       - snmp-network.json=dashboards/snmp-network.json
     options:
       disableNameSuffixHash: true
+  - name: grafana-dashboard-snmp-switch-ports
+    files:
+      - snmp-switch-ports.json=dashboards/snmp-switch-ports.json
+    options:
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-snmp-fabric-overview
+    files:
+      - snmp-fabric-overview.json=dashboards/snmp-fabric-overview.json
+    options:
+      disableNameSuffixHash: true
+  - name: grafana-dashboard-snmp-all-switches
+    files:
+      - snmp-all-switches.json=dashboards/snmp-all-switches.json
+    options:
+      disableNameSuffixHash: true
