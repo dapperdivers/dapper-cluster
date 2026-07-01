@@ -9,6 +9,58 @@ The network spans two buildings — **house** and **garage/shop** — joined by 
 wireless bridge (~1 Gbps). The garage holds the core (Brocade) and the high-speed Ceph
 distribution switch (Arista); the house holds the access switch (Aruba) and the OPNsense router.
 
+## Bandwidth & Link Diagram
+
+> At-a-glance view of devices, links, and aggregated speeds. Rendered from the Mermaid
+> source below (kept in-doc as the source of truth for the topology infographic).
+
+```mermaid
+flowchart LR
+internet([Internet — AT&T Fiber — 2.5 Gbps]):::wan
+
+  subgraph HOUSE
+    direction TB
+    opn[OPNsense<br/>Router / Firewall — .1]:::fw
+    aruba[Aruba S2500-48P<br/>Access / PoE — .26]:::sw
+    ws[10G workstation]:::client
+    clients[Clients / PoE]:::client
+    nray7[MikroTik NRay — .7]:::radio
+  end
+
+  subgraph GARAGE_SHOP[GARAGE / SHOP]
+    direction TB
+    nray8[MikroTik NRay — .8]:::radio
+    css[MikroTik CSS326 — .27]:::sw
+    brocade[Brocade ICX6610<br/>Core / L3 — .20]:::core
+    arista[Arista 7050<br/>Ceph Distribution — .21]:::core
+    pmox[Proxmox cluster x4<br/>Talos K8s + Ceph]:::server
+    netboot[netboot.xyz<br/>PXE — .10 · Proxmox LXC]:::server
+  end
+
+  internet -->|2.5G| opn
+  opn ==>|10G| aruba
+  aruba ==>|10G| ws
+  aruba -->|1G| clients
+  aruba -->|1G| nray7
+  nray7 -. "60GHz Wireless Bridge<br/>~1 Gbps · bottleneck / SPOF" .-> nray8
+  nray8 -->|1G| css
+  css ==>|10G SFP+| brocade
+  brocade ====|"80G LACP (2×40G)"| arista
+  arista ====|"2×40G Ceph → Arista (80G bond)"| pmox
+  brocade ==>|"2×10G VM LAG (20G)"| pmox
+  brocade -->|"2×1G mgmt LAG (2G)"| pmox
+  brocade -->|1G IPMI| pmox
+  netboot -.-> pmox
+
+  classDef wan     fill:#0b2a3a,stroke:#38bdf8,color:#e6f6ff,stroke-width:2px;
+  classDef fw      fill:#12324a,stroke:#38bdf8,color:#e6f6ff,stroke-width:2px;
+  classDef sw      fill:#12324a,stroke:#5eead4,color:#e6fffb,stroke-width:2px;
+  classDef core    fill:#1a2e12,stroke:#a3e635,color:#f7ffe6,stroke-width:2px;
+  classDef server  fill:#2a1436,stroke:#e879f9,color:#fdebff,stroke-width:2px;
+  classDef radio   fill:#3a2a0b,stroke:#f59e0b,color:#fff7e6,stroke-width:2px;
+  classDef client  fill:#1b2430,stroke:#94a3b8,color:#e2e8f0,stroke-width:2px;
+```
+
 ---
 
 ## Device Inventory
@@ -56,15 +108,17 @@ All switch management interfaces sit on VLAN 1 (192.168.1.0/24).
 
 ## Layer 3 / Routing (verified)
 
-- **OPNsense** (house) — default gateway for VLAN 1 (192.168.1.1) and VLAN 100 (10.100.0.1);
-  upstream internet (AT&T fiber).
+- **OPNsense** (house) — default gateway for VLAN 1 (192.168.1.1) and VLAN 100 (10.100.0.1).
+  Upstream internet: **AT&T Fiber, 2.5 Gbps**. Connects to the house fabric over **10G fiber**
+  (`mce0`/`mce1`, `10Gbase-SR`, both active) — this is the house backbone.
 - **Brocade ICX6610** — SVIs: `ve1` 192.168.1.20/24, `ve100` 10.100.0.10/24,
   `ve200` 10.200.0.254/24. Jumbo frames enabled globally. Two default routes point at OPNsense:
   `0.0.0.0/0 → 192.168.1.1` and `0.0.0.0/0 → 10.100.0.1`.
 - **Arista 7050** — `no ip routing`; pure L2. Management only: `Management1` 192.168.1.21/24,
   default route `0.0.0.0/0 → 192.168.1.1`.
 - **Aruba S2500** — L2 access. `vlan 1` IP via DHCP (currently 192.168.1.26),
-  `vlan 100` 10.100.0.26/24, dedicated OOB `mgmt` port 172.16.0.254/24.
+  `vlan 100` 10.100.0.26/24, dedicated OOB `mgmt` port 172.16.0.254/24. **10G SFP+ to OPNsense**
+  (house backbone); can serve **10G to select house clients** (e.g. a workstation), 1G to the rest.
 
 ---
 
