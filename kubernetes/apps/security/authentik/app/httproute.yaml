@@ -10,6 +10,12 @@ metadata:
     # DNS via the Cloudflare tunnel; LAN clients still reach it locally because
     # k8s-gateway resolves it to the external VIP (10.100.0.22), no Cloudflare hairpin.
     external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+    # Pushover opt-in (EEMUA shortlist): the IdP down = every SSO-gated app
+    # unusable, act-now. Overrides the Gateway's ntfy-only default.
+    gatus.home-operations.com/endpoint: |-
+      alerts:
+        - type: ntfy
+        - type: pushover
 spec:
   parentRefs:
     - name: external
