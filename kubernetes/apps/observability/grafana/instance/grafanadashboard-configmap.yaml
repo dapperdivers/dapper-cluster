@@ -152,3 +152,18 @@ spec:
   configMapRef:
     name: grafana-dashboard-alerting-health
     key: alerting-health.json
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: plex-logs
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  resyncPeriod: 1h
+  configMapRef:
+    name: grafana-dashboard-plex-logs
+    key: plex-logs.json
