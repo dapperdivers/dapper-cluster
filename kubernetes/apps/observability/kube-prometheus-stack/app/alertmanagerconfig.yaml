@@ -23,7 +23,16 @@ spec:
           - name: alertname
             value: PrometheusDuplicateTimestamps
             matchType: =
-      - receiver: "null"
+      # Dead man's switch: Watchdog fires ALWAYS by design — it exists to be a
+      # heartbeat consumed OUTSIDE the cluster. Forward it to healthchecks.io,
+      # which pages via its own channels when the heartbeat STOPS. End-to-end
+      # pipeline death (Prometheus, Alertmanager, or egress down) is the one
+      # failure this stack cannot report about itself. hc.io check: period 10m,
+      # grace 5m.
+      - receiver: heartbeat
+        groupWait: 0s
+        groupInterval: 5m
+        repeatInterval: 5m
         matchers:
           - name: alertname
             value: Watchdog
@@ -139,3 +148,9 @@ spec:
       webhookConfigs:
         - sendResolved: true
           url: http://alertmanager-ntfy.observability.svc.cluster.local:8000/hook
+    - name: heartbeat
+      webhookConfigs:
+        - sendResolved: false
+          urlSecret:
+            name: *secret
+            key: HEALTHCHECKS_PING_URL
