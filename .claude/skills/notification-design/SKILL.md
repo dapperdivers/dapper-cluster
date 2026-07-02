@@ -21,12 +21,17 @@ should die at Step 1 or get demoted at Step 2. That is the skill working, not a 
 
 ## Step 1 — Rationalize: does this deserve to exist?
 
-Answer all four in writing (they become the alert's annotations/message):
+Answer all five in writing (they become the alert's annotations/message):
 
 1. **Cause** — what happened?
 2. **Consequence** — what breaks if nobody acts?
-3. **Response** — what does Derek actually DO when he sees it?
+3. **Response** — what does the person seeing it actually DO?
 4. **Time to respond** — how long before the consequence lands?
+5. **Audience** — WHO can act on it? This decides which console it's even allowed on:
+   - **Derek-only** (anything cluster/infra: etcd, VolSync, certs, Flux…) → phone channels
+     (ntfy/Pushover) ONLY. Never the LEDs or TTS.
+   - **Household** (Derek + Sara: trash, dryer, doors, doorbell, alarm, leaks) → LED/TTS
+     eligible, and often the LED is the BETTER channel — Sara can't see Derek's phone.
 
 Kill criteria — if any of these hit, do NOT create the notification (on this channel):
 
@@ -59,6 +64,14 @@ Every rung you climb spends more of the attention budget:
 
 Two channels can pair (alarm armed = LED slot + arming push), but each channel must
 independently pass the gate — "also send a push" is a decision, not a default.
+
+**Consoles have audiences (EEMUA: route alarms to the operator who can respond).** Rungs 0 and
+3–4 are Derek's console. Rungs 1–2 (LEDs) and TTS are the HOUSEHOLD console — Sara sees them
+too. A notification on a shared surface must be actionable by whoever is looking at it: "trash
+night" passes; "etcd flapping" is pure noise to Sara and erodes the trust that makes the trash
+light work. Infra never lights the panel. Rare, deliberate exceptions only where the household
+response is real (e.g. "internet down" = "it's known, don't power-cycle the router") — chosen
+case by case, never defaulted.
 
 | severity   | Delivery (cluster)                         | Test                                                                                               | EEMUA share |
 | ---------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------- | ----------- |
@@ -115,6 +128,9 @@ Full design + hardware grammar live in the second brain:
 `~/second-brain/Projects/HomeLab/Inovelli LED Notification Platform.md` (30 VZM31-SN switches,
 slot assignments, zone map, MQTT payloads). Read it before wiring anything. Design rules:
 
+- **The panel is the household's, not the homelab's.** LED notifications must pass the Step 1
+  audience test for Sara, not just Derek. No cluster/infra status on the switches — the panel's
+  entire value is that every light on it means something a household member should do.
 - **All LED writes go through the Node-RED `led-notify` dispatcher** (Phase 1 shipped). Producers
   emit the normalized message (`id`, `action: set|clear`, `slot`/full-bar, `zone`, `color`,
   `effect`, `level`, `priority`) — never publish to `zigbee2mqtt/<switch>/set` directly. The
