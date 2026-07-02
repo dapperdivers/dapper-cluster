@@ -16,7 +16,8 @@ spec:
             absent(up{job=~".*nut-exporter.*"} == 1)
           for: 5m
           labels:
-            severity: critical
+            # A monitoring gap, not a power event — fix same-day, don't wake up.
+            severity: warning
         - alert: UpsOnBattery
           annotations:
             description: UPS {{ $labels.ups }} has lost power and is running on battery.
@@ -43,4 +44,5 @@ spec:
             network_ups_tools_ups_status{flag="RB"} == 1
           for: 10s
           labels:
-            severity: critical
+            # Order a battery — an act-today task, not a 3am page.
+            severity: warning

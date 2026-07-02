@@ -15,7 +15,7 @@ spec:
             absent(up{job="volsync-metrics"})
           for: 15m
           labels:
-            severity: critical
+            severity: warning
         - alert: VolSyncVolumeOutOfSync
           annotations:
             summary: >-
@@ -25,4 +25,4 @@ spec:
             volsync_volume_out_of_sync == 1
           for: 15m
           labels:
-            severity: critical
+            severity: warning
