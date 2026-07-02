@@ -21,3 +21,4 @@ resources:
   - ./fluent-bit/ks.yaml
   - ./silence-operator/ks.yaml
   - ./victoria-logs/ks.yaml
+  - ./vmalert/ks.yaml
