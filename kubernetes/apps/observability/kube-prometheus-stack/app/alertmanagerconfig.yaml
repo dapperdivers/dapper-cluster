@@ -62,10 +62,20 @@ spec:
           - name: alertname
             value: "KnightMetricsAbsent|RoundtablePodRestarting"
             matchType: =~
-      # Break the pushover self-notify loop: when a pushover send fails it raises
-      # Alertmanager(Cluster)FailedToSendAlerts (severity=critical), which would
-      # otherwise route back to the failing pushover channel and amplify. Send these
-      # to ntfy only. MUST precede the critical->pushover route (first match wins).
+      # Channel-failure alerts must cross channels: a broken channel can't report
+      # its own death (EEMUA alarm-system health). The FailedToSendAlerts alerts
+      # carry an `integration` label, so split on it — webhook(=ntfy-bridge)
+      # failures page via pushover, pushover failures notify via ntfy. This also
+      # breaks the self-notify amplification loop in both directions. MUST precede
+      # the critical->pushover route (first match wins).
+      - receiver: pushover
+        matchers:
+          - name: alertname
+            value: "Alertmanager(Cluster)?FailedToSendAlerts"
+            matchType: =~
+          - name: integration
+            value: webhook
+            matchType: =
       - receiver: ntfy
         matchers:
           - name: alertname
