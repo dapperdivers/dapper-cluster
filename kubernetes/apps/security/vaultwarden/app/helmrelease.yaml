@@ -88,8 +88,14 @@ spec:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
           # Probe /alive, not the first route rule (/notifications/hub/negotiate,
           # a SignalR endpoint that 404s on a plain GET).
+          # Pushover opt-in (EEMUA shortlist): password manager unreachable is
+          # act-now for the household. Added 2026-07-02 once the probe was
+          # stable (~1 blip/day vs the threshold of 5 consecutive failures).
           gatus.home-operations.com/endpoint: |-
             path: /alive
+            alerts:
+              - type: ntfy
+              - type: pushover
         hostnames: ["vault.${SECRET_DOMAIN}"]
         parentRefs:
           - name: external
