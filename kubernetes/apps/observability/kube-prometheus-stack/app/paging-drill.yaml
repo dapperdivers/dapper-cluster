@@ -32,7 +32,7 @@ spec:
             seccompProfile: { type: RuntimeDefault }
           containers:
             - name: drill
-              image: curlimages/curl:8.14.1
+              image: curlimages/curl:8.21.0
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
