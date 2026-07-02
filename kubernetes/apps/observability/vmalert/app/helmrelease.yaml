@@ -61,6 +61,7 @@ spec:
                       (normal ~180k). Log collection is broken and evidence is
                       being lost. Check fluent-bit DaemonSet health and the
                       victoria-logs ingestion endpoint.
+                      Logs: https://grafana.${SECRET_DOMAIN}/explore?schemaVersion=1&panes=%7B%22vl%22%3A%7B%22datasource%22%3A%22victoria-logs%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%2A%22%2C%22datasource%22%3A%7B%22type%22%3A%22victoriametrics-logs-datasource%22%2C%22uid%22%3A%22victoria-logs%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-30m%22%2C%22to%22%3A%22now%22%7D%7D%7D
                 # 10 hits cluster-wide in the last 7d — >3 per namespace in 10m
                 # is a real crash pattern, not background noise.
                 - alert: PanicLogPatternDetected
@@ -75,6 +76,7 @@ spec:
                       crash-looping at the process level (may not surface as
                       pod restarts if a supervisor swallows it). Inspect the
                       namespace's pod logs in VictoriaLogs.
+                      Logs: https://grafana.${SECRET_DOMAIN}/explore?schemaVersion=1&panes=%7B%22vl%22%3A%7B%22datasource%22%3A%22victoria-logs%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%28%5C%22panic%3A%5C%22%20OR%20%5C%22segfault%5C%22%20OR%20%5C%22SIGSEGV%5C%22%29%22%2C%22datasource%22%3A%7B%22type%22%3A%22victoriametrics-logs-datasource%22%2C%22uid%22%3A%22victoria-logs%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-30m%22%2C%22to%22%3A%22now%22%7D%7D%7D
                 # Baseline is ~5 failed logins per WEEK — >20 in 15m is a
                 # credential-stuffing/brute-force signature, not fat fingers.
                 - alert: AuthentikLoginFailureSpike
@@ -87,3 +89,4 @@ spec:
                       {{ $labels.failures }} failed logins in 15m (baseline ~5/week).
                       Check Authentik events for the source IP/username, and
                       Cloudflare for the client; consider blocking at the edge.
+                      Logs: https://grafana.${SECRET_DOMAIN}/explore?schemaVersion=1&panes=%7B%22vl%22%3A%7B%22datasource%22%3A%22victoria-logs%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22k_namespace_name%3Asecurity%20%5C%22login_failed%5C%22%22%2C%22datasource%22%3A%7B%22type%22%3A%22victoriametrics-logs-datasource%22%2C%22uid%22%3A%22victoria-logs%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D
