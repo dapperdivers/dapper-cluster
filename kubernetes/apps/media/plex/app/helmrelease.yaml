@@ -96,6 +96,26 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 2Gi
+          # Plex only logs to files, never stdout — tail the main log so
+          # Fluent Bit ships it to VictoriaLogs like every other app
+          logs:
+            image:
+              repository: mirror.gcr.io/library/busybox
+              tag: "1.37"
+            command:
+              - /bin/sh
+              - -c
+              - tail -n0 -F "/config/Library/Application Support/Plex Media Server/Logs/Plex Media Server.log"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 10Mi
+              limits:
+                memory: 64Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true

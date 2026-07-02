@@ -32,8 +32,8 @@ spec:
             args:
               - "/app/config-file/init-config.sh"
             envFrom:
-            - secretRef:
-                name: posterizarr-secret
+              - secretRef:
+                  name: posterizarr-secret
             resources:
               requests:
                 cpu: 10m
@@ -58,7 +58,29 @@ spec:
               readOnlyRootFilesystem: false
               capabilities:
                 drop:
-                - ALL
+                  - ALL
+          # Posterizarr only logs to files, never stdout — tail the backend log
+          # (FrontendUI.log is a duplicate of it) for Fluent Bit → VictoriaLogs
+          logs:
+            image:
+              repository: mirror.gcr.io/library/busybox
+              tag: "1.37"
+            command:
+              - /bin/sh
+              - -c
+              - tail -n0 -F /config/UILogs/BackendServer.log
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 10m
+                memory: 10Mi
+              limits:
+                memory: 64Mi
     service:
       app:
         controller: posterizarr
