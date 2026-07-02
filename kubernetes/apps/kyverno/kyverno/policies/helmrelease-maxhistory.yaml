@@ -14,6 +14,8 @@ metadata:
       declare maxHistory explicitly are left untouched via the +() add-if-absent
       anchor, so an individual app can override up (e.g. 10) or down (e.g. 1).
 spec:
+  webhookConfiguration:
+    failurePolicy: Ignore
   rules:
     - name: default-maxhistory
       match:

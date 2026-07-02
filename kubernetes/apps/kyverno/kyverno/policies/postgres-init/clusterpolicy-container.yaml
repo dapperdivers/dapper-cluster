@@ -14,6 +14,8 @@ metadata:
       with the controller name defaulting to the release name unless overridden
       via the postgres-init.home.arpa/controller annotation.
 spec:
+  webhookConfiguration:
+    failurePolicy: Ignore
   rules:
     - name: inject-postgres-init-container
       match:
@@ -32,12 +34,12 @@ spec:
           spec:
             values:
               controllers:
-                "{{ request.object.metadata.annotations.\"postgres-init.home.arpa/controller\" || request.object.metadata.name }}":
+                '{{ request.object.metadata.annotations."postgres-init.home.arpa/controller" || request.object.metadata.name }}':
                   initContainers:
                     init-db:
                       image:
-                        repository: "{{ pgInitConfig.\"image-repository\" }}"
-                        tag: "{{ pgInitConfig.\"image-tag\" }}"
+                        repository: '{{ pgInitConfig."image-repository" }}'
+                        tag: '{{ pgInitConfig."image-tag" }}'
                       envFrom:
                         - secretRef:
                             name: "{{ request.object.metadata.name }}-postgres-init"

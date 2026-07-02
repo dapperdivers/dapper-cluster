@@ -15,6 +15,8 @@ metadata:
       leaving it mounted expands the blast radius of container compromise.
       Audit mode — reports violations without blocking deployments.
 spec:
+  webhookConfiguration:
+    failurePolicy: Ignore
   validationFailureAction: Audit
   background: true
   rules:
