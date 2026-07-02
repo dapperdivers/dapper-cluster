@@ -36,6 +36,11 @@ configMapGenerator:
       - alert-history.json=dashboards/alert-history.json
     options:
       disableNameSuffixHash: true
+  - name: grafana-dashboard-alerting-health
+    files:
+      - alerting-health.json=dashboards/alerting-health.json
+    options:
+      disableNameSuffixHash: true
   - name: grafana-dashboard-snmp-network
     files:
       - snmp-network.json=dashboards/snmp-network.json
