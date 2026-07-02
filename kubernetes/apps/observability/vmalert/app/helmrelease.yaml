@@ -1,0 +1,89 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+# vmalert evaluating LogsQL rules against VictoriaLogs (log-based alerting).
+# Fires into the existing Alertmanager — same routing, inhibition, and
+# channels as every other alert; no new delivery path. Every rule here has
+# passed the notification-design gate (cause/consequence/response and a
+# threshold tuned against live log volumes, see rule comments).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vmalert
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: vmalert
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: victoria-logs
+      namespace: observability
+  values:
+    fullnameOverride: vmalert
+    serviceMonitor:
+      enabled: true
+    server:
+      datasource:
+        url: http://victoria-logs-server.observability.svc.cluster.local:9428
+      notifier:
+        url: http://alertmanager-operated.observability.svc.cluster.local:9093
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 128Mi
+      config:
+        alerts:
+          groups:
+            - name: victorialogs.rules
+              type: vlogs
+              interval: 5m
+              rules:
+                # Pipeline deadman: normal volume is ~180k lines/15m, so <100
+                # means collection is dead (fluent-bit or ingestion), not quiet.
+                # If VictoriaLogs itself is down, stock kube alerts cover it.
+                - alert: LoggingPipelineDead
+                  expr: "_time:15m * | stats count() as ingested | filter ingested:<100"
+                  labels:
+                    severity: warning
+                  annotations:
+                    summary: "Log pipeline dead — almost no logs ingested in 15m"
+                    description: >-
+                      VictoriaLogs received {{ $labels.ingested }} lines in 15m
+                      (normal ~180k). Log collection is broken and evidence is
+                      being lost. Check fluent-bit DaemonSet health and the
+                      victoria-logs ingestion endpoint.
+                # 10 hits cluster-wide in the last 7d — >3 per namespace in 10m
+                # is a real crash pattern, not background noise.
+                - alert: PanicLogPatternDetected
+                  expr: '_time:10m ("panic:" OR "segfault" OR "SIGSEGV") | stats by (k_namespace_name) count() as hits | filter hits:>3'
+                  labels:
+                    severity: warning
+                  annotations:
+                    summary: "Repeated panic/segfault logs in {{ $labels.k_namespace_name }}"
+                    description: >-
+                      {{ $labels.hits }} panic/segfault log lines in 10m in
+                      namespace {{ $labels.k_namespace_name }} — something is
+                      crash-looping at the process level (may not surface as
+                      pod restarts if a supervisor swallows it). Inspect the
+                      namespace's pod logs in VictoriaLogs.
+                # Baseline is ~5 failed logins per WEEK — >20 in 15m is a
+                # credential-stuffing/brute-force signature, not fat fingers.
+                - alert: AuthentikLoginFailureSpike
+                  expr: '_time:15m k_namespace_name:security "login_failed" | stats count() as failures | filter failures:>20'
+                  labels:
+                    severity: warning
+                  annotations:
+                    summary: "Authentik login-failure spike — possible brute force"
+                    description: >-
+                      {{ $labels.failures }} failed logins in 15m (baseline ~5/week).
+                      Check Authentik events for the source IP/username, and
+                      Cloudflare for the client; consider blocking at the edge.
