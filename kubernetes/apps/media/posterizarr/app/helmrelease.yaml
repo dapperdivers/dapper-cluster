@@ -128,3 +128,11 @@ spec:
         existingClaim: plex-posters-cephfs
         globalMounts:
           - path: /assets
+          # The web UI backend hardcodes /manualassets and /assetsbackup in
+          # container mode (it ignores config.json's ManualAssetPath/BackupPath,
+          # which only the PowerShell runner reads) and logs a WARNING every
+          # scan cycle when they're missing — expose the same share dirs there
+          - path: /manualassets
+            subPath: manualassets
+          - path: /assetsbackup
+            subPath: assetsbackup
