@@ -7,4 +7,5 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
+  - ./paging-drill.yaml
   - ./scrapeconfig.yaml

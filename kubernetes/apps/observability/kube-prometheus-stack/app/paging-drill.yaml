@@ -1,0 +1,63 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+# Monthly paging-path drill (EEMUA alarm-system health): posts a synthetic
+# severity=critical alert straight to the Alertmanager API so the FULL
+# delivery path is exercised — routing, the pushover receiver, and the
+# ntfy bridge. Expect BOTH a Pushover page and an ntfy urgent push, then
+# matching resolved notifications ~5m later (resolve_timeout expires the
+# alert since nothing re-posts it). A missing leg = broken pipeline; the
+# worst time to learn that is during a real outage.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paging-path-drill
+spec:
+  # First Monday-ish of the month, mid-morning — deliberately a civilized hour.
+  schedule: "0 10 1 * *"
+  timeZone: ${TIME_ZONE}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile: { type: RuntimeDefault }
+          containers:
+            - name: drill
+              image: curlimages/curl:8.14.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: { drop: ["ALL"] }
+              command:
+                - sh
+                - -ec
+                - |
+                  curl -fsS -m 30 -X POST \
+                    -H 'Content-Type: application/json' \
+                    --data '[{
+                      "labels": {
+                        "alertname": "PagingPathTest",
+                        "severity": "critical",
+                        "namespace": "observability"
+                      },
+                      "annotations": {
+                        "summary": "Monthly paging-path drill — no action needed if received",
+                        "description": "Synthetic critical exercising the full paging path. Expect BOTH a Pushover page and an ntfy urgent push. If either is missing the pipeline is broken: check alertmanager_notifications_failed_total."
+                      }
+                    }]' \
+                    http://alertmanager-operated.observability.svc.cluster.local:9093/api/v2/alerts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                limits:
+                  memory: 32Mi
