@@ -24,11 +24,11 @@ spec:
             value: PrometheusDuplicateTimestamps
             matchType: =
       # Dead man's switch: Watchdog fires ALWAYS by design — it exists to be a
-      # heartbeat consumed OUTSIDE the cluster. Forward it to healthchecks.io,
-      # which pages via its own channels when the heartbeat STOPS. End-to-end
-      # pipeline death (Prometheus, Alertmanager, or egress down) is the one
-      # failure this stack cannot report about itself. hc.io check: period 10m,
-      # grace 5m.
+      # heartbeat consumed OUTSIDE the cluster. Forward it to an UptimeRobot
+      # heartbeat monitor, which alerts via its own channels when the heartbeat
+      # STOPS. End-to-end pipeline death (Prometheus, Alertmanager, or egress
+      # down) is the one failure this stack cannot report about itself.
+      # UptimeRobot heartbeat interval: 15m (tolerates one missed 5m ping).
       - receiver: heartbeat
         groupWait: 0s
         groupInterval: 5m
@@ -153,4 +153,4 @@ spec:
         - sendResolved: false
           urlSecret:
             name: *secret
-            key: HEALTHCHECKS_PING_URL
+            key: UPTIMEROBOT_HEARTBEAT_URL
