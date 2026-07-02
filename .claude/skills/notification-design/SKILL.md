@@ -178,6 +178,23 @@ First-week flapping = tune NOW, not later. Attention budgets (EEMUA rates, one-o
 - A page that turned out non-actionable is a **defect**: demote or fix it the same day. Same for
   an LED slot nobody glances at anymore — demote to dashboard or delete.
 
+## The pipeline is itself a system to alarm on
+
+EEMUA devotes a whole chapter to alarm-system health: a dead notification path fails SILENT —
+no alerts looks exactly like all-healthy. Design rules:
+
+- **Channel-failure alerts must cross channels.** An "ntfy send failing" alert routed to ntfy
+  tells nobody anything. Send-failure alerts for channel A go to channel B (and vice versa).
+- **Dead man's switch.** The stock `Watchdog` alert exists to be an always-firing heartbeat
+  consumed by something OUTSIDE the cluster (healthchecks.io or similar) that pages when the
+  heartbeat STOPS. Null-routing it means end-to-end pipeline death goes unnoticed.
+- **Volume is a channel-health input, not just an annoyance.** ntfy rate-limits per visitor;
+  a noisy day → 429s → Alertmanager retries (up to ~20×) → MORE requests → sustained saturation
+  where real alerts get dropped after retry exhaustion. Floods don't just distract the human,
+  they break the pipe. Watch `alertmanager_notifications_failed_total`.
+- **Test the paging path on a schedule.** A monthly deliberate test page (and LED test pattern)
+  is the fire drill — the worst time to learn Pushover credentials expired is during an outage.
+
 ## Auditing the existing posture
 
 ```bash
