@@ -101,7 +101,7 @@ spec:
           logs:
             image:
               repository: mirror.gcr.io/library/busybox
-              tag: "1.37"
+              tag: "1.38"
             command:
               - /bin/sh
               - -c
