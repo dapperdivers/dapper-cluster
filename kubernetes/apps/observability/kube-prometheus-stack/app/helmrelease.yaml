@@ -41,6 +41,21 @@ spec:
         # etcdDatabaseQuotaLowSpace already cover the real "approaching quota"
         # risk, so disabling this loses no safety. See project_etcd_flapping.
         etcdDatabaseHighFragmentationRatio: true
+        # Unactionable here (EEMUA gate: no response exists). The throttled
+        # workloads are upstream operators/controllers carrying small
+        # chart-default CPU limits; CFS throttling doesn't restart or break
+        # them, and right-sizing is advisory-only (Goldilocks updateMode:Off).
+        # Was null-routed in alertmanagerconfig since 2026-06-29, but kept
+        # firing 10k+ flap-episodes/7d, polluting ALERTS metrics, inhibition
+        # processing, and the bad-actor dashboard. Kill the evaluation, not
+        # just the delivery.
+        CPUThrottlingHigh: true
+        # Known etcd-mixin false positive: grpc_code!="OK" counts normal
+        # client cancellations (kube-apiserver watch streams are cancelled
+        # constantly), so it flaps forever (~1.4k episodes/7d) with nothing
+        # to fix. Real etcd failures surface via etcdMembersDown /
+        # etcdInsufficientMembers / apiserver latency rules.
+        etcdHighNumberOfFailedGRPCRequests: true
     alertmanager:
       alertmanagerSpec:
         # External hostname so notification "View in Alertmanager" links resolve
