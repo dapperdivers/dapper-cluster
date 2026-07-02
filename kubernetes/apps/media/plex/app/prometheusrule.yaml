@@ -20,7 +20,7 @@ spec:
             kube_pod_status_phase{namespace="media", pod=~"plex-.*", phase!~"Succeeded|Failed"} == 1
           for: 5m
           labels:
-            severity: critical
+            severity: warning
             category: availability
 
         - alert: PlexPodCrashLooping
@@ -33,7 +33,7 @@ spec:
             increase(kube_pod_container_status_restarts_total{namespace="media", pod=~"plex-.*"}[15m]) > 0
           for: 5m
           labels:
-            severity: critical
+            severity: warning
             category: stability
 
         - alert: PlexContainerOOMKilled
@@ -46,7 +46,7 @@ spec:
             kube_pod_container_status_last_terminated_reason{namespace="media", pod=~"plex-.*", reason="OOMKilled"} == 1
           for: 1m
           labels:
-            severity: critical
+            severity: warning
             category: resources
 
         - alert: PlexHighMemoryUsage
@@ -106,7 +106,7 @@ spec:
             kube_pod_status_phase{namespace="media", pod=~"plex-.*", phase="Failed"} == 1
           for: 1m
           labels:
-            severity: critical
+            severity: warning
             category: availability
 
         - alert: PlexPersistentVolumeIssue
@@ -119,7 +119,7 @@ spec:
             kube_persistentvolumeclaim_status_phase{namespace="media", persistentvolumeclaim="plex", phase!="Bound"} == 1
           for: 5m
           labels:
-            severity: critical
+            severity: warning
             category: storage
 
         - alert: PlexServiceDown
@@ -132,7 +132,7 @@ spec:
             kube_endpoint_address_available{namespace="media", endpoint="plex"} == 0
           for: 3m
           labels:
-            severity: critical
+            severity: warning
             category: availability
 
         - alert: PlexHighRestartRate

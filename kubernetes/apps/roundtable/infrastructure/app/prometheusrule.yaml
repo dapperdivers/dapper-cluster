@@ -47,7 +47,9 @@ spec:
             sum(increase(pi_knight_llm_cost_dollars_total[24h])) > 15
           for: 15m
           labels:
-            severity: critical
+            # Spend overshoot is an act-today problem (review/suspend knights),
+            # not a wake-up; hard budget enforcement belongs in Night Watch itself.
+            severity: warning
     - name: roundtable.pods
       rules:
         - alert: RoundtablePodRestarting
