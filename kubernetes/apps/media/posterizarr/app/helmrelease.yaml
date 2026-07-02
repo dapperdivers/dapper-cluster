@@ -107,6 +107,13 @@ spec:
     persistence:
       config:
         existingClaim: *app
+      # Posterizarr's web UI logs have no rotation and grow ~12MB/day, but the
+      # app wipes them on every startup anyway — keep them off the config PVC
+      # (and out of VolSync backups); durable history lives in VictoriaLogs
+      ui-logs:
+        type: emptyDir
+        globalMounts:
+          - path: /config/UILogs
       posterizarr-watcher:
         existingClaim: posterizarr-watcher
         globalMounts:
