@@ -18,11 +18,10 @@ spec:
           - name: alertname
             value: InfoInhibitor
             matchType: =
-      - receiver: "null"
-        matchers:
-          - name: alertname
-            value: PrometheusDuplicateTimestamps
-            matchType: =
+      # PrometheusDuplicateTimestamps was null-routed while a target emitted a
+      # steady 120 dup/h (started 2026-06-25, stopped 2026-07-02 ~14:00 with
+      # that day's pod restarts). Route restored so a recurrence notifies —
+      # hunt the offender while it's fresh instead of shelving it again.
       # Dead man's switch: Watchdog fires ALWAYS by design — it exists to be a
       # heartbeat consumed OUTSIDE the cluster. Forward it to healthchecks.io,
       # which alerts via its own channels when the heartbeat STOPS. End-to-end

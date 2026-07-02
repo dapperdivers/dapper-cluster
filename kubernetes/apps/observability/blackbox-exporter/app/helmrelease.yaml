@@ -64,11 +64,19 @@ spec:
       enabled: true
       rules:
         - alert: BlackboxProbeFailed
-          expr: probe_success == 0
-          for: 15m
+          # max_over_time absorbs single-scrape blips: the garage hosts
+          # (proxmox-0x, firewall, zigbee-controller) sit behind the 60GHz
+          # bridge and each flapped 400-600 pending-episodes/7d on the old
+          # `probe_success == 0` — a probe now has to fail every scrape for
+          # 5 minutes straight before the alert even goes pending.
+          expr: max_over_time(probe_success[5m]) == 0
+          for: 10m
           labels:
-            severity: critical
+            # Warning, not critical: an unreachable LAN host at 3am is a
+            # morning task (and when it's the bridge, there's nothing to do
+            # remotely anyway). Cluster impact has its own alerts.
+            severity: warning
           annotations:
             summary: The host {{ $labels.target }} is currently unreachable
             description: |-
-              Blackbox probe to {{ $labels.target }} has failed for more than 15 minutes. The host may be down or network connectivity issues exist.
+              Blackbox probe to {{ $labels.target }} has failed every scrape for 15+ minutes. The host may be down or network connectivity issues exist (check the 60GHz bridge first for garage hosts).
