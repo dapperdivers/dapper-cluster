@@ -48,6 +48,24 @@ spec:
               NTFY_AUTH_DEFAULT_ACCESS: deny-all
               NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
               NTFY_CACHE_DURATION: 12h
+              # sqlite contention fix: default journal mode serializes writers, and
+              # background jobs (delayed sends, token expiry) were locking the DBs
+              # long enough that Alertmanager webhook posts got 5xx "database is
+              # locked" (~25% of sends failing). WAL + busy_timeout lets readers and
+              # writers coexist and makes brief lock waits invisible.
+              NTFY_CACHE_STARTUP_QUERIES: |
+                pragma journal_mode = WAL;
+                pragma synchronous = normal;
+                pragma temp_store = memory;
+                pragma busy_timeout = 15000;
+              NTFY_AUTH_STARTUP_QUERIES: |
+                pragma journal_mode = WAL;
+                pragma synchronous = normal;
+                pragma busy_timeout = 15000;
+              # In-cluster senders (alertmanager-ntfy bridge, gatus) connect with
+              # their pod IP (no proxy in that path) — exempt the pod CIDR so an
+              # alert flood can never rate-limit the alerting pipeline itself.
+              NTFY_VISITOR_REQUEST_LIMIT_EXEMPT_HOSTS: 10.69.0.0/16
               NTFY_ENABLE_LOGIN: "true"
             envFrom:
               - secretRef:
