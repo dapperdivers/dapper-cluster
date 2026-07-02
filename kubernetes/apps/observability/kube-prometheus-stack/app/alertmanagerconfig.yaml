@@ -103,6 +103,31 @@ spec:
         - name: severity
           value: warning
           matchType: =
+    # Symptom-cascade suppression (EEMUA: one incident = one notification).
+    # When pods in a namespace aren't ready, the replica mismatches, stuck
+    # rollouts, and the Flux healthcheck failure are the same incident
+    # restated — the 2026-07-02 gpu-node wedge produced 6 alert groups for
+    # one cause. Namespace-scoped, so an unrelated same-ns workload alert
+    # can be masked in theory; acceptable at homelab scale.
+    - equal: ["namespace"]
+      sourceMatch:
+        - name: alertname
+          value: KubePodNotReady
+          matchType: =
+      targetMatch:
+        - name: alertname
+          value: "KubeDeploymentReplicasMismatch|KubeStatefulSetReplicasMismatch|KubeDeploymentRolloutStuck|KubeDaemonSetRolloutStuck|FluxKustomizationHealthcheckfailed"
+          matchType: =~
+    # Crashloop is the cause; not-ready is its symptom (same pod).
+    - equal: ["namespace", "pod"]
+      sourceMatch:
+        - name: alertname
+          value: KubePodCrashLooping
+          matchType: =
+      targetMatch:
+        - name: alertname
+          value: KubePodNotReady
+          matchType: =
   receivers:
     - name: "null"
     - name: pushover
