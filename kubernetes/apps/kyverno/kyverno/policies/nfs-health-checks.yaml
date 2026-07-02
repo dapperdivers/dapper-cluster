@@ -16,6 +16,8 @@ metadata:
       is automatically restarted, providing self-healing for storage layer issues. This centralized
       approach ensures consistent NFS monitoring across all media applications.
 spec:
+  webhookConfiguration:
+    failurePolicy: Ignore
   rules:
     # Add NFS health monitoring liveness probe to ALL containers
     # This is the single source of truth for health checks in media namespace
@@ -109,6 +111,6 @@ spec:
 
                             exit $ERROR
                       initialDelaySeconds: 60
-                      periodSeconds: 600      # Check every 10 minutes
-                      timeoutSeconds: 30      # Allow 30 seconds for check
-                      failureThreshold: 3     # Restart after 30 minutes of failures (3 * 10min)
+                      periodSeconds: 600 # Check every 10 minutes
+                      timeoutSeconds: 30 # Allow 30 seconds for check
+                      failureThreshold: 3 # Restart after 30 minutes of failures (3 * 10min)

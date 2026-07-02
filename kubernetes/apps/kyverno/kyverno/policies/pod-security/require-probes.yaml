@@ -14,6 +14,8 @@ metadata:
       Health probes enable Kubernetes to properly manage traffic routing
       and rolling updates. Audit mode — reports violations without blocking.
 spec:
+  webhookConfiguration:
+    failurePolicy: Ignore
   validationFailureAction: Audit
   background: true
   rules:
