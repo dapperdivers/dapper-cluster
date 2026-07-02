@@ -51,7 +51,7 @@ spec:
                       },
                       "annotations": {
                         "summary": "Monthly paging-path drill — no action needed if received",
-                        "description": "Synthetic critical exercising the full paging path. Expect BOTH a Pushover page and an ntfy urgent push. If either is missing the pipeline is broken: check alertmanager_notifications_failed_total."
+                        "description": "Synthetic critical exercising the full paging path. Expect BOTH a Pushover page and an ntfy urgent push. If either is missing the pipeline is broken: check alertmanager_notifications_failed_total. While you are here: monthly bad-actor review — open https://grafana.${SECRET_DOMAIN}/d/alerting-health and fix anything firing >5x/week."
                       }
                     }]' \
                     http://alertmanager-operated.observability.svc.cluster.local:9093/api/v2/alerts
