@@ -7,6 +7,16 @@
       allowedVersions: "<1",
     },
     {
+      // 2026.7.0 ships a broken websocket API (WebSocketResponse decode_text
+      // TypeError with the bundled aiohttp) — kills the UI and companion apps.
+      // Rolled back twice (#3527, and again 2026-07-02 after renovate
+      // auto-merged it). Allow 2026.7.1+ where the fix should land; drop this
+      // rule once a working 2026.7.x is verified.
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/home-operations/home-assistant"],
+      allowedVersions: "!/^2026\\.7\\.0$/",
+    },
+    {
       // Pin Ceph images to v18.x to match external Ceph cluster version (18.2.7)
       // Prevents automatic upgrades to v19+ which would be incompatible
       // Applies to: toolbox and CephCluster cephVersion.image
@@ -14,7 +24,7 @@
       matchPackageNames: ["quay.io/ceph/ceph"],
       matchFileNames: [
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/toolbox.yaml",
-        "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/cluster-external.yaml"
+        "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/cluster-external.yaml",
       ],
       allowedVersions: "/^v18\\./",
     },
