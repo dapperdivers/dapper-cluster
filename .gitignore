@@ -28,3 +28,5 @@ cloudflared.json
 
 # AI
 /logs
+# Claude Code session worktrees (ephemeral, created by .claude/bin/claude)
+.claude/worktrees/
