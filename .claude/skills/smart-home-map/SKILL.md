@@ -42,6 +42,13 @@ Two platform patterns are documented in detail in
    tap-to-dismiss). LEDs are the _household_ console — infrastructure alerts never
    light the panel.
 
+Voice prep (2026-07): HA areas + floors (top/main/basement) are populated and
+Assist exposure is curated (groups exposed, individual bulbs/dev entities hidden) —
+maintain both when adding devices; registry work goes through `haws.sh` in the
+hass-api skill. Not everything is Zigbee: basement/cat-room/bathroom lights ride
+the `vivint` integration, and some plugs are `tasmota`. Voice plan + buy list:
+vault note "Voice Assistants - Alexa Bridge and Local Voice Plan".
+
 ## Backups / disaster recovery
 
 All smart-home PVCs have VolSync (hourly on-site + daily R2 offsite):
