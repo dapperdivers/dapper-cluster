@@ -13,7 +13,7 @@ spec:
   chart:
     spec:
       chart: roundtable-operator
-      version: "0.12.2"
+      version: "0.12.3"
       sourceRef:
         kind: HelmRepository
         name: roundtable
@@ -21,7 +21,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 72bef61e62467decc570d67739b53ba6f53c7ec0
+      tag: 8e500097c9faecf6275b33442677f292b1f5f3a5
       pullPolicy: Always
 
     # Persistent nix-daemon builder: a single root Deployment owns the shared
@@ -38,14 +38,8 @@ spec:
         cpu: 200m
         memory: 256Mi
 
-    # Centralized image tags — bump here, everything updates
-    images:
-      piKnight:
-        repository: ghcr.io/dapperdivers/pi-knight
-        tag: 36aa86f97f23776686be01666d2ae2b8e4c69c5f
-      dashboard:
-        repository: ghcr.io/dapperdivers/roundtable-ui
-        tag: 2dbd0af7d181e40f95a263104102b34290fc12dd
+    # Image tags (piKnight, dashboard) are pinned in the chart's values.yaml
+    # as of chart 0.12.3 — bump them in the roundtable repo, not here.
 
     # Built-in planner knight — meta-mission planning
     planner:
