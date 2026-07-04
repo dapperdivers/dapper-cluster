@@ -9,7 +9,7 @@ spec:
   domain: wellness
   image: ""
   # Local P100 pool (was openrouter/deepseek/deepseek-v3.2) — endpoint env below.
-  model: "ollama/qwen3.5:9b"
+  model: "openrouter/deepseek/deepseek-v3.2"
   skills:
     - shared
     - wellness

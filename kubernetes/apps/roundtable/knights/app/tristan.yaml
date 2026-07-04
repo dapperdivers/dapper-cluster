@@ -10,14 +10,14 @@ spec:
   serviceAccountName: tristan
   image: ""
   # Local P100 pool (was openrouter/deepseek/deepseek-v3.2) — endpoint env below.
-  model: "ollama/qwen3.5:9b"
+  model: "openrouter/deepseek/deepseek-v3.2"
   skills:
     - shared
     - infra
   tools:
     nix:
       - kubectl
-      - kubectx        # Fast context/namespace switching (Added 2026-04-06)
+      - kubectx # Fast context/namespace switching (Added 2026-04-06)
       - kubernetes-helm
       - stern
       - k9s
@@ -27,21 +27,21 @@ spec:
       - cilium-cli
       - yq-go
       # Container & Cluster Analysis (Added 2026-03-23)
-      - trivy          # Vulnerability scanning for container images and IaC
-      - popeye         # Kubernetes cluster sanity checks
-      - crane          # Container image inspection and manipulation
+      - trivy # Vulnerability scanning for container images and IaC
+      - popeye # Kubernetes cluster sanity checks
+      - crane # Container image inspection and manipulation
       # Added 2026-03-09 - Fleet self-improvement assessment
-      - procps         # ps, top, free, vmstat - CRITICAL for process visibility
-      - bind           # dig, host, nslookup - CRITICAL for DNS debugging
-      - iputils        # ping - CRITICAL for network connectivity testing
-      - traceroute     # Network path debugging
-      - htop           # Interactive process monitor
-      - iftop          # Network bandwidth monitor
-      - netcat-gnu     # Network testing (nc)
-      - go             # Go compiler for operator development
-      - gnumake        # make for CRD generation
-      - gh             # GitHub CLI for PR creation
-      - jq             # JSON processing
+      - procps # ps, top, free, vmstat - CRITICAL for process visibility
+      - bind # dig, host, nslookup - CRITICAL for DNS debugging
+      - iputils # ping - CRITICAL for network connectivity testing
+      - traceroute # Network path debugging
+      - htop # Interactive process monitor
+      - iftop # Network bandwidth monitor
+      - netcat-gnu # Network testing (nc)
+      - go # Go compiler for operator development
+      - gnumake # make for CRD generation
+      - gh # GitHub CLI for PR creation
+      - jq # JSON processing
       - tree
       - curl
   nats:
