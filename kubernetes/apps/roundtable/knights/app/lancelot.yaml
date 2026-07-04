@@ -9,7 +9,7 @@ spec:
   domain: career
   image: ""
   # Local P100 pool (was openrouter/deepseek/deepseek-v3.2) — endpoint env below.
-  model: "ollama/qwen3.5:9b"
+  model: "openrouter/deepseek/deepseek-v3.2"
   skills:
     - shared
     - career
@@ -18,9 +18,9 @@ spec:
       - python3
       - lynx
       - pandoc
-      - jq             # JSON processing (Added 2026-04-06)
-      - yq-go          # YAML processing (Added 2026-04-06)
-      - curl           # HTTP requests (Added 2026-04-06)
+      - jq # JSON processing (Added 2026-04-06)
+      - yq-go # YAML processing (Added 2026-04-06)
+      - curl # HTTP requests (Added 2026-04-06)
   nats:
     url: nats://nats.database.svc:4222
     subjects:

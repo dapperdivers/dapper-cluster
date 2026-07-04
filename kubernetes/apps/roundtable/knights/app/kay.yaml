@@ -9,7 +9,7 @@ spec:
   domain: research
   image: ""
   # Local P100 pool (was openrouter/google/gemini-2.5-flash) — endpoint env below.
-  model: "ollama/qwen3.5:9b"
+  model: "openrouter/deepseek/deepseek-v3.2"
   skills:
     - shared
     - research
@@ -26,14 +26,14 @@ spec:
       - eza
       - yt-dlp
       - pandoc
-      - python3          # Required for fetch-news.py and arsenal scripts
-      - jq               # JSON processing for API responses
+      - python3 # Required for fetch-news.py and arsenal scripts
+      - jq # JSON processing for API responses
       # Research & Data Processing (Added 2026-03-23)
-      - ripgrep          # Faster grep alternative for large file searches
-      - httpie           # User-friendly HTTP client for API research
-      - yq-go            # YAML processing for structured data analysis
+      - ripgrep # Faster grep alternative for large file searches
+      - httpie # User-friendly HTTP client for API research
+      - yq-go # YAML processing for structured data analysis
       # Web Scraping (Added 2026-04-06)
-      - pup              # HTML parser for cleaner web scraping
+      - pup # HTML parser for cleaner web scraping
   nats:
     url: nats://nats.database.svc:4222
     subjects:

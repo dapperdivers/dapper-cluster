@@ -21,7 +21,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 08a173cd9754386dbc1d399ae4533d2107c2cd7c
+      tag: 9dbb4b6448625e697a34c6541b49d3ad9d4be14a
       pullPolicy: Always
 
     # Persistent nix-daemon builder: a single root Deployment owns the shared
