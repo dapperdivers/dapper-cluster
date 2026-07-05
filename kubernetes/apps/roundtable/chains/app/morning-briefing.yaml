@@ -22,25 +22,41 @@ spec:
       knightRef: galahad
       continueOnFailure: true
       task: |
-        Generate your daily security briefing.
-        Check /vault/Briefings/Security/ for yesterday's report and note deltas.
-        Review cluster security posture: expiring certs, failed security pods,
-        Kyverno violations, CVEs in running images.
+        Generate your daily THREAT INTELLIGENCE briefing.
+        AUDIENCE: Derek, a working security professional. This brief supports
+        his WORK — emerging threats in the world — NOT cluster health.
+        Cluster/infra security posture is Tristan's beat now; do not spend
+        your run on certs, Kyverno, or pod health.
+        FIRST: Check /vault/Briefings/Security/ for yesterday's report and note deltas.
 
-        CRITICAL RULE — RELEVANCE FILTER:
-        Only report CVEs/KEVs/vulnerabilities for software ACTUALLY RUNNING in this cluster.
-        Run: kubectl get deploy,sts -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}'
-        Cross-reference ANY CVE you mention against that list. If the affected software
-        is NOT deployed here, DO NOT include it. Generic CISA KEV lists are NOISE unless
-        they affect OUR stack. We do NOT run: n8n, Jenkins, Confluence, Jira, or Oracle products.
-        If a CVE only affects software we don't use, skip it entirely.
+        SOURCES — use your purpose-built kit:
+        1) OpenCTI ($OPENCTI_URL, token $OPENCTI_TOKEN): query the GraphQL API
+           at $OPENCTI_URL/graphql for intrusion sets, campaigns, malware, and
+           vulnerabilities created or updated in the last 24-48h.
+        2) Shodan ($SHODAN_API_KEY): exposure counts/trends for products tied
+           to today's threats (e.g. internet-facing instances of a
+           newly-exploited product).
+        3) Web research (you have a browser): vendor advisories, CISA KEV
+           additions, breach reporting. Cross-check single-source claims.
+
+        REPORT — what a security professional should know today:
+        - Actively exploited vulnerabilities (new KEV entries, in-the-wild
+          exploitation reports) with affected products/versions
+        - New or shifted threat-actor campaigns and notable TTP changes
+        - Significant breaches/incidents and the failure mode behind them
+        - Exposure trends worth citing at work (Shodan numbers)
+        For EVERY item, set cluster_relevant true/false: does it also touch
+        software running in OUR cluster? (kubectl get deploy,sts -A to check
+        if unsure.) Cluster relevance is a FLAG for routing, NOT a filter —
+        a major world threat belongs in this brief either way.
 
         LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
-        Your ledger is /vault/Briefings/Ledger/security.json. Re-verify every
-        open item TODAY before carrying it; compute any Day-N from first_seen
-        (never increment from memory); items you cannot reproduce become
-        status: resolved; add new items with today's first_seen and the command
-        that found them; update meta.last_report.
+        Your ledger is /vault/Briefings/Ledger/security.json. Track threats
+        with an open follow-up (unpatched actively-exploited CVEs, ongoing
+        campaigns); re-check open items TODAY before carrying them; compute
+        any Day-N from first_seen (never increment from memory); concluded
+        threats (patched, campaign ended, story closed) become
+        status: resolved; update meta.last_report.
 
         Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
@@ -53,14 +69,14 @@ spec:
           "domain": "security",
           "date": "<today, YYYY-MM-DD>",
           "status": "green|yellow|red",
-          "new": [ {"claim": "<one line>", "evidence": "<command you ran + 1-line result>", "severity": "low|medium|high"} ],
+          "new": [ {"claim": "<one line>", "evidence": "<OpenCTI/Shodan query or advisory URL + 1-line result>", "severity": "low|medium|high", "cluster_relevant": false} ],
           "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
-          "resolved": [ {"id": "<ledger item id>", "evidence": "<what proved it fixed>"} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what closed it — patch shipped, campaign concluded>"} ],
           "vault_report": "/vault/Briefings/Security/<today>.md"
         }
         - "resolved" entries are MANDATORY for anything previously reported that
-          is now fixed/closed/absent — a resolution that goes missing here
-          becomes a phantom issue in every future briefing.
+          is now closed — a resolution that goes missing here becomes a
+          phantom threat in every future briefing.
         - Every "open" entry must reflect a check you ran TODAY
           (reconfirmed: true); if you could not check it, reconfirmed: false.
         - "new" carries at most 8 items, most important first; evidence required.
@@ -84,6 +100,9 @@ spec:
         - If a previous report contained speculative projections, do NOT carry them forward.
         - Focus on: What happened? What does it affect? What should Derek know?
         - Date the report file with TODAY's actual date — never tomorrow's.
+        - Security/threat stories: Galahad's threat-intel brief owns that beat.
+          Give at most a one-line pointer, and only when a story has a
+          non-security angle (business, AI, homelab, career) Derek needs.
 
         LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
         Your ledger is /vault/Briefings/Ledger/intel.json. Track only stories
@@ -133,6 +152,14 @@ spec:
         4) A chronic unresolved failure (e.g. a node down for days) is STILL a
            headline item every day until fixed — "focus on changes" never
            demotes an ongoing outage below new cosmetic findings.
+
+        CLUSTER SECURITY POSTURE — yours now (Galahad covers world threat
+        intel for Derek's work, not cluster health):
+        - Expiring/failed certificates: kubectl get certificates -A
+        - Kyverno violations: kubectl get policyreports -A (nonzero FAIL counts)
+        - Security stack pod health (authentik, opencti, vaultwarden)
+        Fold posture findings into the same report, ledger, and summary as
+        your infra findings — they are infra items now.
 
         LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
         Your ledger is /vault/Briefings/Ledger/infra.json. Re-verify every open
@@ -480,7 +507,10 @@ spec:
         3) Only ACTION items. Zero informational filler.
         4) If a domain has no changes, give it ONE line: "🟢 No change."
         5) Stale items (⏳ Day 5+, confirmed today) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots.
-        6) RELEVANCE CHECK: If Galahad mentions CVEs for software NOT in our cluster, DROP them. We only care about vulnerabilities in software we actually run. Generic CISA KEV deadlines for unrelated software are noise.
+        6) Galahad's domain is WORK threat intelligence — world threats belong
+           in the briefing even when they don't touch our cluster; never drop
+           them for cluster-irrelevance. Items he flags cluster_relevant: true
+           are prime cross-domain material with Tristan's infra snapshot.
         7) CROSS-DOMAIN CONNECTIONS must describe real cause→effect between domains Derek manages, not invented business opportunities or revenue projections. If no real connections exist, write: "No actionable cross-domain connections today."
         8) Do NOT editorially amplify: report findings at the severity the knight
            gave them. Never upgrade "reconciliation not ready" into "degraded" or
