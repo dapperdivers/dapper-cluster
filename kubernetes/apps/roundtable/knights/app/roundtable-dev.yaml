@@ -5,6 +5,8 @@ metadata:
   name: roundtable-dev
   namespace: roundtable
 spec:
+  secrets:
+    - name: roundtable-secret
   description: |
     Round Table ecosystem development team. Builds and maintains the Round Table
     platform itself — the operator, pi-knight SDK, arsenal skills, and dashboard UI.

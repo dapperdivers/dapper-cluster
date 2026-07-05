@@ -13,7 +13,7 @@ spec:
   chart:
     spec:
       chart: roundtable-operator
-      version: "0.13.0"
+      version: "0.13.1"
       sourceRef:
         kind: HelmRepository
         name: roundtable
@@ -21,7 +21,7 @@ spec:
   values:
     image:
       repository: ghcr.io/dapperdivers/roundtable
-      tag: 30705c0c5b62edc195f271147a64ff3a0d04b02a
+      tag: 840dbebaf36c58cf50c0b3dc62cef8524fbed1e3
       pullPolicy: Always
 
     # Persistent nix-daemon builder: a single root Deployment owns the shared
