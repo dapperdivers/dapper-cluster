@@ -30,6 +30,14 @@ spec:
     nixBuilder:
       enabled: true
 
+    # Completion webhooks (chart 0.14.0): spec.notify on Chains/Missions posts
+    # roundtable.notify/v1 to matching URLs only — this prefix list is the SSRF
+    # guard, since anyone who can create a Chain controls notify.url. Keep it
+    # pinned to molt's gateway hook endpoint.
+    notify:
+      allowedURLPrefixes:
+        - http://molt.ai.svc:18789/hooks/
+
     resources:
       requests:
         cpu: 50m

@@ -9,6 +9,7 @@ resources:
   - watchman-rbac.yaml
   - patsy-rbac.yaml
   - roundtable-secret.yaml
+  - molt-hook-token.yaml
   - vault-pv.yaml
   - vault-pvc.yaml
   - shared-workspace-pvc.yaml
