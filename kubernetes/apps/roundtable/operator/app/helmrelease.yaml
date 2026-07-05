@@ -36,7 +36,7 @@ spec:
     # pinned to molt's gateway hook endpoint.
     notify:
       allowedURLPrefixes:
-        - http://molt.ai.svc:18789/hooks/
+        - http://molt-app.ai.svc.cluster.local:18789/hooks/
 
     resources:
       requests:
