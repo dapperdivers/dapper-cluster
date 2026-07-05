@@ -6,4 +6,3 @@ resources:
   # ChelonianLabs RoundTable
   - roundtable-chelonian.yaml
   # Chains
-  - chelonian-repo-init.yaml
