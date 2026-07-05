@@ -124,6 +124,14 @@ spec:
                 # which broke Discord delivery.
                 set +e
                 openclaw plugins install @openclaw/discord
+                # install alone does NOT re-sync an npm-installed copy to the
+                # bundled version (drifted to 2026.6.5 against a 2026.6.11
+                # gateway) — update does.
+                openclaw plugins update discord
+                # web search: tools.web.search.provider=searxng is set on the
+                # PVC config, but since ~2026.6 searxng is an external plugin;
+                # without it web_search silently falls back.
+                openclaw plugins install @openclaw/searxng-plugin
                 set -e
 
                 echo "Tool installation complete"
@@ -193,6 +201,11 @@ spec:
                   // node-llama-cpp CUDA 13 build that dropped sm_60 — see ollama notes).
                   c.plugins = c.plugins || {};
                   c.plugins.entries = c.plugins.entries || {};
+                  // plugins.allow is a non-empty exclusive allowlist on the PVC;
+                  // configuring active-memory without allowlisting it left the
+                  // plugin silently disabled and this whole block inert.
+                  c.plugins.allow = Array.isArray(c.plugins.allow) ? c.plugins.allow : [];
+                  if (!c.plugins.allow.includes('active-memory')) c.plugins.allow.push('active-memory');
                   c.plugins.entries['active-memory'] = c.plugins.entries['active-memory'] || { enabled: true, config: {} };
                   c.plugins.entries['active-memory'].config = c.plugins.entries['active-memory'].config || {};
                   c.plugins.entries['active-memory'].config.timeoutMs = 120000;
@@ -316,9 +329,25 @@ spec:
                     c.plugins.allow = (c.plugins.allow || []).filter(p => p !== 'whatsapp');
                     if (c.plugins.entries) delete c.plugins.entries.whatsapp;
                   }
+                  // Gateway webhooks — receiving end of the roundtable operator's
+                  // completion notifications (operator posts roundtable.notify/v1
+                  // to /hooks/roundtable; the mapping wakes the main session so
+                  // Tim relays the result in chat). Header-only bearer auth.
                   if (process.env.MOLT_HOOKS_TOKEN) {
                     c.hooks = c.hooks || {};
+                    c.hooks.enabled = true;
                     c.hooks.token = process.env.MOLT_HOOKS_TOKEN;
+                    c.hooks.path = '/hooks';
+                    c.hooks.mappings = Array.isArray(c.hooks.mappings) ? c.hooks.mappings : [];
+                    const rtMapping = {
+                      id: 'roundtable',
+                      match: { path: 'roundtable' },
+                      action: 'wake',
+                      wakeMode: 'now',
+                      textTemplate: 'Round Table {{ payload.kind }} \"{{ payload.name }}\" finished with phase {{ payload.phase }} (requested by {{ payload.context.requestedBy }}, session {{ payload.context.sessionKey }}). Output: {{ payload.output }} — full output in NATS KV if truncated. Relay the outcome to Derek in the originating conversation.'
+                    };
+                    const rtIdx = c.hooks.mappings.findIndex(m => m && m.id === 'roundtable');
+                    if (rtIdx >= 0) c.hooks.mappings[rtIdx] = rtMapping; else c.hooks.mappings.push(rtMapping);
                   }
                   if (process.env.MOLT_GOOGLE_PLACES_API_KEY) {
                     c.skills = c.skills || {};

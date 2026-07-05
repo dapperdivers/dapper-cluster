@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: molt-hook-token
+  namespace: roundtable
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: molt-hook-token
+    template:
+      engineVersion: v2
+      data:
+        # Referenced by Chain/Mission spec.notify.webhook.tokenSecretRef —
+        # bearer token for molt's gateway /hooks endpoint. Same Infisical key
+        # feeds molt-secret in the ai namespace (the validating side).
+        token: "{{ .MOLT_HOOKS_TOKEN }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^MOLT_HOOKS_TOKEN$
