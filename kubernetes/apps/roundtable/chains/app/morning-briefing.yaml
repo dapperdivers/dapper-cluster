@@ -6,17 +6,18 @@ metadata:
   namespace: roundtable
 spec:
   roundTableRef: personal
-  description: "Daily morning mission briefing — full domain reports, cross-referenced synthesis"
+  description: "Daily morning mission briefing — full domain reports, verified claims, cross-referenced synthesis"
   schedule: "0 11 * * *"
-  timeout: 2400
+  timeout: 3000
   retryPolicy:
     maxRetries: 1
     backoffSeconds: 60
   outputKnight: gawain
   steps:
     # Phase 1 — Domain knights run in parallel (no dependencies)
-    # Each writes a full report to /vault/Briefings/<domain>/
-    # and returns a concise NATS summary for Gawain
+    # Each writes a full report to /vault/Briefings/<domain>/, maintains its
+    # open-items ledger, and returns a structured JSON summary for the
+    # verifier and Gawain.
     - name: security_intel
       knightRef: galahad
       continueOnFailure: true
@@ -33,17 +34,38 @@ spec:
         is NOT deployed here, DO NOT include it. Generic CISA KEV lists are NOISE unless
         they affect OUR stack. We do NOT run: n8n, Jenkins, Confluence, Jira, or Oracle products.
         If a CVE only affects software we don't use, skip it entirely.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/security.json. Re-verify every
+        open item TODAY before carrying it; compute any Day-N from first_seen
+        (never increment from memory); items you cannot reproduce become
+        status: resolved; add new items with today's first_seen and the command
+        that found them; update meta.last_report.
+
         Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
-        SUMMARY FORMAT — MANDATORY:
-        If anything you previously reported is now fixed/closed/no longer present,
-        lead with a bullet starting exactly "RESOLVED: " for each such item.
-        RESOLVED bullets do not count against the bullet cap — never drop a
-        resolution for space. Then: concise summary (5-8 bullet points MAX,
-        action items only). Your response text IS the summary — just write it
-        as your final output.
-        If nothing changed since yesterday, say "No significant changes."
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "galahad",
+          "domain": "security",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<command you ran + 1-line result>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what proved it fixed>"} ],
+          "vault_report": "/vault/Briefings/Security/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for anything previously reported that
+          is now fixed/closed/absent — a resolution that goes missing here
+          becomes a phantom issue in every future briefing.
+        - Every "open" entry must reflect a check you ran TODAY
+          (reconfirmed: true); if you could not check it, reconfirmed: false.
+        - "new" carries at most 8 items, most important first; evidence required.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
 
     - name: intel_digest
@@ -61,15 +83,32 @@ spec:
         - No "$X potential" or "launch service in N hours" language. You are a reporter, not a startup pitch deck.
         - If a previous report contained speculative projections, do NOT carry them forward.
         - Focus on: What happened? What does it affect? What should Derek know?
+        - Date the report file with TODAY's actual date — never tomorrow's.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/intel.json. Track only stories
+        with an open follow-up; conclude items via "resolved" when a story ends.
+        Update meta.last_report.
+
         Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
-        SUMMARY FORMAT — MANDATORY:
-        If any story/topic you previously flagged is now concluded or superseded,
-        lead with a bullet starting exactly "RESOLVED: " for each such item.
-        RESOLVED bullets do not count against the bullet cap. Then: concise
-        summary (5-10 bullet points, key findings only). Your response text IS
-        the summary — just write it as your final output.
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "kay",
+          "domain": "intel",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one-line story + why it matters>", "evidence": "<source>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<how it concluded>"} ],
+          "vault_report": "/vault/Briefings/Intel/<today>.md"
+        }
+        - "new" carries at most 10 stories, most important first.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
 
     - name: infra_status
@@ -80,15 +119,13 @@ spec:
         failing pods, resource pressure, Flux reconciliation state, and any deployment issues.
         FIRST: Read yesterday's report in /vault/Briefings/HomeLab/ (most recent YYYY-MM-DD.md).
         Focus on CHANGES: new failures, resolved issues, status transitions.
-        If a finding appeared yesterday with no change, one line: "Still pending: [item]."
 
         EVIDENCE RULES — VIOLATION = A FABRICATED BRIEFING:
         1) The kubectl AGE column is the RESOURCE's age, NOT how long a problem
            has existed. NEVER report AGE as a stall/failure duration. Get
            durations from status.conditions lastTransitionTime or from events.
-        2) Before incrementing any "Day N" / "Still pending" counter, RE-RUN the
-           check that originally found the item. If it no longer reproduces,
-           report it as "RESOLVED: " instead. Never increment a counter on memory alone.
+        2) Before carrying any tracked item, RE-RUN the check that originally
+           found it. If it no longer reproduces, resolve it in the ledger.
         3) Flux not-ready ≠ workload down. A False Kustomization/HelmRelease
            does NOT mean the workload is degraded. kubectl get the actual pods
            BEFORE claiming any user-facing impact; if the pods are Running and
@@ -97,14 +134,36 @@ spec:
            headline item every day until fixed — "focus on changes" never
            demotes an ongoing outage below new cosmetic findings.
 
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/infra.json. Re-verify every open
+        item TODAY (run its verification.command); compute any Day-N from
+        first_seen; items that no longer reproduce become status: resolved; add
+        new items with today's first_seen and the exact command that found
+        them; update meta.last_report.
+
         Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
-        SUMMARY FORMAT — MANDATORY:
-        Lead with a "RESOLVED: " bullet for every previously-reported item that
-        is now fixed (RESOLVED bullets don't count against the cap). Then:
-        concise summary (5-10 bullet points, key findings and action items).
-        Your response text IS the summary — just write it as your final output.
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "tristan",
+          "domain": "infra",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<command you ran + 1-line result>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what proved it fixed>"} ],
+          "vault_report": "/vault/Briefings/HomeLab/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for anything previously reported that
+          is now fixed — losing a resolution creates a phantom issue.
+        - Every "open" entry must reflect a check you ran TODAY
+          (reconfirmed: true); if you could not check it, reconfirmed: false.
+        - "new" carries at most 8 items, most important first; evidence required.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
 
     - name: home_tasks
@@ -115,24 +174,44 @@ spec:
         newborn-care logistics, and any home tasks needing attention.
         CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
         - Emma: BORN April 14, 2026. Do NOT reference due dates, baby countdown,
-          nursery prep, or pregnancy. This is a newborn household (~12 weeks old
-          as of July 2026 — compute her age from the birth date).
+          nursery prep, or pregnancy. This is a newborn household (compute her
+          age from the birth date).
         - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs or shower planning.
         - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
         - Relevant now: pediatric appointments, feeding/sleep logistics, childcare
           arrangements, household upkeep that slipped during the newborn period.
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
-        If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]" —
-        but only after confirming it is actually still pending today.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/home.json. Compute any Day-N from
+        first_seen (never increment from memory); tasks that are done become
+        status: resolved; most household items are personal
+        (verification: null) — carry them with reconfirmed: false; add new
+        tasks with today's first_seen; update meta.last_report.
+
         Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
-        SUMMARY FORMAT — MANDATORY:
-        Lead with a "RESOLVED: " bullet for every previously-tracked task that is
-        now done (RESOLVED bullets don't count against the cap). Then: concise
-        summary (5-10 bullet points). Your response text IS the summary — just
-        write it as your final output.
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "bedivere",
+          "domain": "home",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<source: calendar/vault file, or 'personal'>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": false} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what shows it done>"} ],
+          "vault_report": "/vault/Briefings/Home/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for previously-tracked tasks now done.
+        - Personal items you cannot mechanically confirm: reconfirmed: false.
+        - "new" carries at most 8 items; no invented urgency or CRITICAL flags
+          on items that are moot (anything pregnancy-era is moot).
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
 
     - name: finance_check
@@ -145,14 +224,37 @@ spec:
         Focus on CHANGES: new payments, deadline shifts, status updates.
         Don't re-derive the same debt numbers — reference yesterday's and note delta.
         If nothing changed in a category, one line: "Unchanged since [date]."
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/finance.json. Compute any Day-N
+        from first_seen (never increment from memory — finance counters have
+        contradicted themselves within a single briefing before); settled items
+        become status: resolved; most finance items are personal
+        (verification: null) — carry them with reconfirmed: false; update
+        meta.last_report.
+
         Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
-        SUMMARY FORMAT — MANDATORY:
-        Lead with a "RESOLVED: " bullet for every previously-flagged item that is
-        now settled — paid, filed, closed (RESOLVED bullets don't count against
-        the cap). Then: concise summary (5-10 bullet points). Your response text
-        IS the summary — just write it as your final output.
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "percival",
+          "domain": "finance",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<source file/statement, or 'personal'>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": false} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<paid/filed/closed — what shows it>"} ],
+          "vault_report": "/vault/Briefings/Finance/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for previously-flagged items now
+          settled — paid, filed, closed.
+        - "new" carries at most 8 items; every number must come from a source
+          you read today or an explicitly cited prior report.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
 
     - name: career_update
@@ -163,17 +265,37 @@ spec:
         job market updates, and any action items.
         FIRST: Read yesterday's report in /vault/Briefings/Career/ (most recent YYYY-MM-DD.md).
         Focus on what CHANGED: new communications, deadline shifts, status updates.
-        If the same status persists (e.g., "waiting for offer"), one line: "Day N waiting — no update."
         Don't re-explain the full timeline unless something shifted.
+        GROUND TRUTH: Emma was born 2026-04-14. Her arrival is not a job-search
+        anchor or timeline — never print due-date language.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/career.json. Compute any Day-N
+        from first_seen (the tracker-dormancy counter has drifted 26→28→91
+        before — always recompute); concluded items (offer closed, application
+        expired, task done) become status: resolved; update meta.last_report.
+
         Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
 
-        SUMMARY FORMAT — MANDATORY:
-        Lead with a "RESOLVED: " bullet for every previously-tracked item that
-        has concluded — offer accepted/declined, application closed, task done
-        (RESOLVED bullets don't count against the cap). Then: concise summary
-        (5-10 bullet points). Your response text IS the summary — just write it
-        as your final output.
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "lancelot",
+          "domain": "career",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<tracker/vault file, or 'personal'>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": false} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what concluded it>"} ],
+          "vault_report": "/vault/Briefings/Career/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for previously-tracked items that
+          have concluded.
+        - "new" carries at most 8 items.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
 
     - name: wellness_check
@@ -192,7 +314,8 @@ spec:
         - Any upcoming pediatric appointments or checkups due around this age
         - Emotional/physical wellbeing check for both parents
 
-        ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY.
+        ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY
+        (plus your ledger file below).
         DO NOT read /vault/Briefings/Home/ or any other knight's domain files.
 
         COMPLETED EVENTS (do NOT mention these):
@@ -202,15 +325,94 @@ spec:
 
         FIRST: Read yesterday's report in /vault/Briefings/Wellness/ (most recent YYYY-MM-DD.md).
         Only report what CHANGED since yesterday. Same-week = focus on daily differences only.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Briefings/Ledger/wellness.json. Wellness items are
+        personal (verification: null) — carry open ones with reconfirmed: false;
+        closed concerns become status: resolved; compute postpartum week from
+        Emma's birth date, never carry it as prose; update meta.last_report.
+
         Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
 
-        OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points,
-        plus a leading "RESOLVED: " bullet for any previously-flagged wellness item
-        that is now closed (RESOLVED bullets don't count against the cap).
-        No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "gareth",
+          "domain": "wellness",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<vault source, or 'personal'>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": false} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what closed it>"} ],
+          "vault_report": "/vault/Briefings/Wellness/<today>.md"
+        }
+        - "new" carries at most 5 items — wellness is a short read.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 600
 
-    # Phase 2 — Gawain synthesizes all reports
+    # Phase 2 — Patsy re-verifies every mechanically-checkable claim
+    # (design: briefing-verifier-design.md §3; procedure: arsenal
+    # vault/briefing-verifier skill). Read-only; continueOnFailure so a
+    # verifier outage degrades the briefing to [unverified] instead of
+    # killing it.
+    - name: verify_claims
+      knightRef: patsy
+      continueOnFailure: true
+      dependsOn:
+        - security_intel
+        - intel_digest
+        - infra_status
+        - home_tasks
+        - finance_check
+        - career_update
+        - wellness_check
+      task: |
+        BRIEFING CLAIM VERIFICATION — follow the vault/briefing-verifier skill.
+
+        Today's domain summaries (JSON objects; a summary may be prose if a
+        knight fell back, or empty if it timed out):
+        security: {{ .Steps.security_intel.Output }}
+        intel: {{ .Steps.intel_digest.Output }}
+        infra: {{ .Steps.infra_status.Output }}
+        home: {{ .Steps.home_tasks.Output }}
+        finance: {{ .Steps.finance_check.Output }}
+        career: {{ .Steps.career_update.Output }}
+        wellness: {{ .Steps.wellness_check.Output }}
+
+        Your job (READ-ONLY on the cluster — kubectl get/describe/logs only,
+        never apply/delete/edit):
+        1) RE-VERIFY: for every "open" and "new" item above that has a
+           verification command (in its evidence field or in
+           /vault/Briefings/Ledger/<domain>.json), re-run the command and
+           annotate verified: true / false / "error". Items with no command
+           (personal) are "unverified".
+        2) LIVENESS TRUTH: list each domain's vault report directory and
+           compare BY FILE MTIME — not filename — against the summaries
+           received (Kay is known to future-date filenames). Produce the
+           authoritative reported/missing map for today AND the trailing
+           7 days per domain (ledger meta.last_report is your history).
+        3) LEDGER STAMPS: update each domain ledger's item last_verified
+           dates for items you re-verified, and meta.last_summary_received
+           for domains whose summary arrived. Flag counter anomalies:
+           a resolved item reappearing as open, first_seen drift, Day-N
+           claims that don't match today - first_seen.
+        3b) RESOLUTIONS AND COUNTS: every "resolved" entry must map to an
+           item that is open in its domain ledger — a resolution for an
+           item never tracked, or one the ledger already resolved, is an
+           INVENTED RESOLUTION (flag it; the 07-05 test run produced four).
+           Re-count any quoted fleet-wide number (X kustomizations,
+           Y helmreleases, N nodes, pod percentages) with your own kubectl
+           — quoted counts have been fabricated even when the direction
+           was right.
+        4) OUTPUT: your NATS response must be EXACTLY one JSON verification
+           report in the schema defined by the vault/briefing-verifier skill —
+           no prose around it. The synthesizer may not print any number that
+           is not in your report: completeness beats brevity here.
+      timeout: 600
+
+    # Phase 3 — Gawain synthesizes from verified data
     - name: synthesize
       knightRef: gawain
       # outputPath removed — Gawain writes the file himself via write tool.
@@ -224,10 +426,11 @@ spec:
         - finance_check
         - career_update
         - wellness_check
+        - verify_claims
       task: |
         MORNING BRIEFING SYNTHESIS — Assemble today's Daily Briefing.
 
-        Knight summaries (some may be empty if a knight timed out — note missing reports):
+        Knight summaries (JSON; may be prose fallback or empty on timeout):
         Security (Galahad): {{ .Steps.security_intel.Output }}
         Intel (Kay): {{ .Steps.intel_digest.Output }}
         Infrastructure (Tristan): {{ .Steps.infra_status.Output }}
@@ -236,25 +439,43 @@ spec:
         Career (Lancelot): {{ .Steps.career_update.Output }}
         Wellness (Gareth): {{ .Steps.wellness_check.Output }}
 
+        VERIFICATION REPORT (Patsy — authoritative):
+        {{ .Steps.verify_claims.Output }}
+
         FIRST: Read yesterday's Daily Briefing at /vault/Briefings/Daily/ (most recent YYYY-MM-DD.md).
         Your job is to surface what CHANGED, not repeat yesterday's briefing.
 
+        PARSING:
+        - Each knight summary should be one JSON object (new/open/resolved).
+          If a summary is not valid JSON, treat it as prose and tag that
+          domain's snapshot [unstructured].
+        - The verification report is AUTHORITATIVE for: which knights actually
+          reported (its liveness map beats any impression from the summaries),
+          whether a claim re-verified, and every Day-N value. If the
+          verification report is missing or not valid JSON (verifier down),
+          proceed, tag every claim [unverified], and say so in MISSING REPORTS.
+
         DATA PRECEDENCE — THE MOST IMPORTANT RULE:
-        Today's knight summaries above are FRESH DATA and always beat yesterday's
-        briefing. Yesterday's briefing is context only, never a source of facts.
-        - An item from yesterday may only be carried forward (⏳ Day N) if TODAY's
-          summary for that domain confirms it is still open. No confirmation =
-          drop it, with one line: "Dropped (unconfirmed today): [item]".
-        - A "RESOLVED: " bullet in a summary WINS over any Day-N history — render
-          it as "✅ RESOLVED: [item]" in that domain's snapshot today, and do not
-          carry it into future briefings.
+        Today's knight summaries + the verification report are FRESH DATA and
+        always beat yesterday's briefing. Yesterday's briefing is context only,
+        never a source of facts.
+        - An item may only be carried forward (⏳ Day N) if TODAY's summary for
+          that domain lists it in "open" — and its Day N comes from the
+          verification report, never from yesterday's briefing.
+        - Anything in a summary's "resolved" list WINS over any history —
+          render "✅ RESOLVED: [item]" in that domain's snapshot today, and do
+          not carry it into future briefings.
+        - A claim the verification report marks verified: false renders as
+          "⚠️ [failed verification]: [claim]" and may NOT be a headline or a
+          TOP 3 item. verified: "error" or unverified personal claims render
+          with [unverified].
         - EVIDENCE FOR NUMBERS: every number you print (Day counts, durations,
-          versions, counts of anything) must come from a specific bullet in
-          today's summaries or an explicitly-confirmed carry-forward. If you
-          cannot point to its source, do not print the number.
+          versions, counts of anything) must appear in the verification report
+          or in a specific bullet of today's summaries. No source, no number.
 
         HARD RULES — VIOLATION = FAILURE:
-        1) DO NOT read individual knight vault reports. The NATS summaries above are your ONLY knight input.
+        1) DO NOT read individual knight vault reports. The summaries and
+           verification report above are your ONLY inputs.
         2) DO NOT copy knight text verbatim — synthesize and connect dots.
         3) Only ACTION items. Zero informational filler.
         4) If a domain has no changes, give it ONE line: "🟢 No change."
@@ -270,7 +491,8 @@ spec:
         # Daily Briefing — YYYY-MM-DD
 
         ## 🚨 TOP 3 ACTION ITEMS
-        Each: what + why + deadline. 2-3 lines per item. (~12 lines total)
+        Each: what + why + deadline. 2-3 lines per item. Verified or
+        [unverified]-personal items only — never failed-verification claims. (~12 lines total)
 
         ## 🔗 CROSS-DOMAIN CONNECTIONS
         2-4 connections where domains intersect. Show cause → effect. (~10 lines total)
@@ -282,7 +504,11 @@ spec:
         Static domains: one line is fine.
 
         ## ❌ MISSING REPORTS
-        List timeouts. "None — all knights reported." if clean. (~2 lines)
+        From the verification report's liveness map ONLY — today's
+        missing/reported per domain, plus any domain whose last report is
+        2+ days old (trailing week), e.g. "infra: last reported 3 days ago".
+        "None — all knights reported." if clean. If the verifier itself was
+        down, state that here.
 
         ---
         **Read time: [estimate]**
@@ -303,6 +529,6 @@ spec:
         Your NATS response text should be a SHORT summary (5-10 lines):
         - Confirm file was written with path and line count
         - List the Top 3 action items as one-liners
-        - Note any missing reports or quality issues
+        - Note any missing reports, failed verifications, or quality issues
         This summary is what gets stored in NATS KV for chain diagnostics.
       timeout: 900
