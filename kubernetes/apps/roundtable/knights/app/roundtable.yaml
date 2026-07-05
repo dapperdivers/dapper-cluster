@@ -5,6 +5,8 @@ metadata:
   name: personal
   namespace: roundtable
 spec:
+  secrets:
+    - name: roundtable-secret
   description: |
     Derek's personal life management fleet. Handles security research, threat intel,
     penetration testing, personal finance, career coaching, home automation, wellness,

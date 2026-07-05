@@ -5,6 +5,8 @@ metadata:
   name: chelonian
   namespace: roundtable
 spec:
+  secrets:
+    - name: roundtable-secret
   description: |
     ChelonianLabs product development team. Builds and maintains the finance
     application ecosystem — transaction categorization AI, personal finance
