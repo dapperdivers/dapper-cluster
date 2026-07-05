@@ -35,8 +35,14 @@ spec:
         If a CVE only affects software we don't use, skip it entirely.
         Write your full report to /vault/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-8 bullet points MAX, action items only).
-        Your response text IS the summary — just write it as your final output.
+
+        SUMMARY FORMAT — MANDATORY:
+        If anything you previously reported is now fixed/closed/no longer present,
+        lead with a bullet starting exactly "RESOLVED: " for each such item.
+        RESOLVED bullets do not count against the bullet cap — never drop a
+        resolution for space. Then: concise summary (5-8 bullet points MAX,
+        action items only). Your response text IS the summary — just write it
+        as your final output.
         If nothing changed since yesterday, say "No significant changes."
       timeout: 900
 
@@ -57,7 +63,13 @@ spec:
         - Focus on: What happened? What does it affect? What should Derek know?
         Write your full report to /vault/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points, key findings only). Your response text IS the summary — just write it as your final output.
+
+        SUMMARY FORMAT — MANDATORY:
+        If any story/topic you previously flagged is now concluded or superseded,
+        lead with a bullet starting exactly "RESOLVED: " for each such item.
+        RESOLVED bullets do not count against the bullet cap. Then: concise
+        summary (5-10 bullet points, key findings only). Your response text IS
+        the summary — just write it as your final output.
       timeout: 900
 
     - name: infra_status
@@ -70,9 +82,29 @@ spec:
         Focus on CHANGES: new failures, resolved issues, status transitions.
         If a finding appeared yesterday with no change, one line: "Still pending: [item]."
 
+        EVIDENCE RULES — VIOLATION = A FABRICATED BRIEFING:
+        1) The kubectl AGE column is the RESOURCE's age, NOT how long a problem
+           has existed. NEVER report AGE as a stall/failure duration. Get
+           durations from status.conditions lastTransitionTime or from events.
+        2) Before incrementing any "Day N" / "Still pending" counter, RE-RUN the
+           check that originally found the item. If it no longer reproduces,
+           report it as "RESOLVED: " instead. Never increment a counter on memory alone.
+        3) Flux not-ready ≠ workload down. A False Kustomization/HelmRelease
+           does NOT mean the workload is degraded. kubectl get the actual pods
+           BEFORE claiming any user-facing impact; if the pods are Running and
+           Ready, say so and scope the finding to GitOps reconciliation only.
+        4) A chronic unresolved failure (e.g. a node down for days) is STILL a
+           headline item every day until fixed — "focus on changes" never
+           demotes an ongoing outage below new cosmetic findings.
+
         Write your full report to /vault/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points, key findings and action items). Your response text IS the summary — just write it as your final output.
+
+        SUMMARY FORMAT — MANDATORY:
+        Lead with a "RESOLVED: " bullet for every previously-reported item that
+        is now fixed (RESOLVED bullets don't count against the cap). Then:
+        concise summary (5-10 bullet points, key findings and action items).
+        Your response text IS the summary — just write it as your final output.
       timeout: 900
 
     - name: home_tasks
@@ -80,19 +112,27 @@ spec:
       continueOnFailure: true
       task: |
         Generate today's household briefing. Check family calendar, upcoming events,
-        nursery prep status, baby countdown, and any home tasks needing attention.
+        newborn-care logistics, and any home tasks needing attention.
         CONTEXT CORRECTIONS (ground truth — override any stale info in prior reports):
+        - Emma: BORN April 14, 2026. Do NOT reference due dates, baby countdown,
+          nursery prep, or pregnancy. This is a newborn household (~12 weeks old
+          as of July 2026 — compute her age from the birth date).
         - Baby shower: COMPLETED March 7, 2026. Do NOT reference RSVPs or shower planning.
         - Derek and Sara: MARRIED February 6, 2026. Do NOT reference wedding planning.
-        - Nursery setup: IN PROGRESS with shower gifts.
-        - Emma due date: April 29, 2026. Early term started April 8, 2026.
-        - Hospital bags, car seat: TRACK STATUS but count stale days from APRIL 1 (original target date), not from first mention.
+        - Relevant now: pediatric appointments, feeding/sleep logistics, childcare
+          arrangements, household upkeep that slipped during the newborn period.
         FIRST: Read yesterday's report in /vault/Briefings/Home/ (most recent YYYY-MM-DD.md).
         Highlight what's NEW or CHANGED. Don't re-explain unchanged items — one line each.
-        If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]."
+        If a task was listed yesterday and is still pending, mark it: "⏳ Day N: [task]" —
+        but only after confirming it is actually still pending today.
         Write your full report to /vault/Briefings/Home/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
+
+        SUMMARY FORMAT — MANDATORY:
+        Lead with a "RESOLVED: " bullet for every previously-tracked task that is
+        now done (RESOLVED bullets don't count against the cap). Then: concise
+        summary (5-10 bullet points). Your response text IS the summary — just
+        write it as your final output.
       timeout: 900
 
     - name: finance_check
@@ -107,7 +147,12 @@ spec:
         If nothing changed in a category, one line: "Unchanged since [date]."
         Write your full report to /vault/Briefings/Finance/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
+
+        SUMMARY FORMAT — MANDATORY:
+        Lead with a "RESOLVED: " bullet for every previously-flagged item that is
+        now settled — paid, filed, closed (RESOLVED bullets don't count against
+        the cap). Then: concise summary (5-10 bullet points). Your response text
+        IS the summary — just write it as your final output.
       timeout: 900
 
     - name: career_update
@@ -122,7 +167,13 @@ spec:
         Don't re-explain the full timeline unless something shifted.
         Write your full report to /vault/Briefings/Career/YYYY-MM-DD.md (use today's actual date).
         FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
-        Return a concise summary (5-10 bullet points). Your response text IS the summary — just write it as your final output.
+
+        SUMMARY FORMAT — MANDATORY:
+        Lead with a "RESOLVED: " bullet for every previously-tracked item that
+        has concluded — offer accepted/declined, application closed, task done
+        (RESOLVED bullets don't count against the cap). Then: concise summary
+        (5-10 bullet points). Your response text IS the summary — just write it
+        as your final output.
       timeout: 900
 
     - name: wellness_check
@@ -131,18 +182,21 @@ spec:
       task: |
         You are Sir GARETH, wellness knight. NOT Bedivere, NOT any other knight.
 
-        Generate today's wellness briefing. Emma's due date is April 29, 2026.
-        Early term began April 8, 2026 (37 weeks). Emma could arrive any day now.
-        Calculate the current pregnancy week and day. Report on:
-        - Current week milestones and baby development
-        - Nutrition and hydration focus for this stage
-        - Any upcoming appointments, signs to watch for
-        - Emotional/physical readiness check for both parents
+        Generate today's wellness briefing. GROUND TRUTH: Emma was BORN on
+        April 14, 2026. There is no pregnancy — do NOT calculate pregnancy weeks,
+        do NOT say she "could arrive any day". Calculate Emma's AGE in weeks and
+        days from April 14, 2026. Report on:
+        - Infant development milestones typical for her current age
+        - Postpartum recovery and wellbeing check for Sara
+        - Sleep/feeding rhythm considerations for this age
+        - Any upcoming pediatric appointments or checkups due around this age
+        - Emotional/physical wellbeing check for both parents
 
         ALLOWED SOURCES: /vault/Personal/Family/Emma.md and /vault/Briefings/Wellness/ ONLY.
         DO NOT read /vault/Briefings/Home/ or any other knight's domain files.
 
         COMPLETED EVENTS (do NOT mention these):
+        - Emma's birth announcement content: she was born April 14, 2026 — state her age, don't re-announce
         - Baby shower: DONE March 7, 2026
         - Wedding: DONE February 6, 2026
 
@@ -150,7 +204,9 @@ spec:
         Only report what CHANGED since yesterday. Same-week = focus on daily differences only.
         Write your full report to /vault/Briefings/Wellness/YYYY-MM-DD.md (today's date, exactly YYYY-MM-DD.md).
 
-        OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points.
+        OUTPUT CONSTRAINT: Your NATS response text must be EXACTLY 3-5 bullet points,
+        plus a leading "RESOLVED: " bullet for any previously-flagged wellness item
+        that is now closed (RESOLVED bullets don't count against the cap).
         No headers, no frontmatter, no preamble. Just bullets. MAX 10 lines total.
       timeout: 600
 
@@ -183,15 +239,31 @@ spec:
         FIRST: Read yesterday's Daily Briefing at /vault/Briefings/Daily/ (most recent YYYY-MM-DD.md).
         Your job is to surface what CHANGED, not repeat yesterday's briefing.
 
+        DATA PRECEDENCE — THE MOST IMPORTANT RULE:
+        Today's knight summaries above are FRESH DATA and always beat yesterday's
+        briefing. Yesterday's briefing is context only, never a source of facts.
+        - An item from yesterday may only be carried forward (⏳ Day N) if TODAY's
+          summary for that domain confirms it is still open. No confirmation =
+          drop it, with one line: "Dropped (unconfirmed today): [item]".
+        - A "RESOLVED: " bullet in a summary WINS over any Day-N history — render
+          it as "✅ RESOLVED: [item]" in that domain's snapshot today, and do not
+          carry it into future briefings.
+        - EVIDENCE FOR NUMBERS: every number you print (Day counts, durations,
+          versions, counts of anything) must come from a specific bullet in
+          today's summaries or an explicitly-confirmed carry-forward. If you
+          cannot point to its source, do not print the number.
+
         HARD RULES — VIOLATION = FAILURE:
         1) DO NOT read individual knight vault reports. The NATS summaries above are your ONLY knight input.
         2) DO NOT copy knight text verbatim — synthesize and connect dots.
         3) Only ACTION items. Zero informational filler.
         4) If a domain has no changes, give it ONE line: "🟢 No change."
-        5) If an action item appeared yesterday and nothing changed, mark it: "⏳ Day N" with the count.
-        6) Stale items (⏳ Day 5+) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots. Don't give them full bullets — they're noise until something changes.
-        7) RELEVANCE CHECK: If Galahad mentions CVEs for software NOT in our cluster, DROP them. We only care about vulnerabilities in software we actually run. Generic CISA KEV deadlines for unrelated software are noise.
-        8) CROSS-DOMAIN CONNECTIONS must describe real cause→effect between domains Derek manages, not invented business opportunities or revenue projections. If no real connections exist, write: "No actionable cross-domain connections today."
+        5) Stale items (⏳ Day 5+, confirmed today) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots.
+        6) RELEVANCE CHECK: If Galahad mentions CVEs for software NOT in our cluster, DROP them. We only care about vulnerabilities in software we actually run. Generic CISA KEV deadlines for unrelated software are noise.
+        7) CROSS-DOMAIN CONNECTIONS must describe real cause→effect between domains Derek manages, not invented business opportunities or revenue projections. If no real connections exist, write: "No actionable cross-domain connections today."
+        8) Do NOT editorially amplify: report findings at the severity the knight
+           gave them. Never upgrade "reconciliation not ready" into "degraded" or
+           "failing" on your own.
 
         STRUCTURE (exactly this, no additions):
 
@@ -204,18 +276,20 @@ spec:
         2-4 connections where domains intersect. Show cause → effect. (~10 lines total)
 
         ## 📊 DOMAIN SNAPSHOTS
-        EVERY domain gets a status line (🔴/🟡/🟢) + 2-5 bullets if action needed.
+        EVERY domain gets a status line (🔴/🟡/🟢) + bullets only if action needed.
+        Include "✅ RESOLVED:" lines for today's resolutions.
         Domains with changes: expand with specific bullets and next steps.
         Static domains: one line is fine.
-        (~45-55 lines total for 7 domains)
 
         ## ❌ MISSING REPORTS
         List timeouts. "None — all knights reported." if clean. (~2 lines)
 
         ---
-        **Total Lines: [count]** | Read time: [estimate]
+        **Read time: [estimate]**
 
-        LENGTH REQUIREMENT: The briefing MUST be 80-120 lines. Under 80 = TOO SHORT (you're losing signal). Over 150 = too long. Count your lines before finishing. If under 80, expand domain snapshots with more detail.
+        LENGTH: There is NO minimum length. A quiet day should produce a SHORT
+        briefing — that is a feature. Never pad, never expand a snapshot to hit
+        a target. Over 150 lines = too long, tighten it.
 
         MANDATORY FILE WRITE — THIS IS THE MOST IMPORTANT STEP:
         After composing the briefing, you MUST use your `write` tool to save the complete
