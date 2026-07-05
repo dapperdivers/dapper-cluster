@@ -50,6 +50,10 @@ spec:
         value: all
     nodeSelector:
       nvidia.feature.node.kubernetes.io/gpu: "true"
+    tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
     runtimeClassName: nvidia
     serviceMonitor:
       interval: 15s

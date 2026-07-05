@@ -89,6 +89,10 @@ spec:
                     operator: In
                     values:
                       - "true"
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
