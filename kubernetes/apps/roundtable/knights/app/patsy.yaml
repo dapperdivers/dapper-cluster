@@ -7,6 +7,7 @@ metadata:
   name: patsy
 spec:
   domain: vault
+  serviceAccountName: patsy
   image: ""
   # Kimi K2.6 (was openrouter/deepseek/deepseek-v3.2).
   model: "openrouter/moonshotai/kimi-k2.6:exacto"
@@ -22,11 +23,13 @@ spec:
       - ripgrep
       - ripgrep-all
       # Added 2026-03-09 - Fleet self-improvement assessment
-      - fd               # Fast file discovery for vault indexing
-      - fzf              # Interactive fuzzy finder for vault exploration
-      - graphviz         # Knowledge graph visualization
-      - pandoc           # Document format conversion
-      - yq-go            # YAML processing (Added 2026-03-23)
+      - fd # Fast file discovery for vault indexing
+      - fzf # Interactive fuzzy finder for vault exploration
+      - graphviz # Knowledge graph visualization
+      - pandoc # Document format conversion
+      - yq-go # YAML processing (Added 2026-03-23)
+      - kubectl # verify_claims: read-only re-verification (2026-07-05)
+      - jq # verify_claims: ledger JSON updates (2026-07-05)
   nats:
     url: nats://nats.database.svc:4222
     subjects:
