@@ -7,7 +7,17 @@ metadata:
   namespace: roundtable
 rules:
   - apiGroups: [""]
-    resources: ["pods", "pods/exec", "pods/log", "services", "configmaps", "secrets", "persistentvolumeclaims", "events"]
+    resources:
+      [
+        "pods",
+        "pods/exec",
+        "pods/log",
+        "services",
+        "configmaps",
+        "secrets",
+        "persistentvolumeclaims",
+        "events",
+      ]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
@@ -28,8 +38,9 @@ metadata:
   name: molt-knight-admin
   namespace: roundtable
 subjects:
+  # The molt pod runs as the app-template-created 'molt' SA (not 'default').
   - kind: ServiceAccount
-    name: default
+    name: molt
     namespace: ai
 roleRef:
   kind: Role

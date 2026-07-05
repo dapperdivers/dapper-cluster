@@ -9,7 +9,16 @@ rules:
     resources: ["nodes", "namespaces", "persistentvolumes"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
-    resources: ["pods", "pods/log", "services", "endpoints", "persistentvolumeclaims", "configmaps", "events"]
+    resources:
+      [
+        "pods",
+        "pods/log",
+        "services",
+        "endpoints",
+        "persistentvolumeclaims",
+        "configmaps",
+        "events",
+      ]
     verbs: ["get", "list", "watch"]
   # Apps
   - apiGroups: ["apps"]
@@ -63,6 +72,7 @@ roleRef:
   kind: ClusterRole
   name: openclaw-reader
 subjects:
+  # The molt pod runs as the app-template-created 'molt' SA (not 'default').
   - kind: ServiceAccount
-    name: default
+    name: molt
     namespace: ai
