@@ -8,7 +8,7 @@ spec:
   roundTableRef: personal
   description: "Weekly fleet self-improvement — knights report tool/skill gaps, Gawain PRs the fixes"
   schedule: "0 14 * * 1"
-  timeout: 3600
+  timeout: 4800
   outputKnight: gawain
   retryPolicy:
     maxRetries: 1
@@ -288,6 +288,7 @@ spec:
     # Phase 2 — Gawain aggregates and creates PR
     - name: aggregate_and_pr
       knightRef: gawain
+      continueOnFailure: true
       outputPath: "/vault/Roundtable/Improvement-Requests/{{ .Date }}.md"
       dependsOn:
         - galahad_assess
@@ -299,7 +300,7 @@ spec:
         - agravain_assess
         - gareth_assess
         - patsy_assess
-      timeout: 600
+      timeout: 1200
       task: |
         FLEET SELF-IMPROVEMENT AGGREGATION
 
@@ -346,3 +347,28 @@ spec:
         - What was deferred and why
         - Total requests vs approved
         - Any new arsenal issues created
+
+    # Weekly briefing scorecard — audits LAST week's Daily briefings, so it
+    # runs in parallel with the assess phase (no dependsOn). Procedure lives
+    # in the arsenal skill vault/briefing-scorecard.
+    - name: briefing_scorecard
+      knightRef: patsy
+      continueOnFailure: true
+      timeout: 900
+      task: |
+        WEEKLY BRIEFING SCORECARD — follow the vault/briefing-scorecard skill.
+
+        Score the trailing week of Daily briefings
+        (/vault/Briefings/Daily/YYYY-MM-DD.md, the 7 most recent by mtime)
+        claim-by-claim against the domain vault reports and the open-items
+        ledgers (/vault/Briefings/Ledger/), using the forensic taxonomy
+        (verified / stale-echo / fabricated / unverifiable-personal), and run
+        the mechanical assertions defined in the skill.
+
+        Write the scorecard to /vault/Briefings/Scorecards/YYYY-Www.md
+        (ISO week of the Monday you run on, e.g. 2026-W28). Create the
+        directory if missing.
+
+        Your NATS response: a 5-line summary — overall corruption %, per-stage
+        split, assertion pass/fail count, worst day, trend vs the previous
+        scorecard file if one exists.
