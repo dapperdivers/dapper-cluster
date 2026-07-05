@@ -465,6 +465,12 @@ spec:
             fsGroupChangePolicy: OnRootMismatch
     defaultPodOptions:
       shareProcessNamespace: true
+      # Mount the SA token so Tim's kubectl can reach the API (roundtable
+      # Chains/Missions). app-template 5.x runs the pod as the auto-created
+      # 'molt' SA with automount off by default; without this the token is
+      # absent and kubectl falls back to localhost:8080. Pairs with the RBAC
+      # bindings repointed to the 'molt' SA (rbac.yaml, molt-rbac.yaml).
+      automountServiceAccountToken: true
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
