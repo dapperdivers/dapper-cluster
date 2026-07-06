@@ -36,6 +36,11 @@ spec:
       # SAST & Code Analysis (Added 2026-03-23)
       - semgrep        # Static application security testing
       - gosec          # Go security checker
+      # Added 2026-03-30 - Fleet self-improvement assessment
+      - kubectl        # Kubernetes CLI for live cluster security verification
+      - kubescape      # Kubernetes security posture assessment
+      # Added 2026-07-06 - Fleet self-improvement assessment
+      - nikto          # Web server vulnerability scanner for security assessments
     # shodan: pip package, installed by Galahad's skills on-demand (not in mise registry)
   nats:
     url: nats://nats.database.svc:4222

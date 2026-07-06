@@ -42,6 +42,8 @@ spec:
       - jq             # JSON processing
       - tree
       - curl
+      # Added 2026-07-06 - Fleet self-improvement assessment
+      - kustomize      # Kubernetes native configuration management tool
   nats:
     url: nats://nats.database.svc:4222
     subjects:

@@ -19,6 +19,8 @@ spec:
       - sqlite
       - units
       - dateutils
+      # Added 2026-07-06 - Fleet self-improvement assessment
+      - jq             # JSON processing for financial data
   nats:
     url: nats://nats.database.svc:4222
     subjects:
