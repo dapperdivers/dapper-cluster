@@ -254,7 +254,8 @@ spec:
                   // every call to flagship GPT-5.5 (~70% of molt+roundtable spend).
                   // Standardise on DeepSeek + Kimi for price/performance: DeepSeek
                   // V4 Pro is the everyday default, while Kimi is the first
-                  // fallback for tool-heavy turns before we pay for Codex.
+                  // fallback for tool-heavy turns. Codex stays available only
+                  // when explicitly selected.
                   // NOTE: subagents.model is widely reported to be ignored (openclaw
                   // issues #10963/#51854) — subagents inherit the parent primary — so
                   // pinning the primary cheap is what actually caps cost.
@@ -262,12 +263,12 @@ spec:
                   // OPENROUTER_API_KEY from the env (provided via molt-secret).
                   c.agents.defaults.model = {
                     primary: 'openrouter/deepseek/deepseek-v4-pro',
-                    fallbacks: ['openrouter/moonshotai/kimi-k2.6:exacto', 'openai-codex/gpt-5.4']
+                    fallbacks: ['openrouter/moonshotai/kimi-k2.6:exacto']
                   };
                   c.agents.defaults.subagents = c.agents.defaults.subagents || {};
                   c.agents.defaults.subagents.model = {
                     primary: 'openrouter/moonshotai/kimi-k2.6:exacto',
-                    fallbacks: ['openrouter/deepseek/deepseek-v4-pro', 'openai-codex/gpt-5.4']
+                    fallbacks: ['openrouter/deepseek/deepseek-v4-pro']
                   };
                   // NOTE: agents.defaults.models (the /model allowlist) is intentionally
                   // NOT managed from this patch. Setting it here clobbered live edits and
