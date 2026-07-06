@@ -10,8 +10,9 @@ spec:
   serviceAccountName: watchman
   image: ""
   # Cloud model on purpose: triage over 24h of telemetry needs more context
-  # and reasoning than the local qwen pool offers, but stays cheap on haiku.
-  model: "openrouter/anthropic/claude-haiku-4.5"
+  # and reasoning than the local qwen pool offers. DeepSeek V4 Pro keeps the
+  # high-context value lane without paying frontier-model rates.
+  model: "openrouter/deepseek/deepseek-v4-pro"
   skills:
     - shared
     - watch

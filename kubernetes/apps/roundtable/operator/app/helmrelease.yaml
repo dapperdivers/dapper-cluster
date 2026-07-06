@@ -53,7 +53,7 @@ spec:
     planner:
       enabled: true
       domain: operator
-      model: openrouter/anthropic/claude-haiku-4.5
+      model: openrouter/moonshotai/kimi-k2.6:exacto
       skills:
         - operator
         - shared

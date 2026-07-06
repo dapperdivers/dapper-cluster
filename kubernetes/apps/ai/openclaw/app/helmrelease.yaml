@@ -252,21 +252,22 @@ spec:
                   // Cost control: pin a cheap model instead of 'openrouter/auto'.
                   // 'auto' optimises for capability, not price, and kept routing
                   // every call to flagship GPT-5.5 (~70% of molt+roundtable spend).
-                  // Haiku 4.5 covers everyday assistant work at a fraction of the cost;
-                  // openai-codex/gpt-5.4 stays as a failure-only fallback.
+                  // Standardise on DeepSeek + Kimi for price/performance: DeepSeek
+                  // V4 Pro is the everyday default, while Kimi is the first
+                  // fallback for tool-heavy turns before we pay for Codex.
                   // NOTE: subagents.model is widely reported to be ignored (openclaw
                   // issues #10963/#51854) — subagents inherit the parent primary — so
                   // pinning the primary cheap is what actually caps cost.
                   // The openrouter plugin is bundled + enabledByDefault; it reads
                   // OPENROUTER_API_KEY from the env (provided via molt-secret).
                   c.agents.defaults.model = {
-                    primary: 'openrouter/anthropic/claude-haiku-4.5',
-                    fallbacks: ['openai-codex/gpt-5.4']
+                    primary: 'openrouter/deepseek/deepseek-v4-pro',
+                    fallbacks: ['openrouter/moonshotai/kimi-k2.6:exacto', 'openai-codex/gpt-5.4']
                   };
                   c.agents.defaults.subagents = c.agents.defaults.subagents || {};
                   c.agents.defaults.subagents.model = {
-                    primary: 'openrouter/anthropic/claude-haiku-4.5',
-                    fallbacks: ['openai-codex/gpt-5.4']
+                    primary: 'openrouter/moonshotai/kimi-k2.6:exacto',
+                    fallbacks: ['openrouter/deepseek/deepseek-v4-pro', 'openai-codex/gpt-5.4']
                   };
                   // NOTE: agents.defaults.models (the /model allowlist) is intentionally
                   // NOT managed from this patch. Setting it here clobbered live edits and
@@ -287,8 +288,8 @@ spec:
                   c.agents.defaults.typingMode = 'instant';
                   // Heartbeat runs on the FREE local model (gpt-oss:20b on the P100)
                   // every 2h — zero API cost for background check-ins. Messages stay on
-                  // Haiku (fast, concurrent); this also keeps gpt-oss warm on the GPU
-                  // for on-demand /model use. Local heartbeat and Haiku messages don't
+                  // DeepSeek/Kimi; this also keeps gpt-oss warm on the GPU for
+                  // on-demand /model use. Local heartbeat and cloud messages don't
                   // contend (different providers).
                   c.agents.defaults.heartbeat = c.agents.defaults.heartbeat || {};
                   c.agents.defaults.heartbeat.every = '2h';
