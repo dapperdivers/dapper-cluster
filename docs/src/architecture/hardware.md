@@ -28,7 +28,7 @@
 - **Chassis**: ASUS ESC4000 G3 (8x 3.5" bays)
 - **CPU**: 2x Intel Xeon E5-2697A v4 @ 2.60GHz (64 cores total)
 - **RAM**: 516 GiB
-- **GPU**: 4x NVIDIA P100 16GB
+- **GPU**: 2x NVIDIA P100 16GB
 - **Network**: 2x1Gbe, 2x 10GbE, 2x 40Gbe
 - **OS Drive**: 2x120GB ZFS mirror
 

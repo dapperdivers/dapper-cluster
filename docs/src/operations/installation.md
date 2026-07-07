@@ -35,7 +35,7 @@ graph TD
 
 - CPU: 16 cores
 - RAM: 128GB
-- GPU: 4x NVIDIA Tesla P100
+- GPU: 2x NVIDIA Tesla P100
 - Role: GPU-accelerated workloads
 
 ### Worker Nodes (2x)

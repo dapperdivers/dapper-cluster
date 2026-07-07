@@ -161,71 +161,12 @@ My network spans two physical locations connected via a 60GHz wireless bridge, f
   <img src="docs/src/assets/infographics/network-topology.jpg" alt="ChelonianLabs home network and fabric bandwidth: two-building multi-vendor fabric with 40/80G LACP" width="100%"/>
 </div>
 
-<details>
-  <summary>Physical Network Topology (source diagram)</summary>
-
-```mermaid
-graph TB
-    %% Styling
-    classDef router fill:#d83933,stroke:#fff,stroke-width:2px,color:#fff
-    classDef coreswitch fill:#2f73d8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef distswitch fill:#389826,stroke:#fff,stroke-width:2px,color:#fff
-    classDef accessswitch fill:#f39c12,stroke:#fff,stroke-width:2px,color:#fff
-    classDef server fill:#8e44ad,stroke:#fff,stroke-width:2px,color:#fff
-    classDef wireless fill:#e74c3c,stroke:#fff,stroke-width:2px,color:#fff
-
-    subgraph House["🏠 House"]
-        OPN["OPNsense<br/>192.168.1.1<br/>Gateway"]:::router
-        ARUBA["Aruba S2500-48p<br/>192.168.1.26<br/>PoE Access Switch"]:::accessswitch
-        CLIENTS["Client Devices"]
-        WHOUSE["Mikrotik NRay60<br/>192.168.1.7"]:::wireless
-
-        OPN --- ARUBA
-        ARUBA --- CLIENTS
-        ARUBA --- WHOUSE
-    end
-
-    subgraph Bridge["⚡ 60GHz Bridge"]
-        WHOUSE -.1Gbps Wireless.-> WSHOP
-    end
-
-    subgraph Garage["🏭 Garage/Shop"]
-        WSHOP["Mikrotik NRay60<br/>192.168.1.8"]:::wireless
-        BROCADE["Brocade ICX6610<br/>192.168.1.20<br/>Core L3 Switch"]:::coreswitch
-        ARISTA["Arista 7050<br/>192.168.1.21<br/>40Gb Distribution"]:::distswitch
-
-        PX1["Proxmox-01<br/>4C/16GB"]:::server
-        PX2["Proxmox-02<br/>24C/196GB"]:::server
-        PX3["Proxmox-03<br/>64C/516GB"]:::server
-        PX4["Proxmox-04<br/>24C/196GB"]:::server
-
-        WSHOP --- BROCADE
-        BROCADE <-->|2x 40Gb LAG| ARISTA
-
-        PX1 -->|2x10Gb + 2x1Gb| BROCADE
-        PX2 -->|2x10Gb + 2x1Gb| BROCADE
-        PX3 -->|2x10Gb + 2x1Gb| BROCADE
-        PX4 -->|2x10Gb + 2x1Gb| BROCADE
-
-        PX1 -.40Gb Storage.-> ARISTA
-        PX2 -.40Gb Storage.-> ARISTA
-        PX3 -.40Gb Storage.-> ARISTA
-        PX4 -.40Gb Storage.-> ARISTA
-    end
-
-    style House fill:#ecf0f1,stroke:#34495e,stroke-width:3px
-    style Garage fill:#ecf0f1,stroke:#34495e,stroke-width:3px
-    style Bridge fill:#ffebee,stroke:#c62828,stroke-width:2px
-```
-
 **Key Features:**
 
 - Dual locations connected via 60GHz wireless (1Gbps)
 - Multi-tier switching: Core (Brocade), Distribution (Arista), Access (Aruba)
 - Dedicated 40Gb storage network on Arista
 - LACP bonding on server links for redundancy
-
-</details>
 
 <details>
   <summary>Kubernetes Cluster</summary>
