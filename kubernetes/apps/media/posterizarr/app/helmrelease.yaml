@@ -47,6 +47,10 @@ spec:
               tag: 2.2.52@sha256:f0e3af6fdc3f98cdec91734f9dac1183ea268a479826ae6071fdc138f5799323
             env:
               TZ: ${TIME_ZONE}
+              # Nightly full-library sweep (local time); Start.ps1 fires a
+              # -ContainerSchedule run at this time. Unset = "disabled" = the
+              # watcher-only default, which never backfills the existing library.
+              RUN_TIME: "05:00"
             resources:
               requests:
                 cpu: 100m
@@ -114,10 +118,13 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /config/UILogs
+      # Start.ps1's file watcher polls $APP_DATA/watcher (= /config/watcher) —
+      # it's hardcoded, so the shared Tautulli-trigger PVC MUST mount there, not
+      # at /watcher (that mismatch silently broke recently-added runs, #9f31486d0)
       posterizarr-watcher:
         existingClaim: posterizarr-watcher
         globalMounts:
-          - path: /watcher
+          - path: /config/watcher
       config-file:
         type: configMap
         defaultMode: 511
