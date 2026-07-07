@@ -25,6 +25,33 @@ spec:
       tautulli:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          # Tautulli >=2.15 refuses to run scripts from a mounted path
+          # ("Script folder is on a mounted path which is not allowed"), which
+          # silently broke the posterizarr trigger when the check landed. Stage
+          # the configMap-sourced script onto the config PVC (/config/scripts,
+          # beside the jbops add-ons and notify_newip.py) where Tautulli allows it.
+          stage-posterizarr-script:
+            image:
+              repository: mirror.gcr.io/library/busybox
+              tag: "1.38"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                mkdir -p /config/scripts
+                cp /src/posterizarr.py /config/scripts/posterizarr.py
+                chmod 0755 /config/scripts/posterizarr.py
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 32Mi
         containers:
           app:
             image:
@@ -120,11 +147,16 @@ spec:
         existingClaim: posterizarr-watcher
         globalMounts:
           - path: /posterizarr/watcher
+      # configMap source for the watcher script; only the init container needs
+      # it — it stages the file onto /config/scripts (a mounted /scripts path
+      # on the app itself is exactly what Tautulli now rejects).
       posterizarr-watcher-script:
         type: configMap
         name: posterizarr-watcher
-        globalMounts:
-          - path: /scripts
+        advancedMounts:
+          tautulli:
+            stage-posterizarr-script:
+              - path: /src
       logs:
         type: emptyDir
         globalMounts:
