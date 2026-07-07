@@ -57,6 +57,10 @@ My Kubernetes cluster is deployed with [Talos](https://www.talos.dev). All persi
 - **Backups**: [VolSync](https://github.com/backube/volsync) (Restic) snapshots of every stateful PVC
 - **Ceph cluster**: Ceph 18.2.x (Reef) on Proxmox, dedicated 40Gb storage network (VLAN 200)
 
+<div align="center">
+  <img src="docs/src/assets/infographics/storage-architecture.jpg" alt="dapper-cluster storage architecture: external Ceph on Proxmox, consumed via Rook CSI" width="100%"/>
+</div>
+
 There is a template over at [onedr0p/cluster-template](https://github.com/onedr0p/cluster-template) if you want to try and follow along with some of the practices used here.
 
 ### Core Components
@@ -153,8 +157,12 @@ graph TD
 
 My network spans two physical locations connected via a 60GHz wireless bridge, featuring a multi-tier switching architecture optimized for high-performance storage and compute workloads.
 
+<div align="center">
+  <img src="docs/src/assets/infographics/network-topology.jpg" alt="ChelonianLabs home network and fabric bandwidth: two-building multi-vendor fabric with 40/80G LACP" width="100%"/>
+</div>
+
 <details>
-  <summary>Physical Network Topology</summary>
+  <summary>Physical Network Topology (source diagram)</summary>
 
 ```mermaid
 graph TB
