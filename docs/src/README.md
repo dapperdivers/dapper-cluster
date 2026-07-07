@@ -15,7 +15,7 @@ graph TD
     subgraph Worker Nodes
         W1[Worker 1<br>16 CPU, 128GB]
         W2[Worker 2<br>16 CPU, 128GB]
-        GPU[GPU Node<br>16 CPU, 128GB<br>4x Tesla P100]
+        GPU[GPU Node<br>16 CPU, 128GB<br>2x Tesla P100]
     end
 
     CP1 --- CP2
@@ -44,7 +44,7 @@ graph TD
 - Specialized GPU worker node
 - 16 CPU cores
 - 128GB RAM
-- 4x NVIDIA Tesla P100 GPUs
+- 2x NVIDIA Tesla P100 GPUs
 - Handles ML/AI and GPU-accelerated workloads
 
 ## Key Features
