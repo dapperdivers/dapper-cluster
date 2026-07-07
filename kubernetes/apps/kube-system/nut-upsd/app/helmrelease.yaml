@@ -46,6 +46,17 @@ spec:
         pod:
           nodeSelector:
             ups.feature.node.kubernetes.io/apc: "true"
+    persistence:
+      # Overrides the env-generated ups.conf (instantlinux honors /etc/nut/local),
+      # defining the USB Smart-UPS 1500 plus the two garage AP9631/SNMP UPSes.
+      # Templated from Infisical UPS_SNMP_COMMUNITY so the community stays out of Git.
+      ups-conf:
+        type: secret
+        name: nut-upsd-upsconf
+        globalMounts:
+          - path: /etc/nut/local/ups.conf
+            subPath: ups.conf
+            readOnly: true
     service:
       app:
         type: LoadBalancer
