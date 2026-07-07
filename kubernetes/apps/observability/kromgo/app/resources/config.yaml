@@ -51,12 +51,15 @@ metrics:
     title: Memory
 
   - name: cluster_power_usage
-    query: round(upsHighPrecOutputLoad, 0.1)
+    # UPSes moved from SNMP to NUT, which has no watts var. Estimate the garage
+    # rack draw from NUT load% x the 2200 VA rating of the two Smart-UPS 2200 RM
+    # (VA ~= W for the server PSUs). Needs the per-UPS `ups` label from nut-exporter.
+    query: round(sum(network_ups_tools_ups_load{ups=~"garage-.*"}) / 100 * 2200, 1)
     suffix: "w"
     colors:
-      - { color: "green", min: 0, max: 400 }
-      - { color: "orange", min: 401, max: 750 }
-      - { color: "red", min: 751, max: 9999 }
+      - { color: "green", min: 0, max: 2500 }
+      - { color: "orange", min: 2501, max: 3500 }
+      - { color: "red", min: 3501, max: 9999 }
     title: Power
 
   - name: cluster_age_days
