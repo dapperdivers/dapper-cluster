@@ -50,13 +50,39 @@ export HASS_TOKEN=$($HA token)
   Node-RED depends on — PR #3553). Before blaming a flow, check
   `kubectl logs -n home-automation deploy/node-red` for websocket reconnect loops.
 
-## Raw API (when the script doesn't cover it)
+## WebSocket API — registries, areas, voice exposure
+
+`scripts/haws.sh` covers what REST can't: entity/device/area/floor registries and
+Assist exposure. It pipes a JSON array of WS commands (no ids) through node inside
+the node-red pod and prints one JSON result line per command:
+
+```bash
+WS=./.claude/skills/hass-api/scripts/haws.sh
+
+echo '[{"type":"config/area_registry/list"},{"type":"config/floor_registry/list"}]' | $WS
+echo '[{"type":"config/entity_registry/list"}]' | $WS > /tmp/ents.jsonl   # ~4000 entities
+echo '[{"type":"homeassistant/expose_entity/list"}]' | $WS               # what Assist can hear
+echo '[{"type":"config/device_registry/update","device_id":"<id>","area_id":"kitchen"}]' | $WS
+```
+
+Conventions learned the hard way (2026-07 voice-naming pass):
+
+- **Rename for voice at the HA layer** (`config/entity_registry/update` with
+  `name:`/`aliases:`) — entity_id and MQTT topics stay put, Node-RED keeps working.
+  Renaming a Zigbee2MQTT friendly name moves both and silently breaks flows.
+- Prefer `device_registry/update` for areas (entities inherit); use entity-level
+  `area_id` only for helper groups with no device.
+- Zigbee2MQTT **groups** show up as underscore-named devices (`Living_Room_Sides`)
+  whose entity_ids collided with same-named switches → `light.living_room_sides_2`
+  IS the group, not a stale duplicate. Voice-expose the group, not the smart-bulb-mode
+  switch.
+- Exposure gotcha: everything defaulted to exposed — including
+  `switch.zigbee2mqtt_bridge_permit_join` (unexposed 2026-07-02; keep it that way).
+
+## Raw API (when the scripts don't cover it)
 
 ```bash
 curl -s -H "Authorization: Bearer $HASS_TOKEN" https://hass.chelonianlabs.com/api/states | jq length
 # Docs: https://developers.home-assistant.io/docs/api/rest/
+#       https://developers.home-assistant.io/docs/api/websocket/
 ```
-
-WebSocket API (entity registry, device registry, traces) isn't covered by ha.sh;
-for registry-level questions, exec into the HA pod and read
-`/config/.storage/core.entity_registry` (read-only!) or ask the user to check the UI.
