@@ -60,10 +60,11 @@ spec:
     serviceMonitor:
       app:
         serviceName: *app
-        # nut_exporter scrapes ONE UPS per request and fails the scrape if the NUT
-        # server has >1 UPS and no `ups` param. One endpoint per UPS (the server is
-        # taken from NUT_EXPORTER_SERVER); the exporter emits a `ups=<name>` label
-        # per query, which the network-ups-tools.rules alerts key on.
+        # nut_exporter scrapes ONE UPS per request (needs a `ups` param when the NUT
+        # server has >1 UPS) and does NOT emit a `ups` label itself. One endpoint per
+        # UPS, and relabel __param_ups -> `ups` so each UPS's series are distinct
+        # (otherwise all three collide) and the network-ups-tools.rules alerts can key
+        # on `{{ $labels.ups }}`. Server comes from NUT_EXPORTER_SERVER.
         endpoints:
           - port: http
             scheme: http
@@ -72,6 +73,9 @@ spec:
             path: /ups_metrics
             params:
               ups: ["ups"]
+            relabelings: &upsLabel
+              - sourceLabels: [__param_ups]
+                targetLabel: ups
           - port: http
             scheme: http
             interval: 60s
@@ -79,6 +83,7 @@ spec:
             path: /ups_metrics
             params:
               ups: ["garage-a"]
+            relabelings: *upsLabel
           - port: http
             scheme: http
             interval: 60s
@@ -86,3 +91,4 @@ spec:
             path: /ups_metrics
             params:
               ups: ["garage-b"]
+            relabelings: *upsLabel
