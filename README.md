@@ -20,14 +20,6 @@ _... managed with Flux, Renovate, and GitHub Actions_ <img src="https://fonts.gs
 
 <div align="center">
 
-[![Home-Internet](https://img.shields.io/uptimerobot/status/m793494864-dfc695db066960233ac70f45?color=brightgreeen&label=Home%20Internet&style=for-the-badge&logo=ubiquiti&logoColor=white)](https://status.chelonianlabs.com)&nbsp;&nbsp;
-[![Status-Page](https://img.shields.io/uptimerobot/status/m793599155-ba1b18e51c9f8653acd0f5c1?color=brightgreeen&label=Status%20Page&style=for-the-badge&logo=statuspage&logoColor=white)](https://status.chelonianlabs.com)&nbsp;&nbsp;
-[![Alertmanager](https://img.shields.io/uptimerobot/status/m793494864-dfc695db066960233ac70f45?color=brightgreeen&label=Alertmanager&style=for-the-badge&logo=prometheus&logoColor=white)](https://status.chelonianlabs.com)
-
-</div>
-
-<div align="center">
-
 [![Age-Days](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.chelonianlabs.com%2Fcluster_age_days&style=flat-square&label=Age)](https://github.com/kashalls/kromgo)&nbsp;&nbsp;
 [![Uptime-Days](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.chelonianlabs.com%2Fcluster_uptime_days&style=flat-square&label=Uptime)](https://github.com/kashalls/kromgo)&nbsp;&nbsp;
 [![Node-Count](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.chelonianlabs.com%2Fcluster_node_count&style=flat-square&label=Nodes)](https://github.com/kashalls/kromgo)&nbsp;&nbsp;
@@ -43,7 +35,7 @@ _... managed with Flux, Renovate, and GitHub Actions_ <img src="https://fonts.gs
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a1/512.gif" alt="💡" width="20" height="20"> Overview
 
-This is a mono repository for my home infrastructure and Kubernetes cluster. I try to adhere to Infrastructure as Code (IaC) and GitOps practices using tools like [Ansible](https://www.ansible.com/), [Terraform](https://www.terraform.io/), [Kubernetes](https://kubernetes.io/), [Flux](https://github.com/fluxcd/flux2), [Renovate](https://github.com/renovatebot/renovate), and [GitHub Actions](https://github.com/features/actions).
+This is a mono repository for my home infrastructure and Kubernetes cluster. I try to adhere to Infrastructure as Code (IaC) and GitOps practices using tools like [Kubernetes](https://kubernetes.io/), [Talos Linux](https://www.talos.dev/), [Flux](https://github.com/fluxcd/flux2), [Renovate](https://github.com/renovatebot/renovate), and [GitHub Actions](https://github.com/features/actions).
 
 ---
 
@@ -89,10 +81,11 @@ There is a template over at [onedr0p/cluster-template](https://github.com/onedr0
 - [fluent-bit](https://github.com/fluent/fluent-bit): Log shipper into VictoriaLogs.
 - [gatus](https://github.com/TwiN/gatus): Service health monitoring and status page.
 - [ntfy](https://ntfy.sh/): Self-hosted push notifications for Gatus and Alertmanager alerts.
+- [network-ups-tools](https://networkupstools.org/): UPS power monitoring (NUT), surfaced via PeaNUT and a Prometheus exporter.
 
 **GPU & Hardware:**
 
-- [nvidia-device-plugin](https://github.com/NVIDIA/k8s-device-plugin): GPU support for 4x Tesla P100 GPUs.
+- [nvidia-device-plugin](https://github.com/NVIDIA/k8s-device-plugin): GPU support for 2x Tesla P100 GPUs (time-sliced ×4 → 8 schedulable units).
 - [intel-device-plugin](https://github.com/intel/intel-device-plugins-for-kubernetes): Intel hardware acceleration.
 - [node-feature-discovery](https://github.com/kubernetes-sigs/node-feature-discovery): Automatic hardware capability detection.
 
@@ -118,8 +111,7 @@ This Git repository contains the following directories under [Kubernetes](./kube
 📁 kubernetes
 ├── 📁 apps           # applications
 ├── 📁 bootstrap      # bootstrap procedures
-├── 📁 components     # re-useable components
-└── 📁 flux           # flux system configuration
+└── 📁 flux           # flux system config + reusable components
 ```
 
 ### Flux Workflow
@@ -240,7 +232,7 @@ graph TB
     end
 
     subgraph Workers["Worker Nodes"]
-        GPU["talos-node-gpu-1<br/>10.100.0.53<br/>16 CPU / 128GB<br/>4x Tesla P100"]:::gpu
+        GPU["talos-node-gpu-1<br/>10.100.0.53<br/>16 CPU / 128GB<br/>2x Tesla P100"]:::gpu
         W1["talos-node-large-1<br/>10.100.0.54<br/>16 CPU / 128GB"]:::worker
         W2["talos-node-large-2<br/>10.100.0.55<br/>16 CPU / 128GB"]:::worker
         W3["talos-node-large-3<br/>10.100.0.56<br/>16 CPU / 128GB"]:::worker
@@ -261,7 +253,7 @@ graph TB
 **Cluster Configuration:**
 
 - **Total Nodes:** 11 (3 control plane, 8 workers)
-- **Workers:** 1x GPU (4x Tesla P100), 3x large (16 CPU / 128GB), 4x small (6 CPU / 16GB)
+- **Workers:** 1x GPU (2x Tesla P100), 3x large (16 CPU / 128GB), 4x small (6 CPU / 16GB)
 - **OS:** Talos Linux (Kubernetes v1.36)
 - **CNI:** Cilium with eBPF (10.69.0.0/16 pod CIDR)
 - **API VIP:** 10.100.0.40 (shared across control plane)
@@ -320,16 +312,16 @@ While most of my infrastructure and workloads are self-hosted I do rely upon the
 
 Alternative solutions to the first two of these problems would be to host a Kubernetes cluster in the cloud and deploy applications like [HCVault](https://www.vaultproject.io/), [Vaultwarden](https://github.com/dani-garcia/vaultwarden), [ntfy](https://ntfy.sh/), and [Gatus](https://gatus.io/); however, maintaining another cluster and monitoring another group of workloads would be more work and probably be more or equal out to the same costs as described below.
 
-| Service                                   | Use                                                               | Cost          |
-| ----------------------------------------- | ----------------------------------------------------------------- | ------------- |
-| [Infisical](https://infisical.com/)       | Secrets with [External Secrets](https://external-secrets.io/)     | Free          |
-| [Cloudflare](https://www.cloudflare.com/) | Domain and S3                                                     | Free          |
-| [GCP](https://cloud.google.com/)          | Voice interactions with Home Assistant over Google Assistant      | Free          |
-| [GitHub](https://github.com/)             | Hosting this repository and continuous integration/deployments    | Free          |
-| [Migadu](https://migadu.com/)             | Email hosting                                                     | ~$20/yr       |
-| [Pushover](https://pushover.net/)         | Kubernetes Alerts and application notifications                   | $5 OTP        |
-| [UptimeRobot](https://uptimerobot.com/)   | Monitoring internet connectivity and external facing applications | Free          |
-|                                           |                                                                   | Total: ~$2/mo |
+| Service                                     | Use                                                            | Cost          |
+| ------------------------------------------- | -------------------------------------------------------------- | ------------- |
+| [Infisical](https://infisical.com/)         | Secrets with [External Secrets](https://external-secrets.io/)  | Free          |
+| [Cloudflare](https://www.cloudflare.com/)   | Domain and S3                                                  | Free          |
+| [GCP](https://cloud.google.com/)            | Voice interactions with Home Assistant over Google Assistant   | Free          |
+| [GitHub](https://github.com/)               | Hosting this repository and continuous integration/deployments | Free          |
+| [Migadu](https://migadu.com/)               | Email hosting                                                  | ~$20/yr       |
+| [Pushover](https://pushover.net/)           | Kubernetes Alerts and application notifications                | $5 OTP        |
+| [Healthchecks.io](https://healthchecks.io/) | Dead-man's-switch for the Alertmanager heartbeat               | Free          |
+|                                             |                                                                | Total: ~$2/mo |
 
 ---
 
@@ -347,7 +339,7 @@ Internal name resolution is handled by [k8s-gateway](https://github.com/ori-edge
 | -------------- | -------------------------------------------------- | ----- | --------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
 | **Proxmox-01** | Intel Xeon E3-1230 V2<br/>(4 cores @ 3.30GHz)      | 16GB  | 24x 4TB HDD                                         | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Ceph OSDs                                 |
 | **Proxmox-02** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz)       | 196GB | 2x 120GB ZFS mirror                                 | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph                         |
-| **Proxmox-03** | 2x Intel Xeon E5-2697A v4<br/>(64 cores @ 2.60GHz) | 516GB | 1x 3.92TB SSD + 1x 800GB<br/>**4x Tesla P100 16GB** | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph<br/>**GPU Passthrough** |
+| **Proxmox-03** | 2x Intel Xeon E5-2697A v4<br/>(64 cores @ 2.60GHz) | 516GB | 1x 3.92TB SSD + 1x 800GB<br/>**2x Tesla P100 16GB** | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph<br/>**GPU Passthrough** |
 | **Proxmox-04** | 2x Intel Xeon X5680<br/>(24 cores @ 3.33GHz)       | 196GB | 8x 10TB + 1x 3.84TB + 1x 800GB                      | 1Gb IPMI<br/>2x 1Gb<br/>2x 10Gb<br/>2x 40Gb | Kubernetes + Ceph                         |
 
 **Total Cluster Resources:**
@@ -355,7 +347,7 @@ Internal name resolution is handled by [k8s-gateway](https://github.com/ori-edge
 - **CPU:** 116 cores total
 - **RAM:** 924GB total
 - **Storage:** 476.96TB raw (76 drives across all hosts + JBOD), pooled into the external Ceph cluster
-- **GPU:** 4x NVIDIA Tesla P100 16GB (64GB VRAM total)
+- **GPU:** 2x NVIDIA Tesla P100 16GB (32GB VRAM total)
 - **Network:** Multi-tier switching with 40Gb Ceph network
 
 ### Kubernetes VMs (Talos Linux)
@@ -365,7 +357,7 @@ Internal name resolution is handled by [k8s-gateway](https://github.com/ori-edge
 | talos-control-1    | 4    | 16GB  | Proxmox-03      | Control Plane |                         |
 | talos-control-2    | 4    | 16GB  | Proxmox-04      | Control Plane |                         |
 | talos-control-3    | 4    | 16GB  | Proxmox-02      | Control Plane |                         |
-| talos-node-gpu-1   | 16   | 128GB | Proxmox-03      | Worker        | 4x P100 GPU passthrough |
+| talos-node-gpu-1   | 16   | 128GB | Proxmox-03      | Worker        | 2x P100 GPU passthrough |
 | talos-node-large-1 | 16   | 128GB | Proxmox-03      | Worker        |                         |
 | talos-node-large-2 | 16   | 128GB | Proxmox-03      | Worker        |                         |
 | talos-node-large-3 | 16   | 128GB | Proxmox-03      | Worker        |                         |
@@ -374,7 +366,7 @@ Internal name resolution is handled by [k8s-gateway](https://github.com/ori-edge
 | talos-node-small-3 | 6    | 16GB  | Proxmox cluster | Worker        |                         |
 | talos-node-small-4 | 6    | 16GB  | Proxmox cluster | Worker        |                         |
 
-**Kubernetes Cluster Totals:** 100 vCPU, 624GB RAM, 4x Tesla P100 GPUs
+**Kubernetes Cluster Totals:** 100 vCPU, 624GB RAM, 2x Tesla P100 GPUs
 
 ### Network Equipment
 
