@@ -60,6 +60,11 @@ spec:
     serviceMonitor:
       app:
         serviceName: *app
+        # nut_exporter scrapes ONE UPS per request (needs a `ups` param when the NUT
+        # server has >1 UPS) and does NOT emit a `ups` label itself. One endpoint per
+        # UPS, and relabel __param_ups -> `ups` so each UPS's series are distinct
+        # (otherwise all three collide) and the network-ups-tools.rules alerts can key
+        # on `{{ $labels.ups }}`. Server comes from NUT_EXPORTER_SERVER.
         endpoints:
           - port: http
             scheme: http
@@ -67,8 +72,23 @@ spec:
             scrapeTimeout: 10s
             path: /ups_metrics
             params:
-              targets:
-                - nut-upsd.kube-system.svc.cluster.local:3493
-            relabelings:
-              - sourceLabels: [__param_target]
-                targetLabel: target
+              ups: ["ups"]
+            relabelings: &upsLabel
+              - sourceLabels: [__param_ups]
+                targetLabel: ups
+          - port: http
+            scheme: http
+            interval: 60s
+            scrapeTimeout: 10s
+            path: /ups_metrics
+            params:
+              ups: ["garage-a"]
+            relabelings: *upsLabel
+          - port: http
+            scheme: http
+            interval: 60s
+            scrapeTimeout: 10s
+            path: /ups_metrics
+            params:
+              ups: ["garage-b"]
+            relabelings: *upsLabel
