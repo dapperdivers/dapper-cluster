@@ -46,3 +46,29 @@ spec:
           labels:
             # Order a battery — an act-today task, not a 3am page.
             severity: warning
+        - alert: UpsUnreachable
+          annotations:
+            description: >
+              NUT can no longer read UPS {{ $labels.ups }} — its management card is
+              likely offline (network/power) or the driver lost communication. We
+              have no battery/status data or graceful-shutdown coverage for it until
+              it returns. (NutExporterAbsent only covers the whole exporter dying.)
+            summary: A UPS dropped off monitoring.
+          expr: |
+            up{job=~".*nut-exporter.*"} == 0
+          for: 5m
+          labels:
+            # Lost visibility for one UPS, not an active power event — same-day fix.
+            severity: warning
+        - alert: UpsOverload
+          annotations:
+            description: >
+              UPS {{ $labels.ups }} output load is {{ printf "%.0f" $value }}% —
+              sustained high load cuts runtime and risks an overload trip. Rebalance
+              the rack or move load to the other UPS.
+            summary: UPS running near capacity.
+          expr: |
+            network_ups_tools_ups_load > 90
+          for: 15m
+          labels:
+            severity: warning

@@ -6,19 +6,9 @@ metadata:
   name: snmp-exporter-rules
 spec:
   groups:
-    - name: snmp-exporter.rules
-      rules:
-        - alert: UPSOnBattery
-          expr: |
-            (upsAdvBatteryRunTimeRemaining/60/100 <= 5 and upsBasicBatteryTimeOnBattery > 0)
-          annotations:
-            summary: >
-              ZPM {{$labels.instance}} is running on batteries and has less than 5 minutes of battery left
-            description: >
-              ZPM UPS {{$labels.instance}} has lost power and is running on battery with less than 5 minutes of runtime remaining. Prepare for shutdown.
-          for: 30s
-          labels:
-            severity: critical
+    # NOTE: the old UPSOnBattery alert (ZPM UPS via SNMP) was removed — those UPSes
+    # moved to NUT and are covered by network-ups-tools.rules (UpsOnBattery /
+    # UpsLowBattery). Its metrics (upsAdvBatteryRunTimeRemaining) no longer exist.
     - name: snmp-network.rules
       rules:
         # Fires only on ports the operator has DESCRIBED with an infra keyword
