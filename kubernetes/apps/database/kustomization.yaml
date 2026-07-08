@@ -11,3 +11,4 @@ resources:
   - ./emqx/ks.yaml
   - ./dragonfly-redis/ks.yaml
   - ./nats/ks.yaml
+  - ./nats-nui/ks.yaml
