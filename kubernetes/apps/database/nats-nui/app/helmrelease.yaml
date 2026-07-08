@@ -82,6 +82,8 @@ spec:
 
     route:
       app:
+        annotations:
+          authentik.home.arpa/forward-auth: "true"
         hostnames: ["nats-nui.${SECRET_DOMAIN}"]
         parentRefs:
           - name: internal

@@ -194,6 +194,14 @@ data:
       - model: authentik_core.application
         identifiers: { slug: zigbee-garage-code }
         attrs: { name: Zigbee Garage Code, group: home, provider: !KeyOf zigbeegaragecode-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/coder.svg", meta_launch_url: "https://zigbee-garage-code.${SECRET_DOMAIN}" }
+      # nats-nui
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for NATS NUI }
+        id: natsnui-provider
+        attrs: { <<: *proxy, external_host: "https://nats-nui.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: nats-nui }
+        attrs: { name: NATS NUI, group: internal, provider: !KeyOf natsnui-provider, meta_icon: "https://cdn.jsdelivr.net/gh/cncf/artwork/projects/nats/icon/color/nats-icon-color.svg", meta_launch_url: "https://nats-nui.${SECRET_DOMAIN}" }
       # Embedded outpost: disables the k8s Ingress AND declaratively owns the assigned-
       # provider list. Adding an app = its 2 entries above (with id:) + one !KeyOf line here.
       - model: authentik_outposts.outpost
@@ -241,3 +249,4 @@ data:
             - !KeyOf blackbox-provider
             - !KeyOf zigbeecode-provider
             - !KeyOf zigbeegaragecode-provider
+            - !KeyOf natsnui-provider
