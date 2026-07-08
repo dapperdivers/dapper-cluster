@@ -67,10 +67,14 @@ spec:
 
     defaultPodOptions:
       securityContext:
+        # The NUI image bakes in a `nui` user at uid/gid 1001; its entrypoint
+        # only execs the server directly when running as 1001 (any other uid
+        # takes a `su nui` path that fails without suid). Match it and let
+        # fsGroup grant write to the /db PVC.
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
 
     service:
