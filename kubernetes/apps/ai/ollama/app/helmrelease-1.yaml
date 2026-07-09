@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: docker.io/ollama/ollama
-              tag: 0.31.1
+              tag: 0.31.2
             env:
               TZ: ${TIME_ZONE}
               # Roundtable-knight pool member pinned to GPU 1 (by UUID).
