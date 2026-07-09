@@ -364,7 +364,7 @@ spec:
     - datasourceName: Prometheus
       inputName: DS_PROMETHEUS
   # renovate: depName="smartctl-exporter"
-  url: https://grafana.com/api/dashboards/22604/revisions/2/download
+  url: https://grafana.com/api/dashboards/22604/revisions/3/download
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
