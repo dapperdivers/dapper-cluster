@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: docker.io/binwiederhier/ntfy
-              tag: v2.25.0
+              tag: v2.26.0
             # Provision the admin user idempotently (password piped to the
             # prompt; harmless if NTFY_PASSWORD is already honored), then serve.
             command:
