@@ -8,7 +8,7 @@ components:
 resources:
   - ./namespace.yaml
   # - ./media-nfs-storage/ks.yaml  # NFS PVCs - deprecated, using CephFS only
-  - ./storage/ks.yaml  # CephFS static PVs
+  - ./storage/ks.yaml # CephFS static PVs
   #- ./autobrr/ks.yaml
   - ./bazarr/ks.yaml
   - ./bazarr-uhd/ks.yaml
@@ -19,6 +19,7 @@ resources:
   # - ./huntarr/ks.yaml
   - ./radarr/ks.yaml
   - ./radarr-uhd/ks.yaml
+  - ./radarr-es/ks.yaml
   - ./kometa/ks.yaml
   - ./posterizarr/ks.yaml
   # - ./nzbget/ks.yaml

@@ -150,6 +150,48 @@ radarr:
           - name: HD Bluray + WEB
           - name: Bluray + WEB 1080p
 
+  radarr-es:
+    base_url: http://radarr-es.media.svc.cluster.local
+    api_key: !env_var RADARR_ES_API_KEY
+    delete_old_custom_formats: true
+    media_management:
+      propers_and_repacks: do_not_prefer
+    media_naming:
+      folder: plex-imdb
+      movie:
+        rename: true
+        standard: plex-imdb
+    quality_definition:
+      type: movie
+    quality_profiles:
+      # Permissive 1080p profile — Castilian releases are far scarcer than English,
+      # so accept Bluray-1080p + WEBDL/WEBRip-1080p. NO reset_unmatched_scores: the
+      # Castellano/Latino language custom formats are created + scored manually in the
+      # radarr-es UI (TRaSH has no trash_ids for them), and the profile's Language gate
+      # is set to Spanish in the UI. Both are left untouched by recyclarr on sync.
+      - name: Bluray + WEB 1080p (ES)
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+    custom_formats:
+      - # Unwanted — trimmed vs. the English instances (Scene + Retags dropped so the
+        # scarcer Castilian pool isn't starved); keeps the genuinely-bad releases out.
+        trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+        assign_scores_to:
+          - name: Bluray + WEB 1080p (ES)
+
   radarr-uhd:
     base_url: http://radarr-uhd.media.svc.cluster.local
     api_key: !env_var RADARR_UHD_API_KEY
