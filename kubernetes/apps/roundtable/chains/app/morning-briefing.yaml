@@ -191,6 +191,12 @@ spec:
         - "new" carries at most 8 items, most important first; evidence required.
         - If you cannot produce valid JSON, fall back to prose bullets leading
           with "RESOLVED: " lines — the pipeline will tag it [unstructured].
+
+        CRITICAL — FINAL OUTPUT RULE: Your response message must be EXACTLY one
+        JSON object with NO text before or after it. Do NOT include headings,
+        markdown code blocks (```json), prose, or reasoning surrounding the JSON.
+        The JSON alone must be the ENTIRE final message. Violation = the pipeline
+        treats your output as garbled and the briefing degrades.
       timeout: 900
 
     - name: home_tasks
@@ -384,6 +390,9 @@ spec:
     # vault/briefing-verifier skill). Read-only; continueOnFailure so a
     # verifier outage degrades the briefing to [unverified] instead of
     # killing it.
+    # NOTE: As of 2026-07-10, ledger files total ~490 lines. If this grows
+    # past ~800 lines or Patsy times out again, increase timeout and/or
+    # split verification into two parallel phases per domain set.
     - name: verify_claims
       knightRef: patsy
       continueOnFailure: true
@@ -437,8 +446,7 @@ spec:
            report in the schema defined by the vault/briefing-verifier skill —
            no prose around it. The synthesizer may not print any number that
            is not in your report: completeness beats brevity here.
-      timeout: 600
-
+      timeout: 1800
     # Phase 3 — Gawain synthesizes from verified data
     - name: synthesize
       knightRef: gawain
@@ -478,9 +486,17 @@ spec:
           domain's snapshot [unstructured].
         - The verification report is AUTHORITATIVE for: which knights actually
           reported (its liveness map beats any impression from the summaries),
-          whether a claim re-verified, and every Day-N value. If the
-          verification report is missing or not valid JSON (verifier down),
-          proceed, tag every claim [unverified], and say so in MISSING REPORTS.
+          whether a claim re-verified, and every Day-N value.
+        - VERIFIER DOWN RECOVERY: If the verification report above is missing,
+          empty, or not valid JSON:
+          1) Read /vault/Briefings/Ledger/verification-YYYY-MM-DD.json (today's
+             actual date). This is Patsy's disk-persisted report — it exists even
+             when the NATS response failed (timeout, output-size truncation).
+          2) If found and valid JSON: use its liveness map, verified claims,
+             anomalies, Day-N counts, and resolved_confirmed entries. Tag
+             the source "[vault-fallback]" in MISSING REPORTS.
+          3) If not found (verifier never ran): proceed, tag every claim
+             [unverified], and say "Verifier down — no verification data."
 
         DATA PRECEDENCE — THE MOST IMPORTANT RULE:
         Today's knight summaries + the verification report are FRESH DATA and
@@ -502,7 +518,10 @@ spec:
 
         HARD RULES — VIOLATION = FAILURE:
         1) DO NOT read individual knight vault reports. The summaries and
-           verification report above are your ONLY inputs.
+           verification report above are your ONLY inputs — EXCEPT: when the
+           verification report is missing/empty, read ONLY the vault-fallback
+           file at /vault/Briefings/Ledger/verification-YYYY-MM-DD.json.
+           Never read any other vault file.
         2) DO NOT copy knight text verbatim — synthesize and connect dots.
         3) Only ACTION items. Zero informational filler.
         4) If a domain has no changes, give it ONE line: "🟢 No change."
