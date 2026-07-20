@@ -243,6 +243,10 @@ spec:
         - Personal items you cannot mechanically confirm: reconfirmed: false.
         - "new" carries at most 8 items; no invented urgency or CRITICAL flags
           on items that are moot (anything pregnancy-era is moot).
+          Age increments are NOT new items — "Emma is X days old (from Y)" is
+          the same item every day with a date change. "New" means a genuinely
+          new event, task, or finding. Daily age tracking belongs in the vault
+          report prose, NOT in the "new" array.
         - If you cannot produce valid JSON, fall back to prose bullets leading
           with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 900
@@ -381,6 +385,12 @@ spec:
           "vault_report": "/vault/Briefings/Wellness/<today>.md"
         }
         - "new" carries at most 5 items — wellness is a short read.
+          Age milestones ("Emma entering Xth week") are NOT new items — they
+          are progress markers for the same ongoing developmental track.
+          "New" means a new finding, concern, or milestone achieved, not
+          "the week number incremented." One-time milestone achievements
+          (first smile, first roll, etc.) DO count as new. Weekly-week-number
+          updates belong in report prose, not in the "new" array.
         - If you cannot produce valid JSON, fall back to prose bullets leading
           with "RESOLVED: " lines — the pipeline will tag it [unstructured].
       timeout: 600
@@ -446,6 +456,44 @@ spec:
            report in the schema defined by the vault/briefing-verifier skill —
            no prose around it. The synthesizer may not print any number that
            is not in your report: completeness beats brevity here.
+
+        ⛔ CRITICAL — OUTPUT FORMAT ENFORCEMENT (VIOLATION = DEAD DATA):
+        The controller kills your output at ~4000 chars. Prose, markdown,
+        and code fences consume bytes that verification data needs.
+
+        THE ONLY VALID RESPONSE: {"verifier":"patsy","date":"YYYY-MM-...",...}
+             ^ first char is `{`                        ^ last char is `}`
+
+        HARDLINE RULES — ANY violation = unusable output:
+        ❌ Prose: "The verification report is complete." "Here is the JSON."
+        ❌ Code fences: ```json ... ```, ~~~json
+        ❌ Markdown headings, bullet points, explanatory text
+        ❌ ANY character before `{` or after `}`
+
+        BEFORE EMITTING, SELF-CHECK with these exact commands:
+        bash <<'CHECK'
+        # 1. First char must be {
+        [ "$(head -c1 <<<"$RESPONSE")" = "{" ] || echo "FAIL: doesn't start with {"
+        # 2. Last char must be }
+        [ "$(tail -c1 <<<"$RESPONSE")" = "}" ] || echo "FAIL: doesn't end with }"
+        # 3. Under 4000 chars
+        [ "$(wc -c <<<"$RESPONSE")" -le 4000 ] || echo "FAIL: oversized"
+        # 4. Valid JSON
+        echo "$RESPONSE" | python3 -c "import sys,json; json.loads(sys.stdin)" 2>&1 || echo "FAIL: invalid JSON"
+        CHECK
+        Any FAIL = re-emit, stripping everything but the bare JSON object.
+
+        EMERGENCY ULTRA-COMPACT (if full compact > 4000 chars):
+        {"v":"patsy","d":"<date>","s":"ok|degraded",
+         "live":{"sec":"r|m","int":"r|m","inf":"r|m","hom":"r|m","fin":"r|m","car":"r|m","wel":"r|m"},
+         "sum":{"tc":N},
+         "kf":[{"dom":"inf","id":"xxx","vt":true,"dn":N}],
+         "rc":[{"dom":"inf","id":"xxx"}],
+         "an":["msg"],
+         "fc":{"ks":128,"hr":103,"nd":11,"pr":274,"pt":277},
+         "fr":"/vault/Briefings/Ledger/verification-YYYY-MM-DD.json"}
+        If still > 4000: cut key_findings to 5 items, then 3, then 1.
+        A single-item compact that fits beats a truncated verbose one.
       timeout: 1800
     # Phase 3 — Gawain synthesizes from verified data
     - name: synthesize
@@ -487,16 +535,27 @@ spec:
         - The verification report is AUTHORITATIVE for: which knights actually
           reported (its liveness map beats any impression from the summaries),
           whether a claim re-verified, and every Day-N value.
-        - VERIFIER DOWN RECOVERY: If the verification report above is missing,
-          empty, or not valid JSON:
+        - TRUNCATION DETECTION: Before trying to parse the verification report,
+          check for controller-truncation signals:
+          • Contains the word "truncated" (any case)
+          • Ends with `...` (string trails off mid-JSON)
+          • First non-whitespace character is not `{` (prose preamble)
+          • Does not end with `}` (missing closing brace from truncation)
+          Any of these = the controller truncated or garbled Patsy's output.
+          IGNORE the inline report entirely and proceed to vault-fallback.
+
+        - VERIFIER DOWN / TRUNCATION RECOVERY: If the verification report is
+          missing, empty, not valid JSON, OR triggered any truncation signal:
           1) Read /vault/Briefings/Ledger/verification-YYYY-MM-DD.json (today's
              actual date). This is Patsy's disk-persisted report — it exists even
-             when the NATS response failed (timeout, output-size truncation).
+             when the NATS response failed (timeout, output-size truncation,
+             garbled prose/code-fence responses).
           2) If found and valid JSON: use its liveness map, verified claims,
              anomalies, Day-N counts, and resolved_confirmed entries. Tag
              the source "[vault-fallback]" in MISSING REPORTS.
-          3) If not found (verifier never ran): proceed, tag every claim
-             [unverified], and say "Verifier down — no verification data."
+          3) If not found (verifier never ran or disk write also failed):
+             proceed, tag every claim [unverified], and say "Verifier down
+             — no verification data, no disk fallback."
 
         DATA PRECEDENCE — THE MOST IMPORTANT RULE:
         Today's knight summaries + the verification report are FRESH DATA and
