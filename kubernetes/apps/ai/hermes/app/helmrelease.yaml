@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: docker.io/nousresearch/hermes-agent
-              tag: v2026.7.7
+              tag: v2026.7.20
             # The image ENTRYPOINT is s6-overlay's /init — it must stay PID 1.
             # It runs the cont-init hooks (UID remap, /opt/data ownership,
             # first-boot config seeding, config-schema migrations), then
