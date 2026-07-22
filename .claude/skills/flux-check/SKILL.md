@@ -1,6 +1,6 @@
 ---
 name: flux-check
-description: Troubleshoot FluxCD reconciliation issues, check Flux component status, and diagnose GitOps deployment problems
+description: Troubleshoot Flux CD on the dapper-cluster — a Kustomization or HelmRelease not Ready, changes merged but not applying, dependency/substitution errors, a stuck or wedged release. Use when "flux get all" shows False, a deploy didn't land, or reconciliation errors appear. For pod-level symptoms use debug-k8s instead.
 allowed-tools: Read, Edit, Bash, Grep, Glob
 ---
 

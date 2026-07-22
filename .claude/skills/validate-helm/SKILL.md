@@ -42,20 +42,14 @@ Common validation errors:
 
 ### 4. Check Canonical Structure
 
-**HelmRelease spec order:** `interval -> chartRef -> install -> upgrade -> dependsOn -> values`
+The full structure/naming rules are maintained in ONE place: the `find-app` skill,
+section "Critical Rules" (`.claude/skills/find-app/SKILL.md`) — apply those. The
+validation-critical headlines:
 
-**app-template values order:** `controllers -> defaultPodOptions -> service -> ingress -> persistence`
-
-**app-template patterns:**
-
-- Controller named after the app: `controllers.<app-name>.containers.app`
-- Service references controller: `service.app.controller: <app-name>`
-- Ingress uses service identifier: `service.identifier: app, port: http`
-- Reloader annotation: `reloader.stakater.com/auto: "true"`
-- Security context: `runAsUser: 1000, runAsGroup: 150, fsGroup: 150, fsGroupChangePolicy: OnRootMismatch`
-- Secrets via envFrom: `secretRef.name: <app-name>-secret` (from ExternalSecret)
-- Cluster vars available: `${TIME_ZONE}`, `${SECRET_DOMAIN}`, `${SECRET_DOMAIN_MEDIA}`
-- TLS secret: `${SECRET_DOMAIN/./-}-tls`
+- **HelmRelease spec order:** `interval -> chartRef -> install -> upgrade -> dependsOn -> values`
+- **app-template values order:** `controllers -> defaultPodOptions -> service -> route -> persistence`
+- HTTP exposure is a `route:` block on the Envoy Gateways — an `ingress:` block in a
+  live app is legacy (nginx is gone); see the `gateway-route` skill for conversion.
 
 ### 5. Apply Fixes
 
