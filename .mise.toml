@@ -37,7 +37,7 @@ uv = "latest"
 # Formatting & linting (run via lefthook git hooks)
 oxfmt = "0.60.0"
 gitleaks = "8.30.1"
-zizmor = "1.26.1"
+zizmor = "1.28.0"
 helmfile = "latest"
 kubectl = "latest"
 task = "latest"
