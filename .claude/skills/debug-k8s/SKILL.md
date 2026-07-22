@@ -1,6 +1,6 @@
 ---
 name: debug-k8s
-description: Troubleshoot Kubernetes pods, services, networking, storage, and resource issues across the dapper-cluster
+description: Troubleshoot live workloads on the dapper-cluster — a pod CrashLooping/Pending/OOMKilled, a service unreachable, a PVC stuck, an app down after a deploy. Prefers the repo's task helpers (view-secret, node-shell, browse-pvc, restart-helmrelease) over hand-rolled kubectl. For Flux reconciliation failures use the flux-check skill instead.
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
@@ -70,12 +70,8 @@ KUBECONFIG=~/projects/dapper-cluster/kubeconfig kubectl describe pvc <pvc> -n <n
 
 ### 6. Flux/GitOps Issues
 
-If the pod issue originates from a bad deployment:
-
-```bash
-KUBECONFIG=~/projects/dapper-cluster/kubeconfig kubectl get hr -n <namespace> <app-name>
-KUBECONFIG=~/projects/dapper-cluster/kubeconfig kubectl get kustomizations.kustomize.toolkit.fluxcd.io -n flux-system <app-name>
-```
+If the pod issue originates from a bad deployment (HelmRelease/Kustomization not Ready),
+switch to the `flux-check` skill — it owns that diagnosis path.
 
 ### 7. Cross-Reference with Git
 

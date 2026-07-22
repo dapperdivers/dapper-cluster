@@ -26,22 +26,24 @@ Multiple Claude Code sessions often run against this repo at once. To avoid bran
 ### Kubernetes Applications Structure (`kubernetes/apps/`)
 
 - **`actions-runner-system/`** - GitHub Actions self-hosted runners
-- **`ai/`** - AI/ML workloads (LiteLLM, n8n, Ollama, Open WebUI, Wyoming Whisper)
+- **`ai/`** - AI/ML workloads (Ollama, OpenClaw, Hermes, Speaches, voice ingest)
 - **`cert-manager/`** - TLS certificate management
-- **`database/`** - Database services (CloudNative-PG, Dragonfly Redis, EMQX)
+- **`database/`** - Database services (CloudNative-PG, Dragonfly Redis, EMQX, NATS)
 - **`default/`** - Default namespace applications
+- **`dev/`** - Development tooling
 - **`external-secrets/`** - External secrets management
 - **`flux-system/`** - Flux CD GitOps operator
 - **`home-automation/`** - Home automation stack (ESPHome, Home Assistant, Node-RED, Zigbee2MQTT)
 - **`kube-system/`** - Core Kubernetes system components
 - **`kyverno/`** - Policy engine for Kubernetes
 - **`media/`** - Media server stack (Plex, \*arr apps, Overseerr, etc.)
-- **`network/`** - Networking components (Ingress, DNS, SMTP relay)
-- **`observability/`** - Monitoring stack (Prometheus, Grafana, Loki, Gatus)
-- **`openebs-system/`** - OpenEBS storage system
+- **`network/`** - Networking components (Envoy Gateway, DNS, SMTP relay)
+- **`observability/`** - Monitoring stack (Prometheus, Grafana, VictoriaLogs, vmalert, Gatus)
+- **`rook-ceph/`** - Rook-Ceph storage cluster (ceph-rbd RWO, cephfs RWX)
+- **`roundtable/`** - Round Table AI agent fleet (operator, knights, chains)
 - **`security/`** - Security applications (Authentik, Vaultwarden)
 - **`selfhosted/`** - Self-hosted applications (Actual, Atuin, Paperless-NGX, etc.)
-- **`storage/`** - Storage providers and volume management
+- **`storage/`** - Storage support services (VolSync, snapshot-controller, Minio)
 - **`system-upgrade/`** - Automated system upgrades
 
 ## Key Patterns
@@ -208,11 +210,11 @@ For complex applications with multiple components (like Cilium with app + gatewa
 
 - **OS**: Talos Linux (immutable Kubernetes-focused OS)
 - **GitOps**: Flux CD v2
-- **Networking**: Cilium CNI with L2 announcements
-- **Storage**: OpenEBS for local storage, CSI NFS driver for NAS
-- **Monitoring**: Prometheus, Grafana, Loki, Promtail
+- **Networking**: Cilium CNI with L2 announcements; Envoy Gateway (Gateway API) for HTTP routing
+- **Storage**: Rook-Ceph (ceph-rbd for RWO, cephfs for RWX); VolSync (restic) for backups
+- **Monitoring**: Prometheus (kube-prometheus-stack), Grafana (grafana-operator), VictoriaLogs + fluent-bit, vmalert, Gatus
 - **Security**: Authentik (SSO), Vaultwarden, cert-manager
-- **Secrets**: External Secrets Operator with SOPS/age encryption
+- **Secrets**: External Secrets Operator with Infisical backend (SOPS/age for cluster-level secrets)
 - **Automation**: Renovate for dependency updates
 
 ## Common Tasks
@@ -277,11 +279,11 @@ Comprehensive home automation using Home Assistant, ESPHome, Node-RED, and Zigbe
 
 ### AI/ML Services
 
-Local AI inference with Ollama, LiteLLM proxy, Open WebUI, and automation workflows via n8n.
+Local AI inference with Ollama (2x Tesla P100), speech services (Speaches), the OpenClaw/Hermes assistants, and the Round Table agent fleet (`roundtable/` namespace: operator, knights, scheduled chains).
 
 ### Observability
 
-Full-stack monitoring with Prometheus metrics, Grafana dashboards, Loki logging, and Gatus uptime monitoring.
+Full-stack monitoring with Prometheus metrics, Grafana dashboards (grafana-operator CRs), VictoriaLogs log aggregation with vmalert log-based alerting, and Gatus uptime monitoring (auto-discovered from HTTPRoutes).
 
 ### Self-hosted Applications
 
@@ -290,7 +292,7 @@ Various productivity and utility applications including Paperless-NGX, Actual bu
 ## External Integrations
 
 - **DNS**: External DNS with Cloudflare
-- **Ingress**: NGINX ingress controllers (internal/external)
+- **Routing**: Envoy Gateway internal/external Gateways (Gateway API HTTPRoutes); external traffic arrives via Cloudflare tunnel
 - **Certificates**: Let's Encrypt via cert-manager
 - **Monitoring**: Kromgo for external status reporting
 - **Secrets**: Infisical for secret management
