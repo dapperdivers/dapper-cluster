@@ -57,6 +57,7 @@ spec:
     runtimeClassName: nvidia
     serviceMonitor:
       interval: 15s
+      scrapeTimeout: 10s
       honorLabels: true
     livenessProbe:
       initialDelaySeconds: 60
