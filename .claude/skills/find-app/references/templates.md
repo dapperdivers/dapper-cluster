@@ -31,7 +31,11 @@ spec:
   timeout: 5m
 ```
 
-#### ks.yaml - With VolSync + Gatus (most common for stateful apps)
+#### ks.yaml - With VolSync (most common for stateful apps)
+
+No Gatus component or `GATUS_*` substitutions — uptime monitoring is automatic once the
+app has an HTTPRoute (gatus-sidecar auto-discovery; see the `gatus-monitoring` skill).
+The old `flux/components/gatus/*` components no longer exist.
 
 ```yaml
 ---
@@ -44,7 +48,6 @@ metadata:
 spec:
   targetNamespace: *namespace
   components:
-    - ../../../../flux/components/gatus/guarded
     - ../../../../flux/components/volsync/repository
     - ../../../../flux/components/volsync/operations
   commonMetadata:
@@ -68,8 +71,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      GATUS_SUBDOMAIN: <app-name>
-      GATUS_DOMAIN: ${SECRET_DOMAIN}
       VOLSYNC_CAPACITY: 5Gi
 ```
 
@@ -134,22 +135,12 @@ spec:
         ports:
           http:
             port: &port <port>
-    ingress:
+    route:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        className: internal
-        hosts:
-          - host: &host "<app-name>.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts:
-              - *host
-            secretName: "${SECRET_DOMAIN/./-}-tls"
+        hostnames: ["<app-name>.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal # internal | external — see the gateway-route skill
+            namespace: network
     persistence:
       config:
         existingClaim: <app-name>

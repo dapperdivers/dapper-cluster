@@ -69,20 +69,21 @@ resources:
 
 ### 5. Critical Rules
 
+This list is the **canonical copy** — other skills (validate-helm) point here; edit it in one place.
+
 - YAML anchor: always use `&app` (not `&appname`)
 - **NEVER rename `controllers.main`** on existing apps - controller name is immutable in Deployment selectors
 - For NEW apps, name the controller after the app (e.g., `controllers.sonarr`) with `service.app.controller: sonarr`
 - HelmRelease spec order: `interval -> chartRef -> install -> upgrade -> dependsOn -> values`
-- Values order: `controllers -> defaultPodOptions -> service -> ingress -> persistence`
+- Values order: `controllers -> defaultPodOptions -> service -> route -> persistence`
+- Expose HTTP via a `route:` block on the Envoy Gateways (`parentRefs: internal | external`, namespace `network`) — **never an `ingress:` block; nginx is gone.** Details/edge cases: `gateway-route` skill
+- Uptime monitoring is automatic once the app has a route (gatus-sidecar auto-discovery) — no Gatus components or `GATUS_*` substitutions; see the `gatus-monitoring` skill for probe overrides
 - VolSync apps: set `wait: true` and `timeout: 10m` in ks.yaml
 - Stateless apps: set `wait: false` and `timeout: 5m` in ks.yaml
 - VolSync ks.yaml needs `postBuild.substitute.APP` and `VOLSYNC_CAPACITY`
-- Gatus ks.yaml needs `postBuild.substitute.GATUS_SUBDOMAIN` and `GATUS_DOMAIN`
 - sourceRef is always `name: flux-system, namespace: flux-system`
 - app-template chartRef omits namespace (resolved from common component)
 - Cluster substitution variables available: `${TIME_ZONE}`, `${SECRET_DOMAIN}`, `${SECRET_DOMAIN_MEDIA}`, `${SECRET_DOMAIN_PERSONAL}`
-- Internal ingress: `className: internal` with `external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"`
-- TLS secret naming: `${SECRET_DOMAIN/./-}-tls` (dots replaced with dashes)
 - Default security context: `runAsUser: 1000, runAsGroup: 150, fsGroup: 150`
 - Secrets come from Infisical via ExternalSecret, not SOPS (SOPS is only for cluster-level secrets)
 
