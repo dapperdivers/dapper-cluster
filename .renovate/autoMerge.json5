@@ -17,7 +17,7 @@
         "coredns",
         "/cilium/",
         "/nginx/",
-        "/cloudflare/"
+        "/cloudflare/",
       ],
       automerge: false,
     },
@@ -30,7 +30,7 @@
         "minio",
         "/openebs/",
         "/minio/",
-        "/rook/"
+        "/rook/",
       ],
       automerge: false,
     },
@@ -58,7 +58,7 @@
         "/volsync/",
 
         // DapperDivers
-        "/dapperdivers/"
+        "/dapperdivers/",
       ],
       matchUpdateTypes: ["minor", "patch"],
       automerge: true,
@@ -79,7 +79,7 @@
         "bjw-s-labs/",
         "/ghcr.io/",
         "/linuxserver/",
-        "/hotio/"
+        "/hotio/",
       ],
       ignoreTests: false,
     },
@@ -131,7 +131,7 @@
         // Database
         "/cloudnative-pg/",
         "/dragonfly/",
-        "/emqx/"
+        "/emqx/",
       ],
       minimumReleaseAge: "12 hours",
       ignoreTests: false,
@@ -148,6 +148,24 @@
     {
       description: "Auto-merge Helm chart minor and patch updates",
       matchManagers: ["helm-values", "flux"],
+      // Re-state the networking/storage exclusions: Renovate applies the LAST
+      // matching rule per field, so without these this rule silently re-enables
+      // automerge for flux-managed charts (e.g. the cilium OCIRepository) that
+      // the disable rules above intended to hold.
+      matchPackageNames: [
+        "*",
+        "!/cilium/",
+        "!/nginx/",
+        "!/cloudflare/",
+        "!/coredns/",
+        "!/external-dns/",
+        "!/k8s-gateway/",
+        "!/multus/",
+        "!/openebs/",
+        "!/minio/",
+        "!/rook/",
+        "!/volsync/",
+      ],
       automerge: true,
       automergeType: "pr",
       matchUpdateTypes: ["minor", "patch"],
@@ -166,10 +184,7 @@
     {
       description: "Auto-merge trusted GitHub Actions",
       matchManagers: ["github-actions"],
-      matchPackageNames: [
-        "/^actions\//",
-        "/^renovatebot\//",
-      ],
+      matchPackageNames: ["/^actions\//", "/^renovatebot\//"],
       automerge: true,
       automergeType: "pr",
       matchUpdateTypes: ["minor", "patch", "digest"],
@@ -190,7 +205,7 @@
         "/metrics-server/",
         "/reloader/",
         "/reflector/",
-        "/external-secrets/"
+        "/external-secrets/",
       ],
       ignoreTests: true,
     },
