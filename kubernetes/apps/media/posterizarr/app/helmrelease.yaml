@@ -44,7 +44,7 @@ spec:
           app:
             image:
               repository: ghcr.io/fscorrupt/posterizarr
-              tag: 3.1.2@sha256:2ae67f56cf58f0238a616562b993511db46605c50dd7c9bfac865e94a5bbea44
+              tag: 3.1.3@sha256:7fb8d115226aedbee60e986c44e57d667f0c4bf93680038601c178d06c1967fb
             env:
               TZ: ${TIME_ZONE}
               # Nightly full-library sweep (local time); Start.ps1 fires a
