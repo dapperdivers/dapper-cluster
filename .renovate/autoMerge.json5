@@ -3,46 +3,17 @@
   // Use image creation date when releaseTimestamp is missing (common for GHCR images).
   // Without this, minimumReleaseAge stays PENDING forever for images without timestamps.
   minimumReleaseAgeBehaviour: "creation-date-only",
+  //
+  // RULE ORDER MATTERS. Renovate applies the LAST matching rule per field, so this
+  // file is ordered allow-rules first, deny-rules last. Anything matched by a
+  // "Disable automerge" rule at the bottom stays manual no matter what an allow
+  // rule above it says. Add new allow rules ABOVE the deny block.
+  //
   packageRules: [
-    // Exclude networking and storage packages from automerge
     {
-      description: "Disable automerge for networking packages",
-      matchPackageNames: [
-        "cilium",
-        "multus",
-        "ingress-nginx",
-        "external-dns",
-        "cloudflared",
-        "k8s-gateway",
-        "coredns",
-        "/cilium/",
-        "/nginx/",
-        "/cloudflare/",
-      ],
-      automerge: false,
-    },
-    {
-      description: "Disable automerge for storage packages",
-      matchPackageNames: [
-        "openebs",
-
-        "volsync",
-        "minio",
-        "/openebs/",
-        "/minio/",
-        "/rook/",
-      ],
-      automerge: false,
-    },
-    {
-      description: "Disable automerge for dapperdivers images",
-      matchPackageNames: ["/dapperdivers/"],
-      automerge: false,
-    },
-    {
-      description: "Auto-merge all ghcr.io minor/patch updates (catch-all)",
+      description: "Auto-merge trusted-registry minor/patch updates (catch-all)",
       matchDatasources: ["docker"],
-      matchPackageNames: ["/ghcr.io/"],
+      matchPackageNames: ["/ghcr.io/", "/registry.k8s.io/"],
       excludePackageNames: [
         // Networking
         "/cilium/",
@@ -80,6 +51,8 @@
         "/ghcr.io/",
         "/linuxserver/",
         "/hotio/",
+        // Docker Hub images pinned to a rolling tag + digest (kometa :nightly)
+        "/kometateam/",
       ],
       ignoreTests: false,
     },
@@ -148,27 +121,27 @@
     {
       description: "Auto-merge Helm chart minor and patch updates",
       matchManagers: ["helm-values", "flux"],
-      // Re-state the networking/storage exclusions: Renovate applies the LAST
-      // matching rule per field, so without these this rule silently re-enables
-      // automerge for flux-managed charts (e.g. the cilium OCIRepository) that
-      // the disable rules above intended to hold.
-      matchPackageNames: [
-        "*",
-        "!/cilium/",
-        "!/nginx/",
-        "!/cloudflare/",
-        "!/coredns/",
-        "!/external-dns/",
-        "!/k8s-gateway/",
-        "!/multus/",
-        "!/openebs/",
-        "!/minio/",
-        "!/rook/",
-        "!/volsync/",
-      ],
+      // The networking/storage exclusions this rule used to re-state inline are now
+      // handled by the deny block at the bottom of the file, which runs last and
+      // wins. Renovate rejects `matchPackageNames: ["*", "!/cilium/", ...]` as a
+      // config error ("* along with other patterns"), so the list is gone entirely:
+      // flux-managed charts like the cilium OCIRepository are held by the deny block.
       automerge: true,
       automergeType: "pr",
       matchUpdateTypes: ["minor", "patch"],
+      minimumReleaseAge: "1 day",
+      ignoreTests: false,
+    },
+    {
+      description: "Auto-merge mise CLI tool patch updates",
+      // .mise.toml pins local/CI tooling (flux2, sops, kustomize, talosctl, ...).
+      // These never touch the cluster directly, so patch bumps ride through.
+      // Minor/major stay manual: they can change talhelper/flate/kustomize output.
+      // cloudflared is pinned here too and is held by the networking deny rule.
+      matchManagers: ["mise"],
+      automerge: true,
+      automergeType: "pr",
+      matchUpdateTypes: ["patch"],
       minimumReleaseAge: "1 day",
       ignoreTests: false,
     },
@@ -208,6 +181,36 @@
         "/external-secrets/",
       ],
       ignoreTests: true,
+    },
+
+    // ------------------------------------------------------------------
+    // DENY BLOCK — keep last. These override every allow rule above.
+    // ------------------------------------------------------------------
+    {
+      description: "Disable automerge for networking packages",
+      matchPackageNames: [
+        "cilium",
+        "multus",
+        "ingress-nginx",
+        "external-dns",
+        "cloudflared",
+        "k8s-gateway",
+        "coredns",
+        "/cilium/",
+        "/nginx/",
+        "/cloudflare/",
+      ],
+      automerge: false,
+    },
+    {
+      description: "Disable automerge for storage packages",
+      matchPackageNames: ["openebs", "volsync", "minio", "/openebs/", "/minio/", "/rook/"],
+      automerge: false,
+    },
+    {
+      description: "Disable automerge for dapperdivers images",
+      matchPackageNames: ["/dapperdivers/"],
+      automerge: false,
     },
   ],
 }
