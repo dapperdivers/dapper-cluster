@@ -43,6 +43,13 @@ jobs:
       - name: Setup Mise
         uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
         with:
+          # Pinned: mise 2026.7.17 cannot resolve aqua packages whose upstream
+          # tags are prefixed (kubernetes-sigs/kustomize tags as kustomize/vX.Y.Z),
+          # so `mise install` 404s on the repo's .mise.toml toolchain and every
+          # run of this workflow fails. Deliberately NOT renovate-annotated —
+          # auto-bumping would reintroduce the break. Unpin once mise resolves
+          # prefixed aqua tags again.
+          version: 2026.7.16
           cache: false
           tool_versions: |
             github:home-operations/flate 0.4.9
@@ -68,6 +75,13 @@ jobs:
       - name: Setup Mise
         uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
         with:
+          # Pinned: mise 2026.7.17 cannot resolve aqua packages whose upstream
+          # tags are prefixed (kubernetes-sigs/kustomize tags as kustomize/vX.Y.Z),
+          # so `mise install` 404s on the repo's .mise.toml toolchain and every
+          # run of this workflow fails. Deliberately NOT renovate-annotated —
+          # auto-bumping would reintroduce the break. Unpin once mise resolves
+          # prefixed aqua tags again.
+          version: 2026.7.16
           cache: false
           tool_versions: |
             talosctl latest
