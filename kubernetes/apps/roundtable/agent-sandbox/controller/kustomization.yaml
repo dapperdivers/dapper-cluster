@@ -5,13 +5,13 @@ kind: Kustomization
 # Pull controller + RBAC from upstream, add extensions RBAC + patch
 resources:
   # Upstream core: namespace, SA, CRB, service, deployment
-  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/controller.yaml
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.5.3/k8s/controller.yaml
   # Upstream core RBAC (ClusterRole)
-  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/rbac.generated.yaml
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.5.3/k8s/rbac.generated.yaml
   # Upstream extensions RBAC (ClusterRole)
-  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/extensions-rbac.generated.yaml
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.5.3/k8s/extensions-rbac.generated.yaml
   # Extensions ClusterRoleBinding
-  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.2.1/k8s/extensions.yaml
+  - https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/v0.5.3/k8s/extensions.yaml
 images:
   # Override ko:// dev image with release image
   - name: ko://sigs.k8s.io/agent-sandbox/cmd/agent-sandbox-controller
