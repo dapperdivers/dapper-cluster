@@ -38,22 +38,57 @@ spec:
           reloader.stakater.com/auto: "true"
         strategy: Recreate
         initContainers:
-          # Frigate cannot fetch community ONNX models itself, and it exits if
-          # the detector model is missing. Blocking here keeps the pod in Init
-          # rather than crash-looping, and makes the reason obvious in the logs.
-          wait-for-model:
+          # Frigate only auto-downloads Frigate+ models, so the community YOLOv9
+          # export is built here rather than staged by hand. This is Frigate's
+          # own documented export, run once: it no-ops on every subsequent start
+          # because the result persists on the frigate-models volume.
+          #
+          # First run pulls ~2.5Gi of torch and takes roughly 15 minutes, which
+          # is why ephemeral-storage is requested explicitly — the pod can only
+          # land on the GPU node, and it should fail to schedule rather than push
+          # that node into disk pressure.
+          export-model:
             image:
-              repository: busybox
-              tag: "1.37"
+              repository: python
+              tag: 3.11@sha256:c7220863385ee39fb6d822da81f4469d0cd33ff893d92ce94105e5c3f4b95fe2
             command:
-              - sh
+              - bash
               - -c
               - |
-                until [ -f /models/yolov9-s-640.onnx ]; do
-                  echo "waiting for /models/yolov9-s-640.onnx to be staged..."
-                  sleep 15
-                done
-                echo "model present:"; ls -l /models/yolov9-s-640.onnx
+                set -euo pipefail
+                MODEL=/models/yolov9-s-640.onnx
+                if [ -f "$MODEL" ]; then
+                  echo "model already present, skipping export:"
+                  ls -l "$MODEL"
+                  exit 0
+                fi
+                echo "no model found — running YOLOv9-s 640 export (one-off, ~15min)"
+                apt-get update -qq
+                apt-get install -y -qq --no-install-recommends cmake libgl1 git
+                pip install --root-user-action=ignore -q uv
+                git clone -q --depth 1 https://github.com/WongKinYiu/yolov9.git /tmp/yolov9
+                cd /tmp/yolov9
+                uv pip install --system -q -r requirements.txt
+                uv pip install --system -q onnx==1.18.0 onnxruntime onnx-simplifier==0.4.* onnxscript
+                curl -sSL -o yolov9-s.pt \
+                  https://github.com/WongKinYiu/yolov9/releases/download/v0.1/yolov9-s-converted.pt
+                # torch>=2.6 defaults weights_only=True, which cannot load these checkpoints
+                sed -i "s/ckpt = torch.load(attempt_download(w), map_location='cpu')/ckpt = torch.load(attempt_download(w), map_location='cpu', weights_only=False)/g" \
+                  models/experimental.py
+                python3 export.py --weights ./yolov9-s.pt --imgsz 640 --simplify --include onnx
+                # Move into place atomically so an interrupted export never leaves
+                # a truncated file that the guard above would treat as complete.
+                cp yolov9-s.onnx "$MODEL.partial"
+                mv "$MODEL.partial" "$MODEL"
+                echo "export complete:"; ls -l "$MODEL"
+            resources:
+              requests:
+                cpu: "2"
+                memory: 4Gi
+                ephemeral-storage: 12Gi
+              limits:
+                memory: 8Gi
+                ephemeral-storage: 20Gi
         containers:
           app:
             image:

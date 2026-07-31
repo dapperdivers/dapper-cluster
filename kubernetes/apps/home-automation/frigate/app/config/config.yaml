@@ -41,9 +41,9 @@ detectors:
 # 320 default because the driveway is a wide 4512px scene where people and cars
 # appear small; the P100 has ample headroom for the larger input.
 #
-# Frigate does not download community ONNX models (only Frigate+ ones), so this
-# file is staged onto the frigate-models volume out of band — see the
-# initContainer in the HelmRelease, which holds the pod until it is present.
+# Frigate does not download community ONNX models (only Frigate+ ones), so the
+# export-model initContainer in the HelmRelease builds this file once and leaves
+# it on the frigate-models volume.
 model:
   model_type: yolo-generic
   width: 640
