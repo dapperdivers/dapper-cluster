@@ -29,7 +29,9 @@ spec:
   wait: true
   interval: 30m
   retryInterval: 1m
-  timeout: 10m
+  # Matches the HelmRelease timeout: first boot includes the ~9Gi image pull and
+  # the one-off ~15 minute model export before anything reports healthy.
+  timeout: 30m
   postBuild:
     substitute:
       # VolSync protects the config volume only (frigate.db event metadata +

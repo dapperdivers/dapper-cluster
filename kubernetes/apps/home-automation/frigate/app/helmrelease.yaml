@@ -6,6 +6,12 @@ metadata:
   name: frigate
 spec:
   interval: 30m
+  # First boot pulls the ~9Gi tensorrt image and runs the ~15 minute YOLOv9
+  # export before the pod can go Ready. The default 5m helm wait times out and
+  # install remediation then uninstalls the release, killing the export mid-run
+  # (its work happens in container-ephemeral /tmp, so every retry starts over) —
+  # the release could never converge.
+  timeout: 30m
   chartRef:
     kind: OCIRepository
     name: app-template
