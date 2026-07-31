@@ -24,6 +24,9 @@ spec:
       namespace: storage
   values:
     defaultPodOptions:
+      # Required by the Talos nvidia-container-toolkit extension — without it the
+      # driver libraries are never injected and nvidia-smi/CUDA are absent.
+      runtimeClassName: nvidia
       # Frigate's s6-overlay init needs to start as root; it drops privileges
       # for the worker processes itself.
       securityContext:
@@ -34,13 +37,34 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         strategy: Recreate
+        initContainers:
+          # Frigate cannot fetch community ONNX models itself, and it exits if
+          # the detector model is missing. Blocking here keeps the pod in Init
+          # rather than crash-looping, and makes the reason obvious in the logs.
+          wait-for-model:
+            image:
+              repository: busybox
+              tag: "1.37"
+            command:
+              - sh
+              - -c
+              - |
+                until [ -f /models/yolov9-s-640.onnx ]; do
+                  echo "waiting for /models/yolov9-s-640.onnx to be staged..."
+                  sleep 15
+                done
+                echo "model present:"; ls -l /models/yolov9-s-640.onnx
         containers:
           app:
             image:
+              # -tensorrt variant: carries the CUDA/ONNX runtime needed for the
+              # P100. Substantially larger than the base image (~9Gi), which is
+              # worth knowing given the GPU node's ephemeral storage headroom.
               repository: ghcr.io/blakeblackshear/frigate
-              tag: 0.17.2@sha256:d4351369984d4a9e2a49ac59736f6490856a7ea11f7790040746d21496967010
+              tag: 0.17.2-tensorrt@sha256:8a364092b03561b9c08ac00730206e363a53d07ea0304f7d543b403b65432b5e
             env:
               TZ: ${TIME_ZONE}
+              NVIDIA_DRIVER_CAPABILITIES: compute,utility
             envFrom:
               - secretRef:
                   name: frigate-secret
@@ -61,7 +85,13 @@ spec:
               requests:
                 cpu: 1500m
                 memory: 3Gi
+                # Detection runs on the P100. This is one MPS slot, not a whole
+                # card, so it shares the GPU with Ollama. It also pins Frigate to
+                # talos-node-gpu-1, the only GPU node — a deliberate trade of
+                # scheduling flexibility for detection accuracy.
+                nvidia.com/gpu: 1
               limits:
+                nvidia.com/gpu: 1
                 # /tmp/cache and /dev/shm are memory-backed and count against
                 # this limit — see the emptyDir sizeLimits below. Sized for the
                 # worst case where the recording maintainer stalls and every
@@ -117,6 +147,11 @@ spec:
         existingClaim: frigate-media
         globalMounts:
           - path: /media/frigate
+      # ONNX detection model, staged out of band.
+      models:
+        existingClaim: frigate-models
+        globalMounts:
+          - path: /models
       # RAM staging area for recording segments before they are muxed to Ceph.
       # 60s segments x 6 cached x 3 cameras is ~1.3Gi worst case; steady state is
       # only a segment or two in flight per camera.

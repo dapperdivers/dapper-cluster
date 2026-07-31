@@ -15,3 +15,19 @@ spec:
     requests:
       storage: 1Ti
   storageClassName: cephfs-shared
+---
+# ONNX detection model. RWX on purpose: the model has to be staged into this
+# volume before Frigate can start, and ReadWriteMany lets a helper pod write it
+# while the Frigate pod is still sitting in its init phase waiting for it.
+#
+# Not backed up — it is reproducible from Frigate's documented export build.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-models
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs-shared

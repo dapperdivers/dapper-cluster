@@ -29,21 +29,29 @@ proxy:
   header_map:
     user: x-authentik-username
 
-# CPU inference via OpenVINO. The detect streams are all low-resolution H.264
-# substreams, so the bundled SSDLite MobileNet v2 keeps up comfortably on the
-# Xeon E5-2697A v4 nodes without a Coral or a GPU.
+# Inference on the Tesla P100. Verified: compute capability 6.0 is supported by
+# the ONNX runtime's CUDA execution provider in the -tensorrt image. Note the
+# TensorRT *detector* is Jetson-only in 0.17 — discrete NVIDIA cards go through
+# the ONNX detector, which picks up CUDA automatically.
 detectors:
-  ov:
-    type: openvino
-    device: CPU
+  onnx:
+    type: onnx
 
+# YOLOv9-s at 640, exported per Frigate's documented build. Chosen over the
+# 320 default because the driveway is a wide 4512px scene where people and cars
+# appear small; the P100 has ample headroom for the larger input.
+#
+# Frigate does not download community ONNX models (only Frigate+ ones), so this
+# file is staged onto the frigate-models volume out of band — see the
+# initContainer in the HelmRelease, which holds the pod until it is present.
 model:
-  width: 300
-  height: 300
-  input_tensor: nhwc
-  input_pixel_format: bgr
-  path: /openvino-model/ssdlite_mobilenet_v2.xml
-  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+  model_type: yolo-generic
+  width: 640
+  height: 640
+  input_tensor: nchw
+  input_dtype: float
+  path: /models/yolov9-s-640.onnx
+  labelmap_path: /labelmap/coco-80.txt
 
 # go2rtc pulls each camera stream exactly once and restreams it locally, so the
 # Reolinks only ever see a single client per stream (they cope badly with more).
