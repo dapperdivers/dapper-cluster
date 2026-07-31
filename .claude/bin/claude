@@ -7,6 +7,40 @@ set -euo pipefail
 # Drop this script's directory from PATH so `claude` resolves to the real CLI.
 self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vFx "$self_dir" | paste -sd:)"
+
+# Hand the session a mise-resolved PATH.
+#
+# ~/.config/zsh/tools.zsh activates mise in *hook* mode, which rewrites PATH on
+# chpwd/precmd — hooks that only fire in interactive shells. Claude inherits
+# PATH once at launch and its Bash tool spawns non-interactive shells, so
+# without this the agent is stuck with whatever the launching terminal happened
+# to have: usually the main checkout's, often months stale.
+#
+# Prepend `mise bin-paths` (the same install dirs hook-mode activate prepends)
+# so the agent gets the versions .mise.toml pins. This is not cosmetic —
+# Homebrew independently provides sops, helm, flux, talosctl, flate and
+# cloudflared, and without this it silently wins over every one of those pins.
+if mise_paths="$(mise bin-paths 2>/dev/null)" && [ -n "$mise_paths" ]; then
+  PATH="$(printf '%s' "$mise_paths" | paste -sd:):$PATH"
+
+  # ...but keep an active virtualenv ahead of it. .mise.toml's _.python.venv
+  # builds .venv *from* that same interpreter, so the venv is mise's python
+  # plus the repo's packages (makejinja, ...); bin-paths would otherwise
+  # demote python3 to the bare interpreter.
+  [ -n "${VIRTUAL_ENV:-}" ] && [ -d "$VIRTUAL_ENV/bin" ] &&
+    PATH="$VIRTUAL_ENV/bin:$PATH"
+fi
+
+# Shims LAST as a fallback: bin-paths is resolved here, in the main checkout,
+# but the session runs in a worktree whose branch may pin different versions.
+# Shims resolve per-CWD and auto-install, so they cover that drift. Ordering
+# matters — shims also exist for node/bun/npm/python3, which this repo does not
+# pin and Homebrew does provide; a shim with no applicable version *errors*
+# rather than falling through, so it must never precede Homebrew. Same
+# reasoning as ~/.config/environment.d/10-path.conf.
+shims="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}/shims"
+[ -d "$shims" ] && PATH="$PATH:$shims"
+
 export PATH
 
 add_worktree=true
