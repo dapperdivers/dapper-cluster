@@ -1,0 +1,166 @@
+---
+# Frigate NVR configuration.
+#
+# This file is mounted READ-ONLY from a ConfigMap, so the built-in config editor
+# and the zone/mask drawing tools in the web UI cannot save. Draw a zone in the
+# UI to get its coordinates, then paste them here and let Flux reconcile.
+#
+# Frigate logs a harmless "Config file is read-only, unable to migrate config
+# file." on every boot — it checks writability before it checks the version. Keep
+# `version` matching CURRENT_CONFIG_VERSION so this file stays honest about which
+# schema it targets, and bump it deliberately on a Frigate major upgrade.
+version: "0.17-0"
+
+mqtt:
+  enabled: true
+  host: emqx-listeners.database.svc.cluster.local
+  port: 1883
+  topic_prefix: frigate
+  client_id: frigate
+  user: "{FRIGATE_MQTT_USER}"
+  password: "{FRIGATE_MQTT_PASSWORD}"
+
+# Authentication is handled at the edge by Authentik forward-auth on the
+# internal Gateway. Frigate trusts the username header it passes through.
+auth:
+  enabled: false
+
+proxy:
+  header_map:
+    user: x-authentik-username
+
+# CPU inference via OpenVINO. The detect streams are all low-resolution H.264
+# substreams, so the bundled SSDLite MobileNet v2 keeps up comfortably on the
+# Xeon E5-2697A v4 nodes without a Coral or a GPU.
+detectors:
+  ov:
+    type: openvino
+    device: CPU
+
+model:
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+
+# go2rtc pulls each camera stream exactly once and restreams it locally, so the
+# Reolinks only ever see a single client per stream (they cope badly with more).
+go2rtc:
+  streams:
+    den:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_DEN_PASSWORD}@192.168.1.70:554/h264Preview_01_main"
+    den_sub:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_DEN_PASSWORD}@192.168.1.70:554/h264Preview_01_sub"
+    driveway:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_DRIVEWAY_PASSWORD}@192.168.1.71:554/h264Preview_01_main"
+    driveway_sub:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_DRIVEWAY_PASSWORD}@192.168.1.71:554/h264Preview_01_sub"
+    living_room:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_LIVING_ROOM_PASSWORD}@192.168.1.72:554/h264Preview_01_main"
+    living_room_sub:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_LIVING_ROOM_PASSWORD}@192.168.1.72:554/h264Preview_01_sub"
+
+ffmpeg:
+  # Main streams are HEVC and are written straight to disk with `-c copy`, so
+  # nothing is ever transcoded and hardware acceleration is unnecessary.
+  output_args:
+    record: preset-record-generic-audio-copy
+
+detect:
+  enabled: true
+  fps: 5
+
+record:
+  enabled: true
+  # Any segment containing motion is kept for a week...
+  motion:
+    days: 7
+  # ...and anything Frigate actually classified is kept for a fortnight.
+  alerts:
+    retain:
+      days: 14
+      mode: motion
+  detections:
+    retain:
+      days: 14
+      mode: motion
+
+snapshots:
+  enabled: true
+  bounding_box: true
+  retain:
+    default: 14
+
+objects:
+  track:
+    - person
+    - car
+    - dog
+    - cat
+
+# Sensible starting point; tune per-camera once you see what the cameras pick up.
+motion:
+  threshold: 30
+  contour_area: 10
+
+birdseye:
+  enabled: true
+  mode: objects
+
+cameras:
+  den:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/den
+          input_args: preset-rtsp-restream
+          roles: [record]
+        - path: rtsp://127.0.0.1:8554/den_sub
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      width: 640
+      height: 360
+    objects:
+      track:
+        - person
+        - dog
+        - cat
+
+  driveway:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/driveway
+          input_args: preset-rtsp-restream
+          roles: [record]
+        - path: rtsp://127.0.0.1:8554/driveway_sub
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      width: 896
+      height: 512
+    objects:
+      track:
+        - person
+        - car
+        - dog
+        - cat
+
+  living_room:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/living_room
+          input_args: preset-rtsp-restream
+          roles: [record]
+        - path: rtsp://127.0.0.1:8554/living_room_sub
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      width: 640
+      height: 360
+    objects:
+      track:
+        - person
+        - dog
+        - cat
