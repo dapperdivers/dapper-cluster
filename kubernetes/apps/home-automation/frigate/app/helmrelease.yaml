@@ -88,8 +88,12 @@ spec:
                 mv "$MODEL.partial" "$MODEL"
                 echo "export complete:"; ls -l "$MODEL"
             resources:
+              # Requests are deliberately lean: talos-node-gpu-1 sits near 100%
+              # CPU *requests* (though not usage), and this pod can only land
+              # there. The export just runs slower under contention — it is a
+              # one-off. No CPU limit, so it uses idle cores when they exist.
               requests:
-                cpu: "2"
+                cpu: 500m
                 memory: 4Gi
                 ephemeral-storage: 12Gi
               limits:
@@ -123,8 +127,12 @@ spec:
                   failureThreshold: 5
               readiness: *probe
             resources:
+              # With detection on the P100, steady-state CPU is go2rtc restream
+              # plus decode of three small substreams — about a core in practice.
+              # Requesting less keeps the pod schedulable on the request-saturated
+              # GPU node; there is no CPU limit to throttle real usage.
               requests:
-                cpu: 1500m
+                cpu: 500m
                 memory: 3Gi
                 # Detection runs on the P100. This is one MPS slot, not a whole
                 # card, so it shares the GPU with Ollama. It also pins Frigate to
