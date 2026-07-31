@@ -41,7 +41,6 @@ spec:
               tag: 0.17.2@sha256:d4351369984d4a9e2a49ac59736f6490856a7ea11f7790040746d21496967010
             env:
               TZ: ${TIME_ZONE}
-              FRIGATE_CAM_USER: admin
             envFrom:
               - secretRef:
                   name: frigate-secret
@@ -64,8 +63,10 @@ spec:
                 memory: 3Gi
               limits:
                 # /tmp/cache and /dev/shm are memory-backed and count against
-                # this limit — see the emptyDir sizeLimits below.
-                memory: 8Gi
+                # this limit — see the emptyDir sizeLimits below. Sized for the
+                # worst case where the recording maintainer stalls and every
+                # camera holds its full 6-segment cache.
+                memory: 10Gi
 
     service:
       app:
@@ -116,11 +117,13 @@ spec:
         existingClaim: frigate-media
         globalMounts:
           - path: /media/frigate
-      # Recording segments are staged here before being muxed to /media.
+      # RAM staging area for recording segments before they are muxed to Ceph.
+      # 60s segments x 6 cached x 3 cameras is ~1.3Gi worst case; steady state is
+      # only a segment or two in flight per camera.
       cache:
         type: emptyDir
         medium: Memory
-        sizeLimit: 2Gi
+        sizeLimit: 4Gi
         globalMounts:
           - path: /tmp/cache
       # Frame buffers shared between the decode and detect processes.
