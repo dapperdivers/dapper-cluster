@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/persistentvolumeclaim.json
+---
+# Recordings and snapshots. Sized for ~7 days of motion segments plus 14 days of
+# detection clips across three cameras (~24 Mbps of HEVC main streams). Backed by
+# the HDD-class cephfs_data pool and expandable in place if retention grows.
+#
+# Deliberately NOT VolSync-backed — this is bulk, regenerable footage.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-media
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 1Ti
+  storageClassName: cephfs-shared
+---
+# ONNX detection model, built once by the export-model initContainer and reused
+# on every subsequent start.
+#
+# Not backed up — it is reproducible from Frigate's documented export build.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-models
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs-shared

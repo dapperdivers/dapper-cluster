@@ -1,0 +1,189 @@
+---
+# Frigate NVR configuration.
+#
+# This file is mounted READ-ONLY from a ConfigMap, so the built-in config editor
+# and the zone/mask drawing tools in the web UI cannot save. Draw a zone in the
+# UI to get its coordinates, then paste them here and let Flux reconcile.
+#
+# Frigate logs a harmless "Config file is read-only, unable to migrate config
+# file." on every boot — it checks writability before it checks the version. Keep
+# `version` matching CURRENT_CONFIG_VERSION so this file stays honest about which
+# schema it targets, and bump it deliberately on a Frigate major upgrade.
+version: "0.17-0"
+
+mqtt:
+  enabled: true
+  host: emqx-listeners.database.svc.cluster.local
+  port: 1883
+  topic_prefix: frigate
+  client_id: frigate
+  user: "{FRIGATE_MQTT_USER}"
+  password: "{FRIGATE_MQTT_PASSWORD}"
+
+# Authentication is handled at the edge by Authentik forward-auth on the
+# internal Gateway. Frigate trusts the username header it passes through.
+auth:
+  enabled: false
+
+proxy:
+  header_map:
+    user: x-authentik-username
+
+# Inference on the Tesla P100. Verified: compute capability 6.0 is supported by
+# the ONNX runtime's CUDA execution provider in the -tensorrt image. Note the
+# TensorRT *detector* is Jetson-only in 0.17 — discrete NVIDIA cards go through
+# the ONNX detector, which picks up CUDA automatically.
+detectors:
+  onnx:
+    type: onnx
+
+# YOLOv9-s at 640, exported per Frigate's documented build. Chosen over the
+# 320 default because the driveway is a wide 4512px scene where people and cars
+# appear small; the P100 has ample headroom for the larger input.
+#
+# Frigate does not download community ONNX models (only Frigate+ ones), so the
+# export-model initContainer in the HelmRelease builds this file once and leaves
+# it on the frigate-models volume.
+model:
+  model_type: yolo-generic
+  width: 640
+  height: 640
+  input_tensor: nchw
+  input_dtype: float
+  path: /models/yolov9-s-640.onnx
+  labelmap_path: /labelmap/coco-80.txt
+
+# go2rtc pulls each camera stream exactly once and restreams it locally, so the
+# Reolinks only ever see a single client per stream (they cope badly with more).
+go2rtc:
+  streams:
+    den:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_CAM_PASSWORD}@192.168.1.70:554/h264Preview_01_main"
+    den_sub:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_CAM_PASSWORD}@192.168.1.70:554/h264Preview_01_sub"
+    driveway:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_CAM_PASSWORD}@192.168.1.71:554/h264Preview_01_main"
+    driveway_sub:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_CAM_PASSWORD}@192.168.1.71:554/h264Preview_01_sub"
+    living_room:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_CAM_PASSWORD}@192.168.1.72:554/h264Preview_01_main"
+    living_room_sub:
+      - "rtsp://{FRIGATE_CAM_USER}:{FRIGATE_CAM_PASSWORD}@192.168.1.72:554/h264Preview_01_sub"
+
+ffmpeg:
+  # Main streams are HEVC and are written straight to disk with `-c copy`, so
+  # nothing is ever transcoded and hardware acceleration is unnecessary.
+  #
+  # This is preset-record-generic-audio-copy with -segment_time raised from the
+  # stock 10s to 60s. ffmpeg writes segments into /tmp/cache, which is a RAM
+  # tmpfs, and Frigate's recording maintainer muxes them onto Ceph afterwards —
+  # so recording is already RAM-buffered, and longer segments simply make the
+  # flushes 6x less frequent and 6x larger (same total bytes, far fewer ops).
+  #
+  # Frigate caps the cache at MAX_SEGMENTS_IN_CACHE=6 per camera, so 60s buys a
+  # ~6 minute worst-case buffer. Do not exceed MAX_SEGMENT_DURATION=600, above
+  # which the maintainer discards segments as invalid.
+  #
+  # Trade-off: an unclean pod kill loses up to 60s of footage per camera instead
+  # of 10s, and retention is evicted a whole segment at a time.
+  output_args:
+    record: >-
+      -f segment -segment_time 60 -segment_format mp4
+      -reset_timestamps 1 -strftime 1 -c copy
+
+detect:
+  enabled: true
+  fps: 5
+
+record:
+  enabled: true
+  # Any segment containing motion is kept for a week...
+  motion:
+    days: 7
+  # ...and anything Frigate actually classified is kept for a fortnight.
+  alerts:
+    retain:
+      days: 14
+      mode: motion
+  detections:
+    retain:
+      days: 14
+      mode: motion
+
+snapshots:
+  enabled: true
+  bounding_box: true
+  retain:
+    default: 14
+
+objects:
+  track:
+    - person
+    - car
+    - dog
+    - cat
+
+# Sensible starting point; tune per-camera once you see what the cameras pick up.
+motion:
+  threshold: 30
+  contour_area: 10
+
+birdseye:
+  enabled: true
+  mode: objects
+
+cameras:
+  den:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/den
+          input_args: preset-rtsp-restream
+          roles: [record]
+        - path: rtsp://127.0.0.1:8554/den_sub
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      width: 640
+      height: 360
+    objects:
+      track:
+        - person
+        - dog
+        - cat
+
+  driveway:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/driveway
+          input_args: preset-rtsp-restream
+          roles: [record]
+        - path: rtsp://127.0.0.1:8554/driveway_sub
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      width: 896
+      height: 512
+    objects:
+      track:
+        - person
+        - car
+        - dog
+        - cat
+
+  living_room:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/living_room
+          input_args: preset-rtsp-restream
+          roles: [record]
+        - path: rtsp://127.0.0.1:8554/living_room_sub
+          input_args: preset-rtsp-restream
+          roles: [detect]
+    detect:
+      width: 640
+      height: 360
+    objects:
+      track:
+        - person
+        - dog
+        - cat
