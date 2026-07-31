@@ -93,7 +93,7 @@ spec:
               # there. The export just runs slower under contention — it is a
               # one-off. No CPU limit, so it uses idle cores when they exist.
               requests:
-                cpu: 500m
+                cpu: 200m
                 memory: 4Gi
                 ephemeral-storage: 12Gi
               limits:
@@ -132,7 +132,7 @@ spec:
               # Requesting less keeps the pod schedulable on the request-saturated
               # GPU node; there is no CPU limit to throttle real usage.
               requests:
-                cpu: 500m
+                cpu: 200m
                 memory: 3Gi
                 # Detection runs on the P100. This is one MPS slot, not a whole
                 # card, so it shares the GPU with Ollama. It also pins Frigate to
