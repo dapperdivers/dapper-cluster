@@ -29,6 +29,13 @@ proxy:
   header_map:
     user: x-authentik-username
 
+# Frigate serves 8971 over TLS (self-signed) by default, but Envoy forwards to
+# backends in plain HTTP — with TLS on, every proxied request hits nginx's
+# "plain HTTP request was sent to HTTPS port" 400. TLS terminates at the
+# gateway, so the internal listener goes plaintext.
+tls:
+  enabled: false
+
 # Inference on the Tesla P100. Verified: compute capability 6.0 is supported by
 # the ONNX runtime's CUDA execution provider in the -tensorrt image. Note the
 # TensorRT *detector* is Jetson-only in 0.17 — discrete NVIDIA cards go through
