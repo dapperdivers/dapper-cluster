@@ -6,9 +6,3 @@ resources:
   - ./externalsecret.yaml
   - ./pvc.yaml
   - ./helmrelease.yaml
-configMapGenerator:
-  - name: frigate-config-file
-    files:
-      - config.yml=./config/config.yaml
-generatorOptions:
-  disableNameSuffixHash: true

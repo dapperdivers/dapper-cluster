@@ -44,36 +44,6 @@ spec:
           reloader.stakater.com/auto: "true"
         strategy: Recreate
         initContainers:
-          # Config ownership lives in the Frigate UI (zones, masks, tuning).
-          # Git holds the SEED: copied onto the config PVC only when no config
-          # exists there yet (first boot / fresh restore). After that the UI
-          # saves to the PVC — VolSync backs it up hourly — and git edits to the
-          # seed deliberately do NOT propagate. To snapshot the live config back
-          # into git: kubectl exec deploy/frigate -c app -- cat /config/config.yml
-          # then paste over config/config.yaml (keep the {FRIGATE_*} placeholders).
-          seed-config:
-            image:
-              repository: busybox
-              tag: "1.37"
-            command:
-              - sh
-              - -c
-              - |
-                # -s (non-empty), NOT -f: the old read-only subPath mount left a
-                # zero-byte placeholder on the PVC (kubelet creates the bind-mount
-                # target file), which -f would treat as a real config.
-                if [ -s /config/config.yml ]; then
-                  echo "config exists on PVC — UI owns it, seed skipped"
-                else
-                  # Atomic + fsync'd: a helm rollback once hard-killed the pod
-                  # right after a plain cp, and ext4 reverted the never-synced
-                  # write back to the empty placeholder on remount.
-                  cp /seed/config.yml /config/.config.seed.tmp
-                  mv /config/.config.seed.tmp /config/config.yml
-                  sync
-                  echo "seeded config from git:"
-                  ls -l /config/config.yml
-                fi
           # Frigate only auto-downloads Frigate+ models, so the community YOLOv9
           # export is built here rather than staged by hand. This is Frigate's
           # own documented export, run once: it no-ops on every subsequent start
@@ -207,23 +177,17 @@ spec:
                 port: http
 
     persistence:
-      # Event database, model cache — and the live config.yml, which the UI
-      # owns (see the seed-config init container). VolSync-backed (see ks.yaml).
+      # Event database, model cache, and the live config.yml — which the UI
+      # owns outright (no ConfigMap, no seeding). VolSync backs this up hourly,
+      # so config survives any rebuild via restore. True cold start from
+      # nothing: Frigate boots with defaults on a missing config; paste the
+      # git reference (app/config/config.yaml) into the UI editor once.
+      # (A ConfigMap-seeding scheme (#3864-#3868) churned helm for an afternoon
+      # over a kubelet subPath artifact — a 0-byte bind-mount placeholder.)
       config:
         existingClaim: frigate-config
         globalMounts:
           - path: /config
-      # Seed only: consumed by the seed-config init container, never mounted
-      # over the live config.
-      config-file:
-        type: configMap
-        name: frigate-config-file
-        advancedMounts:
-          frigate:
-            seed-config:
-              - path: /seed/config.yml
-                subPath: config.yml
-                readOnly: true
       # Recordings and snapshots. Deliberately not backed up.
       media:
         existingClaim: frigate-media

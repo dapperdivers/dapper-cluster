@@ -1,16 +1,16 @@
 ---
-# Frigate NVR configuration — SEED ONLY.
+# Frigate NVR configuration — REFERENCE ONLY. NOT DEPLOYED.
 #
-# The LIVE config is owned by the Frigate UI and lives on the frigate-config PVC
-# (VolSync-backed hourly). This file is copied there by the seed-config init
-# container ONLY when no config exists yet (first boot or fresh restore); edits
-# here do NOT propagate to a running install.
+# The live config is owned entirely by the Frigate UI, on the frigate-config
+# PVC (VolSync-backed hourly). Nothing in the cluster reads this file; it is
+# documentation and the cold-start recovery source: on a truly fresh install
+# with no backup, Frigate boots with defaults — paste this file into the UI
+# config editor once and save.
 #
-# To snapshot the live config back into git once things stabilise:
+# To refresh this reference from the live config:
 #   kubectl -n home-automation exec deploy/frigate -c app -- cat /config/config.yml
-# and paste it over this file — the {FRIGATE_*} credential placeholders survive
-# UI saves (Frigate substitutes env vars at load time and round-trips the raw
-# file), so no secrets ever land here.
+# The {FRIGATE_*} credential placeholders survive UI saves (Frigate substitutes
+# env vars at load time and round-trips the raw file), so no secrets land here.
 version: "0.17-0"
 
 mqtt:
