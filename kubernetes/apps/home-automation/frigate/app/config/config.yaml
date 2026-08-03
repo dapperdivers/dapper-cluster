@@ -1,14 +1,16 @@
 ---
-# Frigate NVR configuration.
+# Frigate NVR configuration — SEED ONLY.
 #
-# This file is mounted READ-ONLY from a ConfigMap, so the built-in config editor
-# and the zone/mask drawing tools in the web UI cannot save. Draw a zone in the
-# UI to get its coordinates, then paste them here and let Flux reconcile.
+# The LIVE config is owned by the Frigate UI and lives on the frigate-config PVC
+# (VolSync-backed hourly). This file is copied there by the seed-config init
+# container ONLY when no config exists yet (first boot or fresh restore); edits
+# here do NOT propagate to a running install.
 #
-# Frigate logs a harmless "Config file is read-only, unable to migrate config
-# file." on every boot — it checks writability before it checks the version. Keep
-# `version` matching CURRENT_CONFIG_VERSION so this file stays honest about which
-# schema it targets, and bump it deliberately on a Frigate major upgrade.
+# To snapshot the live config back into git once things stabilise:
+#   kubectl -n home-automation exec deploy/frigate -c app -- cat /config/config.yml
+# and paste it over this file — the {FRIGATE_*} credential placeholders survive
+# UI saves (Frigate substitutes env vars at load time and round-trips the raw
+# file), so no secrets ever land here.
 version: "0.17-0"
 
 mqtt:
