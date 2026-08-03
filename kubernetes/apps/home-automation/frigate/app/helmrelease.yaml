@@ -44,6 +44,28 @@ spec:
           reloader.stakater.com/auto: "true"
         strategy: Recreate
         initContainers:
+          # Config ownership lives in the Frigate UI (zones, masks, tuning).
+          # Git holds the SEED: copied onto the config PVC only when no config
+          # exists there yet (first boot / fresh restore). After that the UI
+          # saves to the PVC — VolSync backs it up hourly — and git edits to the
+          # seed deliberately do NOT propagate. To snapshot the live config back
+          # into git: kubectl exec deploy/frigate -c app -- cat /config/config.yml
+          # then paste over config/config.yaml (keep the {FRIGATE_*} placeholders).
+          seed-config:
+            image:
+              repository: busybox
+              tag: "1.37"
+            command:
+              - sh
+              - -c
+              - |
+                if [ -f /config/config.yml ]; then
+                  echo "config exists on PVC — UI owns it, seed skipped"
+                else
+                  cp /seed/config.yml /config/config.yml
+                  echo "seeded config from git:"
+                  ls -l /config/config.yml
+                fi
           # Frigate only auto-downloads Frigate+ models, so the community YOLOv9
           # export is built here rather than staged by hand. This is Frigate's
           # own documented export, run once: it no-ops on every subsequent start
@@ -177,20 +199,23 @@ spec:
                 port: http
 
     persistence:
-      # Event database + model cache. VolSync-backed (see ks.yaml).
+      # Event database, model cache — and the live config.yml, which the UI
+      # owns (see the seed-config init container). VolSync-backed (see ks.yaml).
       config:
         existingClaim: frigate-config
         globalMounts:
           - path: /config
-      # Mounted over the top of the config volume so the config itself stays
-      # declarative in git.
+      # Seed only: consumed by the seed-config init container, never mounted
+      # over the live config.
       config-file:
         type: configMap
         name: frigate-config-file
-        globalMounts:
-          - path: /config/config.yml
-            subPath: config.yml
-            readOnly: true
+        advancedMounts:
+          frigate:
+            seed-config:
+              - path: /seed/config.yml
+                subPath: config.yml
+                readOnly: true
       # Recordings and snapshots. Deliberately not backed up.
       media:
         existingClaim: frigate-media
