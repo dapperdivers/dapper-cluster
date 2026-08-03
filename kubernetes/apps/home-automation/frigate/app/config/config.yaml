@@ -25,9 +25,18 @@ mqtt:
 auth:
   enabled: false
 
+# Role mapping: proxied users default to viewer in Frigate, so members of the
+# "authentik Admins" group are promoted via the groups header. Authentik's
+# outpost joins group names with "|" (not the default comma).
 proxy:
   header_map:
     user: x-authentik-username
+    role: x-authentik-groups
+    role_map:
+      admin:
+        - authentik Admins
+  default_role: viewer
+  separator: "|"
 
 # Frigate serves 8971 over TLS (self-signed) by default, but Envoy forwards to
 # backends in plain HTTP — with TLS on, every proxied request hits nginx's
