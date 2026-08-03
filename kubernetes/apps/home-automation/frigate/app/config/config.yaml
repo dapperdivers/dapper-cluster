@@ -95,12 +95,14 @@ detect:
   enabled: true
   fps: 5
 
+# Global defaults suit the outdoor cameras: motion for a week, classified
+# events for a fortnight. The indoor cameras see near-constant motion, so they
+# override this down to 36 hours (1.5 days) — measured burn with everything at
+# 7d was ~205GB/day, mostly indoor footage nobody will scrub back through.
 record:
   enabled: true
-  # Any segment containing motion is kept for a week...
   motion:
     days: 7
-  # ...and anything Frigate actually classified is kept for a fortnight.
   alerts:
     retain:
       days: 14
@@ -134,6 +136,18 @@ birdseye:
 
 cameras:
   den:
+    record:
+      # Indoor: 36 hours across the board (see the global record comment).
+      motion:
+        days: 1.5
+      alerts:
+        retain:
+          days: 1.5
+          mode: motion
+      detections:
+        retain:
+          days: 1.5
+          mode: motion
     ffmpeg:
       inputs:
         - path: rtsp://127.0.0.1:8554/den
@@ -171,6 +185,18 @@ cameras:
         - cat
 
   living_room:
+    record:
+      # Indoor: 36 hours across the board (see the global record comment).
+      motion:
+        days: 1.5
+      alerts:
+        retain:
+          days: 1.5
+          mode: motion
+      detections:
+        retain:
+          days: 1.5
+          mode: motion
     ffmpeg:
       inputs:
         - path: rtsp://127.0.0.1:8554/living_room
