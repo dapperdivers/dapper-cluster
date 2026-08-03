@@ -59,7 +59,10 @@ spec:
               - sh
               - -c
               - |
-                if [ -f /config/config.yml ]; then
+                # -s (non-empty), NOT -f: the old read-only subPath mount left a
+                # zero-byte placeholder on the PVC (kubelet creates the bind-mount
+                # target file), which -f would treat as a real config.
+                if [ -s /config/config.yml ]; then
                   echo "config exists on PVC — UI owns it, seed skipped"
                 else
                   cp /seed/config.yml /config/config.yml
