@@ -65,7 +65,12 @@ spec:
                 if [ -s /config/config.yml ]; then
                   echo "config exists on PVC — UI owns it, seed skipped"
                 else
-                  cp /seed/config.yml /config/config.yml
+                  # Atomic + fsync'd: a helm rollback once hard-killed the pod
+                  # right after a plain cp, and ext4 reverted the never-synced
+                  # write back to the empty placeholder on remount.
+                  cp /seed/config.yml /config/.config.seed.tmp
+                  mv /config/.config.seed.tmp /config/config.yml
+                  sync
                   echo "seeded config from git:"
                   ls -l /config/config.yml
                 fi
