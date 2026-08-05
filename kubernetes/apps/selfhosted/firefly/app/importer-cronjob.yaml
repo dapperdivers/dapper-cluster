@@ -1,13 +1,10 @@
 ---
 # Daily SimpleFIN auto-import into Firefly III.
-# SUSPENDED until tomorrow's setup:
-#   1. Do ONE manual SimpleFIN import in the importer UI (firefly-importer.chelonianlabs.com)
-#   2. Download the "configuration file" it offers -> paste into the ConfigMap below
-#      (importer-config.yaml) as config.json. Set duplicate detection to Content-based.
-#   3. If that config embeds the SimpleFIN access URL (a secret), move it to a SOPS/Infisical
-#      secret mount instead of the ConfigMap.
-#   4. Flip `suspend: false` and let Flux reconcile.
-# SimpleFIN refreshes once / 24h and allows ~24 requests/day, so once-daily is correct.
+# Config comes from the firefly-importer-config Secret (see importer-config.yaml:
+# ExternalSecret rendering config.json with the SimpleFIN access URL from Infisical).
+# SimpleFIN refreshes once / 24h and allows ~24 requests/day, so once-daily is correct —
+# do not schedule this more often. 45-day lookback + content dedup keeps runs idempotent.
+# One-off manual run: kubectl create job -n selfhosted --from=cronjob/firefly-importer-cron <name>
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -15,7 +12,7 @@ metadata:
 spec:
   schedule: "0 11 * * *" # daily 11:00 (after overnight bank posting + SimpleFIN refresh)
   timeZone: America/Chicago
-  suspend: true
+  suspend: false
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 300
   successfulJobsHistoryLimit: 3
@@ -56,5 +53,5 @@ spec:
                   memory: 512Mi
           volumes:
             - name: import-config
-              configMap:
-                name: firefly-importer-config
+              secret:
+                secretName: firefly-importer-config

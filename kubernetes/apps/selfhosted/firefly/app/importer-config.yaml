@@ -1,13 +1,125 @@
 ---
-# Placeholder import configuration for the SimpleFIN auto-import CronJob.
-# REPLACE config.json tomorrow with the file downloaded from the importer UI
-# after one successful manual SimpleFIN import (set dedup = Content-based first).
-# If the exported config contains the SimpleFIN access URL, move it to a SOPS
-# secret instead of this ConfigMap and point the CronJob volume at the secret.
-apiVersion: v1
-kind: ConfigMap
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+# SimpleFIN import configuration for the daily CronJob, rendered as a Secret
+# because it embeds the SimpleFIN access URL (pulled from Infisical as
+# SIMPLEFIN_ACCESS_URL — the permanent claimed URL, not the one-time setup token).
+#
+# Derived from the 2026-08-05 importer-UI export with fixes:
+#   - all 25 SimpleFIN accounts mapped to existing Firefly account IDs instead of
+#     the exported create-duplicates default; only one new account is created
+#   - date_range: rolling 45-day lookback (covers the data gap since the one-time
+#     June import; content-hash dedup makes the daily overlap safe)
+#   - access URL templated in from Infisical instead of committed
+#
+# Three mappings are best guesses — verify against transaction descriptions
+# after the first import (import runs are tagged, so remap + re-run is cheap):
+# the loan mapped to 165, the three cards mapped to 143/145/149, and the
+# retirement account mapped to 171.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
 metadata:
   name: firefly-importer-config
-data:
-  config.json: |
-    {}
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: firefly-importer-config
+    template:
+      engineVersion: v2
+      data:
+        config.json: |
+          {
+            "version": 3,
+            "source": "ff3-importer-2.3.2",
+            "created_at": "2026-08-05T13:56:03-05:00",
+            "date": "",
+            "default_account": 180,
+            "delimiter": "comma",
+            "headers": false,
+            "rules": true,
+            "webhooks": true,
+            "skip_form": true,
+            "add_import_tag": true,
+            "roles": [],
+            "do_mapping": [],
+            "mapping": {},
+            "duplicate_detection_method": "classic",
+            "ignore_duplicate_lines": false,
+            "unique_column_index": 0,
+            "unique_column_type": "external-id",
+            "pseudo_identifier": [],
+            "flow": "simplefin",
+            "content_type": "csv",
+            "camt_type": "",
+            "custom_tag": "",
+            "identifier": "0",
+            "connection": "0",
+            "ignore_spectre_categories": false,
+            "grouped_transaction_handling": "",
+            "use_entire_opposing_address": false,
+            "map_all_data": false,
+            "pending_transactions": false,
+            "access_token": "{{ .SIMPLEFIN_ACCESS_URL }}",
+            "accounts": {
+              "ACT-e8f0d3e3-9735-4f0c-8a50-90e519290b60": 143,
+              "ACT-082469d1-b47a-4e27-a482-a941e843cc10": 145,
+              "ACT-c11ba0b6-913b-46e7-873d-74fb9183afdb": 147,
+              "ACT-2ddb2e6f-7084-4466-b48e-61dc00445d8e": 149,
+              "ACT-8474f894-e679-41ea-b664-5614226959ae": 172,
+              "ACT-117d0ada-11c6-46e0-80f9-c630d641ca45": 174,
+              "ACT-307d3c20-5363-4703-83e8-b1ae33710115": 180,
+              "ACT-3dd74834-5b93-4d04-a566-39d122390f42": 178,
+              "ACT-7fc36952-89a8-40a7-9951-8b4e8452beaa": 171,
+              "ACT-607856ea-2b70-45f6-9c69-4d54f4ec737a": 169,
+              "ACT-71e28bef-a2c8-4555-be9e-edf4efb6a35f": 137,
+              "ACT-9ed7fb7f-ef43-4c70-825f-66d78c78af43": 135,
+              "ACT-a9c83ddf-1d6c-446e-8bd7-4e1528a66b62": 155,
+              "ACT-34c5b40d-6510-436f-8143-89d704d73507": 157,
+              "ACT-6712d4c9-a847-4dcf-8bde-e49f1c02d2d8": 153,
+              "ACT-39aed4f6-bba4-4466-a912-afe808258f7d": 139,
+              "ACT-06458226-08bc-40c8-bb93-294b27c79c82": 151,
+              "ACT-2fbea379-2c96-44fb-ac17-3cd832b86640": 165,
+              "ACT-b595992b-7dd4-4efa-a3ac-8f1283d0b499": 167,
+              "ACT-8bd2be3d-534e-4e8a-9d85-bae2a35db0ad": 133,
+              "ACT-7d8d30eb-e1b0-4e06-9d61-8e1388e4e2af": 161,
+              "ACT-f7e803b2-e858-4112-b420-554f3414b471": 141,
+              "ACT-5834d694-6064-4233-b606-e76a502ed248": 163,
+              "ACT-72395f2a-49c5-4317-bd2c-8f984934628b": 159,
+              "ACT-f7db2f92-d087-46f1-9558-ddd364cdcebf": 0
+            },
+            "new_accounts": {
+              "ACT-f7db2f92-d087-46f1-9558-ddd364cdcebf": {
+                "create": "1",
+                "name": "HSA",
+                "type": "asset",
+                "account_role": "savingAsset",
+                "liability_type": "",
+                "liability_direction": "",
+                "opening_balance": "0",
+                "currency": "USD"
+              }
+            },
+            "date_range": "partial",
+            "date_range_number": 45,
+            "date_range_unit": "d",
+            "date_range_not_after_unit": "",
+            "date_range_not_after_number": 0,
+            "date_not_before": "",
+            "date_not_after": "",
+            "nordigen_country": "",
+            "nordigen_bank": "",
+            "nordigen_requisitions": {},
+            "nordigen_max_days": "90",
+            "lunch_flow_api_key": "",
+            "enable_banking_country": "",
+            "enable_banking_bank": "",
+            "enable_banking_auth_id": "",
+            "enable_banking_sessions": [],
+            "conversion": false,
+            "ignore_duplicate_transactions": true
+          }
+  dataFrom:
+    - find:
+        name:
+          regexp: ^SIMPLEFIN_ACCESS_URL$
