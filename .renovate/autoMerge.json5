@@ -53,6 +53,10 @@
         "/hotio/",
         // Docker Hub images pinned to a rolling tag + digest (kometa :nightly)
         "/kometateam/",
+        // Docker Hub library images pinned tag + digest (frigate's python init)
+        "python",
+        // ECR-public mirrors of docker library images (obsidian-couchdb busybox)
+        "/public.ecr.aws/",
       ],
       ignoreTests: false,
     },
@@ -97,6 +101,7 @@
         "/atuin/",
         "/searxng/",
         // AI apps
+        "/hermes-agent/",
         "/ollama/",
         "/open-webui/",
         "/litellm/",
@@ -181,6 +186,19 @@
         "/external-secrets/",
       ],
       ignoreTests: true,
+    },
+    {
+      description: "Auto-merge mise workflow-pin patch updates",
+      // The renovate.yaml workflow pins jdx/mise via github-releases. Patch bumps
+      // ride through to match the .mise.toml rule above; minors stay manual for
+      // the same reason (they can change tool output).
+      matchDatasources: ["github-releases"],
+      matchPackageNames: ["/jdx/mise/"],
+      automerge: true,
+      automergeType: "pr",
+      matchUpdateTypes: ["patch"],
+      minimumReleaseAge: "1 day",
+      ignoreTests: false,
     },
 
     // ------------------------------------------------------------------
