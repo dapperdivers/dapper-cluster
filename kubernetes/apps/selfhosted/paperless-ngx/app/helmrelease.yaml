@@ -68,7 +68,7 @@ spec:
 
               # OCR settings
               PAPERLESS_OCR_LANGUAGE: eng
-              PAPERLESS_OCR_SKIP_ARCHIVE_FILE: with_text
+              PAPERLESS_ARCHIVE_FILE_GENERATION: auto
               PAPERLESS_OCR_DESKEW: "false"
               PAPERLESS_OCR_ROTATE_PAGES: "false"
 
@@ -78,7 +78,7 @@ spec:
               PAPERLESS_TIME_ZONE: "${TIME_ZONE}"
 
               # Document consumption
-              PAPERLESS_CONSUMER_POLLING: "30"
+              PAPERLESS_CONSUMER_POLLING_INTERVAL: "30"
               PAPERLESS_CONSUMER_DELETE_DUPLICATES: "true"
               PAPERLESS_CONSUMER_RECURSIVE: "true"
               PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
