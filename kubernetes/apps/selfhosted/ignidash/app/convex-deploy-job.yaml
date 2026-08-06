@@ -46,7 +46,7 @@ spec:
               memory: 256Mi
       containers:
         - name: convex-deploy
-          image: docker.io/library/node:22-bookworm
+          image: docker.io/library/node:24-bookworm
           command: ["/bin/bash", "-c"]
           args:
             - |
