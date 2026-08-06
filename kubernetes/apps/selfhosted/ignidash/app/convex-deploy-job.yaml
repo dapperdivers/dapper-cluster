@@ -1,0 +1,107 @@
+---
+# Pushes Ignidash's Convex functions into the self-hosted convex-backend and
+# runs data migrations — the k8s equivalent of `npm run selfhost`'s
+# deploy_convex + sync_convex_env + run_migrations steps.
+#
+# The git tag cloned here MUST match the app image version in helmrelease.yaml
+# (stable == v0.2.0 at time of writing). On upgrade: bump the tag below AND
+# rename the Job (Jobs are immutable; the new name makes Flux create a fresh
+# run and prune the old one).
+#
+# The initContainer derives the Convex admin key from INSTANCE_NAME +
+# INSTANCE_SECRET (ignidash-secret) — same derivation the backend uses, so no
+# manual key bootstrap is needed. NOTE: bash vars in scripts below use $VAR
+# (not ${VAR}) so Flux's postBuild envsubst leaves them alone.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ignidash-convex-deploy-v0-2-0
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 2400
+  template:
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      initContainers:
+        - name: generate-admin-key
+          image: ghcr.io/get-convex/convex-backend:latest@sha256:01eb88b7eb9a1f3224f12f5f62423a9d83522a8db286bf2d45f1962fadbe958a
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              DATA_DIR=/tmp/convex-data ./generate_admin_key.sh | tail -1 > /shared/admin_key
+              echo "admin key derived"
+          envFrom:
+            - secretRef:
+                name: ignidash-secret
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      containers:
+        - name: convex-deploy
+          image: docker.io/library/node:22-bookworm
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              export HOME=/tmp
+              CONVEX_URL="http://ignidash-convex.selfhosted.svc.cluster.local:3210"
+              ADMIN_KEY="$(cat /shared/admin_key)"
+
+              echo "--- waiting for convex backend"
+              for i in $(seq 1 60); do
+                curl -sf "$CONVEX_URL/version" && break
+                sleep 5
+              done
+              curl -sf "$CONVEX_URL/version" > /dev/null
+
+              echo "--- cloning ignidash $IGNIDASH_VERSION"
+              git clone --depth 1 --branch "$IGNIDASH_VERSION" \
+                https://github.com/schelskedevco/ignidash.git /tmp/work
+              cd /tmp/work
+
+              echo "--- npm ci"
+              npm ci --no-audit --no-fund
+
+              echo "--- convex deploy"
+              npx convex deploy --url "$CONVEX_URL" --admin-key "$ADMIN_KEY"
+
+              echo "--- syncing env vars to convex"
+              npx convex env set SELF_HOSTED "true" --url "$CONVEX_URL" --admin-key "$ADMIN_KEY"
+              npx convex env set SITE_URL "$SITE_URL" --url "$CONVEX_URL" --admin-key "$ADMIN_KEY"
+              npx convex env set BETTER_AUTH_SECRET "$BETTER_AUTH_SECRET" --url "$CONVEX_URL" --admin-key "$ADMIN_KEY"
+              npx convex env set CONVEX_API_SECRET "$CONVEX_API_SECRET" --url "$CONVEX_URL" --admin-key "$ADMIN_KEY"
+
+              echo "--- running migrations"
+              npx convex run migrations:runAll --url "$CONVEX_URL" --admin-key "$ADMIN_KEY"
+
+              echo "--- done"
+          env:
+            - name: IGNIDASH_VERSION
+              value: v0.2.0
+            - name: SITE_URL
+              value: "https://ignidash.${SECRET_DOMAIN}"
+            - name: TZ
+              value: America/Chicago
+          envFrom:
+            - secretRef:
+                name: ignidash-secret
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              memory: 4Gi
+      volumes:
+        - name: shared
+          emptyDir: {}

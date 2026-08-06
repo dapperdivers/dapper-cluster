@@ -9,7 +9,9 @@ resources:
   - ./namespace.yaml
   - ./actual/ks.yaml
   - ./atuin/ks.yaml
+  - ./entropy/ks.yaml
   - ./firefly/ks.yaml
+  - ./ignidash/ks.yaml
   - ./unifi/ks.yaml
   - ./gotenberg/ks.yaml
   - ./paperless-ngx/ks.yaml

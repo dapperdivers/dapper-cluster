@@ -1,0 +1,84 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: entropy
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      entropy:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+        containers:
+          app:
+            # Fork of 4242labs/ff3e — image built by the fork's publish workflow
+            # (upstream ships no container image). Tag = fork commit SHA.
+            image:
+              repository: ghcr.io/dapperdivers/ff3e
+              tag: 458b7e3ffe0100b622684196d59f3c78aef58e9f
+            env:
+              FIREFLY_III_URL: http://firefly-app.selfhosted.svc.cluster.local:8080
+              MATCH_DAYS: "5"
+              TZ: America/Chicago
+            envFrom:
+              - secretRef:
+                  name: entropy-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128M
+              limits:
+                memory: 512M
+
+    service:
+      app:
+        controller: entropy
+        ports:
+          http:
+            port: 8000
+
+    route:
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            path: /
+        hostnames: ["entropy.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http

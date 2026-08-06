@@ -1,0 +1,222 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ignidash
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: volsync
+      namespace: storage
+  values:
+    controllers:
+      # Convex backend: Ignidash's database + function runtime. SQLite on the
+      # PVC — single replica only.
+      convex-backend:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/get-convex/convex-backend
+              tag: latest@sha256:01eb88b7eb9a1f3224f12f5f62423a9d83522a8db286bf2d45f1962fadbe958a
+            env:
+              RUST_LOG: info
+              # Origins are what the *browser* uses — must match the routes below.
+              CONVEX_CLOUD_ORIGIN: "https://ignidash-api.${SECRET_DOMAIN}"
+              CONVEX_SITE_ORIGIN: "https://ignidash-actions.${SECRET_DOMAIN}"
+            envFrom:
+              - secretRef:
+                  name: ignidash-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /version
+                    port: &convexPort 3210
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /version
+                    port: *convexPort
+                  initialDelaySeconds: 5
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512M
+              limits:
+                memory: 2Gi
+
+      convex-dashboard:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/get-convex/convex-dashboard
+              tag: latest@sha256:a3b196240f9d3b2f0f48630b08755cdab5c56965daa31416cc1602debee1464f
+            env:
+              CONVEX_BACKEND_URL: http://ignidash-convex.selfhosted.svc.cluster.local:3210
+              NEXT_PUBLIC_DEPLOYMENT_URL: "https://ignidash-api.${SECRET_DOMAIN}"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 256M
+              limits:
+                memory: 512M
+
+      app:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/schelskedevco/ignidash
+              tag: stable@sha256:b15d73596e1360f4ad7e7f8f41235bbfb3db2578ee3b26c162acd60358f3e946
+            env:
+              NODE_ENV: production
+              SELF_HOSTED: "true"
+              TZ: America/Chicago
+              # Server-side (in-cluster) paths to Convex.
+              SELF_HOSTED_CONVEX_URL: http://ignidash-convex.selfhosted.svc.cluster.local:3210
+              SELF_HOSTED_CONVEX_SITE_URL: http://ignidash-convex.selfhosted.svc.cluster.local:3211
+              # Browser-side URLs.
+              SITE_URL: "https://ignidash.${SECRET_DOMAIN}"
+              NEXT_PUBLIC_CONVEX_URL: "https://ignidash-api.${SECRET_DOMAIN}"
+              NEXT_PUBLIC_CONVEX_SITE_URL: "https://ignidash-actions.${SECRET_DOMAIN}"
+            envFrom:
+              - secretRef:
+                  name: ignidash-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: &appPort 3000
+                  initialDelaySeconds: 30
+                  periodSeconds: 15
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: *appPort
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 25m
+                memory: 256M
+              limits:
+                memory: 1Gi
+
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: *appPort
+      convex:
+        controller: convex-backend
+        ports:
+          api:
+            port: *convexPort
+          actions:
+            port: 3211
+      dashboard:
+        controller: convex-dashboard
+        ports:
+          http:
+            port: 6791
+
+    route:
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            path: /api/health
+        hostnames: ["ignidash.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
+      # Convex sync protocol is a long-lived websocket; Envoy's ~15s default
+      # route timeout kills it (same fix as Plex SSE). 0s disables the timeout.
+      api:
+        hostnames: ["ignidash-api.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: convex
+                port: api
+            timeouts:
+              request: 0s
+              backendRequest: 0s
+      actions:
+        hostnames: ["ignidash-actions.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: convex
+                port: actions
+      dashboard:
+        hostnames: ["ignidash-dashboard.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: dashboard
+                port: http
+
+    persistence:
+      data:
+        existingClaim: ignidash
+        advancedMounts:
+          convex-backend:
+            app:
+              - path: /convex/data
