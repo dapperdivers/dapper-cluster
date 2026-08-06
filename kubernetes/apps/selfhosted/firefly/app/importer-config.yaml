@@ -7,8 +7,8 @@
 # Derived from the 2026-08-05 importer-UI export with fixes:
 #   - all 25 SimpleFIN accounts mapped to existing Firefly account IDs instead of
 #     the exported create-duplicates default; only one new account is created
-#   - date_range: rolling 45-day lookback (covers the data gap since the one-time
-#     June import; content-hash dedup makes the daily overlap safe)
+#   - date_range: rolling 90-day lookback (widened from 45 on 2026-08-06 to
+#     backfill the May–June gap; content-hash dedup makes the overlap safe)
 #   - access URL templated in from Infisical instead of committed
 #
 # Three mappings are best guesses — verify against transaction descriptions
@@ -101,7 +101,7 @@ spec:
               }
             },
             "date_range": "partial",
-            "date_range_number": 45,
+            "date_range_number": 90,
             "date_range_unit": "d",
             "date_range_not_after_unit": "",
             "date_range_not_after_number": 0,
