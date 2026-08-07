@@ -25,7 +25,7 @@ spec:
       automountServiceAccountToken: false
       initContainers:
         - name: generate-admin-key
-          image: ghcr.io/get-convex/convex-backend:latest@sha256:01eb88b7eb9a1f3224f12f5f62423a9d83522a8db286bf2d45f1962fadbe958a
+          image: ghcr.io/get-convex/convex-backend:latest@sha256:240a2e9115dab3c13145b96532d1cc8bc63c5e2d112d95f80e592a75242bfa75
           command: ["/bin/bash", "-c"]
           args:
             - |
