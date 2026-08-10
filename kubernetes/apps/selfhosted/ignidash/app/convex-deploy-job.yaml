@@ -15,7 +15,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ignidash-convex-deploy-v0-2-0
+  name: ignidash-convex-deploy-v0-2-0-node24
 spec:
   backoffLimit: 3
   activeDeadlineSeconds: 2400
@@ -46,7 +46,7 @@ spec:
               memory: 256Mi
       containers:
         - name: convex-deploy
-          image: docker.io/library/node:22-bookworm
+          image: docker.io/library/node:24-bookworm
           command: ["/bin/bash", "-c"]
           args:
             - |
