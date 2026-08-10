@@ -15,7 +15,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ignidash-convex-deploy-v0-2-0
+  name: ignidash-convex-deploy-v0-2-0-node24
 spec:
   backoffLimit: 3
   activeDeadlineSeconds: 2400
