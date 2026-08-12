@@ -55,7 +55,7 @@ spec:
           app:
             image:
               repository: kometateam/kometa
-              tag: nightly@sha256:c5671fc975ac8f293bc9cbe22ffb48180185405d2fb08cf79fc02809a93acd16
+              tag: nightly@sha256:6eac1ac46258254dea829810b2e85db44e041c441c30dd92613311f245162f04
             command:
               - /bin/sh
               - -c
