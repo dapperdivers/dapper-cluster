@@ -49,7 +49,7 @@ jobs:
           # kustomize tags as kustomize/vX.Y.Z — and 404'd on this repo's
           # .mise.toml; 2026.7.18 fixes it.
           # renovate: datasource=github-releases depName=jdx/mise
-          version: v2026.8.3
+          version: v2026.8.4
           cache: false
           # Only install what this job actually uses. Without this, one broken
           # tool anywhere in .mise.toml takes down image pulling.
@@ -84,7 +84,7 @@ jobs:
           # kustomize tags as kustomize/vX.Y.Z — and 404'd on this repo's
           # .mise.toml; 2026.7.18 fixes it.
           # renovate: datasource=github-releases depName=jdx/mise
-          version: v2026.8.3
+          version: v2026.8.4
           cache: false
           # NOTE: intentionally not scoped with install_args like the extract job.
           # This job has no checkout, so `talosctl latest` below is the only tool
