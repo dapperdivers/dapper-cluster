@@ -20,6 +20,7 @@ spec:
       namespace: external-secrets
   path: ./kubernetes/apps/selfhosted/ignidash/app
   prune: true
+  force: true # convex-deploy Job is immutable; recreate it on spec drift
   sourceRef:
     kind: GitRepository
     name: flux-system
