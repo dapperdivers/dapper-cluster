@@ -80,7 +80,7 @@ spec:
           ha-mcp:
             image:
               repository: ghcr.io/homeassistant-ai/ha-mcp
-              tag: 8.4.2
+              tag: 8.4.3
             args:
               - fastmcp
               - run
