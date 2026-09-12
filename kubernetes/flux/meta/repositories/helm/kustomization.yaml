@@ -15,7 +15,6 @@ resources:
   - ./headlamp.yaml
   - ./infisical.yaml
   - ./intel.yaml
-  - ./k8s-gateway.yaml
   - ./kyverno.yaml
   - ./loft-sh.yaml
   - ./node-feature-discovery.yaml
