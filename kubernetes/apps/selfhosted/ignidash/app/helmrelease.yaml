@@ -31,7 +31,7 @@ spec:
           app:
             image:
               repository: ghcr.io/get-convex/convex-backend
-              tag: latest@sha256:3aa2ccd6697a75de53948b1ee531d7c9688fe09ef360748d75df46dfc888f69a
+              tag: latest@sha256:1b0dcd93a3d126400d16e256aea1106a2ee9538882dda545d2c979f28cff1483
             env:
               RUST_LOG: info
               # Origins are what the *browser* uses — must match the routes below.
