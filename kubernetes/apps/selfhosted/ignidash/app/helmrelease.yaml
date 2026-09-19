@@ -73,7 +73,7 @@ spec:
           app:
             image:
               repository: ghcr.io/get-convex/convex-dashboard
-              tag: latest@sha256:e3fe87d3863e7b40656ed587827e8af2aa9dae892874b2d2b0bf104f99a959bb
+              tag: latest@sha256:63e94c62940a09acd36464e02e1b0a7589f7ef48227003de78510f9523bb4e6b
             env:
               CONVEX_BACKEND_URL: http://ignidash-convex.selfhosted.svc.cluster.local:3210
               NEXT_PUBLIC_DEPLOYMENT_URL: "https://ignidash-api.${SECRET_DOMAIN}"
