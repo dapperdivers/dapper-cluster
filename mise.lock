@@ -568,36 +568,43 @@ checksum = "sha256:d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332af
 url = "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_windows_x64.zip"
 
 [[tools.helmfile]]
-version = "1.6.0"
+version = "1.8.0"
 backend = "aqua:helmfile/helmfile"
 
 [tools.helmfile."platforms.linux-arm64"]
-checksum = "sha256:9f29b29ff017af7dc6feca632f9a683a6c8c5a0dc5a96dd1a2df3f1016c14823"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_linux_arm64.tar.gz"
+checksum = "sha256:01037dc187840a778ec65eae66b549b63d619a853540c8983f90d73ccbce5033"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342817"
 
 [tools.helmfile."platforms.linux-arm64-musl"]
-checksum = "sha256:9f29b29ff017af7dc6feca632f9a683a6c8c5a0dc5a96dd1a2df3f1016c14823"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_linux_arm64.tar.gz"
+checksum = "sha256:01037dc187840a778ec65eae66b549b63d619a853540c8983f90d73ccbce5033"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342817"
 
 [tools.helmfile."platforms.linux-x64"]
-checksum = "sha256:44c617bc12b5f7f1ca1da5333ccbd3865b314c132168b4ce1127f47e756008dc"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_linux_amd64.tar.gz"
+checksum = "sha256:35d5d39fc608342b23fc7ce1dd0c3bf0c96cc07ec3796507ab6894a5d172bf20"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342815"
 
 [tools.helmfile."platforms.linux-x64-musl"]
-checksum = "sha256:44c617bc12b5f7f1ca1da5333ccbd3865b314c132168b4ce1127f47e756008dc"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_linux_amd64.tar.gz"
+checksum = "sha256:35d5d39fc608342b23fc7ce1dd0c3bf0c96cc07ec3796507ab6894a5d172bf20"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342815"
 
 [tools.helmfile."platforms.macos-arm64"]
-checksum = "sha256:49bb9f88bf264f0c004213971cd308925676f6e5200bb940498f5acbc06107fc"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_darwin_arm64.tar.gz"
+checksum = "sha256:b377e295940018fb0e49ca9e0aabdabb00fc612af3d9e12003f01635dc87e1ef"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342814"
 
 [tools.helmfile."platforms.macos-x64"]
-checksum = "sha256:6a1b197e43262de2ab2c08ff532764693345bc522d7b2eedc7bf8bfd2fe08780"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_darwin_amd64.tar.gz"
+checksum = "sha256:d367d72d035985b69863f0e0a6e1815c23a546a1bcdae3cdbb9c17893303e6f3"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342816"
 
 [tools.helmfile."platforms.windows-x64"]
-checksum = "sha256:6fe6bc2979dff6b709801f9addd5d5dccc0c3d7ac52e96f38151db3f30b8b2a8"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_windows_amd64.tar.gz"
+checksum = "sha256:cc3f1615e0f5cbd89fa4f7f5b0b70d18e211695308514d0e94997f5acaf59b36"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.0/helmfile_1.8.0_windows_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/560342877"
 
 [[tools.kubectl]]
 version = "1.36.2"
