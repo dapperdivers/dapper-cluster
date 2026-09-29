@@ -38,6 +38,10 @@ spec:
                   value: "/import"
                 - name: TZ
                   value: America/Chicago
+                # Default is debug, which logs the SimpleFIN access URL
+                # (embedded credentials) on every request.
+                - name: LOG_LEVEL
+                  value: info
               envFrom:
                 - secretRef:
                     name: firefly-secret # FIREFLY_III_ACCESS_TOKEN (+ SIMPLEFIN_TOKEN once added)

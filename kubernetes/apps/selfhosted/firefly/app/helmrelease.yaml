@@ -111,6 +111,9 @@ spec:
               APP_URL: "https://firefly-importer.${SECRET_DOMAIN}"
               TRUSTED_PROXIES: "**"
               TZ: America/Chicago
+              # Default is debug, which logs the SimpleFIN access URL
+              # (embedded credentials) on every request.
+              LOG_LEVEL: info
               FIREFLY_III_ACCESS_TOKEN:
                 valueFrom:
                   secretKeyRef:
