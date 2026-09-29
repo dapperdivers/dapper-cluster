@@ -91,7 +91,6 @@ spec:
     httpRoute:
       enabled: true
       annotations:
-        external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         # Don't self-monitor the status page.
         gatus.home-operations.com/enabled: "false"
       hostnames:

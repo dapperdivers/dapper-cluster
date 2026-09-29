@@ -85,7 +85,6 @@ spec:
     route:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
           # Probe /alive, not the first route rule (/notifications/hub/negotiate,
           # a SignalR endpoint that 404s on a plain GET).
           # Pushover opt-in (EEMUA shortlist): password manager unreachable is

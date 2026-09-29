@@ -55,12 +55,9 @@ metadata:
   annotations:
     # This gateway is reached DIRECTLY over the home WAN, NOT via the Cloudflare
     # Tunnel. external-dns derives the record TARGET from the Gateway: point all
-    # media routes at the auto-updating grey-cloud DDNS record (ipv4 -> WAN), and
-    # force the CNAME unproxied so traffic bypasses Cloudflare entirely.
-    external-dns.alpha.kubernetes.io/target: "ipv4.${SECRET_DOMAIN_MEDIA}"
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
-    # GA-prefix copy for the prefix migration; inert while external-dns runs
-    # with --annotation-prefix=external-dns.alpha.kubernetes.io/.
+    # media routes at the auto-updating grey-cloud DDNS record (ipv4 -> WAN).
+    # cloudflare-proxied is read from the Route, not the Gateway, so the
+    # unproxied override lives on each media HTTPRoute (see plex).
     external-dns.kubernetes.io/target: "ipv4.${SECRET_DOMAIN_MEDIA}"
     # gatus-sidecar base config inherited by every HTTPRoute on this Gateway:
     # a real HTTP probe (200) resolved via public DNS, grouped "external".
