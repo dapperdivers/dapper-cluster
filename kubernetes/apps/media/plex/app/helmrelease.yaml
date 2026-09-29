@@ -168,6 +168,9 @@ spec:
         # Cloudflare proxy and reach the WAN directly.
         annotations:
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+          # GA-prefix copy for the prefix migration; inert while external-dns
+          # runs with --annotation-prefix=external-dns.alpha.kubernetes.io/.
+          external-dns.kubernetes.io/cloudflare-proxied: "false"
           gatus.home-operations.com/endpoint: |-
             path: /web/index.html
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN_MEDIA}"]

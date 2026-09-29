@@ -59,6 +59,9 @@ metadata:
     # force the CNAME unproxied so traffic bypasses Cloudflare entirely.
     external-dns.alpha.kubernetes.io/target: "ipv4.${SECRET_DOMAIN_MEDIA}"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    # GA-prefix copy for the prefix migration; inert while external-dns runs
+    # with --annotation-prefix=external-dns.alpha.kubernetes.io/.
+    external-dns.kubernetes.io/target: "ipv4.${SECRET_DOMAIN_MEDIA}"
     # gatus-sidecar base config inherited by every HTTPRoute on this Gateway:
     # a real HTTP probe (200) resolved via public DNS, grouped "external".
     gatus.home-operations.com/endpoint: |-
