@@ -41,9 +41,6 @@ spec:
       # Only publish HTTPRoutes attached to the external Gateway (labeled
       # external-dns=true); internal-Gateway routes stay off public DNS.
       - --gateway-label-filter=external-dns=true
-      # v0.22.0 switched the default prefix to external-dns.kubernetes.io/ with
-      # no fallback; the repo's annotations still use the alpha prefix.
-      - --annotation-prefix=external-dns.alpha.kubernetes.io/
     policy: sync
     sources: ["crd", "gateway-httproute"]
     txtPrefix: k8s.

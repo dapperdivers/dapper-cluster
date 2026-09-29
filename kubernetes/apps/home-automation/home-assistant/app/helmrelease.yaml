@@ -97,7 +97,6 @@ spec:
     route:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
           # Pushover opt-in (EEMUA shortlist): HA down = automations, alarm
           # panel, and companion apps dead — household-impacting, act-now.
           # Overrides the Gateway's ntfy-only default.

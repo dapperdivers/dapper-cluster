@@ -108,8 +108,6 @@ spec:
             port: *port
     route:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         hostnames: ["ntfy.${SECRET_DOMAIN}"]
         parentRefs:
           - name: external
