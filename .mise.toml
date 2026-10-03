@@ -17,7 +17,7 @@ postinstall = "lefthook install"
 
 [tools]
 # Template tools
-python = "3.14.7"
+python = "3.14.8"
 uv = "latest"
 # Operations tools
 "aqua:budimanjojo/talhelper" = "3.1.14"
