@@ -2,7 +2,7 @@ machine:
   sysctls:
     # File system watches
     fs.inotify.max_user_watches: "1048576" # Watchdog
-    fs.inotify.max_user_instances: "8192"  # Watchdog
+    fs.inotify.max_user_instances: "8192" # Watchdog
     # File handle limits
     fs.file-max: "2097152"
     fs.aio-max-nr: "1048576"
@@ -11,6 +11,9 @@ machine:
     net.core.wmem_max: "7500000" # Cloudflared | QUIC
     # Network performance
     net.core.netdev_max_backlog: "5000"
+    # BBR + fq: loss-tolerant TCP for remote access over Starlink (WireGuard wg-home)
+    net.ipv4.tcp_congestion_control: "bbr"
+    net.core.default_qdisc: "fq"
     # Connection tracking
     net.netfilter.nf_conntrack_max: "131072"
     # TCP keepalive
@@ -19,4 +22,4 @@ machine:
     net.ipv4.tcp_keepalive_probes: "6"
     # VM tuning
     vm.swappiness: "10"
-    vm.max_map_count: "262144"  # OpenSearch/Elasticsearch requirement
+    vm.max_map_count: "262144" # OpenSearch/Elasticsearch requirement
