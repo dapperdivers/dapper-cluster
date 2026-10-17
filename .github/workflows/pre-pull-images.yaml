@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Mise
-        uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
+        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
         with:
           # Pinned so a broken mise release can't float into CI on its own
           # (mise-action's `version` defaults to "latest"). 2026.7.17 could not
@@ -76,7 +76,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Setup Mise
-        uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
+        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
         with:
           # Pinned so a broken mise release can't float into CI on its own
           # (mise-action's `version` defaults to "latest"). 2026.7.17 could not
