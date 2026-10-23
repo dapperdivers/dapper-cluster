@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: ghcr.io/nats-nui/nui
-              tag: 0.9.3@sha256:331b3f34f8aa626f88e3aa3e35749196607a3a56d7fddc6fb642938dcd659c04
+              tag: 0.10.0@sha256:879b64b2f2fa4c3298681ed0bebfbcfd80cae281ff787a10c404bbd62160d18a
             env:
               TZ: America/Chicago
             probes:
