@@ -56,7 +56,7 @@ spec:
           export-model:
             image:
               repository: python
-              tag: 3.14@sha256:5512c5ca17a74a6dbca6ac86a9ba407e945b3d37cd2552ca2cbe65ef8c6af488
+              tag: 3.14@sha256:46a17be7cf526995fbf12177b40c248de30b40c1a509a4c7e5da954226f6885b
             command:
               - bash
               - -c
