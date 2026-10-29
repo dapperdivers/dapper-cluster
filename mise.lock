@@ -586,7 +586,7 @@ url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.
 url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/647791182"
 
 [[tools.kubectl]]
-version = "1.37.1"
+version = "1.37.2"
 backend = "aqua:kubernetes/kubernetes/kubectl"
 
 [tools.kubectl."platforms.linux-arm64"]
