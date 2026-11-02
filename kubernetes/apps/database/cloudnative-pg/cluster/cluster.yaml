@@ -11,7 +11,7 @@ spec:
     size: 20Gi
     storageClass: ceph-rbd
   walStorage:
-    size: 10Gi
+    size: 20Gi
     storageClass: ceph-rbd
   superuserSecret:
     name: cloudnative-pg-secret
@@ -41,9 +41,9 @@ spec:
       source: postgres-v2
   # NOTE: externalClusters is needed when recovering from an existing cnpg cluster
   externalClusters:
-  - name: postgres-v2
-    plugin:
-      name: barman-cloud.cloudnative-pg.io
-      parameters:
-        barmanObjectName: minio-store
-        serverName: postgres-v2
+    - name: postgres-v2
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: minio-store
+          serverName: postgres-v2
