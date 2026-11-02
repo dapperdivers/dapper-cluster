@@ -39,7 +39,7 @@ spec:
           app:
             image:
               repository: ghcr.io/miniflux/miniflux
-              tag: 2.3.4
+              tag: 2.3.5
             env:
               # Miniflux configuration
               RUN_MIGRATIONS: "1"
