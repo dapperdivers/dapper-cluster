@@ -7,7 +7,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-    version: v1.13.12
+    version: v1.14.5
 
   policy:
     rebootMode: powercycle
@@ -20,6 +20,11 @@ spec:
 
   maintenance:
     windows:
-      - start: "0 2 * * 0"  # Sunday 2:00 AM
-        duration: "6h"
-        timezone: "America/Chicago"
+      # TEMP 2026-11-03: window held open (hourly start, 1h duration) for a supervised
+      # Talos 1.13.11 -> 1.14.5 run. Restore afterwards to:
+      #   - start: "0 2 * * 0"  # Sunday 2:00 AM
+      #     duration: "6h"
+      #     timezone: "America/New_York"
+      - start: "0 * * * *"
+        duration: "1h"
+        timezone: "America/New_York"
