@@ -7,7 +7,7 @@ metadata:
 spec:
   image: ghcr.io/dragonflydb/dragonfly:v1.40.2
   replicas: 3
-  # Dragonfly is a shared, passwordless cross-namespace cache (OpenCTI, paperless,
+  # Dragonfly is a shared, passwordless cross-namespace cache (paperless,
   # searxng, etc.). The operator's managed NetworkPolicy (v1.6.x) hardened the
   # client port 6379 to same-namespace-only, which severs every cross-namespace
   # tenant. Disable it to restore cluster-wide client access (prior behavior).
@@ -17,9 +17,8 @@ spec:
     # connection buffers and snapshot/replication fork overhead on top of the
     # dataset, so setting maxmemory == the cgroup limit causes OOMKills under
     # bursts before eviction can kick in.
-    # Sized for OpenCTI's event stream (stream.opencti) as the dominant tenant;
-    # the stream is bounded by REDIS__TRIMMING in apps/security/opencti so it
-    # stays well under this ceiling alongside the other shared-cache tenants.
+    # Originally sized for OpenCTI's event stream (OpenCTI retired 2026-11);
+    # could be shrunk now that only small shared-cache tenants remain.
     - --maxmemory=2560Mi
     - --proactor_threads=2
     - --cluster_mode=emulated

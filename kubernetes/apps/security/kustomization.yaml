@@ -9,4 +9,3 @@ resources:
   - ./namespace.yaml
   - ./vaultwarden/ks.yaml
   - ./authentik/ks.yaml
-  - ./opencti/ks.yaml
