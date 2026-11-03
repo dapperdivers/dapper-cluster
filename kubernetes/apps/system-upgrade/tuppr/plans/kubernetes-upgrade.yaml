@@ -9,8 +9,32 @@ spec:
     # renovate: datasource=github-releases depName=kubernetes/kubernetes
     version: v1.36.3
 
+  # Same stage gates as talos-upgrade.yaml (see the comment there for why)
   healthChecks:
     - apiVersion: v1
       kind: Node
+      description: all nodes Ready
       expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
-      timeout: 10m
+      timeout: 15m
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      description: every CNPG instance ready
+      expr: has(status.readyInstances) && status.readyInstances == object.spec.instances
+      timeout: 45m
+    - apiVersion: dragonflydb.io/v1alpha1
+      kind: Dragonfly
+      description: Dragonfly ready
+      expr: has(status.phase) && status.phase == "Ready"
+      timeout: 30m
+    - apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      description: every PDB satisfied
+      expr: has(status.currentHealthy) && has(status.desiredHealthy) && status.currentHealthy >= status.desiredHealthy
+      timeout: 30m
+    - apiVersion: ceph.rook.io/v1
+      kind: CephCluster
+      namespace: rook-ceph
+      name: rook-ceph
+      description: external Ceph not in HEALTH_ERR
+      expr: has(status.ceph) && status.ceph.health != "HEALTH_ERR"
+      timeout: 30m

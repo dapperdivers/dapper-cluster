@@ -11,12 +11,43 @@ spec:
 
   policy:
     rebootMode: powercycle
-    timeout: 30m
+    # Whole per-node talosctl upgrade (drain + install + reboot)
+    timeout: 45m
+    # Fail fast and visibly when a PDB pins the drain, instead of eating the whole timeout
+    drainTimeout: 20m
 
+  # Stage gates: checked before EVERY node. "Nodes Ready" alone let the next drain start
+  # while the previous one's damage was still healing; on 2026-11-03 that cascaded into
+  # Postgres down to 1/3, the primary restarting, Authentik losing its DB, and its PDB
+  # pinning the large-2 drain. Each gate waits (timeout) for the cluster to heal.
   healthChecks:
     - apiVersion: v1
       kind: Node
+      description: all nodes Ready
       expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
+      timeout: 15m
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      description: every CNPG instance ready (PDBs alone miss a missing replica)
+      expr: has(status.readyInstances) && status.readyInstances == object.spec.instances
+      timeout: 45m
+    - apiVersion: dragonflydb.io/v1alpha1
+      kind: Dragonfly
+      description: Dragonfly ready
+      expr: has(status.phase) && status.phase == "Ready"
+      timeout: 30m
+    - apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      description: every PDB satisfied (Authentik, Kyverno, NATS, ...)
+      expr: has(status.currentHealthy) && has(status.desiredHealthy) && status.currentHealthy >= status.desiredHealthy
+      timeout: 30m
+    - apiVersion: ceph.rook.io/v1
+      kind: CephCluster
+      namespace: rook-ceph
+      name: rook-ceph
+      description: external Ceph not in HEALTH_ERR
+      expr: has(status.ceph) && status.ceph.health != "HEALTH_ERR"
+      timeout: 30m
 
   maintenance:
     windows:
