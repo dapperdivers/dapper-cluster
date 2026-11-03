@@ -34,6 +34,10 @@ spec:
 
     controllers:
       zigbee2mqtt:
+        # Parked: the house coordinator (tubeszb, 192.168.1.5) and its Zigbee
+        # network are still at Valley Trail, unreachable from Clayton (both sites
+        # use 192.168.1.0/24). Config + pairing data stay on the PVC.
+        replicas: 0
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
