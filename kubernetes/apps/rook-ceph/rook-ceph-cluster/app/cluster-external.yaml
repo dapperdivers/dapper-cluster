@@ -13,7 +13,7 @@ spec:
   # PINNED: .renovate/allowedVersions.json5 limits this to v19.x
   # Bump the major only after the Proxmox Ceph cluster itself is upgraded
   cephVersion:
-    image: quay.io/ceph/ceph:v19.2.5
+    image: quay.io/ceph/ceph:v19.2.7
 
   # CephCluster settings for external mode
   dataDirHostPath: /var/lib/rook
