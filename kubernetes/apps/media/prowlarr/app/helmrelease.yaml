@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/prowlarr
-              tag: 2.6.5.5623@sha256:0e2e6e9a2a16683a160ff1c6830d8192231a0502ab0d605b416023b2ca225ff9
+              tag: 3.0.0.5737@sha256:262f02fc00831fa8ab26555e82a71d3d7b32ec220af6ce9cff6b53048eadddd5
             env:
               TZ: "{TIME_ZONE}"
               PROWLARR__APP__INSTANCENAME: Prowlarr
