@@ -26,5 +26,4 @@ resources:
   - ./spegel.yaml
   - ./vllm.yaml
   - ./nats.yaml
-  - ./opencti.yaml
   - ./roundtable.yaml
