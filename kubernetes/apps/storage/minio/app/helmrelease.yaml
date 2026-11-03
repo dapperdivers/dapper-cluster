@@ -25,8 +25,9 @@ spec:
         containers:
           app:
             image:
-              repository: quay.io/minio/minio
-              tag: RELEASE.2025-04-22T22-12-26Z
+              # Upstream MinIO images now 401 for anonymous pulls; Coolify's community rebuild of the same release
+              repository: ghcr.io/coollabsio/minio
+              tag: RELEASE.2025-04-22T22-12-26Z@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68
             env:
               MINIO_API_CORS_ALLOW_ORIGIN: https://minio.${SECRET_DOMAIN},https://s3.${SECRET_DOMAIN}
               MINIO_BROWSER_REDIRECT_URL: https://minio.${SECRET_DOMAIN}
