@@ -95,6 +95,8 @@ spec:
               GITSYNC_REF: master
               GITSYNC_PERIOD: 24h
               GITSYNC_ROOT: /add-ons
+              # git-sync >= 4.8 ships a git that rejects the PVC-owned repo dir ("dubious ownership")
+              GITSYNC_GIT_CONFIG: "safe.directory:*"
             securityContext: *securityContext
             resources:
               requests:

@@ -41,6 +41,8 @@ spec:
               GITSYNC_REPO: https://github.com/dapperdivers/kometa-config/
               GITSYNC_REF: master
               GITSYNC_ROOT: /git
+              # git-sync >= 4.8 ships a git that rejects the PVC-owned repo dir ("dubious ownership")
+              GITSYNC_GIT_CONFIG: "safe.directory:*"
               GITSYNC_DEPTH: 1
               GITSYNC_ONE_TIME: "true"
             image:
