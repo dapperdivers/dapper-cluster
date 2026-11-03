@@ -63,7 +63,7 @@ spec:
         # nut_exporter scrapes ONE UPS per request (needs a `ups` param when the NUT
         # server has >1 UPS) and does NOT emit a `ups` label itself. One endpoint per
         # UPS, and relabel __param_ups -> `ups` so each UPS's series are distinct
-        # (otherwise all three collide) and the network-ups-tools.rules alerts can key
+        # (otherwise they collide) and the network-ups-tools.rules alerts can key
         # on `{{ $labels.ups }}`. Server comes from NUT_EXPORTER_SERVER.
         endpoints:
           - port: http
@@ -76,14 +76,6 @@ spec:
             relabelings: &upsLabel
               - sourceLabels: [__param_ups]
                 targetLabel: ups
-          - port: http
-            scheme: http
-            interval: 60s
-            scrapeTimeout: 10s
-            path: /ups_metrics
-            params:
-              ups: ["garage-a"]
-            relabelings: *upsLabel
           - port: http
             scheme: http
             interval: 60s
