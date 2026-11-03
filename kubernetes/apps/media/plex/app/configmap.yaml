@@ -105,3 +105,7 @@ data:
   # Video Preview Thumbnails (BIF files)
   # Disabled per TRaSH guides - high disk I/O and storage cost
   PLEX_PREFERENCE_41: "GenerateBIFBehavior=never" # Disable video preview thumbnails
+
+  # LAN networks (Plex treats these clients as local: no remote-quality limits)
+  # PLEX_LAN_NETWORKS in the HelmRelease is only applied on first setup; this re-applies it every start.
+  PLEX_PREFERENCE_42: "LanNetworksBandwidth=192.168.1.0/24,192.168.5.0/24,10.100.0.0/24,10.69.0.0/16" # incl. 301 Clayton house network
