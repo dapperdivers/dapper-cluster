@@ -6,11 +6,11 @@ This directory contains the configuration for connecting Kubernetes to an extern
 
 **Status**: ✅ PRODUCTION
 
-This configuration connects the Kubernetes cluster to an external Ceph 18.2.7 (Reef) cluster via Rook v1.18.x in external mode. Both RBD and CephFS storage drivers are active and operational. CephFS uses three data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
+This configuration connects the Kubernetes cluster to an external Ceph 19.2.x (Squid) cluster via Rook v1.18.x in external mode. Both RBD and CephFS storage drivers are active and operational. CephFS uses three data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
 
 ### External Ceph Cluster
 
-- **Version**: Ceph 18.2.7 (Reef)
+- **Version**: Ceph 19.2.5 (Squid), upgraded from 18.2.8 Reef on 2026-11-03
 - **Location**: Proxmox hosts (10.150.0.0/24)
 - **Monitors**: proxmox-02, proxmox-03, proxmox-04
 - **Connection**: External cluster mode (no Ceph daemons in Kubernetes)

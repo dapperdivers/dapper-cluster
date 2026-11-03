@@ -17,8 +17,9 @@
       allowedVersions: "!/^2026\\.7\\.0$/",
     },
     {
-      // Pin Ceph images to v18.x to match external Ceph cluster version (18.2.7)
-      // Prevents automatic upgrades to v19+ which would be incompatible
+      // Pin Ceph images to the external Proxmox Ceph major (19.x Squid since 2026-11-03).
+      // Bump this together with the Proxmox Ceph upgrade, never ahead of it.
+      // (Earlier v18 pin didn't stop the v20 bumps in #1961/#2860; both predate the #3786 rule-order fix.)
       // Applies to: toolbox and CephCluster cephVersion.image
       matchDatasources: ["docker"],
       matchPackageNames: ["quay.io/ceph/ceph"],
@@ -26,7 +27,7 @@
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/toolbox.yaml",
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/cluster-external.yaml",
       ],
-      allowedVersions: "/^v18\\./",
+      allowedVersions: "/^v19\\./",
     },
     {
       // Stay on emqx-operator 2.3.x - 3.0 introduces another CRD storage migration (v3beta1).
