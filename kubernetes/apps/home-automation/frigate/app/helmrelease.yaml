@@ -106,7 +106,7 @@ spec:
               # P100. Substantially larger than the base image (~9Gi), which is
               # worth knowing given the GPU node's ephemeral storage headroom.
               repository: ghcr.io/blakeblackshear/frigate
-              tag: 0.18.0-tensorrt@sha256:82d7475ba7e5f950911bd9d06f2392de96881f39eeacd78824a526dde9b5cad9
+              tag: 0.18.2-tensorrt@sha256:1cafb6ebbaff0aaf275cc3f31951bcf7e29f3989f18a10ba9565091367d8736c
             env:
               TZ: ${TIME_ZONE}
               NVIDIA_DRIVER_CAPABILITIES: compute,utility
