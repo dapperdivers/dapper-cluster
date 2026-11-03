@@ -8,11 +8,12 @@ spec:
   external:
     enable: true
 
-  # Ceph version must match the external cluster version (18.2.7 Reef)
+  # Ceph version must match the external Proxmox cluster (19.2.x Squid since 2026-11-03)
   # Required for creating additional CRs (RGW, MDS, NFS)
-  # PINNED: Renovate is configured to prevent upgrades beyond v18.x
+  # PINNED: .renovate/allowedVersions.json5 limits this to v19.x
+  # Bump the major only after the Proxmox Ceph cluster itself is upgraded
   cephVersion:
-    image: quay.io/ceph/ceph:v20.2.1
+    image: quay.io/ceph/ceph:v19.2.5
 
   # CephCluster settings for external mode
   dataDirHostPath: /var/lib/rook
@@ -27,9 +28,9 @@ spec:
       - ip: "10.150.0.4"
 
   # CSI driver configuration
-  # Note: FUSE mounter is configured in StorageClass due to Talos v1.11.3+ lacking ceph kernel module
-  # client_reconnect_stale is NOT supported by ceph-fuse in Ceph 18.2.7 Reef
-  # Instead, rely on MDS-side config: mds_session_blocklist_on_timeout=false
+  # Note: CephFS StorageClasses use the kernel mounter (Talos ships the ceph module again);
+  # all CephFS PVs are kernel-mounted since 2026-11-03 (last FUSE PVs recreated).
+  # MDS-side config still sets mds_session_blocklist_on_timeout/evict=false (FUSE-era workaround).
   csi:
     cephfs:
       fuseMountOptions: ""
