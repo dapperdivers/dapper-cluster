@@ -21,6 +21,14 @@ dashboards:
   enabled: true
 hubble:
   enabled: true
+  # Default tls.auto.method=helm never renews certs on upgrade (they expired 2026-10-26 and broke
+  # hubble-relay). cronJob runs certgen on install/upgrade and renews on a schedule from cilium-ca.
+  tls:
+    auto:
+      enabled: true
+      method: cronJob
+      certValidityDuration: 1095
+      schedule: "0 0 1 */4 *"
   relay:
     enabled: true
   ui:
