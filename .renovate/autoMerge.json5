@@ -76,11 +76,8 @@
         "/tautulli/",
         "/overseerr/",
         "/sabnzbd/",
-        "/nzbget/",
         "/tdarr/",
         "/recyclarr/",
-        "/autobrr/",
-        "/omegabrr/",
         "/wizarr/",
         // Observability
         "/grafana/",

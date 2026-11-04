@@ -189,9 +189,9 @@ spec:
 
 ---
 
-## Real Example: Miniflux RSS Reader
+## Real Example: Atuin
 
-See [kubernetes/apps/selfhosted/miniflux/app/helmrelease.yaml](../../../../selfhosted/miniflux/app/helmrelease.yaml) for a complete working example of the postgres-init pattern.
+See [kubernetes/apps/selfhosted/atuin/app/helmrelease.yaml](../../../../selfhosted/atuin/app/helmrelease.yaml) for a complete working example of the postgres-init pattern.
 
 **What you need:**
 
@@ -200,13 +200,13 @@ See [kubernetes/apps/selfhosted/miniflux/app/helmrelease.yaml](../../../../selfh
    ```yaml
    annotations:
      postgres-init.home.arpa/enabled: "true"
-     postgres-init.home.arpa/user-key: "MINIFLUX_POSTGRES_USER"
-     postgres-init.home.arpa/pass-key: "MINIFLUX_POSTGRES_PASSWORD"
+     postgres-init.home.arpa/user-key: "ATUIN_POSTGRES_USER"
+     postgres-init.home.arpa/pass-key: "ATUIN_POSTGRES_PASSWORD"
    ```
 
 2. **Infisical secrets** (create once per app):
-   - `MINIFLUX_POSTGRES_USER`
-   - `MINIFLUX_POSTGRES_PASSWORD`
+   - `ATUIN_POSTGRES_USER`
+   - `ATUIN_POSTGRES_PASSWORD`
 
 3. **That's it!** Kyverno handles:
    - Injecting init container
