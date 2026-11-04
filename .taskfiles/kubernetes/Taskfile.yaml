@@ -40,6 +40,51 @@ tasks:
     preconditions:
       - which kubectl
 
+  sync:
+    desc: Force-reconcile every resource of a kind [RESOURCE=hr|ks|gitrepo|ocirepo|es]
+    cmds:
+      - for: { var: ITEMS, split: "\n" }
+        cmd: >-
+          kubectl --namespace {{splitList "," .ITEM | first}} annotate {{.RESOURCE}} {{splitList "," .ITEM | last}}
+          --field-manager flux-client-side-apply --overwrite
+          force-sync="{{now | unixEpoch}}"
+          reconcile.fluxcd.io/requestedAt="{{now | unixEpoch}}"
+          reconcile.fluxcd.io/forceAt="{{now | unixEpoch}}"
+    vars:
+      ITEMS:
+        sh: kubectl get {{.RESOURCE}} --all-namespaces --no-headers --output=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name}{"\n"}{end}'
+    requires:
+      vars:
+        - name: RESOURCE
+          enum: [hr, ks, gitrepo, ocirepo, es]
+    preconditions:
+      - which kubectl
+
+  diff-ks:
+    desc: Diff a local Flux Kustomization against the cluster, using live substitutions [NS=required] [KS=required]
+    cmd: flux diff kustomization {{.KS}} --namespace {{.NS}} --path "{{.ROOT_DIR}}/{{.KS_PATH}}"
+    vars:
+      KS_PATH:
+        sh: kubectl --namespace {{.NS}} get kustomizations.kustomize.toolkit.fluxcd.io {{.KS}} --output jsonpath='{.spec.path}'
+    requires:
+      vars: [NS, KS]
+    preconditions:
+      - which flux kubectl
+
+  apply-ks:
+    desc: Apply a local (unmerged) Flux Kustomization to the cluster for debugging [NS=required] [KS=required]
+    prompt: Apply local {{.NS}}/{{.KS}} (Flux will revert it on the next reconcile unless merged)... continue?
+    cmd: >-
+      flux build kustomization {{.KS}} --namespace {{.NS}} --path "{{.ROOT_DIR}}/{{.KS_PATH}}"
+      | kubectl apply --server-side --force-conflicts --field-manager=kustomize-controller --filename -
+    vars:
+      KS_PATH:
+        sh: kubectl --namespace {{.NS}} get kustomizations.kustomize.toolkit.fluxcd.io {{.KS}} --output jsonpath='{.spec.path}'
+    requires:
+      vars: [NS, KS]
+    preconditions:
+      - which flux kubectl
+
   view-secret:
     desc: Decode a Secret to plaintext [NS=default] [SECRET=required] [KEY=optional]
     cmd: |

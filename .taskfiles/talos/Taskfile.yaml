@@ -4,6 +4,12 @@ version: "3"
 
 set: [pipefail]
 
+vars:
+  # Node-level talosImageURL, falling back to the controlPlane:/worker: block default.
+  IMAGE_URL_EXPR: >-
+    (.nodes[] | select(.ipAddress == strenv(IP))) as $n
+    | $n.talosImageURL // (select($n.controlPlane) | .controlPlane.talosImageURL) // .worker.talosImageURL
+
 tasks:
   generate-config:
     desc: Generate Talos configuration
@@ -17,6 +23,7 @@ tasks:
 
   apply-cluster:
     desc: Regenerate and apply Talos config to all nodes in the cluster
+    prompt: Apply Talos config to EVERY node... continue?
     dir: "{{.TALHELPER_DIR}}"
     cmds:
       - task: generate-config
@@ -76,10 +83,11 @@ tasks:
   upgrade-node:
     desc: Upgrade Talos on a single node [IP=required]
     dir: "{{.TALHELPER_DIR}}"
+    prompt: Upgrade Talos on {{.IP}} (node reboots; normally tuppr does this)... continue?
     cmd: talhelper gencommand upgrade --node {{.IP}} --extra-flags "--image='{{.TALOS_IMAGE}}:{{.TALOS_VERSION}}' --timeout=120m" | bash
     vars:
       TALOS_IMAGE:
-        sh: yq '.nodes[] | select(.ipAddress == "{{.IP}}") | .talosImageURL' {{.TALHELPER_DIR}}/talconfig.yaml
+        sh: IP={{.IP}} yq '{{.IMAGE_URL_EXPR}}' {{.TALHELPER_DIR}}/talconfig.yaml
       TALOS_VERSION:
         sh: yq '.talosVersion' {{.TALHELPER_DIR}}/talconfig.yaml
     requires:
@@ -93,6 +101,7 @@ tasks:
   upgrade-k8s:
     desc: Upgrade Kubernetes
     dir: "{{.TALHELPER_DIR}}"
+    prompt: Upgrade Kubernetes on the whole cluster (normally tuppr does this)... continue?
     cmd: talhelper gencommand upgrade-k8s --extra-flags "--to '{{.KUBERNETES_VERSION}}'" | bash
     vars:
       KUBERNETES_VERSION:
@@ -105,11 +114,45 @@ tasks:
   upgrade-talos:
     desc: Upgrade Talos on all nodes
     dir: "{{.TALHELPER_DIR}}"
+    prompt: Upgrade Talos on EVERY node (normally tuppr does this)... continue?
     cmd: talhelper gencommand upgrade --extra-flags "--preserve --wait --timeout=30m" | bash
     preconditions:
       - talosctl config info
       - test -f {{.TALOSCONFIG}}
       - which talhelper talosctl yq
+
+  reboot-node:
+    desc: Reboot a single node [IP=required] [MODE=default|powercycle]
+    prompt: Reboot node {{.IP}}... continue?
+    cmd: talosctl --nodes {{.IP}} reboot --mode={{.MODE}}
+    vars:
+      MODE: '{{.MODE | default "default"}}'
+    requires:
+      vars: [IP]
+    preconditions:
+      - talosctl --nodes {{.IP}} get machineconfig
+      - test -f {{.TALOSCONFIG}}
+      - which talosctl
+
+  download-image:
+    desc: Download the Talos ISO for a node's schematic into .private/ [IP=required] [VERSION=talconfig] [PLATFORM=metal]
+    cmds:
+      - mkdir -p {{.PRIVATE_DIR}}
+      - curl -fL --remove-on-error --retry 5 --retry-delay 5 --retry-all-errors --progress-bar -o "{{.ISO}}" "https://factory.talos.dev/image/{{.SCHEMATIC}}/{{.VERSION}}/{{.PLATFORM}}-amd64.iso"
+      - echo "Saved {{.ISO}}"
+    vars:
+      PLATFORM: '{{.PLATFORM | default "metal"}}'
+      VERSION:
+        sh: "{{if .VERSION}}echo {{.VERSION}}{{else}}yq .talosVersion {{.TALHELPER_DIR}}/talconfig.yaml{{end}}"
+      SCHEMATIC:
+        sh: IP={{.IP}} yq '{{.IMAGE_URL_EXPR}}' {{.TALHELPER_DIR}}/talconfig.yaml | sed 's#.*/installer/##'
+      ISO: "{{.PRIVATE_DIR}}/talos-{{.VERSION}}-{{.PLATFORM}}-{{trunc 8 .SCHEMATIC}}.iso"
+    requires:
+      vars: [IP]
+    preconditions:
+      - sh: test -n "{{.SCHEMATIC}}" && test "{{.SCHEMATIC}}" != null
+        msg: "No schematic found for {{.IP}} in talconfig.yaml"
+      - which curl yq
 
   reset:
     desc: Resets nodes back to maintenance mode
