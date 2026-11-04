@@ -6,7 +6,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - renovate.json5
+      - .renovaterc.json5
       - .renovate/**.json5
   schedule:
     - cron: "0 * * * *" # Every hour
@@ -46,6 +46,13 @@ jobs:
         with:
           app-id: "${{ secrets.DUNCE_BOT_APP_ID }}"
           private-key: "${{ secrets.DUNCE_BOT_APP_PRIVATE_KEY }}"
+          # Branches/commits, PRs, the dependency dashboard issue, status checks,
+          # and workflow-file updates (action pins).
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          permission-statuses: write
+          permission-workflows: write
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
