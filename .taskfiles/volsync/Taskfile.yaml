@@ -33,6 +33,19 @@ tasks:
     preconditions:
       - which kubectl
 
+  mkdir:
+    desc: Create the CephFS repository directory /volsync/<APP> for a new app [APP=required]
+    # The repository PV is static (rootPath /volsync/${APP}), so the directory must exist
+    # before the first mount. Runs through the Rook toolbox's libcephfs: no host mount
+    cmd: |
+      kubectl --namespace rook-ceph exec -i deploy/rook-ceph-tools -- \
+        python3 - "/volsync/{{.APP}}" < "{{.VOLSYNC_RESOURCES_DIR}}/cephfs-mkdir.py"
+    requires:
+      vars: [APP]
+    preconditions:
+      - kubectl --namespace rook-ceph get deploy rook-ceph-tools
+      - which kubectl
+
   unlock:
     desc: Unlock a Restic repo [NS=required] [REPO=required]
     vars:

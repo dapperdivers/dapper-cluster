@@ -26,8 +26,8 @@ spec:
       namespace: external-secrets
   postBuild:
     substitute:
-      APP: *app                 # the PVC + restic repo are named after ${APP}
-      VOLSYNC_CAPACITY: 1Gi     # app data PVC size (default 5Gi)
+      APP: *app # the PVC + restic repo are named after ${APP}
+      VOLSYNC_CAPACITY: 1Gi # app data PVC size (default 5Gi)
 ```
 
 Optional substitutions (defaults in parens): `VOLSYNC_STORAGECLASS` (ceph-rbd),
@@ -63,8 +63,14 @@ FailedScheduling: pod has unbound immediate PersistentVolumeClaims. not found
 RD condition:     Synchronizing=False :: Waiting for manual trigger
 ```
 
-**Fix: create the backup repo directory first** (on the NAS / R2 target — the path the
-`volsync-${APP}-repo` PV points at). Once it exists, the mover runs:
+**Fix: create the backup repo directory first.** The `volsync-${APP}-repo` PV is a static CephFS PV
+with `rootPath: /volsync/${APP}`. Create that directory with:
+
+```bash
+task volsync:mkdir APP=<app>    # idempotent; runs libcephfs in the rook-ceph-tools pod, no host mount
+```
+
+(The Proxmox hosts no longer mount CephFS, so don't `mkdir` there.) Once it exists, the mover runs:
 
 ```
 === Initialize Dir === created restic repository … at /repository
@@ -95,6 +101,7 @@ task volsync:unlock-all                            # sweep every ReplicationSour
 
 Related Taskfile helpers (`.taskfiles/volsync/Taskfile.yaml`):
 
+- `task volsync:mkdir APP=<app>` — create the CephFS repo directory `/volsync/<app>` for a new app.
 - `task volsync:list` — show every ReplicationSource and its last backup time.
 - `task volsync:snapshot NS=<ns> APP=<app>` — trigger a manual backup and wait for the job.
 - `task volsync:run NS=<ns> REPO=<app> -- snapshots` — run an arbitrary restic command (e.g. list snapshots).
