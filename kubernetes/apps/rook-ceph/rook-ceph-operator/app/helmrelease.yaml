@@ -6,6 +6,9 @@ metadata:
   name: rook-ceph-operator
 spec:
   interval: 30m
+  # The rook/ceph operator image is over 1 GB and pulls slowly here. Helm's
+  # default 5m timeout rolled back the v1.19.12 upgrade mid-pull
+  timeout: 15m
   chart:
     spec:
       chart: rook-ceph
