@@ -71,6 +71,10 @@ tasks:
     desc: Snapshot an app [NS=default] [APP=required]
     cmds:
       - kubectl --namespace {{.NS}} patch replicationsources {{.APP}} --type merge -p '{"spec":{"trigger":{"manual":"{{now | unixEpoch}}"}}}'
+      # A leftover spec.trigger.manual overrides spec.trigger.schedule, which silently
+      # stops scheduled backups, and Flux won't remove it (another field manager owns it).
+      # Deferred, so it also runs if the wait below times out or is interrupted
+      - defer: kubectl --namespace {{.NS}} patch replicationsources {{.APP}} --type json -p '[{"op":"remove","path":"/spec/trigger/manual"}]'
       - until kubectl --namespace {{.NS}} get job/{{.JOB}} &>/dev/null; do sleep 5; done
       - kubectl --namespace {{.NS}} wait job/{{.JOB}} --for=condition=complete --timeout=120m
     vars:
