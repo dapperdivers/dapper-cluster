@@ -30,8 +30,8 @@ metadata:
   name: myapp
   annotations:
     postgres-init.home.arpa/enabled: "true"
-    postgres-init.home.arpa/user-key: "MYAPP_POSTGRES_USER"      # Infisical key
-    postgres-init.home.arpa/pass-key: "MYAPP_POSTGRES_PASSWORD"  # Infisical key
+    postgres-init.home.arpa/user-key: "MYAPP_POSTGRES_USER" # Infisical key
+    postgres-init.home.arpa/pass-key: "MYAPP_POSTGRES_PASSWORD" # Infisical key
 spec:
   values:
     controllers:
@@ -45,7 +45,7 @@ spec:
 ### Optional Annotations
 
 ```yaml
-postgres-init.home.arpa/dbname: "custom-db-name"        # Default: release name
+postgres-init.home.arpa/dbname: "custom-db-name" # Default: release name
 postgres-init.home.arpa/controller: "custom-controller" # Default: release name
 ```
 
@@ -63,11 +63,11 @@ spec:
         initContainers:
           init-db:
             image:
-              repository: ghcr.io/home-operations/postgres-init  # From ConfigMap
-              tag: 17.6@sha256:...                               # From ConfigMap
+              repository: ghcr.io/home-operations/postgres-init # From ConfigMap
+              tag: 17.6@sha256:... # From ConfigMap
             envFrom:
               - secretRef:
-                  name: myapp-postgres-init  # Auto-generated secret
+                  name: myapp-postgres-init # Auto-generated secret
 ```
 
 ### 2. ExternalSecret Generation
@@ -91,7 +91,7 @@ spec:
         INIT_POSTGRES_SUPER_USER: "{{ .POSTGRES_SUPER_USER }}"
         INIT_POSTGRES_SUPER_PASS: "{{ .POSTGRES_SUPER_PASS }}"
         INIT_POSTGRES_PORT: "5432"
-        INIT_POSTGRES_DBNAME: "myapp"  # From annotation or release name
+        INIT_POSTGRES_DBNAME: "myapp" # From annotation or release name
         INIT_POSTGRES_USER: "{{ .MYAPP_POSTGRES_USER }}"
         INIT_POSTGRES_PASS: "{{ .MYAPP_POSTGRES_PASSWORD }}"
   dataFrom:
@@ -112,15 +112,17 @@ For each app, create these secrets in Infisical:
    - `{MYAPP}_POSTGRES_USER` - App-specific database user
    - `{MYAPP}_POSTGRES_PASSWORD` - App-specific database password
 
-## Example: Miniflux RSS Reader
+## Example: Atuin
 
-See `kubernetes/apps/selfhosted/miniflux/app/helmrelease.yaml` for a complete example.
+See `kubernetes/apps/selfhosted/atuin/app/helmrelease.yaml` for a complete example.
 
 **Before (manual pattern):**
+
 - 100+ lines in helmrelease.yaml (with init container)
 - 40+ lines for postgres-init externalsecret.yaml
 
 **After (Kyverno automation):**
+
 - 3 annotations in helmrelease.yaml
 - No separate postgres-init externalsecret needed
 
@@ -140,11 +142,13 @@ data:
 ```
 
 **Renovate automatically:**
+
 - ✅ Detects the image in the ConfigMap
 - ✅ Creates PRs when new versions are available
 - ✅ Updates all apps cluster-wide via single ConfigMap change
 
 **Manual update:**
+
 1. Edit `configmap.yaml` with new image tag
 2. Run: `flux reconcile kustomization kyverno-policies -n kyverno`
 3. All apps use new version on next pod restart
@@ -175,6 +179,7 @@ kubectl logs -n {namespace} {pod} -c init-db
 ### ExternalSecret not generated
 
 **Check:**
+
 1. Required annotations present: `enabled`, `user-key`, `pass-key`
 2. Policy is applied: `kubectl get clusterpolicy postgres-init-externalsecret`
 3. Kyverno logs: `kubectl logs -n kyverno -l app.kubernetes.io/component=admission-controller`
@@ -182,6 +187,7 @@ kubectl logs -n {namespace} {pod} -c init-db
 ### Init container not injected
 
 **Check:**
+
 1. Annotation is string value: `postgres-init.home.arpa/enabled: "true"` (not boolean)
 2. Policy is applied: `kubectl get clusterpolicy postgres-init-container`
 3. ConfigMap exists: `kubectl get configmap postgres-init-config -n kyverno`
@@ -189,11 +195,13 @@ kubectl logs -n {namespace} {pod} -c init-db
 ### Database initialization fails
 
 **Check init logs:**
+
 ```bash
 kubectl logs -n {namespace} {pod} -c init-db
 ```
 
 **Common issues:**
+
 - Infisical secrets not found (verify ExternalSecret status)
 - PostgreSQL cluster not ready (check cloudnative-pg)
 - Incorrect credentials in Infisical

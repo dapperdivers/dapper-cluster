@@ -17,7 +17,6 @@ graph TD
 
     subgraph Download Clients
         SABNZBD[SABnzbd - Usenet]
-        NZBGET[NZBget - Usenet Alt]
     end
 
     subgraph Media Storage
@@ -214,7 +213,7 @@ Automated subtitle downloading for:
 
 **Purpose**: Unified indexer management
 
-Centrally manages indexers/trackers and syncs them to Sonarr, Radarr, and their UHD instances, so indexer configuration lives in one place. Recyclarr, Autobrr, Omegabrr, Cross-seed, and Huntarr complement the \*arr suite for quality profiles, release automation, and cross-seeding.
+Centrally manages indexers/trackers and syncs them to Sonarr, Radarr, and their UHD instances, so indexer configuration lives in one place. Recyclarr complements the \*arr suite by syncing TRaSH-guide quality profiles.
 
 ### Download Clients
 
@@ -237,15 +236,6 @@ Centrally manages indexers/trackers and syncs them to Sonarr, Radarr, and their 
 - Incomplete: dynamic PVC (temporary downloads)
 
 **Post-Processing**: Automatically moves completed downloads to the appropriate `/media` library folders (then imported by the \*arr apps)
-
-#### NZBget
-
-**Namespace**: `media`
-**Purpose**: Alternative Usenet client
-
-Lightweight alternative to SABnzbd for specific use cases.
-
-**Storage**: Similar pattern to SABnzbd
 
 ### Post-Processing
 

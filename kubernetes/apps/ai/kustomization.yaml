@@ -9,11 +9,9 @@ resources:
   - ./namespace.yaml
   # Core AI Agents
   - ./openclaw/ks.yaml
-  # - ./outlook-bridge/ks.yaml
 
   # Voice/Speech
   - ./speaches/ks.yaml
-  # - ./voice-ingest/ks.yaml
 
   # LLM Inference Stack
   - ./ollama/ks.yaml
