@@ -25,18 +25,19 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/esphome/esphome
-              tag: 2026.10.2@sha256:4a918585150e95e7675be84a347384ff308fde1bd32d0e4472666e1252cc0e8f
+              repository: ghcr.io/home-operations/esphome
+              tag: 2026.10.2@sha256:6b961bac59fc6a6cf33eae615a14b60d27137e1ba4db29efaf492fec137f8bc5
+            # Image entrypoint keeps PlatformIO, build output and ESPHome data under
+            # /cache (PLATFORMIO_CORE_DIR / ESPHOME_BUILD_PATH / ESPHOME_DATA_DIR).
             env:
               TZ: "${TIME_ZONE}"
               ESPHOME_DASHBOARD_USE_PING: true
-              PLATFORMIO_CORE_DIR: /cache/platformio
-              PLATFORMIO_GLOBALLIB_DIR: /cache/platformio/lib
+              PLATFORMIO_GLOBALLIB_DIR: /cache/pio/lib
               PLATFORMIO_SETTING_ENABLE_TELEMETRY: No
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: [ "ALL" ], add: ["NET_RAW"] }
+              capabilities: { drop: ["ALL"], add: ["NET_RAW"] }
             resources:
               requests:
                 cpu: 10m
@@ -78,3 +79,7 @@ spec:
           - path: /config/.esphome
           - path: /cache
             subPath: cache
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
