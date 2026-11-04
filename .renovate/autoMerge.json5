@@ -241,5 +241,12 @@
       matchPackageNames: ["/dapperdivers/"],
       automerge: false,
     },
+    {
+      description: "Disable automerge for the CNPG Postgres image",
+      // A bump rolls every instance of the shared database cluster (switchover
+      // included); merge these by hand while watching the cluster.
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
+      automerge: false,
+    },
   ],
 }
