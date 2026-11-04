@@ -10,17 +10,21 @@ spec:
     spec:
       interval: 15m
       chart: goldilocks
-      version: 10.6.0
+      version: 11.2.0
       sourceRef:
         kind: HelmRepository
         name: fairwinds
         namespace: flux-system
   driftDetection:
     mode: enabled
+  # The bundled VPA subchart ships its CRDs in crds/; VPA chart >= 5 (VPA 1.7)
+  # requires the updated CRDs before upgrading, which Helm skips by default.
   install:
+    crds: CreateReplace
     remediation:
       retries: 3
   upgrade:
+    crds: CreateReplace
     cleanupOnFail: true
     remediation:
       strategy: rollback
