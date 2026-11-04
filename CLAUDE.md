@@ -233,6 +233,13 @@ task kubernetes:view-secret SECRET=<name>
 # Sync all ExternalSecrets
 task kubernetes:sync-secrets
 
+# Force-reconcile every resource of a kind [RESOURCE=hr|ks|gitrepo|ocirepo|es]
+task kubernetes:sync RESOURCE=hr
+
+# Diff / apply a local (unmerged) Flux Kustomization with live substitutions
+task kubernetes:diff-ks NS=<ns> KS=<name>
+task kubernetes:apply-ks NS=<ns> KS=<name>
+
 # Reinstall a HelmRelease [NS=default] [HR=required]
 task kubernetes:restart-helmrelease HR=<name>
 ```
