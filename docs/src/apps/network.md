@@ -135,23 +135,6 @@ Self-hosted [ntfy](https://ntfy.sh) (`binwiederhier/ntfy`) used as the cluster's
 
 A maddy-based SMTP relay providing a single in-cluster mail submission endpoint, so applications that send email use one shared, authenticated upstream rather than each holding provider credentials.
 
-## CNI
-
-### Multus
-
-**Namespace**: `network`
-**Type**: Helm Release + NetworkAttachmentDefinition
-**Purpose**: Attach additional pod network interfaces beyond the primary Cilium network
-
-**Configuration**: `kubernetes/apps/network/multus/`
-
-Multus is a meta-CNI that lets selected pods receive a second interface in addition to the primary Cilium network. The `multus-iot` `NetworkAttachmentDefinition` uses **macvlan** over a host interface with DHCP IPAM, placing those pods directly on an IoT/legacy L2 segment — used by workloads that must talk to devices outside the cluster's pod network.
-
-```bash
-kubectl -n network get net-attach-def
-kubectl -n network get pods -l app.kubernetes.io/name=multus
-```
-
 ## References
 
 - **Envoy Gateway**: `kubernetes/apps/network/envoy-gateway/`

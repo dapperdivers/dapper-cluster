@@ -5,6 +5,5 @@ kind: Kustomization
 resources:
   - ./helmrelease-maxhistory.yaml
   - ./httproute-authentik-forward-auth.yaml
-  # - ./nfs-health-checks.yaml
   - ./postgres-init
   - ./pod-security

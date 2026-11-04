@@ -29,13 +29,13 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/mendhak/http-https-echo
-              tag: 43
+              repository: ghcr.io/home-operations/echo
+              tag: 0.2.7@sha256:b7742b1bfcf61d4f8ee47d91fbb299f11f71a6e316f8d4957cb1e8659a860a9c
             env:
-              HTTP_PORT: &port 8080
-              LOG_WITHOUT_NEWLINE: true
-              LOG_IGNORE_PATH: /healthz
-              PROMETHEUS_ENABLED: true
+              ECHO_HTTP_PORT: &port 8080
+              ECHO_METRICS_PORT: &metricsPort 8081
+              # Externally reachable: pure reflector, no caller-controlled delay/status/headers.
+              ECHO_COMMANDS_ENABLED: false
             probes:
               liveness: &probes
                 enabled: true
@@ -69,12 +69,15 @@ spec:
         controller: echo-server
         ports:
           http:
+            primary: true
             port: *port
+          metrics:
+            port: *metricsPort
     serviceMonitor:
       app:
         serviceName: echo-server
         endpoints:
-          - port: http
+          - port: metrics
             scheme: http
             path: /metrics
             interval: 1m

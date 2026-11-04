@@ -16,8 +16,6 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
-    - name: multus-config
-      namespace: network
     - name: external-secrets-stores
       namespace: external-secrets
   path: ./kubernetes/apps/home-automation/home-assistant/app

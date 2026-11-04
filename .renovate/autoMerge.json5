@@ -208,7 +208,6 @@
       description: "Disable automerge for networking packages",
       matchPackageNames: [
         "cilium",
-        "multus",
         "ingress-nginx",
         "external-dns",
         "cloudflared",
