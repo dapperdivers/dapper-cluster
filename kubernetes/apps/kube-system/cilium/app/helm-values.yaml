@@ -23,11 +23,14 @@ hubble:
   enabled: true
   # Default tls.auto.method=helm never renews certs on upgrade (they expired 2026-10-26 and broke
   # hubble-relay). cronJob runs certgen on install/upgrade and renews on a schedule from cilium-ca.
+  # Leaves are re-issued every 4 months, so a 1-year validity is plenty. It must stay well under
+  # the cilium-ca lifetime (expires 2029-11-02): certgen >= 1.20 hard-fails if a leaf would outlive
+  # the CA, and Flux waits on that Job, so a failure would roll back the whole Cilium release.
   tls:
     auto:
       enabled: true
       method: cronJob
-      certValidityDuration: 1095
+      certValidityDuration: 365
       schedule: "0 0 1 */4 *"
   relay:
     enabled: true
