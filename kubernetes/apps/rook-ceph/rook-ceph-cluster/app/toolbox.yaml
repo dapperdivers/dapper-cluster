@@ -21,7 +21,7 @@ spec:
         - name: rook-ceph-tools
           # PINNED: Must match external Ceph cluster version (19.2.x Squid)
           # .renovate/allowedVersions.json5 limits this to v19.x
-          image: quay.io/ceph/ceph:v19.2.5
+          image: quay.io/ceph/ceph:v19.2.7
           command:
             - /bin/bash
             - -c
