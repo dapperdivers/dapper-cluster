@@ -1,8 +1,11 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  // Use image creation date when releaseTimestamp is missing (common for GHCR images).
-  // Without this, minimumReleaseAge stays PENDING forever for images without timestamps.
-  minimumReleaseAgeBehaviour: "creation-date-only",
+  // Many GHCR images publish no releaseTimestamp. With timestamp-required,
+  // minimumReleaseAge would stay PENDING forever for them; timestamp-optional
+  // lets those through (age gate applies only where a timestamp exists).
+  // ("creation-date-only" was never a valid value; Renovate was already
+  // falling back to timestamp-optional.)
+  minimumReleaseAgeBehaviour: "timestamp-optional",
   //
   // RULE ORDER MATTERS. Renovate applies the LAST matching rule per field, so this
   // file is ordered allow-rules first, deny-rules last. Anything matched by a
@@ -13,23 +16,23 @@
     {
       description: "Auto-merge trusted-registry minor/patch updates (catch-all)",
       matchDatasources: ["docker"],
-      matchPackageNames: ["/ghcr.io/", "/registry.k8s.io/"],
-      excludePackageNames: [
+      matchPackageNames: [
+        "/ghcr.io/",
+        "/registry.k8s.io/",
         // Networking
-        "/cilium/",
-        "/nginx/",
-        "/cloudflare/",
-        "/coredns/",
-        "/external-dns/",
-        "/k8s-gateway/",
+        "!/cilium/",
+        "!/nginx/",
+        "!/cloudflare/",
+        "!/coredns/",
+        "!/external-dns/",
+        "!/k8s-gateway/",
         // Storage
-        "/openebs/",
-        "/minio/",
-        "/rook/",
-        "/volsync/",
-
+        "!/openebs/",
+        "!/minio/",
+        "!/rook/",
+        "!/volsync/",
         // DapperDivers
-        "/dapperdivers/",
+        "!/dapperdivers/",
       ],
       matchUpdateTypes: ["minor", "patch"],
       automerge: true,
@@ -185,6 +188,15 @@
       ignoreTests: true,
     },
     {
+      description: "Auto-merge Grafana dashboard revisions",
+      // Manager + datasource come from the home-operations grafanaDashboards preset.
+      matchDatasources: ["custom.grafana-dashboards"],
+      matchUpdateTypes: ["major"],
+      automerge: true,
+      automergeType: "branch",
+      ignoreTests: true,
+    },
+    {
       description: "Auto-merge mise workflow-pin patch updates",
       // The renovate.yaml workflow pins jdx/mise via github-releases. Patch bumps
       // ride through to match the .mise.toml rule above; minors stay manual for
@@ -224,6 +236,13 @@
     {
       description: "Disable automerge for dapperdivers images",
       matchPackageNames: ["/dapperdivers/"],
+      automerge: false,
+    },
+    {
+      description: "Disable automerge for the CNPG Postgres image",
+      // A bump rolls every instance of the shared database cluster (switchover
+      // included); merge these by hand while watching the cluster.
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
       automerge: false,
     },
   ],

@@ -1,18 +1,19 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: [
-    "config:recommended",
-    "docker:enableMajor",
-    "helpers:pinGitHubActionDigests",
+    // Shared home-operations base: config:recommended, docker:enableMajor,
+    // digest-pinned actions, dependency dashboard, semantic commit messages,
+    // the `# renovate: datasource=... depName=...` annotation manager,
+    // oci:// refs, mirror.gcr.io -> docker.io aliasing, zer0ver handling.
+    "github>home-operations/renovate-presets#11.0.0",
+    "github>home-operations/renovate-presets//apps/cnpg.json5#11.0.0",
+    "github>home-operations/renovate-presets//apps/grafanaDashboards.json5#11.0.0",
+    // Repo-specific policy (kept local).
     "github>DapperDivers/dapper-cluster//.renovate/allowedVersions.json5",
     "github>DapperDivers/dapper-cluster//.renovate/autoMerge.json5",
     "github>DapperDivers/dapper-cluster//.renovate/customManagers.json5",
-    "github>DapperDivers/dapper-cluster//.renovate/grafanaDashboards.json5",
     "github>DapperDivers/dapper-cluster//.renovate/groups.json5",
     "github>DapperDivers/dapper-cluster//.renovate/labels.json5",
-    "github>DapperDivers/dapper-cluster//.renovate/semanticCommits.json5",
-    ":disableRateLimiting",
-    ":dependencyDashboard",
     ":semanticCommits",
     ":timezone(America/New_York)",
   ],
@@ -20,22 +21,22 @@
   dependencyDashboardAutoclose: true,
   prCreation: "immediate",
   dependencyDashboardApproval: false,
-  dependencyDashboardTitle: "Renovate Dashboard 🤖",
-  suppressNotifications: [
-    "prEditedNotification",
-    "prIgnoreNotification",
-  ],
+  suppressNotifications: ["prEditedNotification", "prIgnoreNotification"],
   ignorePaths: [
     "**/*.sops.*",
     "**/resources/**",
+    // The preset's flux/kubernetes managers scan every *.yaml, not just kubernetes/.
+    ".archive/**",
   ],
   flux: {
-    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"]
+    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"],
   },
+  // Broader than the preset's helmrelease.yaml/values.yaml scope: ollama ships
+  // helmrelease-1.yaml / helmrelease-2.yaml, which would otherwise go untracked.
   "helm-values": {
-    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"]
+    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"],
   },
   kubernetes: {
-    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"]
+    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"],
   },
 }
