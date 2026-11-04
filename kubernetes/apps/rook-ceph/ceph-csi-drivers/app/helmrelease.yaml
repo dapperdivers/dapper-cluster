@@ -14,7 +14,7 @@ spec:
       chart: ceph-csi-drivers
       # Keep in step with the ceph-csi-operator subchart bundled in the
       # rook-ceph operator chart (v1.20.9 bundles 1.0.4)
-      version: 1.0.4
+      version: 1.1.0
       sourceRef:
         kind: HelmRepository
         name: ceph-csi-operator
