@@ -27,6 +27,20 @@ spec:
       - ip: "10.150.0.3"
       - ip: "10.150.0.4"
 
+  # CephX keys for the CSI users (client.csi-{rbd,cephfs}-{node,provisioner}).
+  # Rook owns these users and the rook-csi-* secrets (it has the admin key).
+  # Bumping keyGeneration creates client.csi-*.<gen> users and switches the
+  # secrets; keepPriorKeyCountMax keeps the previous generation valid so
+  # existing kernel mounts keep working until the nodes are rebooted.
+  # aes256k needs ceph-csi >= 3.17.1 and the Talos 1.14 kernel (CVE-2025-30156)
+  security:
+    cephx:
+      csi:
+        keyRotationPolicy: KeyGeneration
+        keyGeneration: 1
+        keepPriorKeyCountMax: 1
+        keyType: aes256k
+
   # CSI driver configuration
   # Note: CephFS StorageClasses use the kernel mounter (Talos ships the ceph module again);
   # all CephFS PVs are kernel-mounted since 2026-11-03 (last FUSE PVs recreated).
