@@ -32,13 +32,15 @@ spec:
   # Bumping keyGeneration creates client.csi-*.<gen> users and switches the
   # secrets; keepPriorKeyCountMax keeps the previous generation valid so
   # existing kernel mounts keep working until the nodes are rebooted.
+  # To rotate: bump keyGeneration with keepPriorKeyCountMax: 1, reboot the
+  # workers, then set it back to 0 so Rook deletes the old generation.
   # aes256k needs ceph-csi >= 3.17.1 and the Talos 1.14 kernel (CVE-2025-30156)
   security:
     cephx:
       csi:
         keyRotationPolicy: KeyGeneration
         keyGeneration: 1
-        keepPriorKeyCountMax: 1
+        keepPriorKeyCountMax: 0
         keyType: aes256k
 
   # CSI driver configuration
