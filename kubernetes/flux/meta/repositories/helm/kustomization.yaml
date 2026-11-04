@@ -8,7 +8,6 @@ resources:
   - ./ceph-csi-operator.yaml
   - ./controlplaneio.yaml
   - ./coredns.yaml
-  - ./dragonfly.yaml
   - ./dcgm-exporter.yaml
   - ./emqx.yaml
   - ./external-secrets.yaml
@@ -20,11 +19,8 @@ resources:
   - ./loft-sh.yaml
   - ./node-feature-discovery.yaml
   - ./nvidia.yaml
-  - ./ollama.yaml
   - ./piraeus.yaml
   - ./prometheus-community.yaml
   - ./rook.yaml
-  - ./spegel.yaml
-  - ./vllm.yaml
   - ./nats.yaml
   - ./roundtable.yaml
