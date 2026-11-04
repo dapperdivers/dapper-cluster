@@ -339,12 +339,15 @@ spec:
                     c.hooks.token = process.env.MOLT_HOOKS_TOKEN;
                     c.hooks.path = '/hooks';
                     c.hooks.mappings = Array.isArray(c.hooks.mappings) ? c.hooks.mappings : [];
+                    // Build openclaw's mustache placeholders at runtime: a literal
+                    // double-brace here is evaluated by app-template >= 5.3's tpl pass.
+                    const ph = k => '{' + '{ payload.' + k + ' }' + '}';
                     const rtMapping = {
                       id: 'roundtable',
                       match: { path: 'roundtable' },
                       action: 'wake',
                       wakeMode: 'now',
-                      textTemplate: 'Round Table {{ payload.kind }} \"{{ payload.name }}\" finished with phase {{ payload.phase }} (requested by {{ payload.context.requestedBy }}, session {{ payload.context.sessionKey }}). Output: {{ payload.output }} — full output in NATS KV if truncated. Relay the outcome to Derek in the originating conversation.'
+                      textTemplate: 'Round Table ' + ph('kind') + ' \"' + ph('name') + '\" finished with phase ' + ph('phase') + ' (requested by ' + ph('context.requestedBy') + ', session ' + ph('context.sessionKey') + '). Output: ' + ph('output') + ' — full output in NATS KV if truncated. Relay the outcome to Derek in the originating conversation.'
                     };
                     const rtIdx = c.hooks.mappings.findIndex(m => m && m.id === 'roundtable');
                     if (rtIdx >= 0) c.hooks.mappings[rtIdx] = rtMapping; else c.hooks.mappings.push(rtMapping);
