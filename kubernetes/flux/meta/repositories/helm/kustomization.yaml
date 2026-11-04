@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./authentik.yaml
   - ./backube.yaml
+  - ./ceph-csi-operator.yaml
   - ./controlplaneio.yaml
   - ./coredns.yaml
   - ./dragonfly.yaml

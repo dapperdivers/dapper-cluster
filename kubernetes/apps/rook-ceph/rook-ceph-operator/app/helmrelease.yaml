@@ -12,7 +12,7 @@ spec:
   chart:
     spec:
       chart: rook-ceph
-      version: v1.19.12
+      version: v1.20.9
       sourceRef:
         kind: HelmRepository
         name: rook
@@ -28,28 +28,6 @@ spec:
   values:
     crds:
       enabled: true
-
-    csi:
-      # RBD driver enabled for block storage (rook-pvc-pool)
-      enableRbdDriver: true
-      # Enable CephFS driver for shared filesystem storage
-      enableCephfsDriver: true
-
-      # Use kernel mount for CephFS (available in Talos v1.11+)
-      # Talos v1.11+ includes the ceph kernel module and has IMA disabled
-      # Kernel mounts are faster and handle concurrent mounts better than FUSE
-      forceCephFSKernelClient: true
-
-      # Increase timeouts for external Ceph cluster (default: 150s)
-      # External clusters may have higher latency than co-located Ceph
-      # Converted from csiGRPCTimeout to grpcTimeoutInSeconds (600s = 10m)
-      grpcTimeoutInSeconds: 600
-
-      # Increase Kubernetes API rate limits for snapshot controller
-      # Default: 5 QPS, 10 burst - too low for large snapshot backlogs
-      # With 71+ concurrent snapshots, controller hits throttling
-      kubeApiQPS: 100
-      kubeApiBurst: 200
 
     # Enable monitoring
     monitoring:

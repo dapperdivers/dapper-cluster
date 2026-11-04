@@ -6,7 +6,7 @@ This directory contains the configuration for connecting Kubernetes to an extern
 
 **Status**: ✅ PRODUCTION
 
-This configuration connects the Kubernetes cluster to an external Ceph 19.2.x (Squid) cluster via Rook v1.19.x in external mode. Both RBD and CephFS storage drivers are active and operational. CephFS uses three data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
+This configuration connects the Kubernetes cluster to an external Ceph 19.2.x (Squid) cluster via Rook v1.20.x in external mode. Both RBD and CephFS storage drivers are active and operational. CephFS uses three data pools: `cephfs_data`, `cephfs_media`, and `cephfs_backups`.
 
 ### External Ceph Cluster
 
@@ -17,7 +17,7 @@ This configuration connects the Kubernetes cluster to an external Ceph 19.2.x (S
 
 ### Rook Configuration
 
-- **Rook Version**: v1.19.12
+- **Rook Version**: v1.20.9 (CSI via ceph-csi-operator + the `ceph-csi-drivers` chart)
 - **Operator**: Deployed via Helm
 - **CSI Drivers**: Both RBD and CephFS enabled
 - **Default Storage Class**: `ceph-rbd` (RBD)
@@ -33,7 +33,7 @@ rook-ceph/
 │   └── app/
 │       ├── kustomization.yaml
 │       ├── namespace.yaml            # rook-ceph namespace
-│       └── helmrelease.yaml          # Rook operator Helm release (v1.19.12)
+│       └── helmrelease.yaml          # Rook operator Helm release (v1.20.9)
 └── rook-ceph-cluster/                # External cluster configuration
     ├── ks.yaml                       # Flux Kustomization
     └── app/
