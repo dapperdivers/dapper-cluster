@@ -30,6 +30,14 @@
       allowedVersions: "/^v19\\./",
     },
     {
+      // CNPG Cluster imageName is newly tracked via the home-operations cnpg preset.
+      // A Postgres major is a data migration (new cluster / pg_upgrade), never a
+      // drive-by image bump — keep Renovate on 17.x minors until that's planned.
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
+      allowedVersions: "/^17\\./",
+    },
+    {
       // Stay on emqx-operator 2.3.x - 3.0 introduces another CRD storage migration (v3beta1).
       matchDatasources: ["helm"],
       matchPackageNames: ["emqx-operator"],
