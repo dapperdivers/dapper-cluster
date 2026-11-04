@@ -9,7 +9,10 @@ on:
       - .renovaterc.json5
       - .renovate/**.json5
   schedule:
-    - cron: "0 * * * *" # Every hour
+    # Twice an hour, off the top of the hour: GitHub sheds :00 schedules under
+    # load (the old "0 * * * *" fired roughly every 7h). Renovate merges a green
+    # automerge PR on its *next* run, so cadence here = automerge latency.
+    - cron: "17,47 * * * *"
   workflow_dispatch:
     inputs:
       dryRun:
