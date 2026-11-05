@@ -67,7 +67,12 @@ jobs:
           LOG_LEVEL: "${{ inputs.logLevel || 'debug' }}"
           RENOVATE_AUTODISCOVER: true
           RENOVATE_AUTODISCOVER_FILTER: "${{ github.repository }}"
-          RENOVATE_BASE_DIR: /tmp/renovate
+          # Persistent /cache volume (runner-set hook template): keep the clone,
+          # repository cache, package cache and downloaded tools between runs so
+          # only deltas cross the WAN. Cold runs were ~2.5x slower than GitHub.
+          RENOVATE_BASE_DIR: /cache/renovate
+          RENOVATE_PERSIST_REPO_DATA: true
+          RENOVATE_REPOSITORY_CACHE: enabled
           RENOVATE_DRY_RUN: "${{ inputs.dryRun }}"
           RENOVATE_INTERNAL_CHECKS_FILTER: strict
           RENOVATE_PLATFORM: github
