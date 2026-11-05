@@ -109,7 +109,6 @@
         // Database
         "/cloudnative-pg/",
         "/dragonfly/",
-        "/emqx/",
       ],
       minimumReleaseAge: "12 hours",
       ignoreTests: false,
@@ -249,6 +248,14 @@
     {
       description: "Disable automerge for dapperdivers images",
       matchPackageNames: ["/dapperdivers/"],
+      automerge: false,
+    },
+    {
+      description: "Disable automerge for EMQX (broker + operator)",
+      // The emqx-operator can't roll even patch bumps: 6.2.3 wedged the broker
+      // for 8 days (rolled back in #4070; #4072 closed). EMQX carries all
+      // Zigbee/HA control traffic, so every bump is a watched, manual merge.
+      matchPackageNames: ["/emqx/"],
       automerge: false,
     },
     {
