@@ -34,12 +34,12 @@ permissions:
 jobs:
   main:
     name: Renovate
-    # In-cluster ARC runner. The `container:` below matters: in ARC kubernetes
-    # mode it makes the runner launch a SEPARATE job pod for these steps, so
-    # Renovate never runs inside the runner pod (which mounts the Talos
-    # os:admin secret for pre-pull-images). The job pod uses the namespace's
-    # default ServiceAccount, which has no RBAC.
-    runs-on: dapper-cluster-runner
+    # In-cluster, UNPRIVILEGED ARC runner set (no Talos mount, namespaced RBAC
+    # only). `container:` makes kube-mode run the steps in a separate job pod;
+    # the runner set's hook template runs it as the runner uid with no
+    # ServiceAccount token. See
+    # kubernetes/apps/actions-runner-system/actions-runner-controller/runners/dapper-cluster-unprivileged/
+    runs-on: dapper-cluster-unprivileged
     container:
       image: ghcr.io/renovatebot/renovate:44.216.1@sha256:5b22aef2bf23e861a9eea10db05392122f49aa43ec298d3a5ea207cf374d08ec
     permissions:
