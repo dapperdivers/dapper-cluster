@@ -6,14 +6,9 @@ metadata:
   name: headlamp
 spec:
   interval: 1h
-  chart:
-    spec:
-      chart: headlamp
-      version: 0.46.0
-      sourceRef:
-        kind: HelmRepository
-        name: headlamp
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: headlamp
   install:
     remediation:
       retries: 3

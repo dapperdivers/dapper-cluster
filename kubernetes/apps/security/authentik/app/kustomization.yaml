@@ -8,5 +8,6 @@ resources:
   - ./blueprints.yaml
   - ./blueprints-oidc.yaml
   - ./helmrelease.yaml
+  - ./ocirepository.yaml
   - ./httproute.yaml
   - ./referencegrant-kube-system.yaml

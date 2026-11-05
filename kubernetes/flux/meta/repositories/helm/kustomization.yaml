@@ -3,24 +3,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./authentik.yaml
-  - ./backube.yaml
-  - ./ceph-csi-operator.yaml
-  - ./controlplaneio.yaml
-  - ./coredns.yaml
-  - ./dcgm-exporter.yaml
   - ./emqx.yaml
-  - ./external-secrets.yaml
-  - ./fairwinds.yaml
-  - ./headlamp.yaml
   - ./infisical.yaml
-  - ./intel.yaml
-  - ./kyverno.yaml
   - ./loft-sh.yaml
-  - ./node-feature-discovery.yaml
-  - ./nvidia.yaml
-  - ./piraeus.yaml
-  - ./prometheus-community.yaml
-  - ./rook.yaml
   - ./nats.yaml
-  - ./roundtable.yaml

@@ -6,4 +6,5 @@ resources:
   - nix-store-pvc.yaml
   - nix-buildqueue-pvc.yaml
   - helmrelease.yaml
+  - ocirepository.yaml
   - httproute.yaml

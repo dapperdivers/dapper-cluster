@@ -148,9 +148,37 @@ spec:
         type: emptyDir
 ```
 
-#### helmrelease.yaml (traditional HelmRepository chart)
+#### ocirepository.yaml + helmrelease.yaml (vendor chart)
 
-For apps that use their own Helm chart (not app-template):
+For apps that use their own Helm chart (not app-template). **Charts come from an
+OCIRepository next to the HelmRelease, not a classic HelmRepository** (repo-wide
+since 2026-11-04). Find the OCI ref in this order:
+
+1. Upstream OCI (e.g. `oci://ghcr.io/<org>/charts/<chart>`)
+2. `oci://ghcr.io/home-operations/charts-mirror/<chart>` (community mirror of HTTP-only charts)
+3. Only if neither exists: a classic HelmRepository in `kubernetes/flux/meta/repositories/helm/`
+   **with `metadata.namespace: flux-system`** (Renovate can't track it otherwise)
+
+Verify the ref is a chart at your version before using it:
+`docker buildx imagetools inspect --raw <ref>:<version> | jq -r .config.mediaType`
+→ must print `application/vnd.cncf.helm.config.v1+json`.
+
+```yaml
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: <chart-name>
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: <version>
+  url: oci://ghcr.io/<org>/charts/<chart-name>
+```
 
 ```yaml
 ---
@@ -161,14 +189,9 @@ metadata:
   name: <app-name>
 spec:
   interval: 30m
-  chart:
-    spec:
-      chart: <chart-name>
-      version: <version>
-      sourceRef:
-        kind: HelmRepository
-        name: <repo-name>
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: <chart-name>
   install:
     remediation:
       retries: 3
@@ -181,7 +204,7 @@ spec:
     # Chart-specific values here
 ```
 
-Note: Non-app-template charts need a HelmRepository defined. Check if one exists in `kubernetes/flux/meta/` or create one.
+List `./ocirepository.yaml` in `app/kustomization.yaml` alongside `./helmrelease.yaml`.
 
 #### app/kustomization.yaml
 

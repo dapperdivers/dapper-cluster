@@ -222,15 +222,28 @@
         "cloudflared",
         "k8s-gateway",
         "coredns",
+        // Regex forms too: OCI charts extract as full paths
+        // (ghcr.io/coredns/charts/coredns), which the exact names above miss.
         "/cilium/",
         "/nginx/",
         "/cloudflare/",
+        "/coredns/",
+        "/external-dns/",
+        "/k8s-gateway/",
       ],
       automerge: false,
     },
     {
       description: "Disable automerge for storage packages",
-      matchPackageNames: ["openebs", "volsync", "minio", "/openebs/", "/minio/", "/rook/"],
+      matchPackageNames: [
+        "openebs",
+        "volsync",
+        "minio",
+        "/openebs/",
+        "/minio/",
+        "/rook/",
+        "/volsync/",
+      ],
       automerge: false,
     },
     {
