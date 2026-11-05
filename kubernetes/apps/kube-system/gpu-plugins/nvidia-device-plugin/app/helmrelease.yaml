@@ -6,15 +6,9 @@ metadata:
   name: nvidia-device-plugin
 spec:
   interval: 30m
-  chart:
-    spec:
-      chart: nvidia-device-plugin
-      version: 0.20.1
-      sourceRef:
-        kind: HelmRepository
-        name: nvidia-charts
-        namespace: flux-system
-      interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: nvidia-device-plugin
   install:
     crds: CreateReplace
     remediation:

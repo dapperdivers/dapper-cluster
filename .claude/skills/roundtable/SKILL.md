@@ -30,7 +30,7 @@ All CRs are `ai.roundtable.io/v1alpha1`. CRDs come from the chart
 The most common roundtable commit. In `operator/app/helmrelease.yaml`, **two pins move
 together**:
 
-- `spec.chart.spec.version` — chart version (HelmRepository: `kubernetes/flux/meta/repositories/helm/roundtable.yaml`)
+- `operator/app/ocirepository.yaml` `spec.ref.tag` — chart version (OCIRepository `oci://ghcr.io/dapperdivers/charts/roundtable-operator`)
 - `spec.values.image.tag` — operator image, pinned to the **full git SHA** from the
   roundtable repo (`git -C ~/projects/roundtable log -1 --format=%H` once CI has published it)
 

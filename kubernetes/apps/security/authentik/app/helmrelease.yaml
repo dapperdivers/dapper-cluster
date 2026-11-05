@@ -6,15 +6,9 @@ metadata:
   name: authentik
 spec:
   interval: 30m
-  chart:
-    spec:
-      chart: authentik
-      version: 2026.8.5
-      sourceRef:
-        kind: HelmRepository
-        name: authentik
-        namespace: flux-system
-      interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: authentik
   values:
     # Declarative Authentik config delivered to the worker. Keys ending in .yaml
     # inside this ConfigMap are discovered + applied as blueprints.

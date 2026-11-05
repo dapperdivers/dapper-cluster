@@ -94,7 +94,8 @@ Each application follows this standardized structure:
 ├── ks.yaml                        # Flux Kustomization (sync definition)
 ├── app/                           # Main application resources
 │   ├── kustomization.yaml         # Lists all app resources
-│   ├── helmrelease.yaml          # HelmRelease + HelmRepository
+│   ├── helmrelease.yaml          # HelmRelease (chartRef → OCIRepository)
+│   ├── ocirepository.yaml        # Chart source (vendor charts; app-template comes from common)
 │   ├── helm/                     # Helm configuration (if needed)
 │   │   ├── values.yaml           # Helm values
 │   │   └── kustomizeconfig.yaml  # Kustomize configuration
@@ -117,7 +118,8 @@ Each application follows this standardized structure:
 
 - **`ks.yaml`**: Flux Kustomization (always at app root level)
 - **`kustomization.yaml`**: Kustomize resource lists (in each directory)
-- **`helmrelease.yaml`**: Combined HelmRepository + HelmRelease definitions
+- **`helmrelease.yaml`**: HelmRelease using `chartRef` to an OCIRepository
+- **`ocirepository.yaml`**: OCI chart source for vendor charts (upstream OCI, else `ghcr.io/home-operations/charts-mirror`); classic HelmRepositories are legacy-only
 - **`values.yaml`**: Helm chart values (in `helm/` subdirectory)
 - **`kustomizeconfig.yaml`**: Kustomize configuration (in `helm/` subdirectory)
 
