@@ -23,10 +23,6 @@ on:
         description: Log Level
         default: debug
         required: false
-      version:
-        description: Renovate version
-        default: latest
-        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
@@ -38,7 +34,14 @@ permissions:
 jobs:
   main:
     name: Renovate
-    runs-on: ubuntu-latest
+    # In-cluster ARC runner. The `container:` below matters: in ARC kubernetes
+    # mode it makes the runner launch a SEPARATE job pod for these steps, so
+    # Renovate never runs inside the runner pod (which mounts the Talos
+    # os:admin secret for pre-pull-images). The job pod uses the namespace's
+    # default ServiceAccount, which has no RBAC.
+    runs-on: dapper-cluster-runner
+    container:
+      image: ghcr.io/renovatebot/renovate:44.216.1@sha256:5b22aef2bf23e861a9eea10db05392122f49aa43ec298d3a5ea207cf374d08ec
     permissions:
       contents: read
       packages: read
@@ -57,22 +60,17 @@ jobs:
           permission-statuses: write
           permission-workflows: write
 
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          token: "${{ steps.app-token.outputs.token }}"
-
+      # No checkout: Renovate clones the repo itself. The image is pinned by
+      # digest (Renovate bumps it) instead of the old `renovate-version: latest`.
       - name: Run Renovate
-        uses: renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc # v46.3.12
         env:
           LOG_LEVEL: "${{ inputs.logLevel || 'debug' }}"
           RENOVATE_AUTODISCOVER: true
           RENOVATE_AUTODISCOVER_FILTER: "${{ github.repository }}"
+          RENOVATE_BASE_DIR: /tmp/renovate
           RENOVATE_DRY_RUN: "${{ inputs.dryRun }}"
           RENOVATE_INTERNAL_CHECKS_FILTER: strict
           RENOVATE_PLATFORM: github
           RENOVATE_PLATFORM_COMMIT: true
-        with:
-          token: "${{ steps.app-token.outputs.token }}"
-          renovate-version: "${{ inputs.version || 'latest' }}"
+          RENOVATE_TOKEN: "${{ steps.app-token.outputs.token }}"
+        run: renovate
