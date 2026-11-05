@@ -30,7 +30,6 @@ Multiple Claude Code sessions often run against this repo at once. To avoid bran
 - **`cert-manager/`** - TLS certificate management
 - **`database/`** - Database services (CloudNative-PG, Dragonfly Redis, EMQX, NATS)
 - **`default/`** - Default namespace applications
-- **`dev/`** - Development tooling
 - **`external-secrets/`** - External secrets management
 - **`flux-system/`** - Flux CD GitOps operator
 - **`home-automation/`** - Home automation stack (ESPHome, Home Assistant, Node-RED, Zigbee2MQTT)

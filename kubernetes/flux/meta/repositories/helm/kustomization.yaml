@@ -5,5 +5,4 @@ kind: Kustomization
 resources:
   - ./emqx.yaml
   - ./infisical.yaml
-  - ./loft-sh.yaml
   - ./nats.yaml
