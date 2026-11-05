@@ -1,0 +1,26 @@
+---
+# ARC kubernetes-mode container hook template, merged into each job-container
+# pod (jobs that declare `container:`).
+# - runAsUser 1001 = the runner's uid, which owns the shared /__w work dir, so
+#   steps can write GitHub Actions file commands (GITHUB_OUTPUT/ENV). Images
+#   like renovate run as their own uid by default and hit EACCES there.
+# - runAsGroup 0: containerbase images (renovate) keep their tool dirs
+#   group-0-writable for arbitrary uids.
+# - no ServiceAccount token: these jobs never talk to the Kubernetes API.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dapper-cluster-unprivileged-pod-templates
+data:
+  job.yaml: |
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: $job
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+          env:
+            - name: HOME
+              value: /tmp
