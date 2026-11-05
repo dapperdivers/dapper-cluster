@@ -24,7 +24,7 @@ Read the helmrelease.yaml and determine:
 
 - **app-template**: uses `chartRef: { kind: OCIRepository, name: app-template }` — provided by the common component's repos
 - **Vendor chart (standard)**: uses `chartRef: { kind: OCIRepository, name: <chart> }` with an `ocirepository.yaml` next to the HelmRelease
-- **Legacy chart**: uses `chart.spec` with a `HelmRepository` sourceRef — only emqx-operator, nats, infisical secrets-operator, vcluster (no OCI published); don't add new ones
+- **Legacy chart**: uses `chart.spec` with a `HelmRepository` sourceRef — only emqx-operator, nats, infisical secrets-operator (no OCI published); don't add new ones
 - Current error messages from the cluster
 
 ### 3. Validate Against Schema
