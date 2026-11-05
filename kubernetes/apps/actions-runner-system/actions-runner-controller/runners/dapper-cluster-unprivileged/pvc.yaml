@@ -1,0 +1,17 @@
+---
+# Persistent workspace for job containers on the unprivileged runner set
+# (mounted at /cache by the hook template). Renovate keeps its clone
+# (persistRepoData), repository cache, package cache and containerbase tool
+# downloads here, so runs only fetch deltas over the WAN instead of starting
+# cold. RWX (cephfs) because job pods for different workflows can land on
+# different nodes at the same time; workflows use their own subdirectory.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dapper-cluster-unprivileged-cache
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: cephfs-shared
+  resources:
+    requests:
+      storage: 20Gi
