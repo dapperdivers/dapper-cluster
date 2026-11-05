@@ -4,6 +4,8 @@
 # node access (Renovate first; labeler/docs/tag can follow). Unlike
 # dapper-cluster-runner it mounts no Talos credentials, and its job containers
 # get no ServiceAccount token. runs-on: dapper-cluster-unprivileged
+# Currently unused (standby, minRunners 0) - see #4585 for why Renovate stays
+# on GitHub-hosted runners.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -39,8 +41,9 @@ spec:
       valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_PRIVATE_KEY
   values:
     githubConfigUrl: https://github.com/dapperdivers/dapper-cluster
-    # One warm runner so scheduled/dispatched jobs start immediately.
-    minRunners: 1
+    # Standby: no idle runner. Renovate stays on GitHub-hosted (in-cluster was
+    # ~2x slower, #4585); scale up from 0 only when a job targets this set.
+    minRunners: 0
     maxRunners: 4
     containerMode:
       type: kubernetes
