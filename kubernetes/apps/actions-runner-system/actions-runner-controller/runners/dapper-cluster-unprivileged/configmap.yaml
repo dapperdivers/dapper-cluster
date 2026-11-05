@@ -7,6 +7,8 @@
 # - runAsGroup 0: containerbase images (renovate) keep their tool dirs
 #   group-0-writable for arbitrary uids.
 # - no ServiceAccount token: these jobs never talk to the Kubernetes API.
+# - /cache = persistent RWX workspace (pvc.yaml) so runs start warm; fsGroup
+#   1001 makes it writable (and adds gid 1001 as a supplemental group).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -15,6 +17,9 @@ data:
   job.yaml: |
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: $job
           securityContext:
@@ -24,3 +29,10 @@ data:
           env:
             - name: HOME
               value: /tmp
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: dapper-cluster-unprivileged-cache
