@@ -1,0 +1,83 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+# Unprivileged runner set for dapper-cluster workflows that need NO cluster or
+# node access (Renovate first; labeler/docs/tag can follow). Unlike
+# dapper-cluster-runner it mounts no Talos credentials, and its job containers
+# get no ServiceAccount token. runs-on: dapper-cluster-unprivileged
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app dapper-cluster-unprivileged
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: gha-runner-scale-set
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: actions-runner-controller
+      namespace: actions-runner-system
+  valuesFrom:
+    - targetPath: githubConfigSecret.github_app_id
+      kind: Secret
+      name: actions-runner-controller-secret
+      valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_APP_ID
+    - targetPath: githubConfigSecret.github_app_installation_id
+      kind: Secret
+      name: actions-runner-controller-secret
+      valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_INSTALLATION_ID
+    - targetPath: githubConfigSecret.github_app_private_key
+      kind: Secret
+      name: actions-runner-controller-secret
+      valuesKey: ACTION_RUNNER_CONTROLLER_GITHUB_PRIVATE_KEY
+  values:
+    githubConfigUrl: https://github.com/dapperdivers/dapper-cluster
+    # One warm runner so scheduled/dispatched jobs start immediately.
+    minRunners: 1
+    maxRunners: 4
+    containerMode:
+      type: kubernetes
+      kubernetesModeWorkVolumeClaim:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: cephfs-shared
+        resources:
+          requests:
+            storage: 10Gi
+    controllerServiceAccount:
+      name: actions-runner-controller
+      namespace: actions-runner-system
+    template:
+      spec:
+        initContainers:
+          - name: kube-init
+            image: ghcr.io/actions/actions-runner:latest
+            command: ["sudo", "chown", "-R", "1001:1001", "/home/runner/_work"]
+            volumeMounts:
+              - name: work
+                mountPath: /home/runner/_work
+        containers:
+          - name: runner
+            image: ghcr.io/home-operations/actions-runner:2.338.2@sha256:2dd7caa094a425c041539447cb0e6ae63cda10b5242773764683b695b8fa5613
+            command: ["/home/runner/run.sh"]
+            env:
+              - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+                value: "false"
+              # Pod template merged into every job-container pod (see configmap).
+              - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
+                value: /home/runner/pod-templates/job.yaml
+            volumeMounts:
+              - name: pod-templates
+                mountPath: /home/runner/pod-templates
+                readOnly: true
+        serviceAccountName: *app
+        volumes:
+          - name: pod-templates
+            configMap:
+              name: dapper-cluster-unprivileged-pod-templates

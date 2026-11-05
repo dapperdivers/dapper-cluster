@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - ./chelonianlabs
   - ./dapper-cluster
+  - ./dapper-cluster-unprivileged
