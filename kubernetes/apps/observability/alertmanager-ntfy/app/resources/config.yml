@@ -31,9 +31,14 @@ ntfy:
         X-Tags: |-
           {{ if eq .Status "resolved" }}white_check_mark{{ else if eq (index .Labels "severity") "critical" }}rotating_light{{ else if eq (index .Labels "severity") "warning" }}warning{{ else }}information_source{{ end }}{{ if index .Labels "namespace" }},{{ index .Labels "namespace" }}{{ end }}
         # Tapping the notification opens the Prometheus graph for this alert's query.
+        # Flux notification-controller alerts arrive with an EMPTY generatorURL,
+        # so fall back to Alertmanager instead of a dead link.
         X-Click: |-
-          {{ .GeneratorURL }}
+          {{ if .GeneratorURL }}{{ .GeneratorURL }}{{ else }}https://alertmanager.chelonianlabs.com{{ end }}
         # Action buttons (ntfy allows up to 3): jump to Prometheus, the Grafana
         # Alert History dashboard, or a pre-filled Alertmanager silence for this alert.
+        # The Prometheus button is only added when generatorURL is set: ntfy rejects the
+        # WHOLE message (HTTP 400) if any action has an empty URL, which is what silently
+        # dropped every Flux alert (the 2026-09 "bridge 400 on the Flux group").
         X-Actions: |-
-          view, Prometheus, {{ .GeneratorURL }}; view, Grafana, https://grafana.chelonianlabs.com/d/alert-history; view, Silence, https://alertmanager.chelonianlabs.com/#/silences/new?filter=%7Balertname%3D%22{{ index .Labels "alertname" }}%22%7D
+          {{ if .GeneratorURL }}view, Prometheus, {{ .GeneratorURL }}; {{ end }}view, Grafana, https://grafana.chelonianlabs.com/d/alert-history; view, Silence, https://alertmanager.chelonianlabs.com/#/silences/new?filter=%7Balertname%3D%22{{ index .Labels "alertname" }}%22%7D
