@@ -86,20 +86,9 @@ spec:
               "ACT-f7e803b2-e858-4112-b420-554f3414b471": 141,
               "ACT-5834d694-6064-4233-b606-e76a502ed248": 163,
               "ACT-72395f2a-49c5-4317-bd2c-8f984934628b": 159,
-              "ACT-f7db2f92-d087-46f1-9558-ddd364cdcebf": 0
+              "ACT-f7db2f92-d087-46f1-9558-ddd364cdcebf": 313
             },
-            "new_accounts": {
-              "ACT-f7db2f92-d087-46f1-9558-ddd364cdcebf": {
-                "create": "1",
-                "name": "HSA",
-                "type": "asset",
-                "account_role": "savingAsset",
-                "liability_type": "",
-                "liability_direction": "",
-                "opening_balance": "0",
-                "currency": "USD"
-              }
-            },
+            "new_accounts": {},
             "date_range": "partial",
             "date_range_number": 90,
             "date_range_unit": "d",
