@@ -1,0 +1,45 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: job-alerts
+spec:
+  groups:
+    - name: job-alerts.rules
+      rules:
+        # One alert per CronJob, only while its most recent run failed: the last
+        # schedule is newer than the last success (or it never succeeded) and no
+        # run is active. Resolves by itself on the next successful run.
+        - alert: CronJobLastRunFailed
+          expr: |
+            (
+              (kube_cronjob_status_last_schedule_time > kube_cronjob_status_last_successful_time)
+              or
+              (kube_cronjob_status_last_schedule_time unless on (namespace, cronjob) kube_cronjob_status_last_successful_time)
+            )
+            and on (namespace, cronjob) (kube_cronjob_status_active == 0)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} last run failed
+            description: >-
+              The most recent run of CronJob {{ $labels.namespace }}/{{ $labels.cronjob }}
+              did not succeed. Check the newest Job's pod logs
+              (kubectl -n {{ $labels.namespace }} get jobs --sort-by=.status.startTime).
+        # Stock KubeJobFailed (disabled in helmrelease.yaml), limited to Jobs NOT
+        # owned by a CronJob (one-off Jobs: VolSync movers, migrations, hooks).
+        - alert: KubeJobFailed
+          expr: |
+            kube_job_failed{job="kube-state-metrics", condition="true"} > 0
+              unless on (namespace, job_name)
+            kube_job_owner{owner_kind="CronJob"}
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+            description: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed to complete.
+              Removing the failed Job object clears the alert.

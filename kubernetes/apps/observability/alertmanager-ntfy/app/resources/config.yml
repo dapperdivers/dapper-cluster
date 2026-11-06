@@ -4,11 +4,15 @@ ntfy:
   baseurl: http://ntfy.network.svc.cluster.local:8080
   notification:
     # Topic routing via gval expression (alexbakker/alertmanager-ntfy v1.2.1):
-    # media-namespace alerts (Plex) -> "plex" topic; everything else stays on
-    # "alertmanager". A plain word stays literal; this expression is auto-detected
-    # because it contains chars outside ^[-_A-Za-z0-9]{1,64}$. Accessor verified
-    # against source: labels["<name>"] (top-level, JSON-tag keys).
-    topic: 'labels["namespace"] == "media" ? "plex" : "alertmanager"'
+    # alerts Alertmanager sends to the `ntfy-plex` receiver (namespace=media,
+    # see alertmanagerconfig.yaml) -> "plex" topic; everything else ->
+    # "alertmanager". Keyed on payload.receiver, which is always present.
+    # Do NOT key on labels["<name>"]: the bridge exposes labels as a raw
+    # map[string]string (fatih/structs), and gval errors with "unknown
+    # parameter labels.<name>" when the label is missing (`??` doesn't help).
+    # That made every alert without a namespace label (TargetDown, absent-metric
+    # alerts...) 502, which raised AlertmanagerFailedToSendAlerts -> pushover.
+    topic: 'payload.receiver =~ "ntfy-plex" ? "plex" : "alertmanager"'
     templates:
       # Title: severity emoji + alert name, scannable at a glance.
       title: |-

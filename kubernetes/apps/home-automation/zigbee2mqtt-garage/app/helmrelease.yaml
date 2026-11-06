@@ -34,6 +34,11 @@ spec:
 
     controllers:
       zigbee2mqtt-garage:
+        # Parked 2026-11-06: the garage coordinator (TubesZB, 192.168.1.9, Brocade
+        # 1/1/47 "Zigbee-Router") isn't plugged in at Clayton yet, so the pod only
+        # crash-looped and alerted. Config + pairing data stay on the PVC. To revive:
+        # plug it in, remove this line (recipe: ESP restart THEN module reset).
+        replicas: 0
         annotations:
           reloader.stakater.com/auto: "true"
         containers:

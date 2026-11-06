@@ -50,8 +50,7 @@ spec:
       module:
         - if_mib
       # auth "ro_v2" comes from the secret-mounted fragment; "public_v2" is the
-      # image default (community: public), used for the CSS326 until its
-      # community is changed in the SwOS web UI.
+      # image default (community: public), was used for the CSS326.
       params:
         - name: brocade-core # 192.168.1.20 ICX6610 core / L3
           target: 192.168.1.20
@@ -59,18 +58,10 @@ spec:
         - name: arista-dist # 192.168.1.21 7050 distribution (Ceph 40G)
           target: 192.168.1.21
           auth: ["ro_v2"]
-        - name: aruba-access # 192.168.1.26 S2500 house access / PoE
-          target: 192.168.1.26
-          auth: ["ro_v2"]
-        - name: nray-house # 192.168.1.7 60GHz bridge (house)
-          target: 192.168.1.7
-          auth: ["ro_v2"]
-        - name: nray-shop # 192.168.1.8 60GHz bridge (garage)
-          target: 192.168.1.8
-          auth: ["ro_v2"]
-        - name: css326-bridge # 192.168.1.27 SwOS bridge aggregation
-          target: 192.168.1.27
-          auth: ["public_v2"]
+        # Not at 301 Clayton (unreachable since the 2026-11-02 move, so they only
+        # produced TargetDown noise): aruba-access 192.168.1.26 (S2500), nray-house
+        # 192.168.1.7 + nray-shop 192.168.1.8 (60GHz bridge), css326-bridge
+        # 192.168.1.27 (auth public_v2). Re-add here if any of them is re-deployed.
         - name: opnsense # 10.100.0.1 firewall (VLAN100 gateway); os-net-snmp
           target: 10.100.0.1
           # firewall gets host metrics too: load average (ucd) + RAM/disk (hrStorage)
