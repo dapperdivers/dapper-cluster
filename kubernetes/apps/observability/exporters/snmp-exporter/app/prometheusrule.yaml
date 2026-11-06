@@ -12,12 +12,13 @@ spec:
     - name: snmp-network.rules
       rules:
         # Fires only on ports the operator has DESCRIBED with an infra keyword
-        # (uplink/lag/po#/trunk/ceph/bridge/core/sfp) so unused, undescribed
+        # (uplink/lag/po#/trunk/ceph/bridge/core/sfp, or a Proxmox host port named
+        # pxNN-… / nicNNg… as set 2026-11-06) so unused, undescribed
         # access ports never alarm. Set ifAlias (port description) on the
         # uplink / LAG-member / Ceph links you care about to arm this.
         - alert: SNMPInterfaceDown
           expr: |
-            (ifOperStatus{ifAlias=~"(?i).*(uplink|lag|lacp|po\\d|port-?channel|trunk|ceph|bridge|core|sfp).*"} == 2)
+            (ifOperStatus{ifAlias=~"(?i).*(uplink|lag|lacp|po\\d|port-?channel|trunk|ceph|bridge|core|sfp|px\\d+-|nic\\d+g).*"} == 2)
               and on (instance, ifIndex)
             (ifAdminStatus == 1)
           for: 5m

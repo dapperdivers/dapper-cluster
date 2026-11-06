@@ -87,6 +87,14 @@ spec:
           - name: severity
             value: critical
             matchType: =
+      # Media/Plex alerts (any severity) -> the bridge's "plex" ntfy topic. The
+      # bridge picks the topic from the receiver name (payload.receiver), so this
+      # route is what makes the split; criticals already went to pushover above.
+      - receiver: ntfy-plex
+        matchers:
+          - name: namespace
+            value: media
+            matchType: =
       - receiver: ntfy
         matchers:
           - name: severity
@@ -167,6 +175,11 @@ spec:
             key: PUSHOVER_USER_KEY
           urlTitle: View in Alertmanager
     - name: ntfy
+      webhookConfigs:
+        - sendResolved: true
+          url: http://alertmanager-ntfy.observability.svc.cluster.local:8000/hook
+    # Same bridge; the receiver name selects the "plex" topic (see the bridge's config.yml).
+    - name: ntfy-plex
       webhookConfigs:
         - sendResolved: true
           url: http://alertmanager-ntfy.observability.svc.cluster.local:8000/hook

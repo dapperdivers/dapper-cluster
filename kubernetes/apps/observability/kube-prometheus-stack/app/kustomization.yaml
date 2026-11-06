@@ -9,4 +9,4 @@ resources:
   - ./ocirepository.yaml
   - ./httproute.yaml
   - ./paging-drill.yaml
-  - ./scrapeconfig.yaml
+  - ./prometheusrule.yaml

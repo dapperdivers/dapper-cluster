@@ -51,6 +51,13 @@ spec:
         # to fix. Real etcd failures surface via etcdMembersDown /
         # etcdInsufficientMembers / apiserver latency rules.
         etcdHighNumberOfFailedGRPCRequests: true
+        # Replaced by prometheusrule.yaml (job-alerts): the stock rule fires once per
+        # failed Job OBJECT, so a CronJob failing every run produced a new alert plus
+        # a "resolved" each time history rotated (43 of 70 ntfy messages on
+        # 2026-11-06). The replacement alerts once per CronJob while its LAST run
+        # failed, resolves on the next success, and keeps per-Job alerts for
+        # non-cron Jobs.
+        KubeJobFailed: true
     alertmanager:
       alertmanagerSpec:
         # External hostname so notification "View in Alertmanager" links resolve
