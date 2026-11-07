@@ -16,7 +16,7 @@ images:
   # Override ko:// dev image with release image
   - name: ko://sigs.k8s.io/agent-sandbox/cmd/agent-sandbox-controller
     newName: registry.k8s.io/agent-sandbox/agent-sandbox-controller
-    newTag: v1.0.9
+    newTag: v1.0.10
 patches:
   # Add --extensions flag + resource limits to controller deployment
   - target:
