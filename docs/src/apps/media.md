@@ -551,7 +551,7 @@ kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph df
 ### Under Consideration
 
 - **Jellyfin**: Alternative media server for comparison
-- **Readarr**: Book management automation
+- ~~**Readarr**~~: tried as Bookshelf (Readarr fork) and removed 2026-11-07; books are handled by Calibre-Web (`kubernetes/apps/media/calibre-web/`)
 - **Lidarr**: Music management automation
 
 ## References
