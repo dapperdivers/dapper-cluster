@@ -49,6 +49,12 @@ spec:
                 # fits two attempts (backoffLimit 1) inside activeDeadlineSeconds 900.
                 - name: SIMPLEFIN_CONNECTION_TIMEOUT
                   value: "240"
+                # Each run re-fetches ~90 days, so most rows are already imported and the
+                # importer reports each as a "Duplicate of transaction #N" error. With the
+                # default (false) any duplicate makes the run exit GENERAL_ERROR, so every
+                # run fails. This drops only duplicate errors; real errors still fail.
+                - name: IGNORE_DUPLICATE_ERRORS
+                  value: "true"
               envFrom:
                 - secretRef:
                     name: firefly-secret # FIREFLY_III_ACCESS_TOKEN (+ SIMPLEFIN_TOKEN once added)
