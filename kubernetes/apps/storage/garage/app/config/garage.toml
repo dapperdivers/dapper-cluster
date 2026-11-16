@@ -17,7 +17,9 @@ rpc_public_addr = "127.0.0.1:3901"
 
 [s3_api]
 api_bind_addr = "[::]:3900"
-s3_region = "garage"
+# us-east-1 (not Garage's usual "garage"): it's the default region of most S3
+# SDKs (boto3/barman, Kestra), so consumers don't need a region override.
+s3_region = "us-east-1"
 # No root_domain: path-style addressing only (http://garage.storage.svc:3900/<bucket>).
 
 [admin]
