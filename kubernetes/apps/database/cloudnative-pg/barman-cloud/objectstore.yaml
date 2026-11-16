@@ -4,18 +4,23 @@ metadata:
   name: minio-store
   namespace: database
 spec:
+  # Prune base backups (and the WAL they need) older than the recovery window.
+  # Without this barman kept every daily backup forever (327 / 71G by 2026-11).
+  # Applies to the serverName the cluster is archiving to now; older archives
+  # (e.g. postgres-v3 = PG17) are left alone and must be removed by hand.
+  retentionPolicy: "30d"
   configuration:
-      destinationPath: s3://cloudnative-pg/
-      endpointURL: http://minio.storage.svc.cluster.local:9000
-      s3Credentials:
-        accessKeyId:
-          name: cloudnative-pg-minio-secret
-          key: accessKeyId
-        secretAccessKey:
-          name: cloudnative-pg-minio-secret
-          key: secretAccessKey
-      data:
-        compression: bzip2
-      wal:
-        compression: bzip2
-        maxParallel: 8
+    destinationPath: s3://cloudnative-pg/
+    endpointURL: http://minio.storage.svc.cluster.local:9000
+    s3Credentials:
+      accessKeyId:
+        name: cloudnative-pg-minio-secret
+        key: accessKeyId
+      secretAccessKey:
+        name: cloudnative-pg-minio-secret
+        key: secretAccessKey
+    data:
+      compression: bzip2
+    wal:
+      compression: bzip2
+      maxParallel: 8
