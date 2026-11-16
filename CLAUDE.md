@@ -39,7 +39,6 @@ Multiple Claude Code sessions often run against this repo at once. To avoid bran
 - **`network/`** - Networking components (Envoy Gateway, DNS, SMTP relay)
 - **`observability/`** - Monitoring stack (Prometheus, Grafana, VictoriaLogs, vmalert, Gatus)
 - **`rook-ceph/`** - Rook-Ceph storage cluster (ceph-rbd RWO, cephfs RWX)
-- **`roundtable/`** - Round Table AI agent fleet (operator, knights, chains)
 - **`security/`** - Security applications (Authentik, Vaultwarden)
 - **`selfhosted/`** - Self-hosted applications (Actual, Atuin, Paperless-NGX, etc.)
 - **`storage/`** - Storage support services (VolSync, snapshot-controller, Minio)
@@ -287,7 +286,7 @@ Comprehensive home automation using Home Assistant, ESPHome, Node-RED, and Zigbe
 
 ### AI/ML Services
 
-Local AI inference with Ollama (2x Tesla P100), speech services (Speaches), the OpenClaw/Hermes assistants, and the Round Table agent fleet (`roundtable/` namespace: operator, knights, scheduled chains).
+Local AI inference with Ollama (2x Tesla P100), speech services (Speaches), and the OpenClaw/Hermes assistants.
 
 ### Observability
 
