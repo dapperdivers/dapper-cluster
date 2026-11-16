@@ -50,16 +50,5 @@
       matchPackageNames: ["docker.io/emqx/emqx"],
       allowedVersions: "/^6\\.2\\./",
     },
-    {
-      // Hold Kyverno on chart 3.9.x (app 1.19). Kyverno 1.20 / chart 3.10 stops
-      // EXECUTING legacy kyverno.io ClusterPolicies, and the chart's pre-upgrade
-      // check blocks the upgrade while any exist (#4659 failed, reverted 2026-11-16).
-      // All 8 of ours are load-bearing (forward-auth SecurityPolicy generation,
-      // postgres-init injection, ...). Drop this rule once they're migrated to
-      // policies.kyverno.io (CEL): https://kyverno.io/docs/guides/migration-to-cel/
-      matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/kyverno/charts/kyverno"],
-      allowedVersions: "<3.10.0",
-    },
   ],
 }
