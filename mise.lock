@@ -379,6 +379,38 @@ url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/
 [tools."aqua:kubernetes-sigs/kustomize"."platforms.windows-x64"]
 url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.6.0/kustomize_v5.6.0_windows_amd64.zip"
 
+[[tools."aqua:kyverno/kyverno"]]
+version = "1.20.0"
+backend = "aqua:kyverno/kyverno"
+
+[tools."aqua:kyverno/kyverno"."platforms.linux-arm64"]
+checksum = "sha256:7d002205369f8ebb8a5570efb6a1bfc4fa02e67ca74d6d8cf2f27783e0e54759"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_linux_arm64.tar.gz"
+
+[tools."aqua:kyverno/kyverno"."platforms.linux-arm64-musl"]
+checksum = "sha256:7d002205369f8ebb8a5570efb6a1bfc4fa02e67ca74d6d8cf2f27783e0e54759"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_linux_arm64.tar.gz"
+
+[tools."aqua:kyverno/kyverno"."platforms.linux-x64"]
+checksum = "sha256:06b8f3ca7b5626473be8fb4d343ad54ab84e317142766f72420e7d44b80942e2"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_linux_x86_64.tar.gz"
+
+[tools."aqua:kyverno/kyverno"."platforms.linux-x64-musl"]
+checksum = "sha256:06b8f3ca7b5626473be8fb4d343ad54ab84e317142766f72420e7d44b80942e2"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_linux_x86_64.tar.gz"
+
+[tools."aqua:kyverno/kyverno"."platforms.macos-arm64"]
+checksum = "sha256:9f7e537bdf39ff4f1819d978aec791a4dafa1cfd382f75f53baf422702452149"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_darwin_arm64.tar.gz"
+
+[tools."aqua:kyverno/kyverno"."platforms.macos-x64"]
+checksum = "sha256:2e31ed3df7fda3252a74c897eb6b7b581e634e0759796b43ce0d2472d7376275"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_darwin_x86_64.tar.gz"
+
+[tools."aqua:kyverno/kyverno"."platforms.windows-x64"]
+checksum = "sha256:8f90ecd540b87252eb6d43702bdf2543f7fd026043b4b28de4540338cf247725"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.20.0/kyverno-cli_v1.20.0_windows_x86_64.zip"
+
 [[tools."aqua:mikefarah/yq"]]
 version = "4.54.3"
 backend = "aqua:mikefarah/yq"
