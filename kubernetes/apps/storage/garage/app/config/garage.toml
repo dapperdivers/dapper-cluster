@@ -1,0 +1,27 @@
+# Single-node Garage. Durability comes from Ceph underneath (ceph-rbd is 3x
+# replicated), so Garage itself keeps one copy (replication_factor = 1).
+# Secrets come from env: GARAGE_RPC_SECRET, GARAGE_ADMIN_TOKEN.
+replication_factor = 1
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+
+# sqlite, not the default lmdb: lmdb "is prone to database corruption after an
+# unclean shutdown" and its recovery path is rebuilding from other nodes, which
+# a single node doesn't have. Throughput is irrelevant at our scale.
+db_engine = "sqlite"
+metadata_auto_snapshot_interval = "6h"
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+
+[s3_api]
+api_bind_addr = "[::]:3900"
+# us-east-1 (not Garage's usual "garage"): it's the default region of most S3
+# SDKs (boto3/barman, Kestra), so consumers don't need a region override.
+s3_region = "us-east-1"
+# No root_domain: path-style addressing only (http://garage.storage.svc:3900/<bucket>).
+
+[admin]
+# /health, /metrics (no token: cluster-internal) and the v2 admin API (admin_token).
+api_bind_addr = "[::]:3903"

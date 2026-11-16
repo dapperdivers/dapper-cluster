@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./externalsecret.yaml
+  - ./helmrelease.yaml
+  - ./provision-job.yaml
+configMapGenerator:
+  # Referenced from HelmRelease values, which kustomize can't rewrite, so no
+  # hash suffix; reloader restarts Garage when it changes.
+  - name: garage-config
+    files:
+      - garage.toml=./config/garage.toml
+    options:
+      disableNameSuffixHash: true
+  # Hashed: a script change renames it, which changes the Job spec and makes
+  # Flux (force) re-run the Job.
+  - name: garage-provision
+    files:
+      - provision.sh=./config/provision.sh
+    options:
+      annotations:
+        # Shell ${...} expansions must reach the script untouched, not be
+        # treated as Flux postBuild substitutions.
+        kustomize.toolkit.fluxcd.io/substitute: disabled
