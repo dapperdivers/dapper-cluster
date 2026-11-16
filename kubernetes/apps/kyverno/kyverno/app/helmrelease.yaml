@@ -25,7 +25,8 @@ spec:
         enabled: false
       # Reports are for config monitoring, not enforcement — trim their etcd
       # write churn. Drop transient admission (ephemeral) reports, only record
-      # validate-rule results (not mutate/generate), and re-scan daily.
+      # validate + imageVerify results (not mutate/generate), and re-scan daily.
+      # imageVerify is on for the verify-home-operations-images trial (#4727).
       admissionReports:
         enabled: false
       reporting:
@@ -33,7 +34,7 @@ spec:
         mutate: false
         mutateExisting: false
         generate: false
-        imageVerify: false
+        imageVerify: true
       backgroundScan:
         backgroundScanInterval: 24h
     grafana:
