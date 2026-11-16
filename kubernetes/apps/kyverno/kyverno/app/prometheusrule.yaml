@@ -1,0 +1,31 @@
+---
+# Rationalized via the notification-design gate (#4725).
+# Not alerted on purpose: admission-controller availability. The webhooks are
+# failurePolicy=Ignore (#3542), so an outage no longer blocks the cluster, and
+# KubeDeploymentReplicasMismatch / KubePodNotReady / TargetDown already cover it.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kyverno-rules
+spec:
+  groups:
+    - name: kyverno.rules
+      rules:
+        - alert: KyvernoGeneratingPolicyFailing
+          expr: |
+            sum by (policy_name, resource_namespace) (
+              increase(kyverno_generating_policy_results_total{result=~"fail|error"}[1h])
+            ) > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Kyverno {{ $labels.policy_name }} failing for resources in {{ $labels.resource_namespace }}
+            description: >-
+              A GeneratingPolicy could not create or sync its downstream resource.
+              For the forward-auth policies, an HTTPRoute may be serving without its
+              Authentik SecurityPolicy (no SSO). For postgres-init, the app gets no
+              DB credentials. Check `kubectl -n kyverno logs deploy/kyverno-background-controller`
+              for RBAC or template errors (e.g. #4691).
