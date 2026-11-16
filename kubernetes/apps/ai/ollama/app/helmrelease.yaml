@@ -54,8 +54,10 @@ spec:
               OLLAMA_KV_CACHE_TYPE: q8_0
               # Parallel request handling — 1 concurrent (single P100 via MPS)
               OLLAMA_NUM_PARALLEL: "1"
-              # Max loaded models — keep 1 to maximize VRAM for the primary model
-              OLLAMA_MAX_LOADED_MODELS: "1"
+              # Max loaded models: the primary chat model plus molt's memory
+              # embedding model (nomic-embed-text, ~340MB VRAM), so vault
+              # indexing doesn't evict the chat model on every call.
+              OLLAMA_MAX_LOADED_MODELS: "2"
               # Context window — must match the other pool members (knights send
               # 32K-window requests and any member may serve them). qwen3.5:9b is
               # ~5.9GB resident so 32K KV fits easily. Do NOT exceed VRAM: 131072
