@@ -265,5 +265,22 @@
       matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
       automerge: false,
     },
+    {
+      description: "Disable automerge for 0.x minor bumps",
+      // Under semver a 0.x minor is a breaking release, and Renovate titles it
+      // "feat!:", but matchUpdateTypes still calls it "minor", so the allow
+      // rules above would merge it. plugin-barman-cloud 0.15 -> 0.16 (#4644)
+      // auto-merged this way. 0.x patches still ride through.
+      matchCurrentVersion: "/^v?0\\./",
+      matchUpdateTypes: ["minor"],
+      automerge: false,
+    },
+    {
+      description: "Disable automerge for OpenClaw",
+      // Every bump migrates the state DB one way, so there is no rollback
+      // (see #4126). The ghcr.io catch-all merged #4595 without anyone watching.
+      matchPackageNames: ["/openclaw/"],
+      automerge: false,
+    },
   ],
 }
