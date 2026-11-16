@@ -28,6 +28,21 @@ spec:
     monitoring:
       enabled: true
 
+    # Rook >= 1.21 no longer sets CSI images: it leaves
+    # rook-csi-operator-image-set-configmap empty, and the ceph-csi-operator
+    # (v1.0.4) then falls back to its built-in cephcsi v3.17.0, a downgrade from
+    # the v3.17.1 that Rook 1.20 set. Pin the plugin and csi-addons explicitly;
+    # these render into that configmap, which both ceph-csi Drivers reference.
+    # The k8s sidecars (provisioner, attacher, ...) match the operator defaults,
+    # so they stay unset.
+    csi:
+      cephcsi:
+        repository: quay.io/cephcsi/cephcsi
+        tag: v3.17.1
+      csiAddons:
+        repository: quay.io/csiaddons/k8s-sidecar
+        tag: v0.14.0
+
     # Operator resource configuration
     resources:
       limits:
