@@ -18,8 +18,6 @@ spec:
       strategy: rollback
       retries: 3
   dependsOn:
-    - name: minio
-      namespace: storage
     - name: rook-ceph-operator
       namespace: rook-ceph
   values:
