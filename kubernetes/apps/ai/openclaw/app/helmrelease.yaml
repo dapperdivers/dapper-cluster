@@ -106,6 +106,9 @@ spec:
                 # left a stale 2026.5.20 copy shadowing the 2026.6.5 core,
                 # which broke Discord delivery.
                 set +e
+                # OpenClaw refuses a group-writable temp root (same fix as the app container).
+                mkdir -p -m 700 /tmp/xdg-cache
+                export XDG_CACHE_HOME=/tmp/xdg-cache
                 openclaw plugins install @openclaw/discord
                 # install alone does NOT re-sync an npm-installed copy to the
                 # bundled version (drifted to 2026.6.5 against a 2026.6.11
