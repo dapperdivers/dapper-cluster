@@ -43,3 +43,40 @@ spec:
             description: >-
               Job {{ $labels.namespace }}/{{ $labels.job_name }} failed to complete.
               Removing the failed Job object clears the alert.
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: alertmanager-alerts
+spec:
+  groups:
+    - name: alertmanager-alerts.rules
+      rules:
+        # Stock AlertmanagerClusterFailedToSendAlerts (disabled in helmrelease.yaml)
+        # plus a deadband. An intermittently failing channel dips under the 1%
+        # threshold between bursts, so the stock rule resolved and re-fired 9 times
+        # during the 2026-11-02..06 ntfy-bridge outage (each = FIRING + RESOLVED
+        # page). keep_firing_for holds it firing through gaps < 1h: one incident,
+        # one page. alertmanagerconfig.yaml cross-routes it by `integration`
+        # (webhook -> pushover, others -> ntfy). The stock warning twin
+        # (integration!~".*") can never match, so it is not recreated.
+        - alert: AlertmanagerClusterFailedToSendAlerts
+          expr: |
+            min by (namespace, service, integration) (
+              rate(alertmanager_notifications_failed_total{job="kube-prometheus-stack-alertmanager", container="alertmanager", namespace="observability"}[15m])
+            /
+              ignoring (reason) group_left rate(alertmanager_notifications_total{job="kube-prometheus-stack-alertmanager", container="alertmanager", namespace="observability"}[15m]) > 0
+            )
+            > 0.01
+          for: 5m
+          keep_firing_for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: All Alertmanager instances failed to send notifications to {{ $labels.integration }}.
+            description: >-
+              The minimum notification failure rate to {{ $labels.integration }} from any
+              instance in the {{ $labels.service }} cluster is {{ $value | humanizePercentage }}.
+              Stays firing for 1h after the last failure (deadband against flapping).
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerclusterfailedtosendalerts

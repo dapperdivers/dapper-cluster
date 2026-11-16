@@ -58,6 +58,11 @@ spec:
         # failed, resolves on the next success, and keeps per-Job alerts for
         # non-cron Jobs.
         KubeJobFailed: true
+        # Replaced by prometheusrule.yaml (alertmanager-alerts) with keep_firing_for
+        # hysteresis. The stock rule chattered on an intermittently failing
+        # channel: the 2026-11-02..06 ntfy-bridge 5xx outage produced 9 separate
+        # firing episodes, i.e. 18 FIRING/RESOLVED pages for one incident.
+        AlertmanagerClusterFailedToSendAlerts: true
     alertmanager:
       alertmanagerSpec:
         # External hostname so notification "View in Alertmanager" links resolve
