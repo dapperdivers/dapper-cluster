@@ -5,7 +5,12 @@ metadata:
   name: postgres
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17.11@sha256:70664ebcfa1100361b5bdc28bbf06fdbe08db2dc4ad7bd14de33c5e05fe8ea8e
+  # standard-trixie: the bare 17.x tags were the legacy bullseye images (Debian
+  # 11, EOL), and PG18 images ship only for bookworm/trixie. CNPG's in-place
+  # major upgrade requires the SAME distro on both sides, so the distro move
+  # happens here on 17 first (all DBs use the C collation, so the glibc change
+  # can't affect index order). Standard images include pgvector (archon/postgres).
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.12-standard-trixie@sha256:b6d31545fc2c500cc56af2cff91bbc37408deff6815b84446da0a2c9a54b3d1c
   primaryUpdateStrategy: unsupervised
   # Promote an already-updated replica instead of restarting the primary in
   # place. With the default (restart), the primary is down while its node pulls
