@@ -7,3 +7,4 @@ resources:
   - ./push-secrets-production.yaml
   - ./staging.yaml
   - ./push-secrets-staging.yaml
+  - ./referencegrant.yaml
