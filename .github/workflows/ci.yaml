@@ -63,14 +63,27 @@ jobs:
 
       - name: Extract Images
         id: extract
-        # Render apps directly (as onedr0p/home-ops does), not through the
-        # flux/cluster entry point: from there, a namespace-kustomization change
-        # re-renders every app, and the ones that need cluster-secrets (which CI
-        # can't decrypt) fail on both sides and make flate exit 1.
+        # Must render from flux/cluster: the app-template OCIRepository comes from
+        # the common Flux component, which -p ./kubernetes/apps never builds, so
+        # that path silently returns [] for every app-template PR (#4697 did that).
+        # From flux/cluster, though, a namespace-kustomization change re-renders
+        # widely, and apps needing cluster-secrets (CI can't decrypt them) fail on
+        # both sides and make flate exit 1. So capture the list, accept a non-zero
+        # exit when stdout is still a JSON array, then write it to GITHUB_OUTPUT.
+        # Render validation is Konflate's job, not this one's.
         run: |
-          echo 'images<<EOF' >> $GITHUB_OUTPUT
-          flate diff images -p ./kubernetes/apps -o json --no-progress >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          rc=0
+          flate diff images -p ./kubernetes/flux/cluster -o json --no-progress > images.json || rc=$?
+          if ! jq -e 'type == "array"' images.json > /dev/null; then
+            echo "::error::flate exited ${rc} without a JSON image list"
+            exit 1
+          fi
+          [ "$rc" -eq 0 ] || echo "::warning::flate exited ${rc} (some renders failed, see log); using the image list it produced"
+          {
+            echo 'images<<EOF'
+            jq -c . images.json
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
   image-pull:
     if: ${{ needs.image-pull-extract.outputs.images != '[]' }}
