@@ -42,6 +42,10 @@ spec:
               SONARR__SERVER__PORT: &port 80
               SONARR__UPDATE__BRANCH: develop
               PUSHOVER_APP_URL: &host "sonarr.${SECRET_DOMAIN_MEDIA}"
+              # Host-header allowlist (DNS-rebinding guard). Clients: gateway (sonarr.*),
+              # Kometa/Bazarr (*.media), Prowlarr/Overseerr/Recyclarr (*.svc.cluster.local).
+              # localhost + pod hostname are always allowed; bare pod/Service IPs are NOT.
+              SONARR__SERVER__ALLOWEDHOSTS: "sonarr,sonarr.media,sonarr.media.svc,sonarr.media.svc.cluster.local,sonarr.${SECRET_DOMAIN_MEDIA}"
               PUSHOVER_DEBUG: "false"
               PUSHOVER_PRIORITY: "0"
             envFrom:
