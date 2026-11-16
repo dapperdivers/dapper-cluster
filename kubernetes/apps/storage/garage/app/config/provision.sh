@@ -20,7 +20,7 @@ api() {
   fi
 }
 
-first_id() { grep -o '"id":"[0-9a-f]*"' | head -n1 | cut -d'"' -f4; }
+first_id() { grep -o '"id": *"[0-9a-f]*"' | head -n1 | sed 's/.*"\([0-9a-f]*\)"$/\1/'; }
 
 echo "waiting for Garage admin API at $API"
 until curl -fsS "$API/health" >/dev/null 2>&1; do sleep 5; done
