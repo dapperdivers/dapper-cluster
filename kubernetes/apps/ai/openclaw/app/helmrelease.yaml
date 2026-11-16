@@ -329,28 +329,17 @@ spec:
                     c.plugins.allow = (c.plugins.allow || []).filter(p => p !== 'whatsapp');
                     if (c.plugins.entries) delete c.plugins.entries.whatsapp;
                   }
-                  // Gateway webhooks — receiving end of the roundtable operator's
-                  // completion notifications (operator posts roundtable.notify/v1
-                  // to /hooks/roundtable; the mapping wakes the main session so
-                  // Tim relays the result in chat). Header-only bearer auth.
+                  // Gateway webhooks (/hooks, header-only bearer auth). The Round
+                  // Table operator was the only caller and is gone, so drop its
+                  // mapping from the PVC config.
                   if (process.env.MOLT_HOOKS_TOKEN) {
                     c.hooks = c.hooks || {};
                     c.hooks.enabled = true;
                     c.hooks.token = process.env.MOLT_HOOKS_TOKEN;
                     c.hooks.path = '/hooks';
-                    c.hooks.mappings = Array.isArray(c.hooks.mappings) ? c.hooks.mappings : [];
-                    // Build openclaw's mustache placeholders at runtime: a literal
-                    // double-brace here is evaluated by app-template >= 5.3's tpl pass.
-                    const ph = k => '{' + '{ payload.' + k + ' }' + '}';
-                    const rtMapping = {
-                      id: 'roundtable',
-                      match: { path: 'roundtable' },
-                      action: 'wake',
-                      wakeMode: 'now',
-                      textTemplate: 'Round Table ' + ph('kind') + ' \"' + ph('name') + '\" finished with phase ' + ph('phase') + ' (requested by ' + ph('context.requestedBy') + ', session ' + ph('context.sessionKey') + '). Output: ' + ph('output') + ' — full output in NATS KV if truncated. Relay the outcome to Derek in the originating conversation.'
-                    };
-                    const rtIdx = c.hooks.mappings.findIndex(m => m && m.id === 'roundtable');
-                    if (rtIdx >= 0) c.hooks.mappings[rtIdx] = rtMapping; else c.hooks.mappings.push(rtMapping);
+                  }
+                  if (c.hooks && Array.isArray(c.hooks.mappings)) {
+                    c.hooks.mappings = c.hooks.mappings.filter(m => !(m && m.id === 'roundtable'));
                   }
                   if (process.env.MOLT_GOOGLE_PLACES_API_KEY) {
                     c.skills = c.skills || {};
@@ -468,11 +457,11 @@ spec:
             fsGroupChangePolicy: OnRootMismatch
     defaultPodOptions:
       shareProcessNamespace: true
-      # Mount the SA token so Tim's kubectl can reach the API (roundtable
-      # Chains/Missions). app-template 5.x runs the pod as the auto-created
+      # Mount the SA token so Tim's kubectl can reach the API (read-only,
+      # via the openclaw-reader ClusterRole). app-template 5.x runs the pod as the auto-created
       # 'molt' SA with automount off by default; without this the token is
       # absent and kubectl falls back to localhost:8080. Pairs with the RBAC
-      # bindings repointed to the 'molt' SA (rbac.yaml, molt-rbac.yaml).
+      # binding on the 'molt' SA in rbac.yaml.
       automountServiceAccountToken: true
       securityContext:
         runAsUser: 1000
