@@ -1,0 +1,63 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: ImageValidatingPolicy
+metadata:
+  name: verify-home-operations-images
+  annotations:
+    policies.kyverno.io/title: Verify home-operations Image Provenance
+    policies.kyverno.io/category: Supply Chain
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Verifies that ghcr.io/home-operations images carry a SLSA v1 provenance
+      attestation signed (Sigstore keyless) by the home-operations/containers
+      app-builder workflow on main. Catches a tampered or spoofed image under
+      a trusted name. Audit-only trial (#4727); decide Deny/keep/drop after ~1 week.
+spec:
+  validationActions: [Audit]
+  failurePolicy: Ignore
+  evaluation:
+    background:
+      enabled: true
+  autogen:
+    podControllers:
+      controllers: []
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+  # echo, konflate, kromgo and tuppr are built in their own repos and publish
+  # no signature or attestation at all (no referrer, .sig or .att), so they
+  # are out of scope rather than permanent failures. `ref` is the image reference.
+  matchImageReferences:
+    - expression: >-
+        ref.startsWith('ghcr.io/home-operations/') &&
+        !ref.matches('^ghcr\\.io/home-operations/(echo|konflate|kromgo|tuppr)[:@]')
+  # Report-only: never rewrite tags to digests or require a digest here.
+  validationConfigurations:
+    mutateDigest: false
+    verifyDigest: false
+    required: false
+  attestors:
+    - name: github
+      cosign:
+        keyless:
+          identities:
+            - issuer: https://token.actions.githubusercontent.com
+              subjectRegExp: ^https://github\.com/home-operations/containers/\.github/workflows/app-builder\.yaml@refs/heads/main$
+  # GitHub artifact attestations: a Sigstore bundle (DSSE, SLSA v1 provenance)
+  # pushed to ghcr via the OCI referrers tag fallback. Not cosign .sig tags.
+  attestations:
+    - name: slsa
+      intoto:
+        type: https://slsa.dev/provenance/v1
+  validations:
+    - expression: >-
+        images.containers.map(image,
+          verifyAttestationSignatures(image, attestations.slsa, [attestors.github])
+        ).all(e, e > 0)
+      message: >-
+        home-operations image has no valid SLSA provenance attestation from the
+        home-operations/containers app-builder workflow on main.
