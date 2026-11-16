@@ -28,6 +28,13 @@ spec:
     monitoring:
       enabled: true
 
+    # CSI images: since Rook 1.21 these are left unset on purpose.
+    # rook-csi-operator-image-set-configmap renders empty, so the ceph-csi-operator
+    # that Rook ships (v1.1.0 with Rook 1.21.2) uses its own tested default set
+    # (cephcsi v3.18.1 + matching sidecars). Only set csi.cephcsi / csi.csiAddons
+    # here to deliberately hold or override a version, and re-check the
+    # operator's defaults on every Rook bump if you do.
+
     # Operator resource configuration
     resources:
       limits:
