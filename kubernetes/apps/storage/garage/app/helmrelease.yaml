@@ -1,0 +1,116 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: garage
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      garage:
+        type: statefulset
+        annotations:
+          reloader.stakater.com/auto: "true"
+        statefulset:
+          volumeClaimTemplates:
+            - name: meta
+              accessMode: ReadWriteOnce
+              size: 5Gi
+              storageClass: ceph-rbd
+              globalMounts:
+                - path: /var/lib/garage/meta
+            - name: data
+              accessMode: ReadWriteOnce
+              size: 100Gi
+              storageClass: ceph-rbd
+              globalMounts:
+                - path: /var/lib/garage/data
+        containers:
+          app:
+            image:
+              repository: docker.io/dxflrs/garage
+              tag: v2.5.0@sha256:677e5b758e4425a325b811c425c026bf35a4bf42f7ddbaa773de3f4fd779a5a5
+            command: ["/garage"]
+            # --single-node: Garage lays out a one-node cluster by itself
+            # (requires replication_factor = 1), so no manual `garage layout`.
+            args: ["server", "--single-node"]
+            env:
+              RUST_LOG: garage=info
+              GARAGE_RPC_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: garage-secret
+                    key: GARAGE_RPC_SECRET
+              GARAGE_ADMIN_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: garage-secret
+                    key: GARAGE_ADMIN_TOKEN
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &admin 3903
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+    service:
+      app:
+        controller: garage
+        ports:
+          s3:
+            port: 3900
+          admin:
+            port: *admin
+    serviceMonitor:
+      app:
+        serviceName: garage
+        endpoints:
+          - port: admin
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
+    persistence:
+      config:
+        type: configMap
+        name: garage-config
+        globalMounts:
+          - path: /etc/garage.toml
+            subPath: garage.toml
+            readOnly: true

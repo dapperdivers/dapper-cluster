@@ -1,0 +1,55 @@
+---
+# Creates buckets + imports keys (config/provision.sh). Idempotent, so it is
+# safe to re-run: to add a bucket, add GARAGE_<PREFIX>_* keys to Infisical,
+# map them in externalsecret.yaml and append "<bucket>:<PREFIX>" to BUCKETS.
+# The configMapGenerator hash changes the pod spec, and `force` lets Flux
+# replace the (immutable) Job instead of failing to patch it.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: garage-provision
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
+spec:
+  backoffLimit: 10
+  activeDeadlineSeconds: 900
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: provision
+          image: curlimages/curl:8.23.0
+          command: ["/bin/sh", "/scripts/provision.sh"]
+          env:
+            - name: GARAGE_ADMIN_URL
+              value: http://garage.storage.svc.cluster.local:3903
+            - name: BUCKETS
+              value: >-
+                cloudnative-pg:CNPG
+                kestra:KESTRA
+          envFrom:
+            - secretRef:
+                name: garage-secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: garage-provision
