@@ -5,7 +5,7 @@ metadata:
   name: dapper-cluster-runner
 ---
 # Scoped to what containerMode: kubernetes needs (worker pods/jobs in this
-# namespace), matching chelonianlabs-runner. NOT cluster-admin: this runner
+# namespace). NOT cluster-admin: this runner
 # executes pull_request-triggered workflows on a public repo.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
