@@ -50,5 +50,15 @@
       matchPackageNames: ["docker.io/emqx/emqx"],
       allowedVersions: "/^6\\.2\\./",
     },
+    {
+      // Hold Gotenberg on 8.x. Gotenberg 9 removed /forms/pdfengines/* (404) and
+      // renamed PDF/A fields (pdfa -> nativePdfa, v8 field = 400). paperless-ngx
+      // 3.4.2's mail parser uses gotenberg-client 1.0.0, which calls
+      // /forms/pdfengines/merge and sends `pdfa`, so email ingestion would break
+      // (#4601 closed). Drop this once paperless ships a v9-compatible gotenberg-client.
+      matchDatasources: ["docker"],
+      matchPackageNames: ["gotenberg/gotenberg", "docker.io/gotenberg/gotenberg"],
+      allowedVersions: "<9",
+    },
   ],
 }
