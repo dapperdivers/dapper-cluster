@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - ./httproute-authentik-forward-auth.yaml
   - ./postgres-init
+  - ./restrict-latest-tag.yaml
