@@ -55,7 +55,7 @@ spec:
               # Parallel request handling — 1 concurrent (single P100 via MPS)
               OLLAMA_NUM_PARALLEL: "1"
               # Max loaded models: the primary chat model plus molt's memory
-              # embedding model (nomic-embed-text, ~340MB VRAM), so vault
+              # embedding model (embeddinggemma, ~690MB VRAM), so vault
               # indexing doesn't evict the chat model on every call.
               OLLAMA_MAX_LOADED_MODELS: "2"
               # Context window — must match the other pool members (knights send
