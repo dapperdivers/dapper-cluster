@@ -32,7 +32,11 @@ spec:
           schedule: "0 1 * * *" # Daily at 1 AM
           timeZone: &timeZone ${TIME_ZONE}
           concurrencyPolicy: Forbid
-          activeDeadlineSeconds: 21600 # 6h — kill overruns so they don't block the next run / fire KubeJobNotCompleted
+          # 11.5h — daily runs take ~1.5-3.5h, but the Sunday full overlay pass needs
+          # ~8-9h (≈2h gathering 33k TV episodes + ~1/s apply). At 6h it was reaped
+          # mid-episodes every Sunday and never completed. Kept under KubeJobNotCompleted's
+          # 12h threshold so a true hang is reaped (KubeJobFailed) rather than double-alerting.
+          activeDeadlineSeconds: 41400
           successfulJobsHistory: 1
           failedJobsHistory: 1
         initContainers:
