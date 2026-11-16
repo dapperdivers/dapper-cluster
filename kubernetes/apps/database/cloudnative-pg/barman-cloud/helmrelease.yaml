@@ -40,7 +40,11 @@ spec:
               - --leader-elect
               - --log-level=debug
             env:
-              SIDECAR_IMAGE: ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.15.1
+              # Must match the operator tag above (Renovate groups them). Injected
+              # into postgres pods at creation, so a bump only lands after a
+              # rolling restart of the Cluster. Tracked by the SIDECAR_IMAGE
+              # custom manager in .renovate/customManagers.json5.
+              SIDECAR_IMAGE: ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.16.0
             probes:
               readiness:
                 enabled: true

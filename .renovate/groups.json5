@@ -5,31 +5,41 @@
       description: "Actions Runner Controller Group",
       groupName: "Actions Runner Controller",
       matchDatasources: ["docker"],
+      matchPackageNames: ["/gha-runner-scale-set-controller/", "/gha-runner-scale-set/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+    },
+    {
+      // Operator + the sidecar it injects into postgres pods must move together.
+      description: "Barman Cloud Plugin Group",
+      groupName: "barman-cloud-plugin",
+      matchDatasources: ["docker"],
       matchPackageNames: [
-        "/gha-runner-scale-set-controller/",
-        "/gha-runner-scale-set/",
+        "ghcr.io/cloudnative-pg/plugin-barman-cloud",
+        "ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar",
       ],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
     },
     {
-      "description": ["Cert-Manager Group"],
-      "groupName": "Cert-Manager",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["/cert-manager/"],
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
+      description: ["Cert-Manager Group"],
+      groupName: "Cert-Manager",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/cert-manager/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
     },
     {
-      "description": ["Cilium Group"],
-      "groupName": "Cilium",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["/cilium/"],
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
+      description: ["Cilium Group"],
+      groupName: "Cilium",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/cilium/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
     },
     {
       description: "CoreDNS Group",

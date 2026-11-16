@@ -16,5 +16,17 @@
       ],
       datasourceTemplate: "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
     },
+    {
+      // The barman-cloud plugin takes its sidecar as a full `image:tag` env value,
+      // which the annotation preset can't split (it reads up to the last `: `).
+      // Untracked, it sat on v0.15.1 while Renovate moved the operator to v0.16.0.
+      customType: "regex",
+      description: "Track the barman-cloud plugin SIDECAR_IMAGE env value",
+      managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"],
+      matchStrings: [
+        "SIDECAR_IMAGE:\\s+[\"']?(?<depName>[^:\\s\"']+):(?<currentValue>[^@\\s\"']+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?",
+      ],
+      datasourceTemplate: "docker",
+    },
   ],
 }
