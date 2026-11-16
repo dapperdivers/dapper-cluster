@@ -40,6 +40,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
+            namespace: cert-manager
             name: "${SECRET_DOMAIN/./-}-tls"
       allowedRoutes:
         namespaces:
@@ -52,6 +53,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
+            namespace: cert-manager
             name: "${SECRET_DOMAIN_MEDIA/./-}-tls"
       allowedRoutes:
         namespaces:
@@ -64,6 +66,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
+            namespace: cert-manager
             name: "${SECRET_DOMAIN_PERSONAL/./-}-tls"
       allowedRoutes:
         namespaces:
@@ -76,6 +79,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
+            namespace: cert-manager
             name: "${SECRET_DOMAIN_DIVING/./-}-tls"
       allowedRoutes:
         namespaces:
@@ -88,6 +92,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
+            namespace: cert-manager
             name: "${SECRET_DOMAIN_WIFE/./-}-tls"
       allowedRoutes:
         namespaces:
