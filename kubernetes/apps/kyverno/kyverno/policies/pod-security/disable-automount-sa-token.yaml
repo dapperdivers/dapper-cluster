@@ -1,7 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
 metadata:
   name: disable-automount-sa-token
   annotations:
@@ -14,36 +13,44 @@ metadata:
       Most workloads don't need the Kubernetes API token mounted, and
       leaving it mounted expands the blast radius of container compromise.
       Audit mode — reports violations without blocking deployments.
+      Opt a Pod out with the kyverno.io/automount-sa-token: "true" annotation.
 spec:
-  webhookConfiguration:
-    failurePolicy: Ignore
-  validationFailureAction: Audit
-  background: true
-  rules:
-    - name: validate-no-automount
-      match:
-        any:
-          - resources:
-              kinds:
-                - Pod
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - cert-manager
-                - flux-system
-                - kyverno
-                - actions-runner-system
-                - external-secrets
-          - resources:
-              annotations:
-                kyverno.io/automount-sa-token: "true"
-      validate:
-        message: >-
-          Pod '{{request.object.metadata.name}}' has automountServiceAccountToken
-          enabled or unset. Set automountServiceAccountToken: false unless the
-          workload needs Kubernetes API access.
-        pattern:
-          spec:
-            automountServiceAccountToken: false
+  validationActions: [Audit]
+  failurePolicy: Ignore
+  evaluation:
+    background:
+      enabled: true
+  autogen:
+    podControllers:
+      controllers: []
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values:
+            - kube-system
+            - cert-manager
+            - flux-system
+            - kyverno
+            - actions-runner-system
+            - external-secrets
+  matchConditions:
+    - name: not-opted-out
+      expression: >-
+        !has(object.metadata.annotations) ||
+        !('kyverno.io/automount-sa-token' in object.metadata.annotations) ||
+        object.metadata.annotations['kyverno.io/automount-sa-token'] != 'true'
+  validations:
+    - expression: >-
+        has(object.spec.automountServiceAccountToken) &&
+        object.spec.automountServiceAccountToken == false
+      messageExpression: >-
+        'Pod ' + object.metadata.name + ' has automountServiceAccountToken
+        enabled or unset. Set automountServiceAccountToken: false unless the
+        workload needs Kubernetes API access.'

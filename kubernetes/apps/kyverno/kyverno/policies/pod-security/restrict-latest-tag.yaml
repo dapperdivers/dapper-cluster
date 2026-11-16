@@ -1,7 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
 metadata:
   name: restrict-latest-tag
   annotations:
@@ -13,30 +12,31 @@ metadata:
       Validates that container images do not use the :latest tag.
       Using :latest makes deployments non-deterministic and can
       silently introduce breaking changes or vulnerabilities.
-      Set to Audit mode initially to surface violations without blocking.
+      Audit mode — surfaces violations without blocking.
 spec:
-  webhookConfiguration:
-    failurePolicy: Ignore
-  validationFailureAction: Audit
-  background: true
-  rules:
-    - name: validate-image-tag
-      match:
-        any:
-          - resources:
-              kinds:
-                - Pod
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - flux-system
-      validate:
-        message: >-
-          Image '{{request.object.spec.containers[].image}}' uses the :latest tag.
-          Pin to a specific version or SHA digest for reproducible deployments.
-        pattern:
-          spec:
-            containers:
-              - image: "!*:latest"
+  validationActions: [Audit]
+  failurePolicy: Ignore
+  evaluation:
+    background:
+      enabled: true
+  autogen:
+    podControllers:
+      controllers: []
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, flux-system]
+  validations:
+    - expression: object.spec.containers.all(c, !c.image.endsWith(':latest'))
+      messageExpression: >-
+        'Image(s) ' + object.spec.containers.filter(c,
+          c.image.endsWith(':latest')).map(c, c.image).join(', ') +
+        ' use the :latest tag. Pin to a specific version or SHA digest for
+        reproducible deployments.'
