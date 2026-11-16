@@ -12,9 +12,11 @@ on 1.20, and the chart refuses to upgrade while any exist, so don't add one.
 | `httproute-authentik-outpost-referencegrant` | GeneratingPolicy | Per source namespace, generates `securitypolicy-to-outpost-<ns>` ReferenceGrant in `security`, so the SecurityPolicy can reach the outpost Service. Sticky (not synchronized).                                            |
 | `postgres-init-container`                    | MutatingPolicy   | Injects the `init-db` init container into HelmReleases with `postgres-init.home.arpa/enabled: "true"`. See [postgres-init/](./postgres-init/README.md).                                                                   |
 | `postgres-init-externalsecret`               | GeneratingPolicy | Generates the `<release>-postgres-init` ExternalSecret those init containers read.                                                                                                                                        |
+| `restrict-latest-tag`                        | ValidatingPolicy | Flags Pods (all container types) whose image is `:latest` or untagged without a digest. Digest-pinned refs pass. Audit now, Deny once reports are clean (#4726).                                                          |
 
-The audit-only pod-security ValidatingPolicies and the HelmRelease `maxHistory` default were
-removed in #4713: nobody read their PolicyReports, and Flux already defaults `maxHistory` to 5.
+The other audit-only pod-security ValidatingPolicies and the HelmRelease `maxHistory` default
+were removed in #4713: nobody read their PolicyReports, and Flux already defaults `maxHistory` to 5.
+`restrict-latest-tag` was kept because its failure list is short and fixable, so it can enforce.
 
 ## Usage
 

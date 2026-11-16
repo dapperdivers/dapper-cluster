@@ -60,5 +60,14 @@
       matchPackageNames: ["gotenberg/gotenberg", "docker.io/gotenberg/gotenberg"],
       allowedVersions: "<9",
     },
+    {
+      // SearXNG tags are YYYY.M.D-<commit> (no semver, no stable "latest"
+      // alias besides :latest). Default docker versioning reads -<commit> as a
+      // compatibility suffix and never offers an update, so parse the date and
+      // ignore the hash (#4726).
+      matchDatasources: ["docker"],
+      matchPackageNames: ["searxng/searxng", "docker.io/searxng/searxng"],
+      versioning: "regex:^(?<major>\\d{4})\\.(?<minor>\\d{1,2})\\.(?<patch>\\d{1,2})-[0-9a-f]+$",
+    },
   ],
 }

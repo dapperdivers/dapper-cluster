@@ -1,0 +1,58 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: restrict-latest-tag
+  annotations:
+    policies.kyverno.io/title: Restrict Latest Image Tag
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Rejects Pods whose containers, initContainers or ephemeralContainers use
+      a floating image reference: an explicit :latest tag or no tag at all,
+      without a digest. Any image pinned by digest is allowed (including
+      latest@sha256:...), because a digest is already reproducible.
+      Audit until the pinned workloads have rolled and reports show 0
+      failures, then Deny (#4726). failurePolicy Ignore keeps a Kyverno outage
+      from blocking pod creation (#3542).
+spec:
+  validationActions: [Audit]
+  failurePolicy: Ignore
+  evaluation:
+    background:
+      enabled: true
+  autogen:
+    podControllers:
+      controllers: []
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, flux-system]
+  variables:
+    - name: images
+      expression: >-
+        object.spec.containers.map(c, c.image) +
+        (has(object.spec.initContainers) ? object.spec.initContainers.map(c, c.image) : []) +
+        (has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers.map(c, c.image) : [])
+    # Floating = no digest, and the last path segment (name[:tag]) has no tag
+    # or the tag is "latest". Using the last segment keeps registry ports
+    # (host:5000/app) from looking like a tag.
+    - name: floating
+      expression: >-
+        variables.images.filter(i, !i.contains('@') &&
+          (i.split('/')[size(i.split('/')) - 1].endsWith(':latest') ||
+           !i.split('/')[size(i.split('/')) - 1].contains(':')))
+  validations:
+    - expression: size(variables.floating) == 0
+      messageExpression: >-
+        'Image(s) ' + variables.floating.join(', ') +
+        ' use :latest or no tag. Pin a version tag (ideally tag@sha256 digest)
+        so deployments are reproducible and Renovate can track them.'

@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: crocodilestick/calibre-web-automated
-              tag: latest
+              tag: v4.0.8@sha256:5e00373854247750cc3e4479b492ae09293ff5e06ed10177f226634d97888679
             env:
               TZ: ${TIME_ZONE}
               PUID: "1000"
@@ -50,7 +50,7 @@ spec:
           shelfmark:
             image:
               repository: ghcr.io/calibrain/shelfmark
-              tag: latest
+              tag: v1.7.0@sha256:6544e02595271b0267b9acda58fa7f3db6f14942bece51b7aadfe4000cf34f1c
             env:
               TZ: ${TIME_ZONE}
               PUID: "1000"

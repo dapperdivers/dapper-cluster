@@ -446,7 +446,7 @@ spec:
           app:
             image:
               repository: lscr.io/linuxserver/syncthing
-              tag: latest
+              tag: 2.1.7@sha256:c4207d8f5b66d5f67eedb636b75500b5a04898e9f33299d252f4b966c41a4128
             env:
               PUID: "1000"
               PGID: "1000"
