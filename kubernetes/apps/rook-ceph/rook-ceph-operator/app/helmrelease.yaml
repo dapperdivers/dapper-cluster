@@ -28,12 +28,19 @@ spec:
     monitoring:
       enabled: true
 
-    # CSI images: since Rook 1.21 these are left unset on purpose.
-    # rook-csi-operator-image-set-configmap renders empty, so the ceph-csi-operator
-    # that Rook ships (v1.1.0 with Rook 1.21.2) uses its own tested default set
-    # (cephcsi v3.18.1 + matching sidecars). Only set csi.cephcsi / csi.csiAddons
-    # here to deliberately hold or override a version, and re-check the
-    # operator's defaults on every Rook bump if you do.
+    # CSI images: since Rook 1.21 these default to the ceph-csi-operator's
+    # built-in set (rook-csi-operator-image-set-configmap renders empty).
+    #
+    # cephcsi: use the Rocky Linux 9 (-rocky9) variant. The default cephcsi 3.18
+    # images need an x86-64-v3 CPU ("Fatal glibc error: CPU does not support
+    # x86-64-v3", exit 127) and crash-looped on the talos-node-small-* VMs, whose
+    # virtual CPU has no AVX2. The EL9-based -rocky9 images (published since
+    # v3.18.2) only need x86-64-v2. Keep the -rocky9 suffix until every Talos
+    # VM's Proxmox CPU type is x86-64-v3 (or host).
+    csi:
+      cephcsi:
+        repository: quay.io/cephcsi/cephcsi
+        tag: v3.18.2-rocky9
 
     # Operator resource configuration
     resources:
