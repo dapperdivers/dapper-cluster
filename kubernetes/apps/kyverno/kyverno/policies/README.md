@@ -6,20 +6,15 @@ on 1.20, and the chart refuses to upgrade while any exist, so don't add one.
 
 ## Policies
 
-| Policy                                       | Kind                     | What it does                                                                                                                                                                                                              |
-| -------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `httproute-authentik-forward-auth`           | GeneratingPolicy         | For an HTTPRoute annotated `authentik.home.arpa/forward-auth: "true"`, generates `<route>-forward-auth` SecurityPolicy (Envoy ext-auth → Authentik embedded outpost). Synchronized: removed with the route or annotation. |
-| `httproute-authentik-outpost-referencegrant` | GeneratingPolicy         | Per source namespace, generates `securitypolicy-to-outpost-<ns>` ReferenceGrant in `security`, so the SecurityPolicy can reach the outpost Service. Sticky (not synchronized).                                            |
-| `postgres-init-container`                    | MutatingPolicy           | Injects the `init-db` init container into HelmReleases with `postgres-init.home.arpa/enabled: "true"`. See [postgres-init/](./postgres-init/README.md).                                                                   |
-| `postgres-init-externalsecret`               | GeneratingPolicy         | Generates the `<release>-postgres-init` ExternalSecret those init containers read.                                                                                                                                        |
-| `helmrelease-default-maxhistory`             | MutatingPolicy           | Defaults `spec.maxHistory: 3` on HelmReleases that don't set it (caps Helm history Secrets in etcd).                                                                                                                      |
-| `default-security-context`                   | ValidatingPolicy (Audit) | Reports containers without `runAsNonRoot: true` / `allowPrivilegeEscalation: false`. Opt out: `kyverno.io/skip-security-defaults: "true"` on the Pod.                                                                     |
-| `disable-automount-sa-token`                 | ValidatingPolicy (Audit) | Reports Pods that don't set `automountServiceAccountToken: false`. Opt out: `kyverno.io/automount-sa-token: "true"`.                                                                                                      |
-| `require-probes`                             | ValidatingPolicy (Audit) | Reports containers without a `readinessProbe` (Job pods exempt).                                                                                                                                                          |
-| `restrict-latest-tag`                        | ValidatingPolicy (Audit) | Reports images using `:latest`.                                                                                                                                                                                           |
+| Policy                                       | Kind             | What it does                                                                                                                                                                                                              |
+| -------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `httproute-authentik-forward-auth`           | GeneratingPolicy | For an HTTPRoute annotated `authentik.home.arpa/forward-auth: "true"`, generates `<route>-forward-auth` SecurityPolicy (Envoy ext-auth → Authentik embedded outpost). Synchronized: removed with the route or annotation. |
+| `httproute-authentik-outpost-referencegrant` | GeneratingPolicy | Per source namespace, generates `securitypolicy-to-outpost-<ns>` ReferenceGrant in `security`, so the SecurityPolicy can reach the outpost Service. Sticky (not synchronized).                                            |
+| `postgres-init-container`                    | MutatingPolicy   | Injects the `init-db` init container into HelmReleases with `postgres-init.home.arpa/enabled: "true"`. See [postgres-init/](./postgres-init/README.md).                                                                   |
+| `postgres-init-externalsecret`               | GeneratingPolicy | Generates the `<release>-postgres-init` ExternalSecret those init containers read.                                                                                                                                        |
 
-The four ValidatingPolicies only report (`validationActions: [Audit]`), so they never block a deploy.
-Results land in PolicyReports.
+The audit-only pod-security ValidatingPolicies and the HelmRelease `maxHistory` default were
+removed in #4713: nobody read their PolicyReports, and Flux already defaults `maxHistory` to 5.
 
 ## Usage
 
