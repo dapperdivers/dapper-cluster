@@ -42,6 +42,10 @@ spec:
               RADARR__SERVER__PORT: &port 80
               RADARR__UPDATE__BRANCH: develop
               PUSHOVER_APP_URL: &host "radarr.${SECRET_DOMAIN_MEDIA}"
+              # Host-header allowlist (DNS-rebinding guard). Clients: gateway (radarr.*),
+              # Kometa/Bazarr (*.media), Prowlarr/Overseerr/Recyclarr (*.svc.cluster.local).
+              # localhost + pod hostname are always allowed; bare pod/Service IPs are NOT.
+              RADARR__SERVER__ALLOWEDHOSTS: "radarr,radarr.media,radarr.media.svc,radarr.media.svc.cluster.local,radarr.${SECRET_DOMAIN_MEDIA}"
               PUSHOVER_DEBUG: "false"
               PUSHOVER_PRIORITY: "0"
             envFrom:
