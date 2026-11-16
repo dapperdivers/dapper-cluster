@@ -1,7 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
 metadata:
   name: httproute-authentik-forward-auth
   annotations:
@@ -13,85 +12,131 @@ metadata:
       authentik.home.arpa/forward-auth: "true". The Gateway-API equivalent of
       the nginx auth-url annotation injection. The outpost selects the provider
       by Host. The generated SecurityPolicy is kept in sync and removed when the
-      HTTPRoute is deleted or the annotation is cleared (synchronize: true).
+      HTTPRoute is deleted or the annotation is cleared (synchronize).
+      kube-system is excluded by Kyverno globally, so hubble-ui uses a static
+      SecurityPolicy (kube-system/cilium/app/securitypolicy.yaml).
 spec:
-  webhookConfiguration:
-    failurePolicy: Ignore
-  # Generate for HTTPRoutes that already exist (not just on create/update).
-  generateExisting: true
-  rules:
-    - name: generate-forward-auth-securitypolicy
-      match:
-        any:
-          - resources:
-              kinds: ["HTTPRoute"]
-              annotations:
-                authentik.home.arpa/forward-auth: "true"
-      generate:
-        apiVersion: gateway.envoyproxy.io/v1alpha1
-        kind: SecurityPolicy
-        name: "{{ request.object.metadata.name }}-forward-auth"
-        namespace: "{{ request.object.metadata.namespace }}"
-        synchronize: true
-        # Keep generated resources if this ClusterPolicy is deleted (CEL migration).
-        orphanDownstreamOnPolicyDelete: true
-        data:
-          spec:
-            targetRefs:
-              - group: gateway.networking.k8s.io
-                kind: HTTPRoute
-                name: "{{ request.object.metadata.name }}"
-            extAuth:
-              failOpen: false
-              # Forward the client headers the outpost needs: cookie (session/state
-              # validation on callback) + x-forwarded-* (correct https scheme/host).
-              # Without these the OAuth callback fails with HTTP 400. NOTE: this field
-              # is at spec.extAuth level, NOT under .http.
-              headersToExtAuth:
-                - host
-                - cookie
-                - x-forwarded-proto
-                - x-forwarded-host
-                - x-forwarded-for
-              http:
-                backendRefs:
-                  - name: ak-outpost-authentik-embedded-outpost
-                    namespace: security
-                    port: 9000
-                path: /outpost.goauthentik.io/auth/envoy
-                headersToBackend:
-                  - set-cookie
-                  - x-authentik-username
-                  - x-authentik-email
-                  - x-authentik-groups
-                  - x-authentik-uid
-                  - x-authentik-name
-    # Namespaceless auth: the SecurityPolicy lives in the app namespace but its
-    # ext-auth backendRef points at the outpost Service in `security`. That
-    # cross-namespace ref needs a ReferenceGrant. ReferenceGrant has no namespace
-    # wildcard, so instead of maintaining a hand-written allowlist we generate one
-    # grant per source namespace on demand. synchronize: false keeps it sticky (a
-    # grant orphaned when the last annotated route in a ns is removed is harmless).
-    - name: generate-outpost-referencegrant
-      match:
-        any:
-          - resources:
-              kinds: ["HTTPRoute"]
-              annotations:
-                authentik.home.arpa/forward-auth: "true"
-      generate:
-        apiVersion: gateway.networking.k8s.io/v1beta1
-        kind: ReferenceGrant
-        name: "securitypolicy-to-outpost-{{ request.object.metadata.namespace }}"
-        namespace: security
-        synchronize: false
-        data:
-          spec:
-            from:
-              - group: gateway.envoyproxy.io
-                kind: SecurityPolicy
-                namespace: "{{ request.object.metadata.namespace }}"
-            to:
-              - group: ""
-                kind: Service
-                name: ak-outpost-authentik-embedded-outpost
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [gateway.networking.k8s.io]
+        apiVersions: ["*"]
+        operations: [CREATE, UPDATE]
+        resources: [httproutes]
+  matchConditions:
+    - name: forward-auth-enabled
+      expression: >-
+        has(object.metadata.annotations) &&
+        object.metadata.annotations[?'authentik.home.arpa/forward-auth'].orValue('') == 'true'
+  evaluation:
+    synchronize:
+      enabled: true
+    # Cover HTTPRoutes that predate the policy, and adopt the SecurityPolicies
+    # the legacy ClusterPolicy generated (orphaned on its deletion).
+    generateExisting:
+      enabled: true
+  # Create-or-update, so pre-existing SecurityPolicies are adopted rather than
+  # failing with AlreadyExists.
+  useServerSideApply: true
+  variables:
+    # CEL map literals must be homogeneous: maps that mix strings and nested
+    # objects wrap every value in dyn().
+    - name: securityPolicy
+      expression: >-
+        {
+          "apiVersion": dyn("gateway.envoyproxy.io/v1alpha1"),
+          "kind": dyn("SecurityPolicy"),
+          "metadata": dyn({
+            "name": string(object.metadata.name) + "-forward-auth",
+            "namespace": string(object.metadata.namespace)
+          }),
+          "spec": dyn({
+            "targetRefs": dyn([{
+              "group": "gateway.networking.k8s.io",
+              "kind": "HTTPRoute",
+              "name": string(object.metadata.name)
+            }]),
+            "extAuth": dyn({
+              "failOpen": dyn(false),
+              "headersToExtAuth": dyn([
+                "host", "cookie", "x-forwarded-proto", "x-forwarded-host", "x-forwarded-for"
+              ]),
+              "http": dyn({
+                "backendRefs": dyn([{
+                  "name": dyn("ak-outpost-authentik-embedded-outpost"),
+                  "namespace": dyn("security"),
+                  "port": dyn(9000)
+                }]),
+                "path": dyn("/outpost.goauthentik.io/auth/envoy"),
+                "headersToBackend": dyn([
+                  "set-cookie", "x-authentik-username", "x-authentik-email",
+                  "x-authentik-groups", "x-authentik-uid", "x-authentik-name"
+                ])
+              })
+            })
+          })
+        }
+  generate:
+    # headersToExtAuth forwards what the outpost needs: cookie (session/state
+    # validation on callback) and x-forwarded-* (correct https scheme/host).
+    # Without these the OAuth callback fails with HTTP 400. NOTE: this field is
+    # at spec.extAuth level, NOT under .http.
+    - expression: generator.Apply(object.metadata.namespace, [variables.securityPolicy])
+---
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: httproute-authentik-outpost-referencegrant
+  annotations:
+    policies.kyverno.io/title: Authentik outpost ReferenceGrant per namespace
+    policies.kyverno.io/subject: HTTPRoute, ReferenceGrant
+    policies.kyverno.io/description: >-
+      The forward-auth SecurityPolicy lives in the app namespace, but its ext-auth
+      backendRef points at the outpost Service in `security`. That
+      cross-namespace ref needs a ReferenceGrant. ReferenceGrant has no
+      namespace wildcard, so instead of maintaining a hand-written allowlist this
+      generates one grant per source namespace on demand. Not synchronized, so
+      the grant is sticky: one left orphaned when the last annotated route in a
+      namespace goes away is harmless.
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [gateway.networking.k8s.io]
+        apiVersions: ["*"]
+        operations: [CREATE, UPDATE]
+        resources: [httproutes]
+  matchConditions:
+    - name: forward-auth-enabled
+      expression: >-
+        has(object.metadata.annotations) &&
+        object.metadata.annotations[?'authentik.home.arpa/forward-auth'].orValue('') == 'true'
+  evaluation:
+    synchronize:
+      enabled: false
+    generateExisting:
+      enabled: true
+  useServerSideApply: true
+  variables:
+    - name: referenceGrant
+      expression: >-
+        {
+          "apiVersion": dyn("gateway.networking.k8s.io/v1beta1"),
+          "kind": dyn("ReferenceGrant"),
+          "metadata": dyn({
+            "name": "securitypolicy-to-outpost-" + string(object.metadata.namespace),
+            "namespace": "security"
+          }),
+          "spec": dyn({
+            "from": [{
+              "group": "gateway.envoyproxy.io",
+              "kind": "SecurityPolicy",
+              "namespace": string(object.metadata.namespace)
+            }],
+            "to": [{
+              "group": "",
+              "kind": "Service",
+              "name": "ak-outpost-authentik-embedded-outpost"
+            }]
+          })
+        }
+  generate:
+    - expression: generator.Apply("security", [variables.referenceGrant])
