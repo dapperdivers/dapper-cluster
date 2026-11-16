@@ -31,6 +31,7 @@ spec:
             - name: BUCKETS
               value: >-
                 cloudnative-pg:CNPG
+                cloudnative-pg:OFFSITE:ro
           envFrom:
             - secretRef:
                 name: garage-secret

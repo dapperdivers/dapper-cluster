@@ -1,0 +1,63 @@
+---
+# Off-site copy of Garage buckets to Cloudflare R2 (config/offsite-sync.sh).
+# Hourly: CNPG archives WAL every few minutes, so this bounds off-site RPO at
+# about an hour while staying a handful of R2 operations per run.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: garage-offsite
+spec:
+  schedule: "30 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 1800
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3000
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile: { type: RuntimeDefault }
+          containers:
+            - name: sync
+              image: docker.io/rclone/rclone:1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5
+              command: ["/bin/sh", "/scripts/offsite-sync.sh"]
+              env:
+                - name: SYNC_BUCKETS
+                  value: cloudnative-pg
+                # rclone wants a writable config/cache location; root FS is RO.
+                - name: HOME
+                  value: /tmp
+                - name: RCLONE_CONFIG
+                  value: /tmp/rclone.conf
+              envFrom:
+                - secretRef:
+                    name: garage-offsite-secret
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: { drop: ["ALL"] }
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 512Mi
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: scripts
+              configMap:
+                name: garage-offsite
+            - name: tmp
+              emptyDir: {}

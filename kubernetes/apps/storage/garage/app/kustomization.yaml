@@ -6,6 +6,8 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./provision-job.yaml
+  - ./offsite-externalsecret.yaml
+  - ./offsite-cronjob.yaml
 configMapGenerator:
   # Referenced from HelmRelease values, which kustomize can't rewrite, so no
   # hash suffix; reloader restarts Garage when it changes.
@@ -23,4 +25,10 @@ configMapGenerator:
       annotations:
         # Shell ${...} expansions must reach the script untouched, not be
         # treated as Flux postBuild substitutions.
+        kustomize.toolkit.fluxcd.io/substitute: disabled
+  - name: garage-offsite
+    files:
+      - offsite-sync.sh=./config/offsite-sync.sh
+    options:
+      annotations:
         kustomize.toolkit.fluxcd.io/substitute: disabled
