@@ -13,11 +13,10 @@ metadata:
       a floating image reference: an explicit :latest tag or no tag at all,
       without a digest. Any image pinned by digest is allowed (including
       latest@sha256:...), because a digest is already reproducible.
-      Audit until the pinned workloads have rolled and reports show 0
-      failures, then Deny (#4726). failurePolicy Ignore keeps a Kyverno outage
-      from blocking pod creation (#3542).
+      Enforced (Deny) since #4726. failurePolicy Ignore keeps a Kyverno
+      outage from blocking pod creation (#3542).
 spec:
-  validationActions: [Audit]
+  validationActions: [Deny]
   failurePolicy: Ignore
   evaluation:
     background:
