@@ -30,57 +30,50 @@ spec:
   evaluation:
     synchronize:
       enabled: true
-    # Cover HTTPRoutes that predate the policy, and adopt the SecurityPolicies
-    # the legacy ClusterPolicy generated (orphaned on its deletion).
+    # Cover HTTPRoutes that predate the policy.
     generateExisting:
       enabled: true
-  # Create-or-update, so pre-existing SecurityPolicies are adopted rather than
-  # failing with AlreadyExists.
+  # Create-or-update, so existing SecurityPolicies are updated in place.
   useServerSideApply: true
-  variables:
-    # CEL map literals must be homogeneous: maps that mix strings and nested
-    # objects wrap every value in dyn().
-    - name: securityPolicy
-      expression: >-
-        {
-          "apiVersion": dyn("gateway.envoyproxy.io/v1alpha1"),
-          "kind": dyn("SecurityPolicy"),
-          "metadata": dyn({
-            "name": string(object.metadata.name) + "-forward-auth",
-            "namespace": string(object.metadata.namespace)
-          }),
-          "spec": dyn({
-            "targetRefs": dyn([{
-              "group": "gateway.networking.k8s.io",
-              "kind": "HTTPRoute",
-              "name": string(object.metadata.name)
-            }]),
-            "extAuth": dyn({
-              "failOpen": dyn(false),
-              "headersToExtAuth": dyn([
-                "host", "cookie", "x-forwarded-proto", "x-forwarded-host", "x-forwarded-for"
-              ]),
-              "http": dyn({
-                "backendRefs": dyn([{
-                  "name": dyn("ak-outpost-authentik-embedded-outpost"),
-                  "namespace": dyn("security"),
-                  "port": dyn(9000)
-                }]),
-                "path": dyn("/outpost.goauthentik.io/auth/envoy"),
-                "headersToBackend": dyn([
-                  "set-cookie", "x-authentik-username", "x-authentik-email",
-                  "x-authentik-groups", "x-authentik-uid", "x-authentik-name"
-                ])
-              })
-            })
-          })
-        }
   generate:
-    # headersToExtAuth forwards what the outpost needs: cookie (session/state
-    # validation on callback) and x-forwarded-* (correct https scheme/host).
-    # Without these the OAuth callback fails with HTTP 400. NOTE: this field is
-    # at spec.extAuth level, NOT under .http.
-    - expression: generator.Apply(object.metadata.namespace, [variables.securityPolicy])
+    - template:
+        interpolate: cel
+        # headersToExtAuth forwards what the outpost needs: cookie (session/state
+        # validation on callback) and x-forwarded-* (correct https scheme/host).
+        # Without these the OAuth callback fails with HTTP 400. NOTE: this field
+        # is at spec.extAuth level, NOT under .http.
+        value: |
+          apiVersion: gateway.envoyproxy.io/v1alpha1
+          kind: SecurityPolicy
+          metadata:
+            name: (( object.metadata.name ))-forward-auth
+            namespace: (( object.metadata.namespace ))
+          spec:
+            targetRefs:
+              - group: gateway.networking.k8s.io
+                kind: HTTPRoute
+                name: (( object.metadata.name ))
+            extAuth:
+              failOpen: false
+              headersToExtAuth:
+                - host
+                - cookie
+                - x-forwarded-proto
+                - x-forwarded-host
+                - x-forwarded-for
+              http:
+                backendRefs:
+                  - name: ak-outpost-authentik-embedded-outpost
+                    namespace: security
+                    port: 9000
+                path: /outpost.goauthentik.io/auth/envoy
+                headersToBackend:
+                  - set-cookie
+                  - x-authentik-username
+                  - x-authentik-email
+                  - x-authentik-groups
+                  - x-authentik-uid
+                  - x-authentik-name
 ---
 apiVersion: policies.kyverno.io/v1
 kind: GeneratingPolicy
@@ -115,28 +108,21 @@ spec:
     generateExisting:
       enabled: true
   useServerSideApply: true
-  variables:
-    - name: referenceGrant
-      expression: >-
-        {
-          "apiVersion": dyn("gateway.networking.k8s.io/v1beta1"),
-          "kind": dyn("ReferenceGrant"),
-          "metadata": dyn({
-            "name": "securitypolicy-to-outpost-" + string(object.metadata.namespace),
-            "namespace": "security"
-          }),
-          "spec": dyn({
-            "from": [{
-              "group": "gateway.envoyproxy.io",
-              "kind": "SecurityPolicy",
-              "namespace": string(object.metadata.namespace)
-            }],
-            "to": [{
-              "group": "",
-              "kind": "Service",
-              "name": "ak-outpost-authentik-embedded-outpost"
-            }]
-          })
-        }
   generate:
-    - expression: generator.Apply("security", [variables.referenceGrant])
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: gateway.networking.k8s.io/v1beta1
+          kind: ReferenceGrant
+          metadata:
+            name: securitypolicy-to-outpost-(( object.metadata.namespace ))
+            namespace: security
+          spec:
+            from:
+              - group: gateway.envoyproxy.io
+                kind: SecurityPolicy
+                namespace: (( object.metadata.namespace ))
+            to:
+              - group: ""
+                kind: Service
+                name: ak-outpost-authentik-embedded-outpost

@@ -38,6 +38,12 @@ spec:
         backgroundScanInterval: 24h
     grafana:
       enabled: true
+    config:
+      # Garbage-collect finished UpdateRequests (generate / mutateExisting work
+      # items). Without this they accumulate forever: 100+ stale ones from the
+      # legacy postgres-init ClusterPolicy were still around after the CEL migration.
+      enableUpdateRequestCleanup: true
+      updateRequestCleanupTTL: 24h
     admissionController:
       # HA: keep >1 admission replica so a single pod disruption (e.g. a tuppr
       # node drain) never empties kyverno-svc endpoints. With failurePolicy=Fail
