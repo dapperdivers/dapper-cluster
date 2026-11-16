@@ -18,6 +18,9 @@
     ":timezone(America/New_York)",
   ],
   platformAutomerge: true,
+  // main doesn't require up-to-date branches, so the default `auto` just
+  // rebases every open automerge PR (and re-runs CI) each time main moves.
+  rebaseWhen: "conflicted",
   dependencyDashboardAutoclose: true,
   prCreation: "immediate",
   dependencyDashboardApproval: false,
