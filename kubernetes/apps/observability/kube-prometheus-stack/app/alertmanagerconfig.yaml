@@ -39,25 +39,6 @@ spec:
       # CPUThrottlingHigh was null-routed here 2026-06-29..2026-07-02; it is now
       # disabled at the source (defaultRules.disabled in helmrelease.yaml) so it
       # no longer evaluates at all.
-      # Silence roundtable agent-sandbox churn: pods are ephemeral and restart/
-      # crashloop/not-ready constantly by design, so warning/info pod-lifecycle alerts
-      # there are expected noise. Drop all non-critical roundtable alerts; critical
-      # still pages (this matcher requires severity warning|info, so critical falls through).
-      - receiver: "null"
-        matchers:
-          - name: namespace
-            value: roundtable
-            matchType: =
-          - name: severity
-            value: "warning|info"
-            matchType: =~
-      # Roundtable-specific alerts that carry no namespace label (so the namespace
-      # matcher above misses them) — silence by name.
-      - receiver: "null"
-        matchers:
-          - name: alertname
-            value: "KnightMetricsAbsent|RoundtablePodRestarting"
-            matchType: =~
       # Channel-failure alerts must cross channels: a broken channel can't report
       # its own death (EEMUA alarm-system health). The FailedToSendAlerts alerts
       # carry an `integration` label, so split on it — webhook(=ntfy-bridge)
