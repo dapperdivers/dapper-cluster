@@ -44,8 +44,9 @@ spec:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: minio-store
-        # v3 = PG17 archive (kept for pre-upgrade restores), v4 = PG18
+        # Garage (storage/garage) since 2026-11. Old archives stay in MinIO
+        # (minio-store): postgres-v3 = PG17, postgres-v4 = PG18's first hours.
+        barmanObjectName: garage-store
         serverName: postgres-v4
   bootstrap:
     recovery:

@@ -38,6 +38,8 @@ spec:
   dependsOn:
     - name: minio
       namespace: storage
+    - name: garage
+      namespace: storage
     - name: external-secrets-stores
       namespace: external-secrets
     - name: cloudnative-pg

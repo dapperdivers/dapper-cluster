@@ -1,0 +1,49 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudnative-pg-garage
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: cloudnative-pg-garage-secret
+    template:
+      engineVersion: v2
+      data:
+        # Same key storage/garage's provision Job imports for the bucket.
+        accessKeyId: "{{ .GARAGE_CNPG_ACCESS_KEY_ID }}"
+        secretAccessKey: "{{ .GARAGE_CNPG_SECRET_ACCESS_KEY }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^GARAGE_CNPG_.*
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: garage-store
+  namespace: database
+spec:
+  # Recovery window: barman prunes base backups (and the WAL they need) older
+  # than this, for the serverName the cluster archives to.
+  retentionPolicy: "30d"
+  configuration:
+    destinationPath: s3://cloudnative-pg/
+    endpointURL: http://garage.storage.svc.cluster.local:3900
+    # Garage has no root_domain configured, so only path-style requests work.
+    s3AddressingStyle: path
+    s3Credentials:
+      accessKeyId:
+        name: cloudnative-pg-garage-secret
+        key: accessKeyId
+      secretAccessKey:
+        name: cloudnative-pg-garage-secret
+        key: secretAccessKey
+    data:
+      compression: bzip2
+    wal:
+      compression: bzip2
+      maxParallel: 8
