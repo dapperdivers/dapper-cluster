@@ -1,7 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
 metadata:
   name: require-probes
   annotations:
@@ -13,39 +12,36 @@ metadata:
       Validates that containers have at least a readinessProbe defined.
       Health probes enable Kubernetes to properly manage traffic routing
       and rolling updates. Audit mode — reports violations without blocking.
+      Job Pods (job-name label) are exempt.
 spec:
-  webhookConfiguration:
-    failurePolicy: Ignore
-  validationFailureAction: Audit
-  background: true
-  rules:
-    - name: require-readiness-probe
-      match:
-        any:
-          - resources:
-              kinds:
-                - Pod
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - flux-system
-                - kyverno
-                - cert-manager
-          # Jobs and CronJobs don't need probes
-          - resources:
-              kinds:
-                - Pod
-              selector:
-                matchExpressions:
-                  - key: job-name
-                    operator: Exists
-      validate:
-        message: >-
-          Container '{{request.object.spec.containers[].name}}' has no readinessProbe.
-          Add a readinessProbe for proper traffic routing and rolling updates.
-        pattern:
-          spec:
-            containers:
-              - readinessProbe: "?*"
+  validationActions: [Audit]
+  failurePolicy: Ignore
+  evaluation:
+    background:
+      enabled: true
+  autogen:
+    podControllers:
+      controllers: []
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, flux-system, kyverno, cert-manager]
+    # Jobs and CronJobs don't need probes
+    objectSelector:
+      matchExpressions:
+        - key: job-name
+          operator: DoesNotExist
+  validations:
+    - expression: object.spec.containers.all(c, has(c.readinessProbe))
+      messageExpression: >-
+        'Container(s) ' + object.spec.containers.filter(c,
+          !has(c.readinessProbe)).map(c, c.name).join(', ') +
+        ' have no readinessProbe. Add a readinessProbe for proper traffic
+        routing and rolling updates.'
