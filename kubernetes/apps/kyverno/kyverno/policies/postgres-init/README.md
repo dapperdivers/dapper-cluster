@@ -15,8 +15,8 @@ This policy set provides a **3-annotation solution** to add postgres-init functi
 ## Files
 
 - **`configmap.yaml`** - Stores the postgres-init image reference (Renovate updates this automatically)
-- **`clusterpolicy-container.yaml`** - Injects init container into HelmRelease
-- **`clusterpolicy-externalsecret.yaml`** - Generates ExternalSecret for postgres credentials
+- **`mutatingpolicy-container.yaml`** - MutatingPolicy that injects the init container into the HelmRelease
+- **`generatingpolicy-externalsecret.yaml`** - GeneratingPolicy that generates the ExternalSecret for postgres credentials
 - **`kustomization.yaml`** - Kustomize resources for this policy set
 
 ## Usage
@@ -53,7 +53,7 @@ postgres-init.home.arpa/controller: "custom-controller" # Default: release name
 
 ### 1. Init Container Injection
 
-The `clusterpolicy-container.yaml` policy injects this into your HelmRelease:
+The `mutatingpolicy-container.yaml` policy injects this into your HelmRelease:
 
 ```yaml
 spec:
@@ -72,7 +72,7 @@ spec:
 
 ### 2. ExternalSecret Generation
 
-The `clusterpolicy-externalsecret.yaml` policy creates:
+The `generatingpolicy-externalsecret.yaml` policy creates:
 
 ```yaml
 apiVersion: external-secrets.io/v1
@@ -159,7 +159,7 @@ After adding annotations to a HelmRelease:
 
 ```bash
 # Check that ClusterPolicies are ready
-kubectl get clusterpolicy | grep postgres-init
+kubectl get mpol,gpol | grep postgres-init
 
 # Verify ExternalSecret was generated
 kubectl get externalsecret {app}-postgres-init -n {namespace}
@@ -181,7 +181,7 @@ kubectl logs -n {namespace} {pod} -c init-db
 **Check:**
 
 1. Required annotations present: `enabled`, `user-key`, `pass-key`
-2. Policy is applied: `kubectl get clusterpolicy postgres-init-externalsecret`
+2. Policy is applied: `kubectl get gpol postgres-init-externalsecret`
 3. Kyverno logs: `kubectl logs -n kyverno -l app.kubernetes.io/component=admission-controller`
 
 ### Init container not injected
@@ -189,7 +189,7 @@ kubectl logs -n {namespace} {pod} -c init-db
 **Check:**
 
 1. Annotation is string value: `postgres-init.home.arpa/enabled: "true"` (not boolean)
-2. Policy is applied: `kubectl get clusterpolicy postgres-init-container`
+2. Policy is applied: `kubectl get mpol postgres-init-container`
 3. ConfigMap exists: `kubectl get configmap postgres-init-config -n kyverno`
 
 ### Database initialization fails
