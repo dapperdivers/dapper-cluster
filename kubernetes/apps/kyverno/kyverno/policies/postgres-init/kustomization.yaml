@@ -5,5 +5,5 @@ kind: Kustomization
 resources:
   - ./configmap.yaml
   - ./clusterrole.yaml
-  - ./clusterpolicy-container.yaml
-  - ./clusterpolicy-externalsecret.yaml
+  - ./mutatingpolicy-container.yaml
+  - ./generatingpolicy-externalsecret.yaml
