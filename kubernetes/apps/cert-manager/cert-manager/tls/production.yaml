@@ -13,12 +13,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN}"
     - "*.${SECRET_DOMAIN}"
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "ai,chelonian,media,database,home-automation,security,default,storage,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "ai,chelonian,media,home-automation,database,default,security,storage,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
 
 ---
 apiVersion: cert-manager.io/v1
@@ -34,12 +28,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_MEDIA}"
     - "*.${SECRET_DOMAIN_MEDIA}"
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "ai,media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "ai,media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
 
 ---
 apiVersion: cert-manager.io/v1
@@ -55,14 +43,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_PERSONAL}"
     - "*.${SECRET_DOMAIN_PERSONAL}"
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
-
-
 
 ---
 apiVersion: cert-manager.io/v1
@@ -78,12 +58,6 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_DIVING}"
     - "*.${SECRET_DOMAIN_DIVING}"
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces
 
 ---
 apiVersion: cert-manager.io/v1
@@ -99,9 +73,3 @@ spec:
   dnsNames:
     - "${SECRET_DOMAIN_WIFE}"
     - "*.${SECRET_DOMAIN_WIFE}"
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted"  # Control destination namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "media,default,flux-system,kube-system,network,observability,selfhosted" # Control auto-reflection namespaces

@@ -20,4 +20,3 @@ resources:
   - ./nut-upsd/ks.yaml
   - ./oidc-rbac/ks.yaml
   - ./prometheus-operator-crds/ks.yaml
-  - ./reflector/ks.yaml

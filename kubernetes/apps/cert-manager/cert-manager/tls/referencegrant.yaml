@@ -1,6 +1,6 @@
 ---
 # Lets the Envoy Gateways in `network` read the wildcard TLS Secrets straight
-# from cert-manager, so they don't have to be copied (reflector) into every
+# from cert-manager, so they don't have to be copied into every
 # namespace. Each Secret is listed by name; other Secrets in cert-manager (the
 # ACME account keys, staging certs) stay unreadable from network.
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.networking.k8s.io/referencegrant_v1.json

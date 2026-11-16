@@ -181,7 +181,6 @@
         "/cert-manager/",
         "/metrics-server/",
         "/reloader/",
-        "/reflector/",
         "/external-secrets/",
       ],
       ignoreTests: true,
