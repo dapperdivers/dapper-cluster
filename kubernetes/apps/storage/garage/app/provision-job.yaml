@@ -31,7 +31,6 @@ spec:
             - name: BUCKETS
               value: >-
                 cloudnative-pg:CNPG
-                kestra:KESTRA
           envFrom:
             - secretRef:
                 name: garage-secret
