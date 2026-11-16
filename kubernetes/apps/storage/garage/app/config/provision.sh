@@ -3,8 +3,10 @@
 # admin API. Keys are generated in Infisical (/Infrastructure/Garage) so the
 # consuming apps can read the same values through their own ExternalSecrets.
 #
-# BUCKETS: space-separated "<bucket>:<KEY_PREFIX>" pairs. For each, the env
-# must hold GARAGE_<KEY_PREFIX>_ACCESS_KEY_ID / _SECRET_ACCESS_KEY.
+# BUCKETS: space-separated "<bucket>:<KEY_PREFIX>[:ro]" entries. For each, the
+# env must hold GARAGE_<KEY_PREFIX>_ACCESS_KEY_ID / _SECRET_ACCESS_KEY. Without
+# ":ro" the key gets read/write/owner; with it, read only. (AllowBucketKey only
+# adds permissions, so removing ":ro" later grants more but never revokes.)
 set -eu
 
 API="${GARAGE_ADMIN_URL:?}"
@@ -27,7 +29,10 @@ until curl -fsS "$API/health" >/dev/null 2>&1; do sleep 5; done
 
 for spec in ${BUCKETS:?}; do
   bucket="${spec%%:*}"
-  prefix="${spec#*:}"
+  rest="${spec#*:}"
+  prefix="${rest%%:*}"
+  mode="rw"
+  [ "$rest" = "${prefix}:ro" ] && mode="ro"
   eval "key_id=\${GARAGE_${prefix}_ACCESS_KEY_ID:?}"
   eval "key_secret=\${GARAGE_${prefix}_SECRET_ACCESS_KEY:?}"
 
@@ -45,7 +50,12 @@ for spec in ${BUCKETS:?}; do
     echo "key ${key_id}: imported"
   fi
 
-  api AllowBucketKey "{\"bucketId\":\"${bucket_id}\",\"accessKeyId\":\"${key_id}\",\"permissions\":{\"read\":true,\"write\":true,\"owner\":true}}" >/dev/null
-  echo "key ${key_id}: read/write/owner on ${bucket}"
+  if [ "$mode" = "ro" ]; then
+    perms='{"read":true,"write":false,"owner":false}'
+  else
+    perms='{"read":true,"write":true,"owner":true}'
+  fi
+  api AllowBucketKey "{\"bucketId\":\"${bucket_id}\",\"accessKeyId\":\"${key_id}\",\"permissions\":${perms}}" >/dev/null
+  echo "key ${key_id}: ${mode} on ${bucket}"
 done
 echo "done"
