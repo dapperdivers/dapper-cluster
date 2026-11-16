@@ -297,9 +297,15 @@ spec:
                   // so they inherit the default chains above instead of a single
                   // hard-coded model.
                   const orInheritAgents = ['sentinel','herald','squire','scribe','steward','artificer'];
+                  // 2026.11 moved agents.list (array) to keyed agents.entries.
                   if (Array.isArray(c.agents.list)) {
                     for (const a of c.agents.list) {
                       if (a && orInheritAgents.includes(a.id)) delete a.model;
+                    }
+                  }
+                  if (c.agents.entries && typeof c.agents.entries === 'object') {
+                    for (const id of orInheritAgents) {
+                      if (c.agents.entries[id]) delete c.agents.entries[id].model;
                     }
                   }
 
@@ -354,6 +360,7 @@ spec:
                   fs.writeFileSync(p, JSON.stringify(c, null, 2));
                 "
 
+                mkdir -p -m 700 /tmp/xdg-cache
                 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
               requests:
@@ -370,6 +377,15 @@ spec:
             env:
               TZ: ${TIME_ZONE}
               HOME: /home/node
+              # 2026.11 refuses a temp root under any group-writable ancestor,
+              # and the PVC root (/home/node) must stay g+w for fsGroup. Keep
+              # XDG cache (where openclaw derives its temp root) off the PVC,
+              # and pin the big tool caches back onto it so they persist.
+              XDG_CACHE_HOME: /tmp/xdg-cache
+              GOCACHE: /home/node/.cache/go-build
+              PIP_CACHE_DIR: /home/node/.cache/pip
+              UV_CACHE_DIR: /home/node/.cache/uv
+              HOMEBREW_CACHE: /home/node/.cache/Homebrew
               TERM: xterm-256color
               PATH: /home/node/.local/bin:/home/node/.local/go/bin:/home/node/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               GOPATH: /home/node/go
@@ -385,11 +401,13 @@ spec:
             image:
               repository: ghcr.io/homeassistant-ai/ha-mcp
               tag: 9.2.0
-            args:
-              - fastmcp
-              - run
-              - fastmcp-http.json
+            # ha-mcp 9.x dropped the fastmcp CLI; ha-mcp-web serves streamable
+            # HTTP on :8086/mcp. Loopback-only: just the app container in this
+            # pod talks to it.
+            command:
+              - ha-mcp-web
             env:
+              MCP_HOST: 127.0.0.1
               TZ: ${TIME_ZONE}
               UV_NO_CACHE: "1"
               HOME: /tmp
