@@ -26,7 +26,7 @@ Multiple Claude Code sessions often run against this repo at once. To avoid bran
 ### Kubernetes Applications Structure (`kubernetes/apps/`)
 
 - **`actions-runner-system/`** - GitHub Actions self-hosted runners
-- **`ai/`** - AI/ML workloads (Ollama, OpenClaw, Hermes, Speaches, voice ingest)
+- **`ai/`** - AI/ML workloads (Ollama, OpenClaw, Speaches, voice ingest)
 - **`cert-manager/`** - TLS certificate management
 - **`database/`** - Database services (CloudNative-PG, Dragonfly Redis, EMQX, NATS)
 - **`default/`** - Default namespace applications
@@ -286,7 +286,7 @@ Comprehensive home automation using Home Assistant, ESPHome, Node-RED, and Zigbe
 
 ### AI/ML Services
 
-Local AI inference with Ollama (2x Tesla P100), speech services (Speaches), and the OpenClaw/Hermes assistants.
+Local AI inference with Ollama (2x Tesla P100), speech services (Speaches), and the OpenClaw assistant (molt).
 
 ### Observability
 
