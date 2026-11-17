@@ -1,0 +1,78 @@
+---
+# Who may reach the kagent services (#4777). Without these, any pod in the
+# cluster could call agents (which carry the vault API key) and use the UI
+# without going through Authentik. Callers were taken from Hubble flows.
+# Replies to connections these pods open (Postgres, Substrate, tool servers)
+# are not affected: Cilium tracks connection state.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kagent-controller
+spec:
+  description: A2A/MCP/REST API, only from the UI and from agents via Substrate's egress gateway.
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kagent
+      app.kubernetes.io/component: controller
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kagent
+            app.kubernetes.io/component: ui
+        # Sandboxed agents reach the controller (and, through it, their tools) here.
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ate-system
+            app: atenet-egress
+      toPorts:
+        - ports:
+            - port: "8083"
+              protocol: TCP
+    # Kubelet probes; kubectl port-forward also arrives this way.
+    - fromEntities:
+        - host
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kagent-ui
+spec:
+  description: UI, only through the internal gateway (Authentik forward-auth).
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kagent
+      app.kubernetes.io/component: ui
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: internal
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEntities:
+        - host
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kagent-tools
+spec:
+  description: Built-in k8s tool server, only from the controller (agents' tool calls go through it).
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kagent-tools
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kagent
+            app.kubernetes.io/component: controller
+      toPorts:
+        - ports:
+            - port: "8084"
+              protocol: TCP
+    - fromEntities:
+        - host
