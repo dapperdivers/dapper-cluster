@@ -1,0 +1,168 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: obsidian-vault
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: volsync
+      namespace: storage
+  values:
+    controllers:
+      syncthing:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: lscr.io/linuxserver/syncthing
+              tag: 2.1.7@sha256:c4207d8f5b66d5f67eedb636b75500b5a04898e9f33299d252f4b966c41a4128
+            env:
+              PUID: "1000"
+              PGID: "1000"
+              TZ: ${TIME_ZONE}
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /rest/noauth/health
+                    port: 8384
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+            securityContext:
+              # linuxserver s6 init needs root, then drops to PUID/PGID 1000
+              runAsUser: 0
+              runAsGroup: 0
+        pod:
+          securityContext:
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+
+      # Plain-Markdown views of each vault (Vault Snapshot + Vault Catalog) for agents
+      # that read raw files and can't run Dataview. Rewrites only on change; writes
+      # <file>.tmp then renames (ignored via the vault's .stglobalignore).
+      vault-snapshot:
+        type: cronjob
+        cronjob:
+          schedule: "15 * * * *"
+          timeZone: &timeZone ${TIME_ZONE}
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image:
+              repository: python
+              tag: 3.15@sha256:df3f05ff4d74833f52146edd195c8f7913581b57796a820fb7e373457ace9bad
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  echo "== $v"
+                  python3 -I /scripts/vault-snapshot.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              TZ: *timeZone
+              OUTPUT_DIR: Resources/Generated
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+        pod:
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      syncthing:
+        controller: syncthing
+        ports:
+          http:
+            port: 8384
+      syncthing-lb:
+        controller: syncthing
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: ${OBSIDIAN_VAULT_VIP_GATEWAY}
+        ports:
+          sync:
+            port: 22000
+            protocol: TCP
+
+    route:
+      syncthing:
+        hostnames: ["vault-sync.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: syncthing
+                port: http
+
+    persistence:
+      config:
+        existingClaim: obsidian-vault
+        advancedMounts:
+          syncthing:
+            app:
+              - path: /config
+      # One entry per vault (PVC created by its own Flux Kustomization in ../ks.yaml)
+      second-brain:
+        existingClaim: obsidian-second-brain
+        advancedMounts:
+          syncthing:
+            app:
+              - path: /data/second-brain
+          vault-snapshot:
+            app:
+              - path: /vaults/second-brain
+      scripts:
+        type: configMap
+        name: vault-snapshot-script
+        advancedMounts:
+          vault-snapshot:
+            app:
+              - path: /scripts
+                readOnly: true
+      tmp:
+        type: emptyDir
+        advancedMounts:
+          vault-snapshot:
+            app:
+              - path: /tmp
