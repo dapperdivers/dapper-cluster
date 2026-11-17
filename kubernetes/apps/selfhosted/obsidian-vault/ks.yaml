@@ -2,7 +2,8 @@
 # One Kustomization per vault: each gets its own PVC (named ${APP}) with hourly local +
 # daily R2 restic backups, and restores itself from backup if the PVC is ever recreated.
 # To add a vault: copy this block + ./vaults/<name>/, then mount it in app/helmrelease.yaml
-# and add the folder in the Syncthing UI.
+# and add the folder in the Syncthing UI. Its restic repo dir (/volsync/<name>) is created
+# automatically by the kyverno volsync-repository-mkdir policy when the repository PV appears.
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
