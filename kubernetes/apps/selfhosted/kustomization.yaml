@@ -16,4 +16,5 @@ resources:
   - ./paperless-ngx/ks.yaml
   - ./searxng/ks.yaml
   - ./obsidian-vault/ks.yaml
+  - ./vault-mcp/ks.yaml
   - ./resume/ks.yaml

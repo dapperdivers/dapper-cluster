@@ -5,3 +5,5 @@ kind: Kustomization
 resources:
   - ./k8s-reader.yaml
   - ./smoke-test.yaml
+  - ./vault-mcp.yaml
+  - ./voice-triage.yaml

@@ -68,6 +68,8 @@ spec:
   dependsOn:
     - name: kagent
       namespace: kagent
+    - name: vault-mcp
+      namespace: selfhosted
   path: ./kubernetes/apps/kagent/kagent/agents
   prune: true
   sourceRef:
