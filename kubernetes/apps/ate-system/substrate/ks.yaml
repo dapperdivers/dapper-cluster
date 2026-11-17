@@ -83,8 +83,10 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: substrate-atelet database/cloudnative-pg-cluster
-      namespace: ate-system/substrate-atelet database
+    - name: substrate-atelet
+      namespace: ate-system
+    - name: cloudnative-pg-cluster
+      namespace: database
   path: ./kubernetes/apps/ate-system/substrate/app
   prune: true
   sourceRef:

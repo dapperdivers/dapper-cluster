@@ -33,8 +33,10 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: kagent-crds ate-system/substrate
-      namespace: kagent/kagent-crds ate-system
+    - name: kagent-crds
+      namespace: kagent
+    - name: substrate
+      namespace: ate-system
   path: ./kubernetes/apps/kagent/kagent/app
   prune: true
   sourceRef:
