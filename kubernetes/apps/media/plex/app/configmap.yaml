@@ -108,4 +108,4 @@ data:
 
   # LAN networks (Plex treats these clients as local: no remote-quality limits)
   # PLEX_LAN_NETWORKS in the HelmRelease is only applied on first setup; this re-applies it every start.
-  PLEX_PREFERENCE_42: "LanNetworksBandwidth=192.168.1.0/24,192.168.5.0/24,10.100.0.0/24,10.69.0.0/16" # incl. 301 Clayton house network
+  PLEX_PREFERENCE_42: "LanNetworksBandwidth=192.168.1.0/24,192.168.5.0/24,10.100.0.0/24,10.69.0.0/16" # incl. the house network

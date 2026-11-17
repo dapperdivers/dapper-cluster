@@ -58,7 +58,7 @@ spec:
         - name: arista-dist # 192.168.1.21 7050 distribution (Ceph 40G)
           target: 192.168.1.21
           auth: ["ro_v2"]
-        # Not at 301 Clayton (unreachable since the 2026-11-02 move, so they only
+        # Not at the new site (unreachable since the 2026-11-02 move, so they only
         # produced TargetDown noise): aruba-access 192.168.1.26 (S2500), nray-house
         # 192.168.1.7 + nray-shop 192.168.1.8 (60GHz bridge), css326-bridge
         # 192.168.1.27 (auth public_v2). Re-add here if any of them is re-deployed.

@@ -17,7 +17,7 @@ spec:
         - proxmox-04.manor
         - firewall.manor
         # zigbee-controller.manor (house coordinator, 192.168.1.5) removed 2026-11-06: it
-        # stayed at Valley Trail and is unreachable from Clayton. zigbee-controller-garage.manor
+        # stayed at the old site and is unreachable from the new one. zigbee-controller-garage.manor
         # (192.168.1.9) removed 2026-06-26 and still unplugged (Brocade 1/1/47). Re-add the
         # one you plug in here AND as a target of the zigbee-controller ScrapeConfig
         # (deleted from kube-prometheus-stack/app the same day; see git history).
