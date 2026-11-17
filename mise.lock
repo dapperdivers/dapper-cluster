@@ -47,43 +47,36 @@ url_api = "https://api.github.com/repos/FiloSottile/age/releases/assets/53554193
 provenance = "github-attestations"
 
 [[tools."aqua:budimanjojo/talhelper"]]
-version = "3.1.14"
+version = "3.1.17"
 backend = "aqua:budimanjojo/talhelper"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.linux-arm64"]
-checksum = "sha256:ea7c233d83e6ab6bb9c09cc63f4f1baa2e4580ec34c37ccec59b8b2ec6cd53a9"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776048"
+checksum = "sha256:1841915ec6f533ef653baedc5f1cbf68683e0ca9a72f240ac2f257d94f68798b"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_arm64.tar.gz"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.linux-arm64-musl"]
-checksum = "sha256:ea7c233d83e6ab6bb9c09cc63f4f1baa2e4580ec34c37ccec59b8b2ec6cd53a9"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776048"
+checksum = "sha256:1841915ec6f533ef653baedc5f1cbf68683e0ca9a72f240ac2f257d94f68798b"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_arm64.tar.gz"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.linux-x64"]
-checksum = "sha256:6a305200df6a9198eead9e7137514c01ea09399ac66e136fef36077713bd1d55"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776037"
+checksum = "sha256:dff9162569004637b6a842c4020d909b0ffbc7fbbe2fca23a754708db95be204"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_amd64.tar.gz"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.linux-x64-musl"]
-checksum = "sha256:6a305200df6a9198eead9e7137514c01ea09399ac66e136fef36077713bd1d55"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776037"
+checksum = "sha256:dff9162569004637b6a842c4020d909b0ffbc7fbbe2fca23a754708db95be204"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_amd64.tar.gz"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.macos-arm64"]
-checksum = "sha256:3fb09967bcae46b3925eca314e569371fd13bea9c84f6540876fac07b730df28"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776036"
+checksum = "sha256:cf86526d730010193d3e858f13242e5f0c94fdcefe5e001716c552211b1e95b0"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_darwin_arm64.tar.gz"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.macos-x64"]
-checksum = "sha256:dd51c15eff55f94c8408819a956bcbf1fc9f4bf300db9b3b18d6603f5b8b8425"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_darwin_amd64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776049"
+checksum = "sha256:29dec70a5b2049058e4adf5ff6f236ca74fb51500ebb8e41e381ad1d49d60a09"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_darwin_amd64.tar.gz"
 
 [tools."aqua:budimanjojo/talhelper"."platforms.windows-x64"]
-checksum = "sha256:85952d65563fc5cd7b6c652d0949e359f123e283dc9819f9038d395eec900840"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.14/talhelper_windows_amd64.tar.gz"
-url_api = "https://api.github.com/repos/budimanjojo/talhelper/releases/assets/485776039"
+checksum = "sha256:415f079abd09fa686b29a4d02de03cd6c5d8339cc6d497f2f4a54da6765c0a79"
+url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_windows_amd64.tar.gz"
 
 [[tools."aqua:cloudflare/cloudflared"]]
 version = "2026.7.2"
@@ -458,42 +451,42 @@ url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/726219881"
 provenance = "cosign"
 
 [[tools."aqua:siderolabs/talos"]]
-version = "1.13.7"
+version = "1.14.5"
 backend = "aqua:siderolabs/talos"
 
 [tools."aqua:siderolabs/talos"."platforms.linux-arm64"]
-checksum = "sha256:756ef525dbff50bcaa67750fce70efbef2899ec87c87468914a8390ce292b1d4"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-linux-arm64"
+checksum = "sha256:dfd3aa33c3159810e216fc39afb685d4d120c8f2728e017d8c7f7635d3139382"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-arm64"
 provenance = "cosign"
 
 [tools."aqua:siderolabs/talos"."platforms.linux-arm64-musl"]
-checksum = "sha256:756ef525dbff50bcaa67750fce70efbef2899ec87c87468914a8390ce292b1d4"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-linux-arm64"
+checksum = "sha256:dfd3aa33c3159810e216fc39afb685d4d120c8f2728e017d8c7f7635d3139382"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-arm64"
 provenance = "cosign"
 
 [tools."aqua:siderolabs/talos"."platforms.linux-x64"]
-checksum = "sha256:97d08e5584e56114659f131e95e227910d1f3b427d26360dca2af3ed821b71f8"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-linux-amd64"
+checksum = "sha256:ff432b68986709e6b69c563a08a2ced4232d5196b0dccd6d2e783e9d714d7d7d"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-amd64"
 provenance = "cosign"
 
 [tools."aqua:siderolabs/talos"."platforms.linux-x64-musl"]
-checksum = "sha256:97d08e5584e56114659f131e95e227910d1f3b427d26360dca2af3ed821b71f8"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-linux-amd64"
+checksum = "sha256:ff432b68986709e6b69c563a08a2ced4232d5196b0dccd6d2e783e9d714d7d7d"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-amd64"
 provenance = "cosign"
 
 [tools."aqua:siderolabs/talos"."platforms.macos-arm64"]
-checksum = "sha256:8965b026f416a25147b99530721c25fc2616c4fa655480673bcb63eb7f0de331"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-darwin-arm64"
+checksum = "sha256:c865077bdfc99c38d70b377708682eec1a8febab987f0623206e7139d9013096"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-darwin-arm64"
 provenance = "cosign"
 
 [tools."aqua:siderolabs/talos"."platforms.macos-x64"]
-checksum = "sha256:0e4b75ee78da180103aceda6da9c906bd2cba48cd7c7c2e9049776445beab688"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-darwin-amd64"
+checksum = "sha256:cf994f2f9b3b24941f331124bade278eb6bd84e9f2c2b1bb0cfb5f7cb49db13c"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-darwin-amd64"
 provenance = "cosign"
 
 [tools."aqua:siderolabs/talos"."platforms.windows-x64"]
-checksum = "sha256:a42fb71c4f8d5b6148ac996b109bce708986e44354910c3a533942342536e958"
-url = "https://github.com/siderolabs/talos/releases/download/v1.13.7/talosctl-windows-amd64.exe"
+checksum = "sha256:45b25be0ceef02b55110a2858f2fcc4e2f711f8b3dcd64bbc3c842d45adfd696"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-windows-amd64.exe"
 provenance = "cosign"
 
 [[tools."aqua:yannh/kubeconform"]]
