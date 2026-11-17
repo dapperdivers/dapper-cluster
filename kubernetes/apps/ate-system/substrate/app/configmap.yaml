@@ -1,0 +1,15 @@
+---
+# How the Substrate API authenticates Kubernetes service-account tokens.
+# The issuer must match the cluster's (kubectl get --raw /.well-known/openid-configuration).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ate-api-authentication
+data:
+  authentication.yaml: |
+    jwtProviders:
+      - name: kubernetes
+        issuer: https://10.100.0.40:6443
+        audiences: [api.ate-system.svc]
+        certificateAuthorityFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        discoveryTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

@@ -1,0 +1,56 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kagent
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: kagent
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    # Postgres: database `kagent` on the CNPG cluster, schema `kagent`. Roles and
+    # the kagent-postgres-* Secrets were created by hand (#4777); chart defaults
+    # already point at those Secret names.
+    config:
+      server:
+        # For grpcurl against ScheduledRunService (schedules aren't CRDs).
+        grpcReflection: true
+    controller:
+      substrateClientCertificate:
+        enabled: true
+    substrateWorkerPool:
+      create: true
+      workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v1.0.1
+    harnesses:
+      enabled: true
+      kagent:
+        enabled: true
+      codex:
+        enabled: false
+      claude:
+        enabled: false
+    # Default ModelConfig: local Ollama on the idle second P100. num_ctx matches
+    # the server's OLLAMA_CONTEXT_LENGTH; more would spill KV cache off the card.
+    providers:
+      default: ollama
+      ollama:
+        provider: Ollama
+        model: gpt-oss:20b
+        config:
+          host: http://ollama-2.ai.svc.cluster.local:11434
+          options:
+            num_ctx: "32768"
+    kagent-tools:
+      rbac:
+        # Built-in k8s tool server: read-only cluster access, no Secrets.
+        readOnly: true
