@@ -1,13 +1,14 @@
 ---
-# Only kagent's controller may reach the vault (agents' tool calls go through it);
-# the API key is the second check (#4777).
+# Only kagent may reach the vault: the controller (tool discovery) and Substrate's
+# egress gateway, which carries sandboxed agents' tool calls. The API key is the
+# second check (#4777).
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: vault-mcp
 spec:
-  description: Vault MCP server, only from the kagent controller.
+  description: Vault MCP server, only from the kagent controller and agents (via Substrate's egress gateway).
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: vault-mcp
@@ -17,6 +18,9 @@ spec:
             k8s:io.kubernetes.pod.namespace: kagent
             app.kubernetes.io/name: kagent
             app.kubernetes.io/component: controller
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ate-system
+            app: atenet-egress
       toPorts:
         - ports:
             - port: "8000"

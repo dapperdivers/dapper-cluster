@@ -61,7 +61,7 @@ kind: CiliumNetworkPolicy
 metadata:
   name: kagent-tools
 spec:
-  description: Built-in k8s tool server, only from the controller (agents' tool calls go through it).
+  description: Built-in k8s tool server, only from the controller (tool discovery) and agents (via Substrate's egress gateway).
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: kagent-tools
@@ -70,6 +70,9 @@ spec:
         - matchLabels:
             app.kubernetes.io/name: kagent
             app.kubernetes.io/component: controller
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ate-system
+            app: atenet-egress
       toPorts:
         - ports:
             - port: "8084"
