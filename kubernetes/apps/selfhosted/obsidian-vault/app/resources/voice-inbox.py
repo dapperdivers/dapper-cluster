@@ -310,10 +310,11 @@ def main():
                     and now - os.path.getmtime(p) >= MIN_AGE_S:
                 todo.append(p)
     todo.sort(key=os.path.getmtime)
-    rc = 0
+    rc, wrote = 0, False
     for p in todo[:MAX_PER_RUN]:
         try:
             process(p)
+            wrote = True
         except Exception as e:
             print(f"error processing {os.path.relpath(p, VAULT)}: {e}", file=sys.stderr)
             rc = 1
@@ -321,10 +322,12 @@ def main():
         print(f"{len(todo) - MAX_PER_RUN} recordings left for the next run")
     elif not todo:
         try:
-            backfill(BACKFILL_PER_RUN)  # only on quiet runs, so new recordings never wait
+            wrote = backfill(BACKFILL_PER_RUN) > 0 or wrote  # quiet runs only, so new recordings never wait
         except Exception as e:
             print(f"backfill failed: {e}", file=sys.stderr)
             rc = 1
+    if wrote and vl.request_rescan(VAULT, [INBOX, ZETTEL_DIR, AUDIO_DIR]):
+        print("asked Syncthing to rescan")
     return rc
 
 

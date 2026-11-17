@@ -218,6 +218,13 @@ spec:
               # Unset to turn the librarian step off.
               LIBRARIAN_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian
               BACKFILL_PER_RUN: "2"
+              # Rescan right after writing: the hub's watcher misses these pods' writes.
+              SYNCTHING_URL: http://obsidian-vault-syncthing:8384
+              SYNCTHING_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-secret
+                    key: SYNCTHING_API_KEY
             resources:
               requests:
                 cpu: 10m
