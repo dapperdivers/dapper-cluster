@@ -14,6 +14,7 @@ configMapGenerator:
       - ./resources/health.py
       - ./resources/weekly-review.py
       - ./resources/voice-inbox.py
+      - ./resources/librarian.py
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

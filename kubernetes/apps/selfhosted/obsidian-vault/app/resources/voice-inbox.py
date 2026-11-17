@@ -7,6 +7,11 @@ aac, amr, 3gp) anywhere under Inbox/Voice/. For each one this:
   2. asks the local Ollama model for a title, one-line description, summary and to-dos,
   3. writes Inbox/Voice/<YYYY-MM-DD HHMM> <Title>.md (raw transcript included),
   4. moves the audio to Attachments/Voice/<YYYY-MM>/ and embeds it in the note.
+With LIBRARIAN_URL set, step 3 also asks the kagent voice-librarian agent for a filing
+suggestion, related notes and zettel candidates: the note gets a "Librarian" section and
+each zettel becomes a status: stub note in Zettels/. Earlier inbox notes written by this
+pipeline are backfilled a few per run (BACKFILL_PER_RUN). If the agent fails, the note is
+written exactly as before.
 The note is written before the audio moves, so a crash never loses a recording; a file that
 fails stays put and is retried next run (the health check flags ones stuck for hours).
 If the summary step fails the note is still written with the transcript alone.
@@ -23,6 +28,7 @@ import urllib.request
 import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import librarian  # noqa: E402
 import vaultlib as vl  # noqa: E402
 
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
@@ -53,6 +59,9 @@ MIN_AGE_S = 60  # let a still-arriving file settle
 MAX_PER_RUN = int(os.environ.get("MAX_PER_RUN", "10"))
 AUDIO_EXT = {".mp3", ".m4a", ".wav", ".ogg", ".opus", ".webm", ".flac", ".aac", ".amr", ".3gp"}
 AUTHOR = "voice-inbox"
+ZETTEL_DIR = "Zettels"
+LIBRARIAN_ON = bool(os.environ.get("LIBRARIAN_URL"))
+BACKFILL_PER_RUN = int(os.environ.get("BACKFILL_PER_RUN", "2"))
 
 # Filenames recorders commonly use: 260227_1158, 2026-02-07 18-03-17, 20260207_180317, voice-2026-02-26-073130
 STAMPS = [
@@ -134,6 +143,61 @@ def unique_path(path):
     return path
 
 
+def ask_librarian(rel, title, text):
+    """The agent's suggestions, or None (agent off, failed, or nothing to say)."""
+    if not (LIBRARIAN_ON and text.strip()):
+        return None
+    try:
+        lib = librarian.ask(VAULT, title, text)
+    except Exception as e:
+        print(f"{rel}: librarian failed ({e}); continuing without it", file=sys.stderr)
+        return None
+    print(f"{rel}: librarian folder={lib['folder'] or '-'} related={len(lib['related'])} "
+          f"zettels={len(lib['zettels'])} dropped={lib['dropped']}")
+    return lib
+
+
+def write_zettels(lib, note_rel, when):
+    """One status: stub note per zettel (schema from Research/Second Brain Architecture -
+    Dual Layer Design). Returns their vault paths."""
+    today = dt.date.today()
+    rels = []
+    for z in lib["zettels"]:
+        rel = os.path.relpath(unique_path(os.path.join(VAULT, ZETTEL_DIR, f"{z['title']}.md")), VAULT)
+        tags = list(dict.fromkeys(["zettel", z["domain"]] + z["tags"]))
+        fm = ["---", f"created: {today}", f"updated: {today}", "type: zettel", "status: stub",
+              f"domain: {z['domain']}", f"source: {vl.yaml_str(vl.wikilink(note_rel))}",
+              f"claim: {vl.yaml_str(z['claim'])}", "perspective: owner", f"confidence: {z['confidence']}",
+              "related:"] + [f"  - {vl.yaml_str(vl.wikilink(r))}" for r in lib["related"]]
+        if not lib["related"]:
+            fm[-1] = "related: []"
+        fm += ["tags:"] + [f"  - {t}" for t in tags]
+        fm += [f"description: {vl.yaml_str(z['claim'])}", "generated: true", f"author: {AUTHOR}", "---", ""]
+        body = [f"# {z['title']}", "", "## Context", "", z["context"] or z["claim"], "",
+                "## My Take", "", f"> {z['take']}", "",
+                "## Source", "",
+                f"Extracted from {vl.wikilink(note_rel)} (voice memo, {when:%Y-%m-%d}) by the "
+                f"`voice-librarian` agent. The take is quoted from the transcript; edit it, add to it, "
+                f"then set `status: active`.", ""]
+        vl.atomic_write(os.path.join(VAULT, rel), "\n".join(fm + body))
+        rels.append(rel)
+    return rels
+
+
+def librarian_section(lib, zettel_rels):
+    lines = ["## Librarian", "",
+             "*Suggestions from the `voice-librarian` agent; nothing was moved.*", ""]
+    if lib["folder"]:
+        lines.append(f"- **Suggested folder:** `{lib['folder']}/`")
+    if lib["related"]:
+        lines.append("- **Related:** " + ", ".join(vl.wikilink(r) for r in lib["related"]))
+    if zettel_rels:
+        lines.append("- **Zettels:** " + ", ".join(vl.wikilink(r) for r in zettel_rels))
+    if len(lines) == 4:
+        lines.append("- Nothing to suggest.")
+    return lines + [""]
+
+
 def process(src):
     rel_src = os.path.relpath(src, VAULT)
     when = recorded_at(src)
@@ -168,6 +232,10 @@ def process(src):
         body += ["## Summary", ""] + [f"- {s.strip()}" for s in info["summary"] if s.strip()] + [""]
     if info.get("tasks"):
         body += ["## To-do", ""] + [f"- [ ] {t.strip()}" for t in info["tasks"] if t.strip()] + [""]
+    lib = ask_librarian(rel_src, title, text)
+    zettel_rels = write_zettels(lib, note_rel, when) if lib and not vl.DRY else []
+    if lib:
+        body += librarian_section(lib, zettel_rels)
     body += ["## Transcript", "", text or "*(no speech detected)*", ""]
 
     if vl.DRY:
@@ -177,6 +245,55 @@ def process(src):
     os.makedirs(os.path.dirname(os.path.join(VAULT, audio_rel)), exist_ok=True)
     shutil.move(src, os.path.join(VAULT, audio_rel))
     print(f"{rel_src} -> {note_rel} (audio: {audio_rel})")
+
+
+def backfill(limit):
+    """Add the Librarian section (and zettels) to earlier inbox notes this pipeline wrote."""
+    if not LIBRARIAN_ON or limit <= 0:
+        return 0
+    inbox = os.path.join(VAULT, INBOX)
+    done = 0
+    for f in sorted(os.listdir(inbox)):
+        if done >= limit:
+            break
+        path = os.path.join(inbox, f)
+        if not f.endswith(".md") or not os.path.isfile(path) \
+                or dt.datetime.now().timestamp() - os.path.getmtime(path) < 3600:
+            continue  # leave notes someone touched in the last hour alone
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+        meta = vl.parse_frontmatter(text)
+        if meta.get("author") != AUTHOR or meta.get("status") != "inbox" or "\n## Librarian\n" in text \
+                or "\n## Transcript\n" not in text:
+            continue
+        rel = os.path.relpath(path, VAULT)
+        transcript = text.split("\n## Transcript\n", 1)[1].strip()
+        title = os.path.splitext(f)[0][16:] or os.path.splitext(f)[0]
+        done += 1
+        lib = ask_librarian(rel, title, transcript)
+        if not lib:
+            continue
+        if vl.DRY:
+            print(f"would add librarian section to {rel}: {json.dumps(lib)}")
+            continue
+        try:
+            when = dt.datetime.strptime(meta.get("recorded", "")[:10], "%Y-%m-%d")
+        except ValueError:
+            when = dt.datetime.fromtimestamp(os.path.getmtime(path))
+        zettel_rels = write_zettels(lib, rel, when)
+        section = "\n".join(librarian_section(lib, zettel_rels))
+
+        def add(t, section=section):
+            if "\n## Librarian\n" in t or "\n## Transcript\n" not in t:
+                return None
+            head, tail = t.split("\n## Transcript\n", 1)
+            return head.rstrip("\n") + "\n\n" + section + "\n## Transcript\n" + tail
+        # Only notes nobody has touched for an hour; an edit that lands meanwhile wins.
+        if vl.safe_edit(path, add, min_age_s=3600, keep_mtime=False):
+            print(f"{rel}: backfilled ({len(zettel_rels)} zettels)")
+        else:
+            print(f"{rel}: changed meanwhile, librarian section not added", file=sys.stderr)
+    return done
 
 
 def main():
@@ -202,6 +319,12 @@ def main():
             rc = 1
     if len(todo) > MAX_PER_RUN:
         print(f"{len(todo) - MAX_PER_RUN} recordings left for the next run")
+    elif not todo:
+        try:
+            backfill(BACKFILL_PER_RUN)  # only on quiet runs, so new recordings never wait
+        except Exception as e:
+            print(f"backfill failed: {e}", file=sys.stderr)
+            rc = 1
     return rc
 
 

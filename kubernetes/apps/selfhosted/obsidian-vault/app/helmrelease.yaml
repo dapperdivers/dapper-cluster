@@ -214,6 +214,10 @@ spec:
               <<: *jobEnv
               STT_URL: http://speaches.ai.svc.cluster.local:8000
               STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
+              # kagent agent that suggests filing, related notes and zettels (Zettels/).
+              # Unset to turn the librarian step off.
+              LIBRARIAN_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian
+              BACKFILL_PER_RUN: "2"
             resources:
               requests:
                 cpu: 10m
