@@ -1,0 +1,126 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: volsync-repository-mkdir
+  annotations:
+    policies.kyverno.io/title: VolSync Repository Directory Bootstrap
+    policies.kyverno.io/subject: PersistentVolume, Job
+    policies.kyverno.io/description: >-
+      The volsync/repository component creates a static CephFS PV rooted at
+      /volsync/<app>. ceph-csi can't mount a static path that doesn't exist, so a
+      new app's first mover pod sticks in ContainerCreating. When such a PV is
+      created, this policy generates a one-shot Job in rook-ceph that creates the
+      directory through libcephfs (the same thing `task volsync:mkdir` does by
+      hand). The Job is idempotent, and kubelet retries the mount once the
+      directory exists.
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [persistentvolumes]
+  matchConditions:
+    - name: cephfs-static-volsync-repo
+      expression: >-
+        object.spec.?storageClassName.orValue('') == 'cephfs-static' &&
+        object.spec.?csi.driver.orValue('') == 'rook-ceph.cephfs.csi.ceph.com' &&
+        object.spec.?csi.volumeAttributes.rootPath.orValue('').matches('^/volsync/[a-z0-9]([-a-z0-9]*[a-z0-9])?$')
+  evaluation:
+    # One-shot: the Job deletes itself (TTL) after it finishes, so it must not be
+    # re-created. Existing PVs already have their directories.
+    synchronize:
+      enabled: false
+    generateExisting:
+      enabled: false
+  variables:
+    - name: dir
+      expression: object.spec.csi.volumeAttributes.rootPath
+    - name: app
+      expression: variables.dir.substring(9)
+  generate:
+    # The image tracks rook-ceph-cluster/app/toolbox.yaml (Renovate bumps both).
+    # Ceph config/keyring are assembled exactly as the toolbox does it.
+    - template:
+        interpolate: cel
+        value: |
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: mkdir-volsync-(( variables.app ))
+            namespace: rook-ceph
+            labels:
+              app.kubernetes.io/name: volsync-repository-mkdir
+              app.kubernetes.io/instance: (( variables.app ))
+          spec:
+            backoffLimit: 6
+            ttlSecondsAfterFinished: 86400
+            template:
+              metadata:
+                labels:
+                  app.kubernetes.io/name: volsync-repository-mkdir
+                  app.kubernetes.io/instance: (( variables.app ))
+              spec:
+                restartPolicy: OnFailure
+                automountServiceAccountToken: false
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 2016
+                  runAsGroup: 2016
+                containers:
+                  - name: mkdir
+                    image: quay.io/ceph/ceph:v19.2.7
+                    env:
+                      - name: VOLSYNC_DIR
+                        value: "(( variables.dir ))"
+                      - name: ROOK_CEPH_MON_HOST
+                        valueFrom:
+                          secretKeyRef:
+                            name: rook-ceph-config
+                            key: mon_host
+                      - name: ROOK_CEPH_ADMIN_KEY
+                        valueFrom:
+                          secretKeyRef:
+                            name: rook-ceph-mon
+                            key: admin-secret
+                    command:
+                      - /bin/bash
+                      - -ec
+                      - |
+                        printf '[global]\nmon_host = %s\n\n[client.admin]\nkeyring = /etc/ceph/keyring\n' \
+                          "$ROOK_CEPH_MON_HOST" > /etc/ceph/ceph.conf
+                        printf '[client.admin]\nkey = %s\n' "$ROOK_CEPH_ADMIN_KEY" > /etc/ceph/keyring
+                        chmod 600 /etc/ceph/keyring
+                        exec python3 -c '
+                        import os, cephfs
+                        path = os.environ["VOLSYNC_DIR"].encode()
+                        fs = cephfs.LibCephFS(conffile="/etc/ceph/ceph.conf")
+                        fs.mount(filesystem_name=b"cephfs")
+                        try:
+                            try:
+                                fs.stat(path)
+                                print("already exists:", path.decode())
+                            except cephfs.ObjectNotFound:
+                                fs.mkdirs(path, 0o755)
+                                print("created:", path.decode())
+                        finally:
+                            fs.unmount()
+                            fs.shutdown()
+                        '
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop: [ALL]
+                    resources:
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+                      limits:
+                        memory: 256Mi
+                    volumeMounts:
+                      - name: ceph-config
+                        mountPath: /etc/ceph
+                volumes:
+                  - name: ceph-config
+                    emptyDir: {}
