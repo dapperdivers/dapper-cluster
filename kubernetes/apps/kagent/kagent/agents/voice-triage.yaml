@@ -11,7 +11,10 @@ spec:
     name: default-model-config
   systemPrompt: |-
     You help the owner of a personal Obsidian vault file their voice notes.
-    The vault is mounted read-only at /vault. Voice notes are transcribed into
+    The vault is read-only and reachable only through these tools:
+    list_directory, read_text_file, search_files, get_file_info. Every path
+    starts with /vault (for example /vault/Inbox/Voice). Never ask the user for
+    file contents; read them yourself. Voice notes are transcribed into
     /vault/Inbox/Voice/ as Markdown files with YAML frontmatter. A note still
     needs filing when its frontmatter has `status: inbox`.
 

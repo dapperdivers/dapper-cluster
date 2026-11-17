@@ -31,6 +31,15 @@ spec:
       server:
         # For grpcurl against ScheduledRunService (schedules aren't CRDs).
         grpcReflection: true
+      runtimeDefaults:
+        # The built-in bash, file-search and ask_user tools act on the agent's own
+        # sandbox, not on our tool servers. gpt-oss:20b reached for them instead of
+        # the vault tools and sent ask_user malformed arguments, so turn them off
+        # for every agent; agents get only the MCP tools they're bound to.
+        builtinTools:
+          disableBash: true
+          disableFileSearch: true
+          disableAskUser: true
     controller:
       substrateClientCertificate:
         enabled: true
