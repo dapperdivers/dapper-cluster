@@ -17,8 +17,7 @@ spec:
     remediation:
       strategy: rollback
       retries: 3
-  # The chart installs into podcertificate-controller-system, where the CA pool
-  # Secrets made by `kubectl ate admin make-ca-pool` live (see #4777).
-  targetNamespace: podcertificate-controller-system
+  # The CA pool Secrets this controller signs with were made by hand with
+  # `kubectl ate admin make-ca-pool` (see #4777).
   values:
     createNamespace: false
