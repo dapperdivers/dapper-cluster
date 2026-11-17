@@ -57,7 +57,7 @@ spec:
   dependsOn:
     - name: cert-manager
       namespace: cert-manager
-    - name: infisical-secrets
+    - name: external-secrets-stores
       namespace: external-secrets
   path: ./kubernetes/apps/cert-manager/cert-manager/remotetls
   prune: true
@@ -84,7 +84,7 @@ spec:
   dependsOn:
     - name: cert-manager-remote-tls
       namespace: cert-manager
-    - name: infisical-secrets
+    - name: external-secrets-stores
       namespace: external-secrets
   path: ./kubernetes/apps/cert-manager/cert-manager/tls
   prune: true
