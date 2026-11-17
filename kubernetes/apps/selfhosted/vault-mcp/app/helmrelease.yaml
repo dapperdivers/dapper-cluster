@@ -20,26 +20,37 @@ spec:
   values:
     controllers:
       vault-mcp:
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
               repository: docker.io/library/node
               tag: 24.22.3-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
-            # The MCP filesystem server only speaks stdio; supergateway serves it as
-            # Streamable HTTP at :8000/mcp, which kagent's RemoteMCPServer needs.
-            # The vault is mounted read-only, so write tools fail even if called.
+            # MCPVault (Obsidian-aware: BM25 search over text and frontmatter, tags,
+            # wiki links) only speaks stdio; supergateway serves it as Streamable
+            # HTTP at :8000/mcp for kagent's RemoteMCPServer, and requires the API
+            # key from SUPERGATEWAY_API_KEY. --read-only drops MCPVault's write
+            # tools; the read-only mount below is a second layer. --exclude hides
+            # generated material from search and listings (AGENTS.md: skip it
+            # unless asked).
             command:
               - npx
               - -y
               - supergateway@4.2.2
               - --stdio
-              - npx -y @modelcontextprotocol/server-filesystem@2.3.0 /vault
+              - >-
+                npx -y @bitbonsai/mcpvault@0.18.4 /vault --read-only
+                --exclude Archive/Briefings --exclude NightWatch --exclude Attachments
               - --outputTransport
               - streamableHttp
               - --port
               - "8000"
               - --healthEndpoint
               - /healthz
+            envFrom:
+              - secretRef:
+                  name: vault-mcp-secret
             env:
               TZ: ${TIME_ZONE}
               HOME: /tmp
@@ -65,7 +76,7 @@ spec:
                     path: /healthz
                     port: *port
                   periodSeconds: 5
-                  # First start downloads both npm packages.
+                  # Each start downloads both npm packages.
                   failureThreshold: 60
             securityContext:
               allowPrivilegeEscalation: false
