@@ -21,15 +21,19 @@ substrate-crds → substrate-podcert → substrate-atelet → substrate ─┐
 kagent-crds ───────────────────────────────────────────────────────┴→ kagent → kagent-agents
 ```
 
-Every Kustomization in the stack carries `app.kubernetes.io/part-of: kagent`:
+Everything the stack's Kustomizations apply (HelmReleases, chart sources, agents) carries
+`app.kubernetes.io/part-of: kagent`:
 
 ```bash
-kubectl get kustomizations -A -l app.kubernetes.io/part-of=kagent
+kubectl get helmreleases -A -l app.kubernetes.io/part-of=kagent
 ```
 
 ## Charts
 
-All six charts are kagent's own, published at `oci://ghcr.io/kagent-dev/...`. The
+All six charts are kagent's own, published at `oci://ghcr.io/kagent-dev/...`. The `kagent`
+chart is pulled through the `kagent` HelmRepository (`flux/meta/repositories/helm/`)
+rather than an OCIRepository: it puts the chart version into labels and image tags,
+which breaks on the `+<digest>` suffix an OCIRepository adds. The
 Substrate charts come from kagent's fork (`kagent-dev/substrate`); upstream
 `agent-substrate/substrate` has no Helm chart, only the `ate-setup` CLI.
 
