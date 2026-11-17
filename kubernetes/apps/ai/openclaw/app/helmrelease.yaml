@@ -23,7 +23,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
-          install-tools:
+          sync-plugins:
             image:
               repository: ghcr.io/openclaw/openclaw
               tag: 2026.11.4@sha256:f019ffc78c8866dc38c5e965e748a474989c0bdd132ed307a87ae606d829bd26
@@ -31,96 +31,39 @@ spec:
               - /bin/sh
               - -c
               - |
-                set -e
-                mkdir -p /home/node/.local/bin /home/node/.local/go
-
-                echo "Starting tool installation..."
-
-                # Install gh CLI if not present on PVC
-                if [ ! -f /home/node/.local/bin/gh ]; then
-                  echo "Installing gh CLI..."
-                  cd /tmp
-                  curl -fsSL https://github.com/cli/cli/releases/download/v2.61.0/gh_2.61.0_linux_amd64.tar.gz -o gh.tar.gz
-                  tar xzf gh.tar.gz
-                  cp gh_2.61.0_linux_amd64/bin/gh /home/node/.local/bin/
-                  rm -rf gh.tar.gz gh_2.61.0_linux_amd64
-                fi
-
-                # Install Go if not present on PVC
-                if [ ! -f /home/node/.local/go/bin/go ] || ! /home/node/.local/go/bin/go version 2>/dev/null | grep -q "go1.24"; then
-                  echo "Installing Go 1.24.1..."
-                  rm -rf /home/node/.local/go
-                  cd /tmp
-                  curl -fsSL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz -o go.tar.gz
-                  tar xzf go.tar.gz -C /home/node/.local/
-                  rm -rf go.tar.gz
-                fi
-
-                # Install Homebrew if not present on PVC
-                if [ ! -f /home/node/.local/homebrew/bin/brew ]; then
-                  echo "Installing Homebrew..."
-                  export HOMEBREW_PREFIX=/home/node/.local/homebrew
-                  export HOMEBREW_CELLAR=/home/node/.local/homebrew/Cellar
-                  export HOMEBREW_REPOSITORY=/home/node/.local/homebrew
-                  mkdir -p $HOMEBREW_PREFIX
-                  cd /tmp
-                  git clone --depth 1 https://github.com/Homebrew/brew $HOMEBREW_PREFIX
-                fi
-
-                # Check if pip is available (either standalone or via python3 -m pip)
-                set +e  # Don't fail on pip errors
-                if command -v pip3 >/dev/null 2>&1 || command -v pip >/dev/null 2>&1 || python3 -m pip --version >/dev/null 2>&1; then
-                  echo "pip is available"
-                else
-                  echo "Installing pip..."
-                  cd /tmp
-                  curl -fsSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-                  python3 get-pip.py --user --no-warn-script-location --break-system-packages || \
-                  python3 get-pip.py --user --no-warn-script-location || \
-                  echo "pip install skipped (use python3 -m pip instead)"
-                  rm -f get-pip.py
-                fi
-                set -e  # Re-enable error checking
-
-                # Install bun if not present on PVC
-                if [ ! -f /home/node/.local/bin/bun ]; then
-                  echo "Installing bun..."
-                  curl -fsSL https://bun.sh/install | BUN_INSTALL=/home/node/.local bash
-                fi
-
-                # Install Claude CLI if not present on PVC
-                if [ ! -f /home/node/.local/bin/claude ]; then
-                  echo "Installing Claude CLI..."
-                  npm install --prefix /home/node/.local @anthropic-ai/claude-code
-                  ln -sf /home/node/.local/node_modules/.bin/claude /home/node/.local/bin/claude
-                fi
-
+                # Tools (gh, go, bun, claude, kubectl, pip packages, ...) live on
+                # the PVC and are restored by VolSync; they are not installed here.
+                mkdir -p /home/node/.local/bin /home/node/.openclaw
                 ln -sf /app/openclaw.mjs /home/node/.local/bin/openclaw
-                mkdir -p /home/node/.openclaw
 
-                # Register the Discord channel plugin on EVERY boot. openclaw
-                # needs an install record even for image-bundled plugins; raw
-                # @openclaw/* specs resolve to the bundled copy (no npm fetch).
-                # Running unconditionally (no marker guard) re-syncs the plugin
-                # to each new image's bundled version — a once-guarded install
-                # left a stale 2026.5.20 copy shadowing the 2026.6.5 core,
-                # which broke Discord delivery.
-                set +e
+                # Re-sync external plugins once per OpenClaw version, not every
+                # boot (each openclaw CLI call costs ~10s of startup). A stale
+                # plugin from an older release shadowing a newer core broke
+                # Discord delivery before, so a version bump always re-syncs.
+                # discord: channel plugin. searxng: web_search provider (external
+                # since ~2026.6; without it web_search silently falls back).
+                version="$(node -p 'require("/app/package.json").version')"
+                marker=/home/node/.openclaw/.plugins-synced-for
+                if [ "$(cat "$marker" 2>/dev/null)" = "$version" ]; then
+                  echo "Plugins already synced for OpenClaw $version"
+                  exit 0
+                fi
+
+                echo "Syncing plugins for OpenClaw $version..."
                 # OpenClaw refuses a group-writable temp root (same fix as the app container).
                 mkdir -p -m 700 /tmp/xdg-cache
                 export XDG_CACHE_HOME=/tmp/xdg-cache
-                openclaw plugins install @openclaw/discord
-                # install alone does NOT re-sync an npm-installed copy to the
-                # bundled version (drifted to 2026.6.5 against a 2026.6.11
-                # gateway) — update does.
-                openclaw plugins update discord
-                # web search: tools.web.search.provider=searxng is set on the
-                # PVC config, but since ~2026.6 searxng is an external plugin;
-                # without it web_search silently falls back.
-                openclaw plugins install @openclaw/searxng-plugin
-                set -e
-
-                echo "Tool installation complete"
+                ls -d /home/node/.openclaw/npm/projects/openclaw-discord-* >/dev/null 2>&1 \
+                  || openclaw plugins install @openclaw/discord
+                [ -d /home/node/.openclaw/extensions/searxng ] \
+                  || openclaw plugins install @openclaw/searxng-plugin
+                # install skips existing copies; update moves them to the newest
+                # version compatible with this runtime. It exits non-zero when the
+                # registry's latest is newer than the runtime supports, and that is
+                # expected, so the marker is written either way.
+                openclaw plugins update discord searxng \
+                  || echo "plugin update reported errors (see above); continuing"
+                echo "$version" > "$marker"
             resources:
               requests:
                 cpu: 500m
@@ -130,8 +73,7 @@ spec:
                 memory: 4Gi
             env:
               HOME: /home/node
-              PATH: /home/node/.local/bin:/home/node/.local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-              BUN_INSTALL: /home/node/.local
+              PATH: /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         containers:
           app:
             image:
@@ -316,7 +258,7 @@ spec:
         existingClaim: molt
         advancedMounts:
           molt:
-            install-tools:
+            sync-plugins:
               - path: /home/node
             app:
               - path: /home/node
