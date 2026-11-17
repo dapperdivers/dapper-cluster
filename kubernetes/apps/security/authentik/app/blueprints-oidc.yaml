@@ -9,7 +9,7 @@
 # from-scratch rebuild (or wire !Env later).
 #
 # More DR caveats:
-# - `!Find [authentik_core.user, [username, mackleyder]]` group entries fail on a
+# - `!Find [authentik_core.user, [username, ${SECRET_AUTHENTIK_ADMIN}]]` group entries (admin username comes from cluster-secrets) fail on a
 #   from-scratch rebuild until that account exists — create the user first, then re-apply.
 # - Group `users:` lists here are AUTHORITATIVE: members added via the UI are removed on
 #   the next blueprint apply. Grant membership in git, not clickops (kubernetes-viewers
@@ -83,7 +83,7 @@ data:
         identifiers: { name: proxmox-admins }
         attrs:
           users:
-            - !Find [authentik_core.user, [username, mackleyder]]
+            - !Find [authentik_core.user, [username, ${SECRET_AUTHENTIK_ADMIN}]]
       # home-assistant (hass-oidc-auth component) — NEW provider; Authentik generates
       # client_id/secret on first apply (read them out for HA's configuration.yaml).
       - model: authentik_providers_oauth2.oauth2provider
@@ -114,7 +114,7 @@ data:
         identifiers: { name: Grafana Admins }
         attrs:
           users:
-            - !Find [authentik_core.user, [username, mackleyder]]
+            - !Find [authentik_core.user, [username, ${SECRET_AUTHENTIK_ADMIN}]]
       # kubectl — native k8s apiserver OIDC. Deliberately NOT the &oidc anchor:
       # a CLI has no safe place for a client_secret, so this is a PUBLIC (PKCE)
       # client with a PINNED client_id (Talos apiserver oidc-client-id references
@@ -152,7 +152,7 @@ data:
         identifiers: { name: kubernetes-admins }
         attrs:
           users:
-            - !Find [authentik_core.user, [username, mackleyder]]
+            - !Find [authentik_core.user, [username, ${SECRET_AUTHENTIK_ADMIN}]]
       - model: authentik_core.group
         identifiers: { name: kubernetes-viewers }
       # Headlamp (web k8s dashboard) — confidential OIDC client, per-user RBAC via
