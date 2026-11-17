@@ -171,6 +171,34 @@ def safe_edit(path, transform, min_age_s=3600, keep_mtime=True):
     return True
 
 
+def request_rescan(vault, subdirs=()):
+    """Ask the Syncthing hub to rescan now. Its watcher doesn't see files written by these
+    job pods (the vault is on CephFS), so without this new notes wait for the hourly full
+    rescan. Needs SYNCTHING_URL + SYNCTHING_API_KEY; silently does nothing without them."""
+    base, key = os.environ.get("SYNCTHING_URL"), os.environ.get("SYNCTHING_API_KEY")
+    if DRY or not base or not key:
+        return False
+    import urllib.parse
+    h = {"X-API-Key": key}
+    name = os.path.basename(os.path.normpath(vault))
+    try:
+        req = urllib.request.Request(base.rstrip("/") + "/rest/config/folders", headers=h)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            folders = json.loads(resp.read())
+        folder = next((f for f in folders if os.path.basename(os.path.normpath(f["path"])) == name), None)
+        if not folder:
+            print(f"warning: no Syncthing folder for {name}; not rescanning", file=sys.stderr)
+            return False
+        q = "folder=" + urllib.parse.quote(folder["id"]) + "".join(
+            "&sub=" + urllib.parse.quote(d) for d in subdirs)
+        req = urllib.request.Request(base.rstrip("/") + "/rest/db/scan?" + q, data=b"", headers=h, method="POST")
+        urllib.request.urlopen(req, timeout=60).close()
+        return True
+    except Exception as e:  # sync still happens on the hourly rescan
+        print(f"warning: Syncthing rescan request failed: {e}", file=sys.stderr)
+        return False
+
+
 def ollama_json(system, user, schema, timeout=300):
     """Chat with the local model and return its JSON answer (Ollama structured outputs)."""
     body = json.dumps({
