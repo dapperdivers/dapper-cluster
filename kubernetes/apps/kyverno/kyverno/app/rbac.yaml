@@ -63,9 +63,25 @@ rules:
       - list
       - watch
 ---
-# volsync-repository-mkdir: the trigger is a PersistentVolume (read by both
-# controllers; generateExisting is off, but the background controller still
-# fetches the trigger), and the generated kind is a Job in rook-ceph.
+# volsync-repository-mkdir trigger: PersistentVolume read for all three
+# controllers. The reports controller needs it too, or the policy reports
+# RBACPermissionsGranted=False / ready=false even though generation works.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno:persistentvolumes-read
+  labels:
+    app.kubernetes.io/part-of: kyverno
+    rbac.kyverno.io/aggregate-to-admission-controller: "true"
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+    rbac.kyverno.io/aggregate-to-reports-controller: "true"
+rules:
+  - apiGroups: [""]
+    resources: [persistentvolumes]
+    verbs: [get, list, watch]
+---
+# volsync-repository-mkdir output: Jobs in rook-ceph. Kept separate from the
+# PV read so the reports controller doesn't get Job write access.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -75,9 +91,6 @@ metadata:
     rbac.kyverno.io/aggregate-to-admission-controller: "true"
     rbac.kyverno.io/aggregate-to-background-controller: "true"
 rules:
-  - apiGroups: [""]
-    resources: [persistentvolumes]
-    verbs: [get, list, watch]
   - apiGroups: [batch]
     resources: [jobs]
     verbs: [get, list, watch, create, update, patch, delete]
