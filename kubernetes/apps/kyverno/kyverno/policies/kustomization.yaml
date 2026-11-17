@@ -7,3 +7,4 @@ resources:
   - ./postgres-init
   - ./restrict-latest-tag.yaml
   - ./verify-home-operations-images.yaml
+  - ./volsync-repository-mkdir.yaml

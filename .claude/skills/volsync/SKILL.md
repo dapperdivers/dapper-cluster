@@ -1,6 +1,6 @@
 ---
 name: volsync
-description: Add VolSync-backed persistent storage to a dapper-cluster app, or fix a new app whose PVC is stuck Pending on first deploy. Covers the volsync repository+operations components, required substitutions, and the create-the-backup-directory-first bootstrap trap.
+description: Add VolSync-backed persistent storage to a dapper-cluster app, or fix a new app whose PVC is stuck Pending on first deploy. Covers the volsync repository+operations components, required substitutions, and the backup-directory bootstrap (auto-created by Kyverno; manual fallback).
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
@@ -63,23 +63,28 @@ FailedScheduling: pod has unbound immediate PersistentVolumeClaims. not found
 RD condition:     Synchronizing=False :: Waiting for manual trigger
 ```
 
-**Fix: create the backup repo directory first.** The `volsync-${APP}-repo` PV is a static CephFS PV
-with `rootPath: /volsync/${APP}`. Create that directory with:
+**This is automated now.** The `volsync-${APP}-repo` PV is a static CephFS PV with
+`rootPath: /volsync/${APP}`. When Flux creates it, the Kyverno GeneratingPolicy
+`volsync-repository-mkdir` (`kubernetes/apps/kyverno/kyverno/policies/`) generates a one-shot Job
+`rook-ceph/mkdir-volsync-${APP}` that creates the directory through libcephfs. kubelet then retries
+the mount by itself (the backoff can take a minute or two). Nothing needs to happen before merging.
+
+If it didn't fire (Kyverno down, the PV predates the policy, or the directory was deleted later):
 
 ```bash
-task volsync:mkdir APP=<app>    # idempotent; runs libcephfs in the rook-ceph-tools pod, no host mount
+kubectl -n rook-ceph logs job/mkdir-volsync-<app>   # the Job self-deletes 24h after it finishes
+task volsync:mkdir APP=<app>    # manual fallback; idempotent, runs libcephfs in rook-ceph-tools
 ```
 
-(The Proxmox hosts no longer mount CephFS, so don't `mkdir` there.) Once it exists, the mover runs:
+(The Proxmox hosts no longer mount CephFS, so don't `mkdir` there.) Once the directory exists, the mover runs:
 
 ```
 === Initialize Dir === created restic repository … at /repository
 No eligible snapshots found === No data will be restored
 ```
 
-…the PVC binds, and the pod schedules. This is a one-time step per new app (existing apps already have
-their directory). The chicken-and-egg is inherent to deploy-or-restore — backup target must exist
-before the first restore-or-init.
+…the PVC binds, and the pod schedules. Don't name your own Jobs `volsync-*`: the `volsync-mover-cephfs`
+MutatingAdmissionPolicy matches that prefix and rejects Jobs without VolSync's `created-by` label.
 
 ## Unlock a stale restic repo
 
@@ -101,7 +106,7 @@ task volsync:unlock-all                            # sweep every ReplicationSour
 
 Related Taskfile helpers (`.taskfiles/volsync/Taskfile.yaml`):
 
-- `task volsync:mkdir APP=<app>` — create the CephFS repo directory `/volsync/<app>` for a new app.
+- `task volsync:mkdir APP=<app>` — manual fallback for the repo directory (normally created by Kyverno).
 - `task volsync:list` — show every ReplicationSource and its last backup time.
 - `task volsync:snapshot NS=<ns> APP=<app>` — trigger a manual backup and wait for the job.
 - `task volsync:run NS=<ns> REPO=<app> -- snapshots` — run an arbitrary restic command (e.g. list snapshots).
