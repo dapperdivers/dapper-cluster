@@ -1,0 +1,80 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app substrate-crds
+  namespace: &namespace ate-system
+spec:
+  targetNamespace: *namespace
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
+  path: ./kubernetes/apps/ate-system/substrate/crds
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 5m
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app substrate-atelet
+  namespace: &namespace ate-system
+spec:
+  targetNamespace: *namespace
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
+  dependsOn:
+    - name: substrate-podcert
+      namespace: podcertificate-controller-system
+  path: ./kubernetes/apps/ate-system/substrate/atelet
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app substrate
+  namespace: &namespace ate-system
+spec:
+  targetNamespace: *namespace
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
+  dependsOn:
+    - name: substrate-atelet
+      namespace: ate-system
+    - name: cloudnative-pg-cluster
+      namespace: database
+  path: ./kubernetes/apps/ate-system/substrate/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 15m

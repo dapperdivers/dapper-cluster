@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app substrate-podcert
+  namespace: &namespace podcertificate-controller-system
+spec:
+  targetNamespace: *namespace
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
+  dependsOn:
+    - name: substrate-crds
+      namespace: ate-system
+  path: ./kubernetes/apps/podcertificate-controller-system/substrate-podcert/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m

@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: substrate-podcert
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: substrate-podcert
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  # The CA pool Secrets this controller signs with were made by hand with
+  # `kubectl ate admin make-ca-pool` (see #4777).
+  values:
+    createNamespace: false

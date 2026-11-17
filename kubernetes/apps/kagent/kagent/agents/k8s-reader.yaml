@@ -1,0 +1,34 @@
+---
+# Tire-kicking agent with the built-in kagent-tools server (read-only RBAC).
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: k8s-reader
+spec:
+  description: Answers questions about the cluster using read-only Kubernetes tools.
+  modelConfig:
+    name: default-model-config
+  systemPrompt: |-
+    You answer questions about a Kubernetes cluster. Use the tools to look things
+    up instead of guessing. You cannot change anything. Keep answers short.
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: kagent-tool-server
+        tools:
+          - k8s_get_resources
+          - k8s_describe_resource
+          - k8s_get_pod_logs
+          - k8s_get_events
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: k8s-reader
+spec:
+  template:
+    ref:
+      name: k8s-reader
+  harnessRef:
+    name: kagent-default
