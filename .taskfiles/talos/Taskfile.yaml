@@ -37,9 +37,13 @@ tasks:
       - which talhelper talosctl yq
 
   apply-node:
-    desc: Apply Talos config to a node [IP=required, INSECURE=false]
+    desc: Regenerate and apply Talos config to a node [IP=required, INSECURE=false]
     dir: "{{.TALHELPER_DIR}}"
-    cmd: talhelper gencommand apply --node {{.IP}} --extra-flags '--mode={{.MODE}} --timeout={{.TIMEOUT}} {{if eq .INSECURE "true"}}--insecure{{end}}' | bash
+    cmds:
+      # Regenerate first, as apply-cluster does: if genconfig fails, stop here
+      # instead of applying stale files from clusterconfig/ (see #4781).
+      - task: generate-config
+      - talhelper gencommand apply --node {{.IP}} --extra-flags '--mode={{.MODE}} --timeout={{.TIMEOUT}} {{if eq .INSECURE "true"}}--insecure{{end}}' | bash
     vars:
       MODE: '{{.MODE | default "auto"}}'
       TIMEOUT: '{{.TIMEOUT | default "10m"}}'
