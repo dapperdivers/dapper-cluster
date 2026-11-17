@@ -44,7 +44,8 @@ spec:
       VOLSYNC_PUID: "1000"
       VOLSYNC_PGID: "1000"
 ---
-# Syncthing hub for all vaults + the vault-snapshot CronJob. Its own PVC holds the
+# Syncthing hub for all vaults + the vault CronJobs (snapshot, nightly descriptions/health,
+# weekly review, voice inbox). Its own PVC holds the
 # Syncthing config/identity (backed up, so the device ID survives a rebuild).
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
