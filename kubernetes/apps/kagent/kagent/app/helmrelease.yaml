@@ -6,9 +6,15 @@ metadata:
   name: kagent
 spec:
   interval: 30m
-  chartRef:
-    kind: OCIRepository
-    name: kagent
+  # spec.chart, not chartRef: see flux/meta/repositories/helm/kagent.yaml
+  chart:
+    spec:
+      chart: kagent
+      version: 1.0.1
+      sourceRef:
+        kind: HelmRepository
+        name: kagent
+        namespace: flux-system
   install:
     remediation:
       retries: 3

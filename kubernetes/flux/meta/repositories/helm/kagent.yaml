@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/source.toolkit.fluxcd.io/helmrepository_v1.json
+# kagent's chart copies .Chart.Version into labels and default image tags, so it
+# breaks on the "+<digest>" an OCIRepository chartRef appends. Charts pulled
+# through an OCI HelmRepository keep the plain version.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: kagent
+  namespace: flux-system
+spec:
+  type: oci
+  interval: 2h
+  url: oci://ghcr.io/kagent-dev/kagent/helm
