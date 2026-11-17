@@ -16,6 +16,8 @@ spec:
     # Owns the obsidian-second-brain PVC this mounts.
     - name: obsidian-vault
       namespace: *namespace
+    - name: external-secrets-stores
+      namespace: external-secrets
   path: ./kubernetes/apps/selfhosted/vault-mcp/app
   prune: true
   sourceRef:
