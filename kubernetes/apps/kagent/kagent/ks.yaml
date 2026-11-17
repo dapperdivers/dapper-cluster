@@ -10,6 +10,8 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
   path: ./kubernetes/apps/kagent/kagent/crds
   prune: true
   sourceRef:
@@ -32,6 +34,8 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
   dependsOn:
     - name: kagent-crds
       namespace: kagent
@@ -59,6 +63,8 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
   dependsOn:
     - name: kagent
       namespace: kagent

@@ -6,6 +6,7 @@ metadata:
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
   labels:
+    goldilocks.fairwinds.com/enabled: "true"
     # Agent Substrate gVisor workers need SYS_ADMIN/NET_ADMIN (#4777).
     pod-security.kubernetes.io/audit: privileged
     pod-security.kubernetes.io/enforce: privileged

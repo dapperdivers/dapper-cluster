@@ -10,6 +10,8 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
   path: ./kubernetes/apps/ate-system/substrate/crds
   prune: true
   sourceRef:
@@ -32,6 +34,8 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
   dependsOn:
     - name: substrate-podcert
       namespace: podcertificate-controller-system
@@ -57,6 +61,8 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+      # One stack across three namespaces; see kubernetes/apps/kagent/README.md
+      app.kubernetes.io/part-of: kagent
   dependsOn:
     - name: substrate-atelet
       namespace: ate-system
