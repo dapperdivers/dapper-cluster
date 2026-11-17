@@ -70,7 +70,7 @@ spec:
                   runAsGroup: 2016
                 containers:
                   - name: mkdir
-                    image: quay.io/ceph/ceph:v19.2.7
+                    image: quay.io/ceph/ceph:v21.2.0
                     env:
                       - name: VOLSYNC_DIR
                         value: "(( variables.dir ))"
