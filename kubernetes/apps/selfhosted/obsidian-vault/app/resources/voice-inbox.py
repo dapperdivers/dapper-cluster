@@ -30,7 +30,25 @@ INBOX = "Inbox/Voice"
 AUDIO_DIR = "Attachments/Voice"
 STT_URL = os.environ.get("STT_URL", "http://speaches.ai.svc.cluster.local:8000")
 STT_MODEL = os.environ.get("STT_MODEL", "deepdml/faster-whisper-large-v3-turbo-ct2")
-STT_PROMPT = os.environ.get("STT_PROMPT", "")  # vocabulary hint: names and jargon Whisper should spell right
+# Names and jargon Whisper should spell right live in the vault itself (private, editable
+# from any device): every bullet / comma-separated term in this note's body is passed as the
+# transcription prompt. Missing note = no hint.
+VOCAB_NOTE = os.environ.get("STT_VOCAB_NOTE", "Resources/System/Voice Vocabulary.md")
+
+
+def vocabulary():
+    try:
+        with open(os.path.join(VAULT, VOCAB_NOTE), encoding="utf-8") as fh:
+            _, body, _ = vl.split_frontmatter(fh.read())
+    except (OSError, UnicodeDecodeError):
+        return ""
+    terms = []
+    for line in body.split("\n"):
+        line = line.strip()
+        if not line.startswith(("- ", "* ")):
+            continue  # headings and prose are for humans
+        terms += [t.strip() for t in line[2:].split(",") if t.strip()]
+    return ", ".join(dict.fromkeys(terms))[:800]  # Whisper's prompt window is ~224 tokens
 MIN_AGE_S = 60  # let a still-arriving file settle
 MAX_PER_RUN = int(os.environ.get("MAX_PER_RUN", "10"))
 AUDIO_EXT = {".mp3", ".m4a", ".wav", ".ogg", ".opus", ".webm", ".flac", ".aac", ".amr", ".3gp"}
@@ -43,11 +61,11 @@ STAMPS = [
 ]
 
 SYSTEM = (
-    "You turn Derek's voice memo transcripts into notes for his knowledge base. "
+    "You turn the vault owner's voice memo transcripts into notes for their knowledge base. "
     "title: 2-6 words, Title Case, no punctuation or dates. "
     "description: one sentence (12-30 words) saying what the memo is about. "
-    "summary: 1-5 short bullets capturing the substance, in Derek's own terms; no filler. "
-    "tasks: only things Derek says he or someone needs to do, phrased as imperatives; empty if none. "
+    "summary: 1-5 short bullets capturing the substance, in the speaker's own terms; no filler. "
+    "tasks: only things the speaker says they or someone needs to do, phrased as imperatives; empty if none. "
     "If the transcript is empty or unintelligible say so in the description and leave the rest empty."
 )
 SCHEMA = {"type": "object", "properties": {
@@ -73,7 +91,8 @@ def recorded_at(path):
 def transcribe(path):
     boundary = uuid.uuid4().hex
     parts = []
-    fields = [("model", STT_MODEL), ("response_format", "verbose_json")] + ([("prompt", STT_PROMPT)] if STT_PROMPT else [])
+    vocab = vocabulary()
+    fields = [("model", STT_MODEL), ("response_format", "verbose_json")] + ([("prompt", vocab + ".")] if vocab else [])
     for k, v in fields:
         parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode())
     with open(path, "rb") as fh:

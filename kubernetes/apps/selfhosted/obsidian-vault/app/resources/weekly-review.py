@@ -6,7 +6,7 @@ Covers the 7 days ending yesterday (run it Sunday morning -> Sunday..Saturday):
   - New and edited notes by area (curated notes only), daily notes, voice memos
   - Open to-dos from this week's new notes, daily notes and voice memos; the Inbox backlog
   - Vault Health: counts plus anything new or needing attention since the nightly check
-Never overwrites an existing review (once written, the note is Derek's to annotate).
+Never overwrites an existing review (once written, the note is the owner's to annotate).
 
 Usage: weekly-review.py <vault-dir> [--dry-run] [--end YYYY-MM-DD]
 """
@@ -26,8 +26,8 @@ SKIP = ("Archive/Briefings/", "Briefings/", vl.GENERATED_DIR + "/")
 TASK = re.compile(r"^\s*[-*] \[ \] +(\S.*)$", re.M)
 
 SYSTEM = (
-    "You write the 'Week in brief' section of Derek's weekly review of his personal knowledge base. "
-    "From the activity list, write 3-6 bullets on what he actually worked on or thought about this week, "
+    "You write the 'Week in brief' section of a weekly review of someone's personal knowledge base. "
+    "From the activity list, write 3-6 bullets on what they actually worked on or thought about this week, "
     "grouping related notes into themes. Be concrete and factual; only use what's in the list; "
     "no advice, no praise, no filler. Each bullet under 30 words."
 )

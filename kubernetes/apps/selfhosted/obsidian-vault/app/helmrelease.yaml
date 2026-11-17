@@ -214,7 +214,6 @@ spec:
               <<: *jobEnv
               STT_URL: http://speaches.ai.svc.cluster.local:8000
               STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
-              STT_PROMPT: "Derek, Sara, Emma, Drake, 301 Clayton, ChelonianLabs, Round Table, homelab, Kubernetes, Talos, Proxmox, Ceph, Flux, Obsidian, Syncthing."
             resources:
               requests:
                 cpu: 10m
