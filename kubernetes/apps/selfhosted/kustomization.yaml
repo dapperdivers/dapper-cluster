@@ -15,5 +15,5 @@ resources:
   - ./gotenberg/ks.yaml
   - ./paperless-ngx/ks.yaml
   - ./searxng/ks.yaml
-  - ./obsidian-couchdb/ks.yaml
+  - ./obsidian-vault/ks.yaml
   - ./resume/ks.yaml

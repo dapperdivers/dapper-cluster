@@ -56,10 +56,8 @@
         "/hotio/",
         // Docker Hub images pinned to a rolling tag + digest (kometa :nightly)
         "/kometateam/",
-        // Docker Hub library images pinned tag + digest (frigate's python init)
+        // Docker Hub library images pinned tag + digest (frigate's python init, obsidian-vault snapshot job)
         "python",
-        // ECR-public mirrors of docker library images (obsidian-couchdb busybox)
-        "/public.ecr.aws/",
       ],
       ignoreTests: false,
     },

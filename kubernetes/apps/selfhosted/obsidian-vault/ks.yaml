@@ -1,0 +1,84 @@
+---
+# One Kustomization per vault: each gets its own PVC (named ${APP}) with hourly local +
+# daily R2 restic backups, and restores itself from backup if the PVC is ever recreated.
+# To add a vault: copy this block + ./vaults/<name>/, then mount it in app/helmrelease.yaml
+# and add the folder in the Syncthing UI.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app obsidian-second-brain
+  namespace: &namespace selfhosted
+spec:
+  targetNamespace: *namespace
+  components:
+    - ../../../../../flux/components/volsync/repository
+    - ../../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    - name: volsync
+      namespace: storage
+    - name: external-secrets-stores
+      namespace: external-secrets
+  path: ./kubernetes/apps/selfhosted/obsidian-vault/vaults/second-brain
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
+  postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 10Gi
+      VOLSYNC_CACHE_CAPACITY: 2Gi
+      VOLSYNC_STORAGECLASS: cephfs-shared
+      VOLSYNC_SNAPSHOTCLASS: cephfs-snapshot
+      VOLSYNC_ACCESSMODES: ReadWriteMany # Syncthing + vault-snapshot CronJob mount it together
+      VOLSYNC_PUID: "1000"
+      VOLSYNC_PGID: "1000"
+---
+# Syncthing hub for all vaults + the vault-snapshot CronJob. Its own PVC holds the
+# Syncthing config/identity (backed up, so the device ID survives a rebuild).
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app obsidian-vault
+  namespace: &namespace selfhosted
+spec:
+  targetNamespace: *namespace
+  components:
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    - name: volsync
+      namespace: storage
+    - name: external-secrets-stores
+      namespace: external-secrets
+    - name: obsidian-second-brain
+      namespace: selfhosted
+  path: ./kubernetes/apps/selfhosted/obsidian-vault/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
+  postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 1Gi
+      VOLSYNC_CACHE_CAPACITY: 1Gi
+      VOLSYNC_PGID: "1000"

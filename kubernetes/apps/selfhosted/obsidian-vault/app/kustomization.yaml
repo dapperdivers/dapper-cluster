@@ -3,12 +3,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./externalsecret.yaml
   - ./helmrelease.yaml
 configMapGenerator:
-  - name: obsidian-couchdb-configmap
+  - name: vault-snapshot-script
     files:
-      - config/config.ini
+      - ./resources/vault-snapshot.py
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
