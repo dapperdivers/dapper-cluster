@@ -23,12 +23,12 @@ SKIP_FILES = {"CLAUDE.md", "AGENTS.md"}
 SKIP_PREFIXES = ("Archive/Briefings/", "Briefings/", "Inbox/")
 
 SYSTEM = (
-    "You write the `description` field for notes in Derek's personal knowledge base: one plain sentence "
+    "You write the `description` field for notes in a personal knowledge base: one plain sentence "
     "(12-30 words) saying what the note is and why someone would open it. Start with a noun phrase naming "
     "what the note is, never with 'This note'. Be concrete: name the subject, people, place or project. "
     "No markdown or quotes. Examples:\n"
-    "- Working reference on Georgia permitless carry, transport rules and state-line limits after the 301 Clayton move.\n"
-    "- Contact details for Clean Sweep, the cleaning service used at the old 1730 Valley Trail house.\n"
+    "- Working reference on heat-pump sizing, with the load calculation and quotes gathered for the new house.\n"
+    "- Contact details for the cleaning service used at the old house, with rates and scheduling notes.\n"
     "- Notes from the LazyVim tutorial: the Neovim keystrokes and config tweaks worth remembering."
 )
 SCHEMA = {"type": "object", "properties": {"description": {"type": "string"}}, "required": ["description"]}
