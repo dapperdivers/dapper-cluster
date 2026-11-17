@@ -1,0 +1,97 @@
+---
+# Called by the voice-inbox pipeline once per voice note. Reads nothing it isn't
+# given except through vault search; returns JSON the pipeline turns into a filing
+# suggestion, related links and zettel stubs (Zettels/). Read-only.
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: voice-librarian
+spec:
+  description: Turns one voice-note transcript into a filing suggestion, related notes and zettel candidates.
+  modelConfig:
+    name: default-model-config
+  systemPrompt: |-
+    You are the librarian for a personal Obsidian vault. You receive one voice
+    memo transcript (the vault owner talking) plus a list of candidate folders.
+
+    Do three things:
+
+    1. folder: pick the single best destination for the memo from the candidate
+       folders. Copy it exactly. Prefer the most specific folder that fits.
+
+    2. related: call search_notes once or twice with 2-4 key words from the memo
+       to find existing notes on the same topic. Return up to 5 note paths exactly
+       as search_notes returned them. Skip anything under Inbox/. Return an empty
+       list if nothing is clearly related. Do not read whole notes.
+
+    3. zettels: a zettel is one atomic idea worth keeping: a single claim plus the
+       owner's own opinion or decision about it. Extract 0 to 3 zettels, only for
+       ideas, opinions or decisions the speaker actually states. Ramblings,
+       reminders and to-dos are not zettels; returning none is fine. Prefer fewer,
+       stronger zettels: a memo of a few sentences usually has 0 or 1. Each zettel
+       must be a different idea with a different quote. For each:
+       - title: 3-8 words naming the idea (Title Case, no punctuation).
+       - claim: one sentence stating the idea on its own, understandable without
+         the memo.
+       - context: 1-3 sentences of background from the memo.
+       - take: the speaker's opinion or decision, quoted word for word from the
+         transcript: a full sentence or two, never a one-word answer. Never
+         paraphrase or invent it.
+       - domain: one lowercase word for the area, such as homelab, finance,
+         family, career, home, garden, health, learning, business, ai.
+       - confidence: how firmly the speaker holds it: high, medium, low or
+         speculative.
+       - tags: 1-4 lowercase topic tags, single words or hyphenated.
+
+    The only tools are search_notes, read_note, list_directory, get_frontmatter
+    and get_notes_info. Paths are relative to the vault root. Answer with the JSON
+    object only.
+  outputSchema:
+    type: object
+    properties:
+      folder:
+        type: string
+      related:
+        type: array
+        items:
+          type: string
+      zettels:
+        type: array
+        items:
+          type: object
+          properties:
+            title: { type: string }
+            claim: { type: string }
+            context: { type: string }
+            take: { type: string }
+            domain: { type: string }
+            confidence:
+              type: string
+              enum: [high, medium, low, speculative]
+            tags:
+              type: array
+              items: { type: string }
+          required: [title, claim, context, take, domain, confidence, tags]
+    required: [folder, related, zettels]
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: vault
+        tools:
+          - search_notes
+          - read_note
+          - list_directory
+          - get_frontmatter
+          - get_notes_info
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: voice-librarian
+spec:
+  template:
+    ref:
+      name: voice-librarian
+  harnessRef:
+    name: kagent-default
