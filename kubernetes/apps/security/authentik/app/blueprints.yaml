@@ -210,6 +210,14 @@ data:
       - model: authentik_core.application
         identifiers: { slug: frigate }
         attrs: { name: Frigate, group: home, provider: !KeyOf frigate-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/frigate.svg", meta_launch_url: "https://frigate.${SECRET_DOMAIN}" }
+      # kagent
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for kagent }
+        id: kagent-provider
+        attrs: { <<: *proxy, external_host: "https://kagent.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: kagent }
+        attrs: { name: kagent, group: internal, provider: !KeyOf kagent-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/kubernetes.svg", meta_launch_url: "https://kagent.${SECRET_DOMAIN}" }
       # Embedded outpost: disables the k8s Ingress AND declaratively owns the assigned-
       # provider list. Adding an app = its 2 entries above (with id:) + one !KeyOf line here.
       - model: authentik_outposts.outpost
@@ -258,4 +266,5 @@ data:
             - !KeyOf blackbox-provider
             - !KeyOf zigbeecode-provider
             - !KeyOf zigbeegaragecode-provider
+            - !KeyOf kagent-provider
             - !KeyOf natsnui-provider
