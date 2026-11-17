@@ -61,6 +61,26 @@ spec:
           host: http://ollama-2.ai.svc.cluster.local:11434
           options:
             num_ctx: "32768"
+    ui:
+      httpRoute:
+        enabled: true
+        annotations:
+          # Authentik forward-auth (Kyverno generates the SecurityPolicy). kagent's
+          # own API auth is still "insecure", so this is the only gate on the UI.
+          authentik.home.arpa/forward-auth: "true"
+        parentRefs:
+          - name: internal
+            namespace: network
+        hostnames: ["kagent.${SECRET_DOMAIN}"]
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            # Chat replies stream for minutes; match the UI's own 1800s stream timeout.
+            timeouts:
+              request: 1800s
+              backendRequest: 1800s
     kagent-tools:
       rbac:
         # Built-in k8s tool server: read-only cluster access, no Secrets.
