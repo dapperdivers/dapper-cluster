@@ -2,9 +2,10 @@
 
 Kubernetes-native AI agents ([kagent](https://kagent.dev) 1.x), sandboxed in gVisor by
 Agent Substrate, with the in-cluster Ollama instances as the model backend.
+UI: `https://kagent.${SECRET_DOMAIN}` (internal gateway, Authentik forward-auth).
 Tracking issue: #4777.
 
-**This is one stack spread over three namespaces.** Upstream fixes the split: agents
+**This is one stack spread over three namespaces** (plus the vault tool server in `selfhosted`). Upstream fixes the split: agents
 run in `kagent`, kept apart from the Substrate control plane and its signing keys.
 
 | Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                  |
@@ -12,6 +13,7 @@ run in `kagent`, kept apart from the Substrate control plane and its signing key
 | `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts. |
 | `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.            |
 | `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.        |
+| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                    |
 
 Install order (enforced with `dependsOn`):
 

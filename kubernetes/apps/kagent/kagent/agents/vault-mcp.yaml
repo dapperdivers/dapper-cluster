@@ -1,0 +1,11 @@
+---
+# The Obsidian vault, read-only, served by selfhosted/vault-mcp.
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: vault
+spec:
+  description: Read-only access to the Obsidian vault (Markdown notes) mounted at /vault.
+  url: http://vault-mcp.selfhosted.svc.cluster.local:8000/mcp
+  protocol: STREAMABLE_HTTP
+  timeout: 30s
