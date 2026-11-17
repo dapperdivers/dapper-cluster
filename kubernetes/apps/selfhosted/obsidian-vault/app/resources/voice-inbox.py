@@ -89,6 +89,18 @@ def transcribe(path):
     return data.get("text", "").strip(), data.get("language", ""), data.get("duration")
 
 
+def collapse_repeats(text):
+    """Whisper loops on trailing silence ("Thank you. Thank you. ..."): keep one copy of any
+    sentence repeated 3+ times in a row."""
+    sents = re.split(r"(?<=[.!?])\s+", text)
+    out = []
+    for s in sents:
+        if len(out) >= 1 and s.strip().lower() == out[-1].strip().lower():
+            continue
+        out.append(s)
+    return " ".join(out) if len(sents) - len(out) >= 2 else text
+
+
 def clean(s, limit=80):
     s = re.sub(r"[\\/:*?\"<>|#^\[\]]", "", " ".join(str(s).split())).strip(" .")
     return s[:limit].rstrip()
@@ -107,6 +119,7 @@ def process(src):
     rel_src = os.path.relpath(src, VAULT)
     when = recorded_at(src)
     text, lang, duration = transcribe(src)
+    text = collapse_repeats(text)
     print(f"{rel_src}: transcribed {len(text)} chars ({lang}, {duration}s)")
     info = {"title": "", "description": "", "summary": [], "tasks": []}
     if text:
