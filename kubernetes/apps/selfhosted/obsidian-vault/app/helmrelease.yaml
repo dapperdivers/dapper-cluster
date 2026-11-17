@@ -33,6 +33,11 @@ spec:
               PUID: "1000"
               PGID: "1000"
               TZ: ${TIME_ZONE}
+              STGUIAPIKEY: # pinned so the health check's copy never drifts
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-secret
+                    key: SYNCTHING_API_KEY
             probes:
               liveness: &probe
                 enabled: true
@@ -75,7 +80,7 @@ spec:
           failedJobsHistory: 2
         containers:
           app:
-            image:
+            image: &pythonImage
               repository: python
               tag: 3.15@sha256:46837ed3105db0029b6d656816185c6258e3b39690532fb782428e0a5fd76182
             command: ["/bin/sh", "-c"]
@@ -87,20 +92,23 @@ spec:
                   python3 -I /scripts/vault-snapshot.py "$v" || rc=1
                 done
                 exit $rc
-            env:
+            env: &jobEnv
               TZ: *timeZone
+              PYTHONDONTWRITEBYTECODE: "1"
               OUTPUT_DIR: Resources/Generated
-            resources:
+              OLLAMA_URL: http://ollama.ai.svc.cluster.local:11434
+              OLLAMA_MODEL: gemma4:e4b
+            resources: &jobResources
               requests:
                 cpu: 10m
                 memory: 64Mi
               limits:
                 memory: 256Mi
-            securityContext:
+            securityContext: &jobSecurityContext
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
-        pod:
+        pod: &jobPod
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -109,6 +117,112 @@ spec:
             fsGroupChangePolicy: OnRootMismatch
             seccompProfile:
               type: RuntimeDefault
+
+      # Nightly: backfill missing descriptions with the local model, then the health
+      # check (Resources/Generated/Vault Health.md), so it reports what's still missing.
+      vault-nightly:
+        type: cronjob
+        serviceAccount:
+          identifier: vault-jobs # reads volsync ReplicationSource status for the backup check
+        cronjob:
+          schedule: "0 2 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  echo "== $v describe"
+                  python3 -I /scripts/describe.py "$v" || rc=1
+                  echo "== $v health"
+                  python3 -I /scripts/health.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              MAX_NOTES: "40"
+              MIN_AGE_HOURS: "6"
+              SYNCTHING_URL: http://obsidian-vault-syncthing:8384
+              SYNCTHING_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-secret
+                    key: SYNCTHING_API_KEY
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          <<: *jobPod
+          automountServiceAccountToken: true
+
+      # Sunday morning: Journal/<YYYY>/Weekly/<YYYY>-W<ww> Weekly Review.md for the past week.
+      vault-weekly-review:
+        type: cronjob
+        cronjob:
+          schedule: "0 7 * * 0"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 1800
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  echo "== $v"
+                  python3 -I /scripts/weekly-review.py "$v" || rc=1
+                done
+                exit $rc
+            env: *jobEnv
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod: *jobPod
+
+      # Voice drop folder: audio saved anywhere under <vault>/Inbox/Voice/ is transcribed
+      # (Speaches), summarized (Ollama) into a note, and moved to Attachments/Voice/.
+      voice-inbox:
+        type: cronjob
+        cronjob:
+          schedule: "*/15 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3000
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/voice-inbox.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              STT_URL: http://speaches.ai.svc.cluster.local:8000
+              STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
+              STT_PROMPT: "Derek, Sara, Emma, Drake, 301 Clayton, Round Table, homelab, Kubernetes, Talos, Proxmox, Ceph, Flux, Obsidian, Syncthing."
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 512Mi # whole recording is read into memory for the upload
+            securityContext: *jobSecurityContext
+        pod: *jobPod
 
     service:
       syncthing:
@@ -151,20 +265,51 @@ spec:
           syncthing:
             app:
               - path: /data/second-brain
-          vault-snapshot:
+          vault-snapshot: &vaultMount
             app:
               - path: /vaults/second-brain
+          vault-nightly: *vaultMount
+          vault-weekly-review: *vaultMount
+          voice-inbox: *vaultMount
       scripts:
         type: configMap
-        name: vault-snapshot-script
+        name: vault-scripts
         advancedMounts:
-          vault-snapshot:
+          vault-snapshot: &scriptsMount
             app:
               - path: /scripts
                 readOnly: true
+          vault-nightly: *scriptsMount
+          vault-weekly-review: *scriptsMount
+          voice-inbox: *scriptsMount
       tmp:
         type: emptyDir
         advancedMounts:
-          vault-snapshot:
+          vault-snapshot: &tmpMount
             app:
               - path: /tmp
+          vault-nightly: *tmpMount
+          vault-weekly-review: *tmpMount
+          voice-inbox: *tmpMount
+
+    serviceAccount:
+      vault-jobs: {}
+
+    rbac:
+      roles:
+        vault-jobs:
+          type: Role
+          rules:
+            - apiGroups: ["volsync.backube"]
+              resources: ["replicationsources"]
+              verbs: ["get", "list"]
+      bindings:
+        vault-jobs:
+          type: RoleBinding
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: Role
+            identifier: vault-jobs
+          subjects:
+            - kind: ServiceAccount
+              identifier: vault-jobs
