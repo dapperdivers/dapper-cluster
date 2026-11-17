@@ -37,6 +37,11 @@ spec:
     substrateWorkerPool:
       create: true
       workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v1.0.1
+      # Only nodes with user namespaces enabled can run the sandboxes
+      # (kubernetes/bootstrap/talos/patches/agents/agent-sandbox.yaml).
+      template:
+        nodeSelector:
+          workload.cluster.io/agent-sandbox: "true"
     harnesses:
       enabled: true
       kagent:
