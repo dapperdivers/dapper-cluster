@@ -1,5 +1,5 @@
 ---
-# Claude (Sonnet 5.5) on the Claude Code runtime, in the gVisor sandbox, on the Claude
+# Claude (Opus 5.5) on the Claude Code runtime, in the gVisor sandbox, on the Claude
 # subscription. The setup-token (MOLT_ANTHROPIC_SETUP_TOKEN in Infisical, shared with
 # OpenClaw) never enters the sandbox: Claude Code sends "Authorization: Bearer
 # <placeholder>" and the egress gateway swaps in the real token (EgressPolicy below).
@@ -55,10 +55,10 @@ spec:
 apiVersion: api.kagent.dev/v1alpha3
 kind: ModelConfig
 metadata:
-  name: claude-sonnet
+  name: claude-opus
 spec:
   provider: Anthropic
-  model: claude-sonnet-5-5
+  model: claude-opus-5-5
   apiKeySecret: claude-dummy-key
   apiKeySecretKey: ANTHROPIC_API_KEY
   anthropic: {}
@@ -66,7 +66,8 @@ spec:
 apiVersion: api.kagent.dev/v1alpha3
 kind: Harness
 metadata:
-  name: claude-subscription
+  # The Claude Code runtime (the chart's `kagent-default` harness is the kagent runtime).
+  name: claude-code
 spec:
   claude: {}
   env:
@@ -87,7 +88,7 @@ metadata:
 spec:
   description: Research assistant for the vault owner - searches the web, reads pages, and knows the Obsidian vault (read-only).
   modelConfig:
-    name: claude-sonnet
+    name: claude-opus
   systemPrompt: |-
     You are a research assistant for the owner of a personal knowledge base (an
     Obsidian vault) and a homelab.
@@ -128,6 +129,6 @@ spec:
     ref:
       name: claude
   harnessRef:
-    name: claude-subscription
+    name: claude-code
   egressPolicyRefs:
     - name: claude-subscription
