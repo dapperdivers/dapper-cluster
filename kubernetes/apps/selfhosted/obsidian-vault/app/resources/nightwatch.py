@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Night Watch: a nightly cluster triage written to <vault>/NightWatch/<YYYY-MM-DD>.md.
+"""Night Watch: a nightly cluster triage written to <vault>/Agents/NightWatch/<YYYY-MM-DD>.md.
 
 1. Collect (no model): Flux Kustomizations/HelmReleases not Ready, unhealthy or recently
    restarted pods, failed Jobs, stale VolSync backups, Certificates and kagent Agents not
    Ready, firing Alertmanager alerts, and clusters of Warning events, all from the last 24h.
-2. Fingerprint each finding and compare with NightWatch/ledger.json, so recurring noise is
+2. Fingerprint each finding and compare with Agents/NightWatch/ledger.json, so recurring noise is
    recognised instead of re-reported as new.
 3. Triage: each new finding (most severe first), then recurring ones that were never
    diagnosed, up to MAX_TRIAGE a night, goes to the kagent `nightwatch` agent. It looks with
    read-only Kubernetes tools (and web fetch for upstream docs) and returns JSON. A suggested
    fix that proposes a destructive step is withheld from the report.
-4. Write the report and the ledger, then ask Syncthing to rescan NightWatch/.
+4. Write the report and the ledger, then ask Syncthing to rescan Agents/NightWatch/.
 
 Needs a service account that can read those resources cluster-wide (no Secrets).
 Usage: nightwatch.py <vault-dir> [--dry-run]
@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import vaultlib as vl  # noqa: E402
 
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
-OUT_DIR = "NightWatch"
+OUT_DIR = "Agents/NightWatch"
 LEDGER = f"{OUT_DIR}/ledger.json"
 AGENT_URL = os.environ.get("NIGHTWATCH_AGENT_URL", "")
 ALERTMANAGER_URL = os.environ.get("ALERTMANAGER_URL", "")

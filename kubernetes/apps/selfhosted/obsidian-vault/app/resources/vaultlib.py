@@ -12,7 +12,7 @@ import urllib.request
 from zoneinfo import ZoneInfo
 
 SKIP_DIRS = {".obsidian", ".trash", ".stversions", ".stfolder", ".git", "Templates"}
-GENERATED_DIR = os.environ.get("OUTPUT_DIR", "Resources/Generated")
+GENERATED_DIR = os.environ.get("OUTPUT_DIR", "Agents/Generated")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama.ai.svc.cluster.local:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e4b")
 DRY = "--dry-run" in sys.argv

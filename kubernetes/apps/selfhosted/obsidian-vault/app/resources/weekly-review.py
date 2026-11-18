@@ -22,7 +22,7 @@ import vaultlib as vl  # noqa: E402
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
 AUTHOR = "vault-review"
 HEALTH_REL = os.path.join(vl.GENERATED_DIR, "Vault Health.md")
-SKIP = ("Archive/Briefings/", "Briefings/", vl.GENERATED_DIR + "/")
+SKIP = ("Archive/Briefings/", "Agents/Briefings/", vl.GENERATED_DIR + "/")
 TASK = re.compile(r"^\s*[-*] \[ \] +(\S.*)$", re.M)
 
 SYSTEM = (

@@ -20,7 +20,7 @@ MAX_NOTES = int(os.environ.get("MAX_NOTES", "40"))
 MIN_AGE_S = float(os.environ.get("MIN_AGE_HOURS", "6")) * 3600
 MIN_BODY = 40  # characters of real text; shorter notes are reported as empty instead
 SKIP_FILES = {"CLAUDE.md", "AGENTS.md"}
-SKIP_PREFIXES = ("Archive/Briefings/", "Briefings/", "Inbox/")
+SKIP_PREFIXES = ("Archive/Briefings/", "Agents/Briefings/", "Inbox/")
 
 SYSTEM = (
     "You write the `description` field for notes in a personal knowledge base: one plain sentence "

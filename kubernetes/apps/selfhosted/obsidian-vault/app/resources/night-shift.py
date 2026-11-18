@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Night Shift: overnight work on the Claude subscription, written to the vault.
 
-Morning brief -> Briefings/Morning/<YYYY-MM-DD>.md
-  - one section per "## Heading" in Resources/System/Morning Brief Topics.md (the owner
+Morning brief -> Agents/Briefings/Morning/<YYYY-MM-DD>.md
+  - one section per "## Heading" in System/Morning Brief Topics.md (the owner
     edits that note; this job only reads it), each researched by the kagent `claude`
     agent (web search, web-fetch, read-only vault);
   - vault gaps: up to GAPS_PER_NIGHT notes with TODO/TBD/?? markers or a needs-research
@@ -10,7 +10,7 @@ Morning brief -> Briefings/Morning/<YYYY-MM-DD>.md
     and answered as "ready to paste" suggestions. Notes are never edited;
   - links to the night's NightWatch report and new zettels, when there are any.
 Stops at the first usage/rate-limit refusal and says so in the brief.
-State (which gap notes were checked when) lives in Briefings/Morning/ledger.json.
+State (which gap notes were checked when) lives in Agents/Briefings/Morning/ledger.json.
 
 Usage: night-shift.py <vault-dir> [--dry-run]
 """
@@ -26,14 +26,14 @@ import vaultlib as vl  # noqa: E402
 
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
 AGENT_URL = os.environ.get("CLAUDE_AGENT_URL", "")
-TOPICS = os.environ.get("BRIEF_TOPICS_NOTE", "Resources/System/Morning Brief Topics.md")
-OUT_DIR = "Briefings/Morning"
+TOPICS = os.environ.get("BRIEF_TOPICS_NOTE", "System/Morning Brief Topics.md")
+OUT_DIR = "Agents/Briefings/Morning"
 LEDGER = f"{OUT_DIR}/ledger.json"
 GAPS_PER_NIGHT = int(os.environ.get("GAPS_PER_NIGHT", "3"))
 BUDGET_S = int(os.environ.get("BUDGET_MINUTES", "75")) * 60
 AUTHOR = "night-shift"
 GAP_AREAS = ("Projects", "Research", "Reference", "Resources")
-GAP_SKIP = re.compile(r"(^|/)(Archive|Generated|Templates|Briefings|Journal|Inbox|Zettels|NightWatch)(/|$)")
+GAP_SKIP = re.compile(r"(^|/)(Archive|Agents|System|Generated|Templates|Briefings|Journal|Inbox|Zettels|NightWatch)(/|$)")
 MARKER = re.compile(r"\bTODO\b|\bTBD\b|\?\?")
 START = time.monotonic()
 
@@ -133,7 +133,7 @@ def research_gaps(rel):
 
 def overnight(today):
     lines = []
-    nw = f"NightWatch/{today}.md"
+    nw = f"Agents/NightWatch/{today}.md"
     if os.path.exists(os.path.join(VAULT, nw)):
         lines.append(f"- Cluster: {vl.wikilink(nw, 'Night Watch report')}")
     zdir = os.path.join(VAULT, "Zettels")

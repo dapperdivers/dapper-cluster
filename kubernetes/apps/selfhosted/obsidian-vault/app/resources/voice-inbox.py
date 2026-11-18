@@ -39,7 +39,7 @@ STT_MODEL = os.environ.get("STT_MODEL", "deepdml/faster-whisper-large-v3-turbo-c
 # Names and jargon Whisper should spell right live in the vault itself (private, editable
 # from any device): every bullet / comma-separated term in this note's body is passed as the
 # transcription prompt. Missing note = no hint.
-VOCAB_NOTE = os.environ.get("STT_VOCAB_NOTE", "Resources/System/Voice Vocabulary.md")
+VOCAB_NOTE = os.environ.get("STT_VOCAB_NOTE", "System/Voice Vocabulary.md")
 
 
 def vocabulary():
@@ -158,7 +158,7 @@ def ask_librarian(rel, title, text):
 
 
 def write_zettels(lib, note_rel, when):
-    """One status: stub note per zettel (schema from Research/Second Brain Architecture -
+    """One status: stub note per zettel (schema from Library/Research/Second Brain Architecture -
     Dual Layer Design). Returns their vault paths."""
     today = dt.date.today()
     rels = []

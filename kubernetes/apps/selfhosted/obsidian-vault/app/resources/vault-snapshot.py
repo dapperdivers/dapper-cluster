@@ -19,7 +19,7 @@ from zoneinfo import ZoneInfo
 
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
 DRY = "--dry-run" in sys.argv
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "Resources/Generated")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "Agents/Generated")
 try:
     TZ = ZoneInfo(os.environ.get("TZ", "America/Chicago"))
 except Exception:  # image without tzdata: fall back rather than fail the job
