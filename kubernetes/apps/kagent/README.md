@@ -127,9 +127,10 @@ Notes on `claude-code-tools`:
   `kubectl -n kagent get cm kagent-controller -o yaml | grep -A3 harnessImages`.
 - It bakes in `/etc/claude-code/managed-settings.json`, which denies the destructive
   Miniflux MCP tools (deletes, flush history, mark-all-read, API key and user management)
-  for every agent on the harness. Whether the harness honours it is under test with the
-  temporary `tools-canary` agent; until confirmed, treat a bound MCP server as fully
-  exposed (the Claude Code harness ignores per-tool allowlists).
+  for every agent on the harness. Verified live 2026-11-18: denied tools are absent from the
+  agent's tool list. This is the only per-tool restriction for Claude agents (the harness
+  ignores per-tool allowlists), and it is per image, not per agent: tools not on the deny
+  list stay callable, so a different restriction needs a different image and harness.
 
 ## Egress policies
 
