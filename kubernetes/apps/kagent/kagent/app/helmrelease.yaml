@@ -43,6 +43,15 @@ spec:
     controller:
       substrateClientCertificate:
         enabled: true
+      # Agents reach their tool servers through the controller, so big tool results
+      # (cluster-wide events, `get pods -A`) pass through it. The chart's 512Mi limit was
+      # OOMKilled mid-way through a Night Watch run (2026-11-17; scraped peak 408Mi).
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1536Mi
     substrateWorkerPool:
       create: true
       workerImage: ghcr.io/kagent-dev/substrate/ateworker-gvisor:v1.0.1
