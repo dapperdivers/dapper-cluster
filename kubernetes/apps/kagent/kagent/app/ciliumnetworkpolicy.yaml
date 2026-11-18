@@ -10,7 +10,7 @@ kind: CiliumNetworkPolicy
 metadata:
   name: kagent-controller
 spec:
-  description: A2A/MCP/REST API, only from the UI and from agents via Substrate's egress gateway.
+  description: A2A/MCP/REST API, only from the UI, agents via Substrate's egress gateway, the vault pipeline jobs and OpenClaw.
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: kagent
@@ -33,6 +33,12 @@ spec:
             - key: app.kubernetes.io/controller
               operator: In
               values: [voice-inbox, night-shift, nightwatch]
+        # OpenClaw (Tim) delegates tasks to agents through the controller's MCP
+        # endpoint. The controller label keeps the molt-syncthing pod out.
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ai
+            app.kubernetes.io/name: molt
+            app.kubernetes.io/controller: molt
       toPorts:
         - ports:
             - port: "8083"

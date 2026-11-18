@@ -62,6 +62,25 @@ kubectl port-forward -n kagent svc/kagent-ui 8082:8080   # UI (no auth; don't ex
 kubectl get agents,workerpools -n kagent
 ```
 
+## Called from OpenClaw
+
+OpenClaw (`molt` in `ai`) can hand tasks to these agents. The `kagent-controller`
+network policy admits the molt pod, and OpenClaw has the controller's MCP endpoint
+registered as the `kagent` server. That registration lives in OpenClaw's config on
+the molt PVC, not in Git:
+
+```bash
+openclaw mcp add kagent \
+  --url http://kagent-controller.kagent.svc.cluster.local:8083/mcp \
+  --transport streamable-http \
+  --include 'list_agents,invoke_agent,get_session,get_task,list_tasks'
+```
+
+The include list leaves out the endpoint's sandbox and session-delete tools.
+`invoke_agent` returns at once; the reply is read with `get_session`. kagent's API
+has no auth of its own, so the network policy is the only gate: whoever can prompt
+OpenClaw can invoke any agent here.
+
 ## Layout of `kagent/agents/` (adding an agent)
 
 ```
