@@ -2,6 +2,11 @@
 """Night Shift: overnight work on the Claude subscription, written to the vault.
 
 Morning brief -> Agents/Briefings/Morning/<YYYY-MM-DD>.md
+  - Security: up to SECURITY_MAX_ITEMS items for the homelab's stack from the kagent
+    `security-brief` agent (SECURITY_AGENT_URL; unset = no such section);
+  - Feeds: up to FEEDS_MAX_ITEMS entries from the owner's RSS reader published since the
+    last successful run (first run 24h, never more than 72h), picked by the kagent
+    `feeds-digest` agent (FEEDS_AGENT_URL; unset = no such section);
   - one section per "## Heading" in System/Morning Brief Topics.md (the owner
     edits that note; this job only reads it), each researched by the kagent `claude`
     agent (web search, web-fetch, read-only vault);
@@ -17,7 +22,8 @@ CURATED_AREAS (default Projects, Research), oldest first and never twice in a ro
   - supplements: stale facts, new developments and gaps, researched and given as
     ready-to-paste text in the brief. Notes are never edited.
 Stops at the first usage/rate-limit refusal and says so in the brief.
-State (which gap notes were checked when) lives in Agents/Briefings/Morning/ledger.json.
+State (which gap notes were checked when, and "feeds_since": when the feeds were last
+read) lives in Agents/Briefings/Morning/ledger.json.
 
 Usage: night-shift.py <vault-dir> [--dry-run]
 """
@@ -33,6 +39,11 @@ import vaultlib as vl  # noqa: E402
 
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
 AGENT_URL = os.environ.get("CLAUDE_AGENT_URL", "")
+FEEDS_URL = os.environ.get("FEEDS_AGENT_URL", "")
+SECURITY_URL = os.environ.get("SECURITY_AGENT_URL", "")
+FEEDS_MAX = int(os.environ.get("FEEDS_MAX_ITEMS", "12"))
+FEEDS_CATEGORIES = os.environ.get("FEEDS_CATEGORIES", "")  # comma-separated Miniflux categories; empty = all
+SECURITY_MAX = int(os.environ.get("SECURITY_MAX_ITEMS", "6"))
 TOPICS = os.environ.get("BRIEF_TOPICS_NOTE", "System/Morning Brief Topics.md")
 OUT_DIR = "Agents/Briefings/Morning"
 LEDGER = f"{OUT_DIR}/ledger.json"
@@ -55,11 +66,11 @@ class Stop(Exception):
     pass
 
 
-def ask(prompt, timeout=900):
+def ask(prompt, timeout=900, url=None):
     if time.monotonic() - START > BUDGET_S:
         raise Stop("time budget used up")
     try:
-        return vl.agent_reply(AGENT_URL, prompt, timeout=timeout)
+        return vl.agent_reply(url or AGENT_URL, prompt, timeout=timeout)
     except vl.AgentLimitError as e:
         raise Stop(f"Claude usage limit reached ({e})")
 
@@ -105,6 +116,129 @@ def bullets_only(text):
     last = max(i for i, l in enumerate(lines) if l.lstrip().startswith(("- ", "* ")) or
                (l.startswith(("  ", "\t")) and l.strip()))
     return "\n".join(lines[first:last + 1]).strip()
+
+
+def plain(text, limit):
+    """One line of agent-supplied text for a bullet. It originates in feeds and web pages, so
+    nothing in it may become a link, embed, tag or HTML in the vault: the only links in
+    these sections are the URLs that pass http_url()."""
+    t = re.sub(r"https?://\S+|[*`]", "", str(text or "")).replace("[", "(").replace("]", ")")
+    t = " ".join(re.sub(r"#(?=[A-Za-z])", "", t).split())
+    if len(t) > limit:
+        t = t[:limit].rsplit(" ", 1)[0].rstrip(" ,;:-") + "…"
+    return t.replace("<", "&lt;")  # "< 1.3.4" still reads right; a tag does not render
+
+
+def http_url(u):
+    """The URL if it is a plain http(s) one that cannot break out of a Markdown link, else ''."""
+    u = str(u or "").strip()
+    if len(u) > 500 or not re.match(r"https?://[A-Za-z0-9][^\s<>\"'`\\|\[\]]*$", u):
+        return ""
+    return u.replace("(", "%28").replace(")", "%29")
+
+
+def reply_items(raw):
+    """(the answer object, its "items"). An answer without an items list is an error, not a
+    quiet night: json_from_text hands back a fragment when the answer was cut off."""
+    data = vl.json_from_text(raw)
+    if not isinstance(data.get("items"), list):
+        raise ValueError("answer has no \"items\" list")
+    return data, [it for it in data["items"][:50] if isinstance(it, dict)]
+
+
+def reply_notes(name, data, key="errors", limit=4):
+    """The agent's own account of what failed or could not be checked, as short lines."""
+    val = data.get(key) or []
+    notes = (plain(x, 200) for x in (val if isinstance(val, list) else [val])[:limit])
+    return [f"{name}: {n}" if name else n for n in notes if n]
+
+
+def feeds_since(ledger, now):
+    """Entries since the last successful Feeds run: 24h the first time, never more than 72h."""
+    try:
+        since = min(dt.datetime.fromisoformat(str(ledger.get("feeds_since"))), now)
+    except (ValueError, TypeError):  # missing, unreadable or without a timezone
+        since = now - dt.timedelta(hours=24)
+    return max(since, now - dt.timedelta(hours=72))
+
+
+def feeds_section(ledger):
+    """(Markdown bullets grouped by category, problems). Moves ledger["feeds_since"] forward
+    only when the agent's answer was usable, so a failed night is covered by the next one."""
+    now = dt.datetime.now(dt.timezone.utc)
+    since = feeds_since(ledger, now)
+    cats = ", ".join(c.strip() for c in FEEDS_CATEGORIES.split(",") if c.strip()) or "all"
+    raw = ask(
+        f"Feeds digest for my morning brief. Now: {now:%Y-%m-%d %H:%M} UTC. Since: "
+        f"{since:%Y-%m-%d %H:%M} UTC (published_after={int(since.timestamp())}). Categories: {cats}.\n"
+        f"Read the entries published since then and pick at most {FEEDS_MAX} worth my time, most "
+        "important first.\n"
+        "Reply with only a JSON object: {\"items\": [{\"category\": \"the entry's Miniflux "
+        "category\", \"title\": \"entry title\", \"feed\": \"feed title\", \"url\": \"entry "
+        "URL\", \"why\": \"one sentence, under 200 characters\"}], \"notes\": \"what you did not "
+        "fully read, or empty\", \"errors\": [\"tool failures\"]}. Copy title, feed and url from "
+        "the tool results. Use an empty items list if nothing matters. Never invent items.",
+        timeout=600, url=FEEDS_URL)
+    data, rows = reply_items(raw)
+    groups, seen = {}, set()
+    for it in rows:
+        url, title = http_url(it.get("url")), plain(it.get("title"), 160)
+        if not (url and title) or url in seen:
+            continue  # every item needs a real link; one entry is listed once
+        seen.add(url)
+        feed, why = plain(it.get("feed"), 80), plain(it.get("why"), 240)
+        groups.setdefault(plain(it.get("category"), 40) or "Other", []).append(
+            f"  - [{title}]({url})" + (f" ({feed})" if feed else "") + (f": {why}" if why else ""))
+        if len(seen) >= FEEDS_MAX:
+            break
+    lines = [line for cat, items in groups.items() for line in [f"- **{cat}**"] + items]
+    if not lines:
+        lines = [f"- Nothing worth flagging in the feeds since {since.astimezone(vl.TZ):%a %H:%M}."]
+    lines += [f"- *Coverage: {n}*" for n in reply_notes("", data, "notes", 1)]
+    ledger["feeds_since"] = now.isoformat(timespec="seconds")
+    return "\n".join(lines), reply_notes("Feeds", data)
+
+
+def security_section(today):
+    """(Markdown bullets, problems): every item linked, its evidence on a nested line."""
+    cutoff = int(time.time()) - 48 * 3600
+    raw = ask(
+        f"Today is {today:%A %Y-%m-%d}. Write the security part of my morning brief: at most "
+        f"{SECURITY_MAX} items from the last 48 hours (published_after={cutoff}) that matter to "
+        "my stack, most important first. Start from my security feeds, then public sources; check "
+        "each CVE you include against CISA KEV, EPSS and NVD.\n"
+        "Reply with only a JSON object: {\"items\": [{\"title\": \"product and CVE id, or the "
+        "event; under 100 characters\", \"summary\": \"what happened and what to do, one or two "
+        "sentences\", \"severity\": \"exploited|critical|high|incident\", \"evidence\": \"what you "
+        "checked tonight, e.g. KEV added <date>; EPSS <score>; CVSS <score> (NVD)\", \"affects\": "
+        "\"yes - why | no | check your version (affected range)\", \"urls\": [\"primary source "
+        "first, at most 3\"]}], \"unverified\": [\"what you could not check\"], \"errors\": "
+        "[\"tool or source failures\"]}. Use an empty items list if nothing important happened. "
+        "Never invent CVE ids, scores or versions.", url=SECURITY_URL)
+    data, rows = reply_items(raw)
+    lines, count = [], 0
+    for it in rows:
+        given = it.get("urls") if isinstance(it.get("urls"), list) else [it.get("url")]
+        urls = list(dict.fromkeys(u for u in map(http_url, given[:6]) if u))[:3]
+        title, summary = plain(it.get("title"), 140), plain(it.get("summary"), 400)
+        if not (title and summary and urls):
+            continue  # an unlinked claim does not go in the brief
+        severity = plain(it.get("severity"), 30).lower()
+        links = ", ".join(f"[{re.sub(r'^https?://(www[.])?', '', u).split('/')[0]}]({u})" for u in urls)
+        lines.append(f"- **{title}**" + (f" ({severity})" if severity else "") + f": {summary} {links}")
+        detail = [f"{label}: {v}" for label, v in (("Evidence", plain(it.get("evidence"), 200)),
+                                                   ("Affects you", plain(it.get("affects"), 160))) if v]
+        if detail:
+            lines.append("  - " + " · ".join(detail))
+        count += 1
+        if count >= SECURITY_MAX:
+            break
+    if not lines:
+        lines = ["- Nothing found for the stack in the last 48 hours."]
+    unverified = reply_notes("", data, "unverified")
+    if unverified:
+        lines.append("- **Not verified:** " + "; ".join(unverified))
+    return "\n".join(lines), reply_notes("Security", data)
 
 
 def gap_candidates(ledger):
@@ -300,6 +434,20 @@ def main():
 
     sections, gaps, curated, stopped, problems = [], [], [], None, []
     try:
+        for name, url, build in (("Security", SECURITY_URL, lambda: security_section(today)),
+                                 ("Feeds", FEEDS_URL, lambda: feeds_section(ledger))):
+            if not url:
+                continue
+            try:
+                text, errors = build()
+                sections.append((name, text))
+                problems += errors
+                print(f"section {name}: done")
+            except Stop:
+                raise
+            except Exception as e:
+                problems.append(f"{name}: {e}")
+                print(f"section {name} failed: {e}", file=sys.stderr)
         for name, instructions in topic_sections():
             try:
                 sections.append((name, bullets_only(brief_section(today, name, instructions))))
