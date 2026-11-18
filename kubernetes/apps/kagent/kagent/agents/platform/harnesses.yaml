@@ -18,3 +18,44 @@ spec:
       name: kagent-default
     snapshotPolicy:
       location: s3://ate-snapshots/kagent/
+---
+# claude-code plus shell tooling: the same Claude Code runtime on a custom image.
+#
+# Image: ghcr.io/dapperdivers/claude-harness-tools, built FROM kagent's claude-harness
+# image in github.com/dapperdivers/containers (dir claude-harness-tools). It adds curl,
+# jq, python3, pip, requests and pyyaml, and /etc/claude-code/managed-settings.json.
+# kagent requires the reference to be pinned by digest (the one below is tag 1.0.1-r1);
+# with `claude: {}` the image's command and args are ignored.
+#
+# REBUILD AND RE-PIN ON EVERY KAGENT UPGRADE. The base must equal the release's own
+# claude harness image, or the runtime no longer matches the controller:
+#   kubectl -n kagent get cm kagent-controller -o yaml | grep -A3 harnessImages
+#
+# The managed-settings file bakes in a deny list for the destructive Miniflux MCP tools
+# (mcp__miniflux__delete_*, delete_api_key/category/feed/user, flush_history,
+# create_api_key, get_api_keys, create_user, update_user, mark_all_as_read,
+# mark_category_as_read, mark_feed_as_read). It applies to EVERY agent on this harness
+# and cannot be relaxed per agent; changing it means a new image. Whether the harness
+# honours it is being tested with the tools-canary agent (2026-11-18); until that is
+# confirmed, do not rely on it to make a bound server safe.
+#
+# curl and python reach only what the agent's egressPolicyRefs allow (egress.yaml).
+# The env, worker pool and snapshot location must stay identical to claude-code.
+apiVersion: api.kagent.dev/v1alpha3
+kind: Harness
+metadata:
+  name: claude-code-tools
+spec:
+  claude: {}
+  workload:
+    image: ghcr.io/dapperdivers/claude-harness-tools@sha256:0a6a2941e4c0dc72e74181a027c5974696e2566d8e3e1b51361b7898f9fe19ee
+  env:
+    - name: ANTHROPIC_AUTH_TOKEN
+      value: placeholder-replaced-at-egress
+    - name: ANTHROPIC_CUSTOM_HEADERS
+      value: "anthropic-beta: oauth-2025-04-20"
+  substrate:
+    workerPoolRef:
+      name: kagent-default
+    snapshotPolicy:
+      location: s3://ate-snapshots/kagent/

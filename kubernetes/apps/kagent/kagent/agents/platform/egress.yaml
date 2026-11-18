@@ -43,3 +43,130 @@ spec:
         secretKeyRef:
           name: claude-setup-token
           key: CLAUDE_CODE_OAUTH_TOKEN
+---
+# ---------------------------------------------------------------------------------
+# Reusable egress menu. By default the sandbox reaches only its model and its bound
+# tool servers; each policy below opens a small, named set of origins. A policy does
+# nothing until an Agent lists it in `spec.egressPolicyRefs` (at most 16 per Agent,
+# 64 destinations per policy); editing a referenced policy applies live, with no
+# rebuild. An origin is scheme + DNS name + optional port, and allows every path and
+# method on it. Only an agent with a shell or HTTP client can use these (the
+# claude-code-tools harness has curl and python). The same origin may appear in two
+# policies bound to one agent; kagent merges them.
+#
+# In-cluster targets need plain http and the full Service FQDN (the sandbox DNS has no
+# search domains). The connection arrives from the egress gateway (pods
+# app=atenet-egress in ate-system), so a CiliumNetworkPolicy on the target must admit
+# that source.
+# ---------------------------------------------------------------------------------
+# web-search: the in-cluster SearXNG metasearch (selfhosted/searxng), JSON API:
+#   curl 'http://searxng.selfhosted.svc.cluster.local:8080/search?q=...&format=json'
+# No key; its settings.yml has the limiter off and the json format enabled.
+# Agents opt in via egressPolicyRefs.
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: web-search
+spec:
+  destinations:
+    - origin: http://searxng.selfhosted.svc.cluster.local:8080
+---
+# security-feeds: public vulnerability data, all unauthenticated. Agents opt in via
+# egressPolicyRefs.
+#   services.nvd.nist.gov  NVD CVE API 2.0 (/rest/json/cves/2.0; about 5 requests per
+#                          30 s without a key)
+#   api.first.org          FIRST EPSS scores (/data/v1/epss?cve=...)
+#   www.cisa.gov           CISA KEV catalogue
+#                          (/sites/default/files/feeds/known_exploited_vulnerabilities.json)
+#   api.osv.dev            OSV (/v1/query, /v1/vulns/<id>)
+#   api.github.com         GitHub advisory database (/advisories). Anonymous: 60
+#                          requests per hour per source IP, shared by every agent.
+#                          The origin opens the whole public GitHub REST API, not
+#                          only /advisories.
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: security-feeds
+spec:
+  destinations:
+    - origin: https://services.nvd.nist.gov
+    - origin: https://api.first.org
+    - origin: https://www.cisa.gov
+    - origin: https://api.osv.dev
+    - origin: https://api.github.com
+---
+# github-read: read public GitHub repositories, files, source archives and release
+# assets without a token. Agents opt in via egressPolicyRefs.
+# Anonymous API calls (api.github.com) are limited to 60 requests per hour per source
+# IP, and every agent leaves through the same address: use raw.githubusercontent.com
+# and codeload for file contents and keep the API for metadata. Nothing here injects a
+# credential, so private repositories stay out of reach and pushes fail.
+#   raw.githubusercontent.com             file contents
+#   codeload.github.com                   source tarballs (github.com/.../archive/...
+#                                         redirects there)
+#   release-assets.githubusercontent.com  release downloads (github.com/.../releases/
+#                                         download/... redirects there)
+#   objects.githubusercontent.com         the older asset host
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: github-read
+spec:
+  destinations:
+    - origin: https://github.com
+    - origin: https://api.github.com
+    - origin: https://raw.githubusercontent.com
+    - origin: https://codeload.github.com
+    - origin: https://release-assets.githubusercontent.com
+    - origin: https://objects.githubusercontent.com
+---
+# package-docs: registry metadata and reference docs for research ("what is the latest
+# version of X", "what does this chart or field do"). Agents opt in via
+# egressPolicyRefs. Kept short on purpose; add a host only when an agent needs it.
+#   pypi.org            Python package metadata (/pypi/<name>/json)
+#   registry.npmjs.org  npm package metadata (/<name>/latest)
+#   pkg.go.dev          Go module docs and versions
+#   artifacthub.io      Helm chart search, versions and values (/api/v1/packages/...)
+#   kubernetes.io       Kubernetes reference docs
+#   fluxcd.io           Flux docs
+# This is for reading, not installing: pip and go download from other hosts
+# (files.pythonhosted.org, proxy.golang.org) that are not opened here. npm tarballs
+# are served by registry.npmjs.org itself, so `npm install` of a package can work.
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: package-docs
+spec:
+  destinations:
+    - origin: https://pypi.org
+    - origin: https://registry.npmjs.org
+    - origin: https://pkg.go.dev
+    - origin: https://artifacthub.io
+    - origin: https://kubernetes.io
+    - origin: https://fluxcd.io
+---
+# cluster-observability: the in-cluster Prometheus and VictoriaLogs HTTP APIs.
+#
+# !! DO NOT REFERENCE THIS FROM ANY AGENT YET. !!
+# An origin allows every path and method, and neither endpoint has authentication.
+# Prometheus here runs with --web.enable-admin-api and --web.enable-lifecycle, so an
+# agent with curl and this policy can delete series
+# (/api/v1/admin/tsdb/delete_series), take snapshots, reload the config (/-/reload)
+# or shut Prometheus down (/-/quit). VictoriaLogs takes log ingestion on the same port
+# as queries (/insert/...), so the agent could also write forged log lines for the
+# vmalert log rules to act on. An agent that reads web pages or feeds can be talked
+# into either by what it reads.
+# The read-only MCP servers planned for metrics and logs are the preferred route. Bind
+# this only to an interactive agent the owner is watching, and only if those servers
+# cannot do the job. It is defined here, unreferenced and therefore inert, so that the
+# origins are written down once and correctly.
+# No CiliumNetworkPolicy selects either target today; if one is added it must admit
+# app=atenet-egress in ate-system.
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: cluster-observability
+spec:
+  destinations:
+    - origin: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
+    - origin: http://victoria-logs-server.observability.svc.cluster.local:9428
