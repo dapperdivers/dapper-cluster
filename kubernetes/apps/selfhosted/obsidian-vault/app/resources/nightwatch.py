@@ -41,6 +41,9 @@ QUIET_ALERTS = {"Watchdog", "InfoInhibitor"}
 BAD_WAIT = {"CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull", "CreateContainerConfigError",
             "CreateContainerError", "InvalidImageName"}
 RANK = {"critical": 0, "warning": 1, "info": 2}
+# Events about these kinds are recorded in `default`; they aren't namespaced.
+CLUSTER_KINDS = {"Node", "PersistentVolume", "StorageClass", "VolumeAttachment", "Namespace",
+                 "ClusterIssuer", "CSINode", "CSIDriver", "ClusterRole", "ClusterRoleBinding"}
 NOW = dt.datetime.now(dt.timezone.utc)
 
 
@@ -78,8 +81,10 @@ def workload(name):
     return re.sub(r"-[a-z0-9]{5}$", "", name)
 
 
-def finding(category, severity, ns, name, title, details):
-    fp = hashlib.sha1(f"{category}|{ns}|{name}|{title}".encode()).hexdigest()[:12]
+def finding(category, severity, ns, name, title, details, key=None):
+    """`key` overrides what the fingerprint is built from, for findings whose title carries a
+    count that changes nightly (it would otherwise look new every night)."""
+    fp = hashlib.sha1((key or f"{category}|{ns}|{name}|{title}").encode()).hexdigest()[:12]
     return {"fp": fp, "category": category, "severity": severity, "namespace": ns, "name": name,
             "title": title, "details": details}
 
@@ -127,7 +132,7 @@ def collect():
     if len(single) >= 3:  # several one-off restarts usually share a cause (node, API server)
         lines = "; ".join(f"{ns}/{w} ({reason} at {when})" for ns, w, _, reason, _, when in single[:15])
         out.append(finding("restart", "info", "", "many", f"{len(single)} containers restarted once",
-                           lines))
+                           lines, key="restart|many"))
 
     jobs = k8s("/apis/batch/v1/jobs")
     checked["Jobs"] = len(jobs)
@@ -185,6 +190,9 @@ def collect():
         except Exception as e:
             print(f"warning: couldn't read Alertmanager: {e}", file=sys.stderr)
 
+    # Warning events, grouped cluster-wide by (reason, kind): the same cause usually shows up
+    # in many namespaces at once (e.g. VolSync movers), and one finding per namespace would
+    # spend the nightly triage budget on duplicates.
     events = k8s("/api/v1/events?fieldSelector=type%3DWarning")
     groups = {}
     for e in events:
@@ -192,16 +200,23 @@ def collect():
         if (age_s(when) or DAY + 1) > DAY:
             continue
         io = e.get("involvedObject") or {}
-        key = (e["metadata"]["namespace"], e.get("reason", "?"), io.get("kind", "?"))
-        g = groups.setdefault(key, {"count": 0, "objects": set(), "message": e.get("message", "")})
+        kind = io.get("kind", "?")
+        ns = "" if kind in CLUSTER_KINDS else e["metadata"]["namespace"]
+        g = groups.setdefault((e.get("reason", "?"), kind),
+                              {"count": 0, "objects": set(), "namespaces": set(), "message": e.get("message", "")})
         g["count"] += e.get("count") or 1
-        g["objects"].add(io.get("name", "?"))
+        g["objects"].add(f"{ns}/{io.get('name', '?')}" if ns else io.get("name", "?"))
+        if ns:
+            g["namespaces"].add(ns)
     checked["Warning event groups"] = len(groups)
-    for (ns, reason, kind), g in sorted(groups.items(), key=lambda kv: -kv[1]["count"]):
+    for (reason, kind), g in sorted(groups.items(), key=lambda kv: -kv[1]["count"]):
         if g["count"] >= 5:
-            objs = sorted(g["objects"])
-            out.append(finding("events", "info", ns, reason, f"{g['count']}x {reason} on {kind}",
-                               f"{len(objs)} object(s), e.g. {', '.join(objs[:5])}. Sample: {g['message'][:300]}"))
+            objs, nss = sorted(g["objects"]), sorted(g["namespaces"])
+            where = ", ".join(nss) if len(nss) <= 3 else f"{len(nss)} namespaces"
+            out.append(finding("events", "info", where, reason, f"{g['count']}x {reason} on {kind}",
+                               f"{len(objs)} object(s) in {where or 'cluster-scoped objects'}, "
+                               f"e.g. {', '.join(objs[:5])}. Sample: {g['message'][:300]}",
+                               key=f"events|{reason}|{kind}"))
     return out, checked
 
 
