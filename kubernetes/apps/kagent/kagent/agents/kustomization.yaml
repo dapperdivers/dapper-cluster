@@ -7,6 +7,7 @@ resources:
   - ./externalsecret.yaml
   - ./k8s-reader.yaml
   - ./miniflux.yaml
+  - ./night-editor.yaml
   - ./nightwatch.yaml
   - ./vault-mcp.yaml
   - ./voice-librarian.yaml

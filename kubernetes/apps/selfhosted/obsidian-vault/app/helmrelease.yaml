@@ -214,7 +214,7 @@ spec:
                 exit $rc
             env:
               <<: *jobEnv
-              CLAUDE_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/claude
+              CLAUDE_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/night-editor
               GAPS_PER_NIGHT: "3"
               CURATED_PER_NIGHT: "2" # raise once the zettel quality has been reviewed
               BUDGET_MINUTES: "75"
