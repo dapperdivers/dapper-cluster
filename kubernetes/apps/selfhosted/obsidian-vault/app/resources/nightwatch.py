@@ -6,8 +6,10 @@
    Ready, firing Alertmanager alerts, and clusters of Warning events, all from the last 24h.
 2. Fingerprint each finding and compare with NightWatch/ledger.json, so recurring noise is
    recognised instead of re-reported as new.
-3. Triage: each new finding (most severe first, up to MAX_TRIAGE) goes to the kagent
-   `nightwatch` agent, which looks with read-only Kubernetes tools and returns JSON.
+3. Triage: each new finding (most severe first), then recurring ones that were never
+   diagnosed, up to MAX_TRIAGE a night, goes to the kagent `nightwatch` agent. It looks with
+   read-only Kubernetes tools (and web fetch for upstream docs) and returns JSON. A suggested
+   fix that proposes a destructive step is withheld from the report.
 4. Write the report and the ledger, then ask Syncthing to rescan NightWatch/.
 
 Needs a service account that can read those resources cluster-wide (no Secrets).
@@ -205,6 +207,18 @@ def collect():
 
 # ---------------------------------------------------------------- triage
 SEVERITIES = {"critical", "warning", "info", "ok"}
+# The agent's prompt forbids destructive steps, but a small local model can still suggest
+# one. Anything matching this is kept out of the report rather than trusted.
+DESTRUCTIVE = re.compile(
+    r"\b(force[- ]?delet\w*|--force|--grace-period[= ]?0|drain|cordon|reboot|power[- ]cycle|"
+    r"wipe\w*|reformat\w*|zap\w*|purge\w*|rm\s+-rf?|"
+    r"remov\w*\s+(?:the\s+)?finalizers?|finalizers?\s*[:=]\s*\[\]|"
+    r"kubectl\s+(?:edit|patch|delete|apply|replace|scale|drain|cordon)|"
+    r"delet\w*\s+(?:the\s+|all\s+|any\s+|stuck\s+|old\s+|orphan\w*\s+)*"
+    r"(?:pvc|pv|persistent\s*volume\w*|pod|node|namespace|osd|pool|statefulset|"
+    r"volume\w*|snapshot\w*|data|repo\w*|backup\w*)s?)(?!\w)", re.I)
+WITHHELD = ("Withheld: the agent proposed a destructive step. Check the evidence above and "
+            "decide by hand; cluster changes go through Git and Flux.")
 
 
 def triage(f):
@@ -213,10 +227,14 @@ def triage(f):
     raw = vl.json_from_text(vl.agent_reply(AGENT_URL, prompt, timeout=420))
     sev = str(raw.get("severity", "")).lower()
     clean = lambda v, n: " ".join(str(v or "").split())[:n]  # noqa: E731
+    fix = clean(raw.get("suggested_fix"), 800)
+    if DESTRUCTIVE.search(fix):
+        print(f"withheld destructive suggestion for {f['title']} {obj(f)}: {fix[:200]}", file=sys.stderr)
+        fix = WITHHELD
     return {"severity": sev if sev in SEVERITIES else f["severity"],
             "summary": clean(raw.get("summary"), 400),
             "cause": clean(raw.get("likely_cause"), 600),
-            "fix": clean(raw.get("suggested_fix"), 800),
+            "fix": fix,
             "evidence": [clean(e, 300) for e in (raw.get("evidence") or [])[:5] if str(e).strip()]}
 
 
@@ -226,7 +244,21 @@ def cell(s):
 
 
 def obj(f):
+    if f["category"] == "events":  # name is the event reason (already in the title)
+        return f["namespace"] or "(cluster-scoped)"
     return f"{f['namespace']}/{f['name']}" if f["namespace"] else f["name"]
+
+
+def detail(f, d, untriaged_note):
+    b = [f"### {f['title']}: `{obj(f)}`", "", f"- **Seen:** {cell(f['details'])}"]
+    if d:
+        b += [f"- **What's wrong:** {d['summary']}", f"- **Likely cause:** {d['cause']}",
+              f"- **Suggested fix:** {d['fix']}"]
+        if d["evidence"]:
+            b += ["- **Evidence:**"] + [f"  - {cell(e)}" for e in d["evidence"]]
+    else:
+        b.append(f"- *{untriaged_note}*")
+    return b + [""]
 
 
 def report(today, findings, new, recurring, resolved, diag, checked, ledger):
@@ -239,8 +271,9 @@ def report(today, findings, new, recurring, resolved, diag, checked, ledger):
     fm = ["---", f"created: {today}", "type: briefing", "status: complete", "tags:", "  - nightwatch",
           f"description: {vl.yaml_str(desc)}", "generated: true", f"author: {AUTHOR}", "---", ""]
     b = [f"# Night Watch: {today}", "", f"> {verdict}", "",
-         "*Collected by the `nightwatch` job; new findings triaged by the local `nightwatch` agent "
-         "(read-only). Suggested fixes are suggestions: cluster changes go through Git and Flux.*", ""]
+         "*Collected by the `nightwatch` job; findings triaged by the local `nightwatch` agent "
+         "(read-only Kubernetes tools and web fetch). Suggested fixes are suggestions: cluster "
+         "changes go through Git and Flux.*", ""]
     if new:
         b += ["## New", "", "| Severity | What | Object |", "|---|---|---|"]
         for f in new:
@@ -248,21 +281,22 @@ def report(today, findings, new, recurring, resolved, diag, checked, ledger):
             b.append(f"| {sev} | {cell(f['title'])} | `{cell(obj(f))}` |")
         b.append("")
         for f in new:
-            d = diag.get(f["fp"])
-            b += [f"### {f['title']}: `{obj(f)}`", "", f"- **Seen:** {cell(f['details'])}"]
-            if d:
-                b += [f"- **What's wrong:** {d['summary']}", f"- **Likely cause:** {d['cause']}",
-                      f"- **Suggested fix:** {d['fix']}"]
-                if d["evidence"]:
-                    b += ["- **Evidence:**"] + [f"  - {cell(e)}" for e in d["evidence"]]
-            else:
-                b.append("- *Not triaged tonight (agent unavailable or over the nightly limit).*")
-            b.append("")
+            b += detail(f, diag.get(f["fp"]),
+                        "Not triaged tonight (agent unavailable or over the nightly limit); "
+                        "it will be retried on a later night.")
+    late = [f for f in recurring if f["fp"] in diag]
+    if late:
+        b += ["## Triaged tonight (seen before)", ""]
+        for f in late:
+            b += detail(f, diag[f["fp"]], "")
     if recurring:
-        b += ["## Recurring", "", "| Severity | What | Object | First seen | Nights |", "|---|---|---|---|---|"]
+        b += ["## Recurring", "", "| Severity | What | Object | First seen | Nights | Diagnosis |",
+              "|---|---|---|---|---|---|"]
         for f in recurring:
             e = ledger[f["fp"]]
-            b.append(f"| {f['severity']} | {cell(f['title'])} | `{cell(obj(f))}` | {e['first_seen']} | {e['nights']} |")
+            dx = e.get("diagnosis") or ("*pending*" if not e.get("triaged") else "")
+            b.append(f"| {f['severity']} | {cell(f['title'])} | `{cell(obj(f))}` | {e['first_seen']} "
+                     f"| {e['nights']} | {cell(dx)} |")
         b.append("")
     if resolved:
         b += ["## Resolved since last check", ""] + [f"- {cell(e['title'])}: `{cell(e['object'])}`" for e in resolved] + [""]
@@ -287,17 +321,25 @@ def main():
     recurring = [f for f in findings if f not in new]
     resolved = [e for fp, e in ledger.items() if fp not in current and e.get("status") != "resolved"]
 
+    # New findings first, then recurring ones that never got a diagnosis (missed the nightly
+    # limit, or the agent failed), so nothing stays untriaged for good.
+    retry = [f for f in recurring if not ledger[f["fp"]].get("triaged")]
     diag = {}
     if AGENT_URL:
-        for f in new[:MAX_TRIAGE]:
+        for f in (new + retry)[:MAX_TRIAGE]:
             try:
                 diag[f["fp"]] = triage(f)
                 print(f"triaged {f['title']} {obj(f)}: {diag[f['fp']]['severity']}")
             except Exception as e:
                 print(f"triage failed for {f['title']} {obj(f)}: {e}", file=sys.stderr)
 
+    new_fps = {f["fp"] for f in new}
     for f in findings:
         e = ledger.setdefault(f["fp"], {"first_seen": today, "nights": 0})
+        if f["fp"] in new_fps:  # first seen, or back after resolving: diagnose afresh
+            e.update(triaged=False, diagnosis="")
+        if f["fp"] in diag:
+            e.update(triaged=True, triaged_on=today, diagnosis=diag[f["fp"]]["summary"])
         e.update(title=f["title"], object=obj(f), category=f["category"], last_seen=today, status="open",
                  nights=e.get("nights", 0) + (1 if e.get("last_seen") != today else 0))
     for e in resolved:
