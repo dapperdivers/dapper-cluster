@@ -223,8 +223,10 @@ def agent_reply(url, text, timeout=900):
         if re.search(r"rate.?limit|usage limit|\b429\b|overloaded|limit reached", msg, re.I):
             raise AgentLimitError(msg.strip()[:300])
         raise RuntimeError(f"agent finished in state {status.get('state')}: {msg.strip()[:300]}")
-    return "".join(part.get("text", "") for art in task.get("artifacts") or []
-                   for part in art.get("parts") or []).strip()
+    # Agents with an outputSchema answer in a structured `data` part, not text: return it
+    # as JSON text so json_from_text() works for both kinds of agent.
+    return "".join(part.get("text") or (json.dumps(part["data"]) if "data" in part else "")
+                   for art in task.get("artifacts") or [] for part in art.get("parts") or []).strip()
 
 
 def json_from_text(t):
