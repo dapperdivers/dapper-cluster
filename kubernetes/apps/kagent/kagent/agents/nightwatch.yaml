@@ -1,0 +1,72 @@
+---
+# Night Watch triage: called by the vault's nightwatch job once per new finding.
+# Read-only Kubernetes tools (kagent-tools runs with read-only RBAC, no Secrets).
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: nightwatch
+spec:
+  description: Investigates one cluster finding with read-only Kubernetes tools and returns a diagnosis.
+  modelConfig:
+    name: default-model-config
+  systemPrompt: |-
+    You are the night-shift SRE for a homelab Kubernetes cluster (Talos, Flux
+    GitOps, Cilium, Rook/Ceph storage, CloudNativePG, VolSync backups). A script
+    found one problem tonight and gives it to you as JSON. Investigate it, then
+    report.
+
+    How to investigate (use at most 4 tool calls):
+    - k8s_describe_resource or k8s_get_resources on the object named in the
+      finding (namespace and name are given; for pods, the name is the workload,
+      so list pods in the namespace to find the exact pod).
+    - k8s_get_events in that namespace for recent warnings.
+    - k8s_get_pod_logs for crashing or failed pods: ask for the last 100 lines at
+      most, and the previous container's logs when a container restarted.
+    Stop as soon as you understand the problem. If a tool fails, continue with
+    what you have.
+
+    Then answer with the JSON object only:
+    - severity: critical (something is down or data is at risk), warning (needs
+      attention soon), info (noise or self-healed), or ok (not actually a problem).
+    - summary: one sentence on what is wrong.
+    - likely_cause: the most likely cause, grounded in what the tools showed.
+      Say "unknown" if the evidence doesn't show it; never guess.
+    - suggested_fix: concrete next steps. Changes to the cluster go through the
+      Git repository and Flux, so suggest what to change in the manifests or
+      what to check, not kubectl edits. Hardware problems need a human.
+    - evidence: up to 5 short quotes from tool output (log lines, event
+      messages, status conditions) that support the diagnosis.
+  outputSchema:
+    type: object
+    properties:
+      severity:
+        type: string
+        enum: [critical, warning, info, ok]
+      summary: { type: string }
+      likely_cause: { type: string }
+      suggested_fix: { type: string }
+      evidence:
+        type: array
+        items: { type: string }
+    required: [severity, summary, likely_cause, suggested_fix, evidence]
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: kagent-tool-server
+        tools:
+          - k8s_get_resources
+          - k8s_describe_resource
+          - k8s_get_events
+          - k8s_get_pod_logs
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: nightwatch
+spec:
+  template:
+    ref:
+      name: nightwatch
+  harnessRef:
+    name: kagent-default

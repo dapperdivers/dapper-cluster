@@ -227,6 +227,48 @@ spec:
             securityContext: *jobSecurityContext
         pod: *jobPod
 
+      # 03:00: Night Watch cluster triage -> NightWatch/<date>.md (read-only cluster access;
+      # new findings triaged by the kagent nightwatch agent on local Ollama). Runs before
+      # night-shift (04:30), which links this report; activeDeadlineSeconds keeps it done by 04:00.
+      nightwatch:
+        type: cronjob
+        serviceAccount:
+          name: obsidian-vault-nightwatch # rbac.yaml: read-only, cluster-wide, no Secrets
+        cronjob:
+          schedule: "0 3 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/nightwatch.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              NIGHTWATCH_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/nightwatch
+              ALERTMANAGER_URL: http://kube-prometheus-stack-alertmanager.observability.svc.cluster.local:9093
+              MAX_TRIAGE: "5"
+              SYNCTHING_URL: http://obsidian-vault-syncthing:8384
+              SYNCTHING_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-secret
+                    key: SYNCTHING_API_KEY
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          <<: *jobPod
+          automountServiceAccountToken: true
+
       voice-inbox:
         type: cronjob
         cronjob:
@@ -319,6 +361,7 @@ spec:
           vault-weekly-review: *vaultMount
           voice-inbox: *vaultMount
           night-shift: *vaultMount
+          nightwatch: *vaultMount
       scripts:
         type: configMap
         name: vault-scripts
@@ -331,6 +374,7 @@ spec:
           vault-weekly-review: *scriptsMount
           voice-inbox: *scriptsMount
           night-shift: *scriptsMount
+          nightwatch: *scriptsMount
       tmp:
         type: emptyDir
         advancedMounts:
@@ -341,6 +385,7 @@ spec:
           vault-weekly-review: *tmpMount
           voice-inbox: *tmpMount
           night-shift: *tmpMount
+          nightwatch: *tmpMount
 
     serviceAccount:
       vault-jobs: {}
