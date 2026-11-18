@@ -51,6 +51,9 @@ spec:
         secretKeyRef:
           name: claude-setup-token
           key: CLAUDE_CODE_OAUTH_TOKEN
+    # Unauthenticated, for fetching git-sourced skills (AgentTemplate.spec.skills).
+    # Public repos only; no credential is attached.
+    - origin: https://github.com
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: ModelConfig
