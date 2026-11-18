@@ -1,0 +1,77 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: miniflux-mcp
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      miniflux-mcp:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            # Built from tssujt/miniflux-mcp by github.com/dapperdivers/containers
+            # (non-root, distroless). The server exposes ~40 tools including deletes;
+            # agents see only the read-only allowlist set on the agent's tool binding.
+            image:
+              repository: ghcr.io/dapperdivers/miniflux-mcp
+              tag: 0.8.0@sha256:6723d5f6a90f1c4bc97450fbda8023fe059d3114914667d8e6e7ffd30862ce2a
+            env:
+              TZ: ${TIME_ZONE}
+              MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080
+              MCP_TRANSPORT: streamable-http
+              MCP_HTTP_ADDR: :8080
+              MCP_HTTP_PATH: /mcp
+            envFrom:
+              - secretRef:
+                  name: miniflux-mcp-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: &port 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        controller: miniflux-mcp
+        ports:
+          http:
+            port: *port

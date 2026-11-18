@@ -6,6 +6,7 @@ resources:
   - ./claude.yaml
   - ./externalsecret.yaml
   - ./k8s-reader.yaml
+  - ./miniflux.yaml
   - ./nightwatch.yaml
   - ./smoke-test.yaml
   - ./vault-mcp.yaml

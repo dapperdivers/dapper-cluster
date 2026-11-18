@@ -1,0 +1,20 @@
+---
+# Owner's RSS reader (Miniflux), served by kagent/miniflux-mcp. The server exposes
+# every Miniflux API call, including deletes, so agents must bind it with an explicit
+# read-only tool list (get_feeds, get_entries, get_entry, get_feed_entries,
+# get_categories, get_category_entries, get_category_feeds, get_feed, get_version).
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: miniflux
+spec:
+  description: Read the owner's RSS feeds and entries (Miniflux). Bind read tools only.
+  url: http://miniflux-mcp.kagent.svc.cluster.local:8080/mcp
+  protocol: STREAMABLE_HTTP
+  timeout: 30s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: miniflux-mcp-secret
+        key: Authorization
