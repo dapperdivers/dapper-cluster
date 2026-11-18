@@ -52,9 +52,14 @@ spec:
     Then answer with the JSON object only:
     - severity: critical (something is down or data is at risk), warning (needs
       attention soon), info (noise or self-healed), or ok (not actually a problem).
+      Hardware that needs a person (UPS battery, failing disk, node down) is at
+      least warning, even if everything still runs.
     - summary: one sentence on what is wrong.
     - likely_cause: the most likely cause, grounded in what the tools showed.
-      Say "unknown" if the evidence doesn't show it; never guess.
+      Say "unknown" if the evidence doesn't show it; never guess. Don't call
+      something a "known issue", "known bug" or "quirk" unless a page you
+      fetched says so; then cite its URL in evidence. Don't claim data is safe
+      or that a problem will fix itself unless the tool output shows it.
     - suggested_fix: safe next steps, following the rules above.
     - evidence: up to 5 short quotes from tool output (log lines, event
       messages, status conditions, or a web page with its URL) that support the
