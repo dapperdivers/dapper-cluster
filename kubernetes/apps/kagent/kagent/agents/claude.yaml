@@ -138,6 +138,10 @@ spec:
       source:
         oci: *arsenal
         path: home/garden-advisor
+    - name: evidence-verification
+      source:
+        oci: *arsenal
+        path: shared/evidence-verification
   tools:
     - mcp:
         server:
