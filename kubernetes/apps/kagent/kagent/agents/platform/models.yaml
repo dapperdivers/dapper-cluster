@@ -1,0 +1,42 @@
+---
+# Not a credential: the claude harness insists on an apiKeySecret; this one is never used.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: claude-dummy-key
+stringData:
+  ANTHROPIC_API_KEY: unused-placeholder
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: ModelConfig
+metadata:
+  name: claude-opus
+spec:
+  provider: Anthropic
+  model: claude-opus-5-5
+  apiKeySecret: claude-dummy-key
+  apiKeySecretKey: ANTHROPIC_API_KEY
+  anthropic: {}
+---
+# claude-sonnet and claude-haiku share the subscription egress (egress.yaml) and the dummy key with claude-opus.
+apiVersion: api.kagent.dev/v1alpha3
+kind: ModelConfig
+metadata:
+  name: claude-sonnet
+spec:
+  provider: Anthropic
+  model: claude-sonnet-5-5
+  apiKeySecret: claude-dummy-key
+  apiKeySecretKey: ANTHROPIC_API_KEY
+  anthropic: {}
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: ModelConfig
+metadata:
+  name: claude-haiku
+spec:
+  provider: Anthropic
+  model: claude-haiku-5-5
+  apiKeySecret: claude-dummy-key
+  apiKeySecretKey: ANTHROPIC_API_KEY
+  anthropic: {}

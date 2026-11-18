@@ -1,0 +1,45 @@
+---
+# Claude (Opus 5.5) on the Claude Code runtime, in the gVisor sandbox, on the Claude
+# subscription. The setup-token (MOLT_ANTHROPIC_SETUP_TOKEN in Infisical, shared with
+# OpenClaw) never enters the sandbox: Claude Code sends "Authorization: Bearer
+# <placeholder>" and the egress gateway swaps in the real token (EgressPolicy below).
+#
+# Undocumented in kagent 1.0.1 (#4777): kagent's own Anthropic path injects x-api-key,
+# which Anthropic rejects for subscription tokens. This relies on (1) kagent allowing
+# ANTHROPIC_AUTH_TOKEN / ANTHROPIC_CUSTOM_HEADERS in Harness env, (2) Claude Code using
+# ANTHROPIC_AUTH_TOKEN over the placeholder API key, (3) the oauth beta header value.
+# An update to any of them can break it. Usage counts against the subscription's limits.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: claude-setup-token
+spec:
+  refreshInterval: 5m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: claude-setup-token
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        CLAUDE_CODE_OAUTH_TOKEN: "{{ .MOLT_ANTHROPIC_SETUP_TOKEN }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^MOLT_ANTHROPIC_SETUP_TOKEN$
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: EgressPolicy
+metadata:
+  name: claude-subscription
+spec:
+  destinations:
+    - origin: https://api.anthropic.com
+      authentication:
+        header: Authorization
+        prefix: "Bearer "
+        secretKeyRef:
+          name: claude-setup-token
+          key: CLAUDE_CODE_OAUTH_TOKEN
