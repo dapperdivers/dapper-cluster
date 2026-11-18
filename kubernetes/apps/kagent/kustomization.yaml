@@ -8,4 +8,5 @@ components:
 resources:
   - ./namespace.yaml
   - ./kagent/ks.yaml
+  - ./miniflux-mcp/ks.yaml
   - ./web-fetch/ks.yaml
