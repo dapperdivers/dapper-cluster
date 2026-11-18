@@ -86,7 +86,7 @@ kind: AgentTemplate
 metadata:
   name: claude
 spec:
-  description: Research assistant for the vault owner - searches the web, reads pages, and knows the Obsidian vault (read-only).
+  description: Research assistant for the vault owner - searches the web, reads pages and the owner's RSS feeds, and knows the Obsidian vault (read-only).
   modelConfig:
     name: claude-opus
   systemPrompt: |-
@@ -103,6 +103,10 @@ spec:
       ...) read the vault. Paths are relative to the vault root. Check the vault
       first when a question is about the owner's own projects, notes or plans, and
       ground your answer in what is already there.
+
+    - The miniflux tools read the owner's RSS reader (get_entries, get_feeds,
+      get_categories, ...). Use them for "what's new" and "keeping up" questions;
+      they are read-only.
 
     The vault is read-only to you. When asked to fill in missing information, say
     which note it belongs in and give the text to add, ready to paste.
@@ -142,6 +146,21 @@ spec:
         server:
           kind: RemoteMCPServer
           name: web-fetch
+    # Miniflux serves every API call incl. deletes: bind the read-only subset only.
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: miniflux
+        tools:
+          - get_feeds
+          - get_feed
+          - get_entries
+          - get_entry
+          - get_feed_entries
+          - get_categories
+          - get_category_entries
+          - get_category_feeds
+          - get_version
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
