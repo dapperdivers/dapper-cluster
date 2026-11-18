@@ -1,0 +1,53 @@
+---
+# WORKER (local model): free and independent of the Claude subscription. Use for frequent
+# or narrow jobs and as the fallback behind a Claude worker. qwen3.5:9b follows short,
+# explicit prompts and about 12 tools at most.
+# Replace NAME, the description, the prompt and the tool list.
+#
+# No outputSchema: on kagent 1.0.1 it stops the agent calling its tools (kagent#3460).
+# The JSON shape lives in the prompt and the caller validates the reply.
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: NAME
+spec:
+  description: <what it does, in one line>.
+  modelConfig:
+    name: default-model-config
+  # Avoid bare {word} in this prompt: the runtime treats it as a session variable.
+  systemPrompt: |-
+    You are <role>. You receive <input>.
+
+    Your first action is always a <tool> tool call with <what>. Never answer before you
+    have called it; an answer without a tool call is wrong.
+
+    Then do <N> things:
+
+    1. <field>: <rule>.
+    2. <field>: <rule>.
+
+    When you have finished, reply with only a JSON object, no prose and no code fence,
+    in exactly this shape:
+    {"field": "value", "items": ["..."]}
+    All keys are required; use [] for an empty list. Never invent values: copy paths,
+    names and quotes exactly as a tool returned them.
+  # This harness enforces the allowlist, so list exactly the tools it may use.
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: vault
+        tools:
+          - search_notes
+          - read_note
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: NAME
+spec:
+  template:
+    ref:
+      name: NAME
+  harnessRef:
+    name: kagent-default
