@@ -37,6 +37,8 @@ spec:
             args:
               - |
                 set -e
+                # Agents' calls come through Substrate's egress gateway, which sends the Host
+                # header without the port, hence the portless --allowed-host.
                 # Separate install dirs: the two packages pin conflicting versions of a
                 # shared dependency.
                 pip install --quiet --no-cache-dir --disable-pip-version-check --target /tmp/proxy mcp-proxy==0.15.0
@@ -45,6 +47,7 @@ spec:
                 exec /tmp/proxy/bin/mcp-proxy --host 0.0.0.0 --port 8000 --stateless \
                   --allowed-host web-fetch.kagent.svc.cluster.local:8000 \
                   --allowed-host web-fetch.kagent.svc:8000 --allowed-host web-fetch:8000 \
+                  --allowed-host web-fetch.kagent.svc.cluster.local \
                   -- /usr/bin/env PYTHONPATH=/tmp/fetch HOME=/tmp /tmp/fetch/bin/mcp-server-fetch \
                   --user-agent "Mozilla/5.0 (compatible; homelab-research-agent)"
             env:
