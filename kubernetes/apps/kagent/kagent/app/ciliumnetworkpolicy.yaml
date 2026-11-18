@@ -24,11 +24,15 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: ate-system
             app: atenet-egress
-        # The vault's voice-inbox job asks the voice-librarian agent about new notes.
+        # Vault pipeline jobs that call agents: voice-inbox (voice-librarian) and
+        # night-shift (claude).
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: selfhosted
             app.kubernetes.io/name: obsidian-vault
-            app.kubernetes.io/controller: voice-inbox
+          matchExpressions:
+            - key: app.kubernetes.io/controller
+              operator: In
+              values: [voice-inbox, night-shift]
       toPorts:
         - ports:
             - port: "8083"

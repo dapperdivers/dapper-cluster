@@ -190,6 +190,43 @@ spec:
 
       # Voice drop folder: audio saved anywhere under <vault>/Inbox/Voice/ is transcribed
       # (Speaches), summarized (Ollama) into a note, and moved to Attachments/Voice/.
+      # 04:30: Night Shift morning brief on the Claude subscription -> Briefings/Morning/<date>.md
+      # (sections from Resources/System/Morning Brief Topics.md, plus vault gap suggestions).
+      night-shift:
+        type: cronjob
+        cronjob:
+          schedule: "30 4 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 5400
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/night-shift.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              CLAUDE_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/claude
+              GAPS_PER_NIGHT: "3"
+              BUDGET_MINUTES: "75"
+              SYNCTHING_URL: http://obsidian-vault-syncthing:8384
+              SYNCTHING_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-secret
+                    key: SYNCTHING_API_KEY
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod: *jobPod
+
       voice-inbox:
         type: cronjob
         cronjob:
@@ -281,6 +318,7 @@ spec:
           vault-nightly: *vaultMount
           vault-weekly-review: *vaultMount
           voice-inbox: *vaultMount
+          night-shift: *vaultMount
       scripts:
         type: configMap
         name: vault-scripts
@@ -292,6 +330,7 @@ spec:
           vault-nightly: *scriptsMount
           vault-weekly-review: *scriptsMount
           voice-inbox: *scriptsMount
+          night-shift: *scriptsMount
       tmp:
         type: emptyDir
         advancedMounts:
@@ -301,6 +340,7 @@ spec:
           vault-nightly: *tmpMount
           vault-weekly-review: *tmpMount
           voice-inbox: *tmpMount
+          night-shift: *tmpMount
 
     serviceAccount:
       vault-jobs: {}

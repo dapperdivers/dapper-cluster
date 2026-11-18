@@ -15,6 +15,7 @@ configMapGenerator:
       - ./resources/weekly-review.py
       - ./resources/voice-inbox.py
       - ./resources/librarian.py
+      - ./resources/night-shift.py
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
