@@ -131,8 +131,17 @@ def collect():
     single = [r for r in restarts if not (r[3] == "OOMKilled" or r[4] >= 3)]
     if len(single) >= 3:  # several one-off restarts usually share a cause (node, API server)
         lines = "; ".join(f"{ns}/{w} ({reason} at {when})" for ns, w, _, reason, _, when in single[:15])
+        # Do the correlation here, not in the model: the largest group within 5 minutes.
+        times = sorted((ts(r[5]), r) for r in single if ts(r[5]))
+        best = max((sum(1 for t2, _ in times if 0 <= (t2 - t1).total_seconds() <= 300), t1)
+                   for t1, _ in times) if times else (0, None)
+        hint = ""
+        if best[0] >= 3:
+            hint = (f" {best[0]} of the {len(single)} restarted within 5 minutes of "
+                    f"{best[1].strftime('%H:%M:%SZ')}: look for one shared cause at that time (API server "
+                    "or etcd blip, node pressure, network), not at each container.")
         out.append(finding("restart", "info", "", "many", f"{len(single)} containers restarted once",
-                           lines, key="restart|many"))
+                           lines + "." + hint, key="restart|many"))
 
     jobs = k8s("/apis/batch/v1/jobs")
     checked["Jobs"] = len(jobs)
