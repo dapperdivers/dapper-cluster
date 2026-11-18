@@ -8,6 +8,7 @@ resources:
   - ./platform
   # One file per agent (its AgentTemplate + Agent only). To add an agent, add a file here.
   - ./claude.yaml
+  - ./feeds-curator.yaml
   - ./feeds-digest.yaml
   - ./flux-ops.yaml
   - ./k8s-reader.yaml
