@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./secret.sops.yaml
   - ./helmrelease.yaml
+  - ./rbac.yaml
 configMapGenerator:
   - name: vault-scripts
     files:
@@ -16,6 +17,7 @@ configMapGenerator:
       - ./resources/voice-inbox.py
       - ./resources/librarian.py
       - ./resources/night-shift.py
+      - ./resources/nightwatch.py
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

@@ -1,0 +1,47 @@
+---
+# Extra read-only access for the kagent-tools server, on top of the chart's
+# kagent-tools-read-role (core namespaced kinds only). Covers what Night Watch
+# findings point at: cluster-scoped storage and nodes, plus the Flux, VolSync,
+# cert-manager, CNPG and kagent objects. Read verbs only; no Secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kagent-tools-read-extra
+rules:
+  - apiGroups: [""]
+    resources: [nodes, persistentvolumes]
+    verbs: [get, list, watch]
+  - apiGroups: [storage.k8s.io]
+    resources: [storageclasses, volumeattachments, csidrivers]
+    verbs: [get, list, watch]
+  - apiGroups: [snapshot.storage.k8s.io]
+    resources: [volumesnapshots, volumesnapshotcontents]
+    verbs: [get, list, watch]
+  - apiGroups: [kustomize.toolkit.fluxcd.io, helm.toolkit.fluxcd.io, source.toolkit.fluxcd.io]
+    resources: ["*"]
+    verbs: [get, list, watch]
+  - apiGroups: [volsync.backube]
+    resources: [replicationsources, replicationdestinations]
+    verbs: [get, list, watch]
+  - apiGroups: [cert-manager.io, acme.cert-manager.io]
+    resources: [certificates, certificaterequests, issuers, clusterissuers, orders, challenges]
+    verbs: [get, list, watch]
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [clusters, backups, scheduledbackups]
+    verbs: [get, list, watch]
+  - apiGroups: [api.kagent.dev]
+    resources: [agents, agenttemplates, modelconfigs, remotemcpservers]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kagent-tools-read-extra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kagent-tools-read-extra
+subjects:
+  - kind: ServiceAccount
+    name: kagent-tools
+    namespace: kagent
