@@ -59,17 +59,27 @@ spec:
         enabled: false
       claude:
         enabled: false
-    # Default ModelConfig: local Ollama on the idle second P100. num_ctx matches
-    # the server's OLLAMA_CONTEXT_LENGTH; more would spill KV cache off the card.
+    # Default ModelConfig: qwen3.5:9b on ollama-2 (second P100), thinking off.
+    # In a 2026-11-17 bake-off it scored 12/12 on tool calls with thinking off,
+    # against 10/12 for gpt-oss:20b, which never made parallel calls and renamed
+    # nested schema fields. With thinking on it overthinks: ~3x slower and worse.
+    # Why the OpenAI provider and not Ollama: kagent's Ollama provider never sets
+    # the request's top-level `think` field (an `options.think` value is ignored,
+    # and Modelfiles reject `PARAMETER think`). Ollama's /v1 API maps
+    # reasoning_effort "none" to think=false. The context window comes from the
+    # server's OLLAMA_CONTEXT_LENGTH (ollama/app/helmrelease-2.yaml), because /v1
+    # can't send num_ctx. No API key: with a custom baseUrl kagent omits auth.
     providers:
-      default: ollama
-      ollama:
-        provider: Ollama
-        model: gpt-oss:20b
+      default: openAI
+      openAI:
+        provider: OpenAI
+        model: qwen3.5:9b
+        # Null the chart's kagent-openai Secret reference; ollama needs no key.
+        apiKeySecretRef: null
+        apiKeySecretKey: null
         config:
-          host: http://ollama-2.ai.svc.cluster.local:11434
-          options:
-            num_ctx: "32768"
+          baseUrl: http://ollama-2.ai.svc.cluster.local:11434/v1
+          reasoningEffort: none
     ui:
       httpRoute:
         enabled: true

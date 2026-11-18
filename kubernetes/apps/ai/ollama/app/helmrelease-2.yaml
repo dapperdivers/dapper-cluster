@@ -52,17 +52,20 @@ spec:
               OLLAMA_NUM_PARALLEL: "1"
               # Max loaded models — keep 1 to maximize VRAM for the primary model
               OLLAMA_MAX_LOADED_MODELS: "1"
-              # Context window — knights are pi coding agents with skills/tools, so
-              # their prompts run fatter than molt's chat traffic on GPU 0 (8K).
-              # qwen3.5:9b is only ~5.9GB resident (256K-native hybrid attention),
-              # so 32K fits with VRAM to spare on a 16GB card. Keep in sync with
-              # the knights' MODEL_CONTEXT_WINDOW env and the other pool member.
-              # (gpt-oss:20b, the proven fallback, stays pulled but tops out
-              # around 24K here — drop this back if rolling back the model.)
+              # Context window. This instance serves kagent, which talks to it over
+              # the OpenAI-compatible /v1 API and so cannot pass num_ctx per request;
+              # this server default is what applies. qwen3.5:9b uses hybrid attention
+              # (most layers keep no KV cache), so it is 8.5GB resident at 128K and
+              # 11GB at its native 256K, all on the GPU (measured 2026-11-17).
+              # Prompt processing on the P100 is the real limit: ~45s for 30K tokens,
+              # ~5min for 108K. llama.cpp can't reuse the prompt cache for hybrid
+              # models, so each agent turn re-reads the whole history. 128K is a
+              # ceiling that keeps a long run slow instead of truncated.
+              # Rolling back to gpt-oss:20b? Drop this to 32768 — it can't fit 128K.
               # NOTE: the env ollama actually reads is OLLAMA_CONTEXT_LENGTH —
               # OLLAMA_NUM_CTX is ignored (absent from the server config dump)
               # and the server silently falls back to its 4096 default.
-              OLLAMA_CONTEXT_LENGTH: "32768"
+              OLLAMA_CONTEXT_LENGTH: "131072"
               # No output token limit — let the model decide
               OLLAMA_NUM_PREDICT: "-1"
             ports:
