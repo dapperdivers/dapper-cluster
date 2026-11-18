@@ -8,7 +8,6 @@ resources:
   - ./k8s-reader.yaml
   - ./miniflux.yaml
   - ./nightwatch.yaml
-  - ./smoke-test.yaml
   - ./vault-mcp.yaml
   - ./voice-librarian.yaml
   - ./voice-triage.yaml
