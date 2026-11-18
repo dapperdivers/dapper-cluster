@@ -14,3 +14,4 @@ resources:
   # TEMPORARY: remove after the tools-harness test (2026-11-18).
   - ./tools-canary.yaml
   - ./voice-librarian.yaml
+  - ./voice-processor.yaml
