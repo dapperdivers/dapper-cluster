@@ -2,6 +2,9 @@
 # Called by the voice-inbox pipeline once per voice note. Reads nothing it isn't
 # given except through vault search; returns JSON the pipeline turns into a filing
 # suggestion, related links and zettel stubs (Zettels/). Read-only.
+# No outputSchema on purpose: on kagent 1.0.1 it stops the agent calling its tools
+# (it answered in one model call with invented note paths). The JSON shape lives in
+# the system prompt and librarian.py validates the reply.
 apiVersion: api.kagent.dev/v1alpha3
 kind: AgentTemplate
 metadata:
@@ -44,35 +47,14 @@ spec:
        - tags: 1-4 lowercase topic tags, single words or hyphenated.
 
     The only tools are search_notes, read_note, list_directory, get_frontmatter
-    and get_notes_info. Paths are relative to the vault root. Answer with the JSON
-    object only.
-  outputSchema:
-    type: object
-    properties:
-      folder:
-        type: string
-      related:
-        type: array
-        items:
-          type: string
-      zettels:
-        type: array
-        items:
-          type: object
-          properties:
-            title: { type: string }
-            claim: { type: string }
-            context: { type: string }
-            take: { type: string }
-            domain: { type: string }
-            confidence:
-              type: string
-              enum: [high, medium, low, speculative]
-            tags:
-              type: array
-              items: { type: string }
-          required: [title, claim, context, take, domain, confidence, tags]
-    required: [folder, related, zettels]
+    and get_notes_info. Paths are relative to the vault root.
+
+    When you have finished searching, reply with only a JSON object, no prose and
+    no code fence, in exactly this shape:
+    {"folder": "one candidate folder", "related": ["path/from/search_notes.md"],
+    "zettels": [{"title": "", "claim": "", "context": "", "take": "", "domain": "",
+    "confidence": "high|medium|low|speculative", "tags": ["tag"]}]}
+    All three keys are required; use [] for an empty list.
   tools:
     - mcp:
         server:
