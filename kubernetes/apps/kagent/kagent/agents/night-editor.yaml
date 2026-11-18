@@ -9,7 +9,7 @@
 # nobody watching must not hold them. The only way to withhold a server's tools on this
 # harness is not to bind the server, so this agent binds vault and web-fetch only.
 #
-# Shares the ModelConfig, Harness and EgressPolicy defined in claude.yaml (same Claude
+# Shares the ModelConfig, Harness and EgressPolicy defined in platform/ (same Claude
 # subscription and usage limits).
 apiVersion: api.kagent.dev/v1alpha3
 kind: AgentTemplate

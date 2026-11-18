@@ -62,9 +62,30 @@ kubectl port-forward -n kagent svc/kagent-ui 8082:8080   # UI (no auth; don't ex
 kubectl get agents,workerpools -n kagent
 ```
 
+## Layout of `kagent/agents/` (adding an agent)
+
+```
+kagent/agents/
+├── kustomization.yaml     # ./platform + one line per agent file
+├── platform/              # shared pieces any agent can reference
+│   ├── models.yaml        # ModelConfigs claude-opus / claude-sonnet / claude-haiku + the dummy key
+│   ├── harnesses.yaml     # Harness claude-code (the Claude Code runtime)
+│   ├── egress.yaml        # EgressPolicy claude-subscription + its setup-token ExternalSecret
+│   ├── miniflux.yaml      # tool servers: one RemoteMCPServer per file,
+│   ├── vault-mcp.yaml     #   with its ExternalSecret if it has one
+│   └── web-fetch.yaml
+└── <agent>.yaml           # one file per agent: its AgentTemplate + Agent, nothing else
+```
+
+To add an agent, copy an existing agent file, point it at a ModelConfig, Harness and tool
+servers from `platform/`, and add it to `kustomization.yaml`. Editing an agent file
+rebuilds only that agent's golden snapshot; editing a `platform/` resource rebuilds every
+agent that references it (several minutes each).
+
 ## The `claude` agent (subscription)
 
-`kagent/agents/claude.yaml` runs Claude Sonnet 5.5 on kagent's Claude Code harness, on the
+`kagent/agents/claude.yaml` runs Claude Opus 5.5 on kagent's Claude Code harness (shared
+pieces in `kagent/agents/platform/`: `models.yaml`, `harnesses.yaml`, `egress.yaml`), on the
 Claude subscription (setup-token `MOLT_ANTHROPIC_SETUP_TOKEN`, shared with OpenClaw). The
 token never enters the sandbox: Claude Code sends `Authorization: Bearer <placeholder>` and
 the `claude-subscription` EgressPolicy swaps in the real token at the egress gateway.
