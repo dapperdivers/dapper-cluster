@@ -172,7 +172,7 @@ def curated_candidates(ledger):
             continue
         found.append((done.get(rel, ""), st.st_mtime, rel))
     found.sort()
-    only = [x.strip() for x in os.environ.get("CURATED_ONLY", "").split(",") if x.strip()]
+    only = [x.strip() for x in os.environ.get("CURATED_ONLY", "").split("|") if x.strip()]
     if only:  # testing: just these notes (vault-relative paths)
         return [rel for _, _, rel in found if rel in only]
     return [rel for _, _, rel in found]
