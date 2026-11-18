@@ -2,8 +2,9 @@
 """Night Watch: a nightly cluster triage written to <vault>/Agents/NightWatch/<YYYY-MM-DD>.md.
 
 1. Collect (no model): Flux Kustomizations/HelmReleases not Ready, unhealthy or recently
-   restarted pods, failed Jobs, stale VolSync backups, Certificates and kagent Agents not
-   Ready, firing Alertmanager alerts, and clusters of Warning events, all from the last 24h.
+   restarted pods, failed Jobs, stale VolSync backups, Certificates not Ready, kagent Agents
+   with a failing status condition or an unexpected warning, firing Alertmanager alerts, and
+   clusters of Warning events, all from the last 24h.
 2. Fingerprint each finding and compare with Agents/NightWatch/ledger.json, so recurring noise is
    recognised instead of re-reported as new.
 3. Triage: each new finding (most severe first), then recurring ones that were never
@@ -60,6 +61,20 @@ BENIGN_EVENTS = [
      re.compile(r"clone from snapshot is (pending|already in progress)")),
 ]
 
+# kagent reports agent problems only in each Agent's status. Any of these conditions not True
+# is a finding; root cause first (an agent that isn't Accepted is never Ready either).
+AGENT_CONDITIONS = ("Accepted", "ResolvedRefs", "Compatible", "Ready")
+# status.warnings that are known and accepted: (agent name, or None for any agent; message).
+# Muted and counted, like BENIGN_EVENTS. Keep these narrow, so a new warning still shows up.
+BENIGN_AGENT_WARNINGS = [
+    # The Claude Code harness can't expose a subset of an MCP server's tools, so `claude`
+    # gets all of Miniflux instead of the read-only selection. Accepted for that agent only.
+    ("claude", re.compile(r'RemoteMCPServer "miniflux" does not support partial tool selection')),
+    # The Claude Code harness has no per-server timeout; the RemoteMCPServer's `timeout` is
+    # dropped. Only that one field: any other ignored field is reported.
+    (None, re.compile(r'RemoteMCPServer "[^"]+" ignores unsupported fields timeout$')),
+]
+
 CLUSTER_KINDS = {"Node", "PersistentVolume", "StorageClass", "VolumeAttachment", "Namespace",
                  "ClusterIssuer", "CSINode", "CSIDriver", "ClusterRole", "ClusterRoleBinding"}
 NOW = dt.datetime.now(dt.timezone.utc)
@@ -108,6 +123,38 @@ def finding(category, severity, ns, name, title, details, key=None):
 
 
 # ---------------------------------------------------------------- collection
+def agent_health(items):
+    """kagent Agents: a warning finding per agent with a status condition that isn't True, and
+    an info finding per distinct status.warnings text that isn't in BENIGN_AGENT_WARNINGS.
+    Returns (findings, agents Ready, warnings muted)."""
+    out, ready, muted, warns = [], 0, 0, {}
+    for o in items:
+        m, st = o.get("metadata") or {}, o.get("status") or {}
+        ns, name = m.get("namespace", ""), m.get("name", "?")
+        conds = {c.get("type"): c for c in st.get("conditions") or []}
+        ready += (conds.get("Ready") or {}).get("status") == "True"
+        bad = [conds[t] for t in AGENT_CONDITIONS if t in conds and conds[t].get("status") != "True"]
+        if bad:
+            # The key is what this check used before it looked past Ready, and it doesn't
+            # change with which condition fails first: one ledger entry per broken agent.
+            out.append(finding("agents", "warning", ns, name, f"kagent Agent not {bad[0]['type']}",
+                               "; ".join(f"{c['type']}={c.get('status', '?')} ({c.get('reason', '?')}): "
+                                         f"{c.get('message', '')}" for c in bad)[:500],
+                               key=f"agents|{ns}|{name}|kagent Agent not Ready"))
+        for w in {" ".join(str(w).split()) for w in st.get("warnings") or [] if str(w).strip()}:
+            if any(a in (None, name) and rx.search(w) for a, rx in BENIGN_AGENT_WARNINGS):
+                muted += 1
+            else:
+                warns.setdefault(w, []).append((ns, name))
+    for w, agents in sorted(warns.items()):
+        # The same warning on several agents is one finding. Lists of tool names inside it
+        # are left out of the key, so it stays one finding when a server adds a tool.
+        out.append(finding("agents", "info", ", ".join(sorted({ns for ns, _ in agents})),
+                           ", ".join(sorted(n for _, n in agents)), "kagent Agent warning", w[:500],
+                           key="agent-warning|" + re.sub(r"\[[^\]]*\]", "[]", w)))
+    return out, ready, muted
+
+
 def collect():
     out, checked = [], {}
 
@@ -181,8 +228,7 @@ def collect():
                 out.append(finding("backup", "warning", m["namespace"], m["name"], "backup is stale",
                                    f"last successful sync: {last or 'never'}"))
 
-    for label, path in [("Certificates", "/apis/cert-manager.io/v1/certificates"),
-                        ("kagent Agents", "/apis/api.kagent.dev/v1alpha3/agents")]:
+    for label, path in [("Certificates", "/apis/cert-manager.io/v1/certificates")]:
         try:
             items = k8s(path)
         except Exception as e:
@@ -195,6 +241,16 @@ def collect():
                 m = o["metadata"]
                 out.append(finding(label.split()[-1].lower(), "warning", m["namespace"], m["name"],
                                    f"{label[:-1]} not Ready", msg[:500]))
+
+    try:
+        agents = k8s("/apis/api.kagent.dev/v1alpha3/agents")
+        found, ready, quiet = agent_health(agents)
+        out += found
+        checked["kagent Agents"] = f"{len(agents)} ({ready} ready)"
+        checked["Known kagent Agent warnings muted"] = quiet
+    except Exception as e:  # no CRD (404), no access (403), an odd status: say so, don't fail
+        print(f"warning: couldn't check kagent Agents: {e}", file=sys.stderr)
+        checked["kagent Agents"] = f"not checked ({e})"
 
     if ALERTMANAGER_URL:
         try:
