@@ -22,6 +22,7 @@ import os
 import re
 import ssl
 import sys
+import time
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +34,10 @@ LEDGER = f"{OUT_DIR}/ledger.json"
 AGENT_URL = os.environ.get("NIGHTWATCH_AGENT_URL", "")
 ALERTMANAGER_URL = os.environ.get("ALERTMANAGER_URL", "")
 MAX_TRIAGE = int(os.environ.get("MAX_TRIAGE", "5"))
+# Per-finding wait, and the total time for all triage. The report is only written after
+# triage, so the budget must leave room inside the CronJob's activeDeadlineSeconds (3600).
+TRIAGE_TIMEOUT_S = int(os.environ.get("TRIAGE_TIMEOUT_S", "600"))
+TRIAGE_BUDGET_S = int(os.environ.get("TRIAGE_BUDGET_S", "2700"))
 AUTHOR = "nightwatch"
 DAY = 86400
 SA = "/var/run/secrets/kubernetes.io/serviceaccount"
@@ -248,7 +253,7 @@ WITHHELD = ("Withheld: the agent proposed a destructive step. Check the evidence
 def triage(f):
     prompt = ("Investigate this finding from tonight's cluster check.\n\n" + json.dumps(
         {k: f[k] for k in ("category", "severity", "namespace", "name", "title", "details")}, indent=1))
-    raw = vl.json_from_text(vl.agent_reply(AGENT_URL, prompt, timeout=420))
+    raw = vl.json_from_text(vl.agent_reply(AGENT_URL, prompt, timeout=TRIAGE_TIMEOUT_S))
     sev = str(raw.get("severity", "")).lower()
     clean = lambda v, n: " ".join(str(v or "").split())[:n]  # noqa: E731
     fix = clean(raw.get("suggested_fix"), 800)
@@ -356,7 +361,13 @@ def main():
     retry = [f for f in recurring if not ledger[f["fp"]].get("triaged")]
     diag = {}
     if AGENT_URL:
+        start = time.monotonic()
         for f in (new + retry)[:MAX_TRIAGE]:
+            # Only start a triage that can finish inside the budget (a timed-out one may keep
+            # the single-request model busy, so the next would just queue behind it).
+            if time.monotonic() - start + TRIAGE_TIMEOUT_S > TRIAGE_BUDGET_S:
+                print(f"triage budget used up; {f['title']} {obj(f)} waits for a later night")
+                break
             try:
                 diag[f["fp"]] = triage(f)
                 print(f"triaged {f['title']} {obj(f)}: {diag[f['fp']]['severity']}")
