@@ -12,7 +12,7 @@ import uuid
 
 AGENT_URL = os.environ.get(
     "LIBRARIAN_URL", "http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian")
-AREAS = ("Personal", "Projects", "Work", "Research", "Reference", "Resources")
+AREAS = ("Personal", "Projects", "Work", "Library")
 SKIP = {"Archive", "90 Archive", "Attachments", "evidence"}
 CONFIDENCE = {"high", "medium", "low", "speculative"}
 TAG_OK = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")

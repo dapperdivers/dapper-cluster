@@ -6,7 +6,7 @@ Morning brief -> Agents/Briefings/Morning/<YYYY-MM-DD>.md
     edits that note; this job only reads it), each researched by the kagent `claude`
     agent (web search, web-fetch, read-only vault);
   - vault gaps: up to GAPS_PER_NIGHT notes with TODO/TBD/?? markers or a needs-research
-    tag (Projects, Research, Reference, Resources; any area when tagged) are researched
+    tag (Projects, Library; any area when tagged) are researched
     and answered as "ready to paste" suggestions. Notes are never edited;
   - links to the night's NightWatch report and new zettels, when there are any.
 Stops at the first usage/rate-limit refusal and says so in the brief.
@@ -32,7 +32,7 @@ LEDGER = f"{OUT_DIR}/ledger.json"
 GAPS_PER_NIGHT = int(os.environ.get("GAPS_PER_NIGHT", "3"))
 BUDGET_S = int(os.environ.get("BUDGET_MINUTES", "75")) * 60
 AUTHOR = "night-shift"
-GAP_AREAS = ("Projects", "Research", "Reference", "Resources")
+GAP_AREAS = ("Projects", "Library")
 GAP_SKIP = re.compile(r"(^|/)(Archive|Agents|System|Generated|Templates|Briefings|Journal|Inbox|Zettels|NightWatch)(/|$)")
 MARKER = re.compile(r"\bTODO\b|\bTBD\b|\?\?")
 START = time.monotonic()
