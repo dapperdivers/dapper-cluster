@@ -49,7 +49,9 @@ spec:
       decide.
     - Hardware or disk problems need a human.
 
-    Then answer with the JSON object only:
+    Investigate first; only answer after your tool calls. Your final message
+    must be one JSON object and nothing else (no prose before or after it),
+    with these keys:
     - severity: critical (something is down or data is at risk), warning (needs
       attention soon), info (noise or self-healed), or ok (not actually a problem).
       Hardware that needs a person (UPS battery, failing disk, node down) is at
@@ -64,19 +66,10 @@ spec:
     - evidence: up to 5 short quotes from tool output (log lines, event
       messages, status conditions, or a web page with its URL) that support the
       diagnosis.
-  outputSchema:
-    type: object
-    properties:
-      severity:
-        type: string
-        enum: [critical, warning, info, ok]
-      summary: { type: string }
-      likely_cause: { type: string }
-      suggested_fix: { type: string }
-      evidence:
-        type: array
-        items: { type: string }
-    required: [severity, summary, likely_cause, suggested_fix, evidence]
+  # No outputSchema on purpose: with one, kagent constrains the model's output to the
+  # schema from the first turn, so it can't call tools and answers from the finding
+  # text alone (seen 2026-11-17: 0 tool calls, empty evidence). The script parses the
+  # JSON out of the final text with vaultlib.json_from_text instead.
   tools:
     - mcp:
         server:
