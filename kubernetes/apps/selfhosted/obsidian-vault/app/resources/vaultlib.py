@@ -217,21 +217,32 @@ def agent_reply(url, text, timeout=900):
     if "error" in data:
         raise RuntimeError(f"agent error: {data['error']}")
     task = data.get("result", {}).get("task", {})
+    usage = (task.get("metadata") or {}).get("https://kagent.dev/extensions/usage/v1")
+    if isinstance(usage, dict):  # reported by kagent-harness agents only
+        print(f"agent {url.rstrip('/').rsplit('/', 1)[-1]}: tokens in={usage.get('inputTokens')} "
+              f"out={usage.get('outputTokens')} total={usage.get('totalTokens')}", file=sys.stderr)
     status = task.get("status", {})
     if status.get("state") != "TASK_STATE_COMPLETED":
         msg = " ".join(p.get("text", "") for p in (status.get("message") or {}).get("parts") or [])
         if re.search(r"rate.?limit|usage limit|\b429\b|overloaded|limit reached", msg, re.I):
             raise AgentLimitError(msg.strip()[:300])
         raise RuntimeError(f"agent finished in state {status.get('state')}: {msg.strip()[:300]}")
-    parts = [p for art in task.get("artifacts") or [] for p in art.get("parts") or []]
-    text = "".join(p.get("text", "") for p in parts).strip()
-    if text:
-        return text
-    # No text: an agent with an outputSchema answers in a structured `data` part. Tool calls
-    # and tool results are `data` parts too (they carry args/response), so skip those.
-    answers = [p["data"] for p in parts if isinstance(p.get("data"), dict)
-               and not {"args", "response"} & p["data"].keys()]
-    return json.dumps(answers[-1]) if answers else ""
+    # Every model step is its own artifact, so the answer is the last one that holds any: the
+    # earlier ones are narration between tool calls. One answer can be split over hundreds of
+    # text parts (join them as-is); parts flagged as model thinking are not part of it.
+    for art in reversed(task.get("artifacts") or []):
+        parts = [p for p in art.get("parts") or [] if isinstance(p, dict)]
+        text = "".join(p.get("text") or "" for p in parts
+                       if not (p.get("metadata") or {}).get("kagent.dev/a2a/thought")).strip()
+        if text:
+            return text
+        # No text: an agent with an outputSchema answers in a structured `data` part. Tool calls
+        # and tool results are `data` parts too (they carry args/response), so skip those.
+        answers = [p["data"] for p in parts if isinstance(p.get("data"), dict)
+                   and not {"args", "response"} & p["data"].keys()]
+        if answers:
+            return json.dumps(answers[-1])
+    return ""
 
 
 def json_from_text(t):
