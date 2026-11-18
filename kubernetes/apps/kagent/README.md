@@ -70,16 +70,22 @@ registered as the `kagent` server. That registration lives in OpenClaw's config 
 the molt PVC, not in Git:
 
 ```bash
-openclaw mcp add kagent \
-  --url http://kagent-controller.kagent.svc.cluster.local:8083/mcp \
-  --transport streamable-http \
-  --include 'list_agents,invoke_agent,get_session,get_task,list_tasks'
+openclaw config set mcp.servers.kagent '{
+  "url": "http://kagent-controller.kagent.svc.cluster.local:8083/mcp",
+  "transport": "streamable-http",
+  "toolFilter": {"include": ["list_agents", "invoke_agent", "get_session", "get_task", "list_tasks"]}
+}' --strict-json
 ```
 
+`config set` applies without a restart. `openclaw mcp add` and `openclaw mcp probe`
+only run with the gateway stopped. To test, run a turn in a scratch session:
+`openclaw agent --agent main --session-key kagent-smoke --json -m "ask k8s-reader ..."`.
+
 The include list leaves out the endpoint's sandbox and session-delete tools.
-`invoke_agent` returns at once; the reply is read with `get_session`. kagent's API
-has no auth of its own, so the network policy is the only gate: whoever can prompt
-OpenClaw can invoke any agent here.
+`invoke_agent` returns the answer itself for short tasks; for longer ones it returns
+a session ID and the reply is read with `get_session`. kagent's API has no auth of
+its own, so the network policy is the only gate: whoever can prompt OpenClaw can
+invoke any agent here.
 
 ## Layout of `kagent/agents/` (adding an agent)
 
