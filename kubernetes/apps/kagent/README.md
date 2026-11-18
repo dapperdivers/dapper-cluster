@@ -106,7 +106,24 @@ To add an agent, copy an existing agent file, point it at a ModelConfig, Harness
 servers from `platform/`, and add it to `kustomization.yaml`. Editing an agent file
 rebuilds only that agent's golden snapshot; editing a `platform/` resource rebuilds every
 agent that references it (several minutes each). EgressPolicies are the exception: an edit
-applies live.
+applies live. The `kagent-agent` skill (`.claude/skills/kagent-agent/`) has the full
+recipe, templates and a test script.
+
+### `flux-ops` (read-only Flux sweep)
+
+Lists Flux Kustomizations and HelmReleases that are not Ready, and Kustomizations behind
+the current Git revision. It runs on the local model with the four read tools of
+`kagent-tool-server`, so it can change nothing. It copies matching rows exactly and never
+counts them (a small model miscounts long listings); count the rows yourself.
+
+```sh
+.claude/skills/kagent-agent/scripts/ask-agent.sh flux-ops 'Run a full sweep.'
+```
+
+It does not look at pull requests. Flagging mergeable PRs needs GitHub access: either a
+read-only GitHub MCP server, or a Claude agent on `claude-code-tools` with the
+`github-read` egress policy and `curl` (which in turn cannot hold the Kubernetes tools,
+because the Claude harness would expose the whole tool server, `shell` included).
 
 ## Harnesses
 

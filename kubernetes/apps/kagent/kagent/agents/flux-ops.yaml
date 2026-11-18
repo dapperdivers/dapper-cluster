@@ -1,0 +1,88 @@
+---
+# Read-only GitOps sweep: lists Flux Kustomizations and HelmReleases and reports the ones
+# that are failing, stuck or behind the current Git revision, so the owner (or a session
+# working on the cluster) does not have to run the kubectl/flux commands by hand.
+#
+# Same shape as k8s-reader: the local model on the kagent runtime, which ENFORCES the
+# tool allowlist, with the four read tools of kagent-tool-server (read-only RBAC). It can
+# change nothing: no reconcile, suspend or apply tools are bound, and never bind the
+# server's `shell` tool.
+#
+# The "raw rows" rule is the point of the prompt. A small model miscounts and regroups
+# long listings (2026-11-18: k8s-reader reported 11 nodes and then listed 13), so this
+# agent copies matching rows exactly and never counts or totals; the caller counts.
+#
+# Not covered yet: pull requests (which are mergeable). That needs GitHub access, which
+# this harness has no good tool for; see the kagent README.
+apiVersion: api.kagent.dev/v1alpha3
+kind: AgentTemplate
+metadata:
+  name: flux-ops
+spec:
+  description: Read-only Flux sweep - lists Kustomizations and HelmReleases that are failing, stuck or behind the current Git revision, as raw rows. Cannot change anything.
+  modelConfig:
+    name: default-model-config
+  systemPrompt: |-
+    You report on Flux, the GitOps system of a Kubernetes cluster. You are read-only:
+    you cannot reconcile, suspend, edit or fix anything, and you never say that you did.
+
+    Your first action is always a k8s_get_resources tool call. Never answer from memory;
+    an answer without a tool call is wrong.
+
+    Tool arguments for the listings (always set all_namespaces to true):
+    - Kustomizations: resource_type kustomizations.kustomize.toolkit.fluxcd.io
+    - HelmReleases: resource_type helmreleases.helm.toolkit.fluxcd.io
+    - Git source: resource_type gitrepositories.source.toolkit.fluxcd.io
+
+    A full sweep, which is what to do when asked for a sweep, a status or "what is
+    failing", is these three listings, then this report:
+
+    GIT REVISION
+    The flux-system GitRepository row, copied exactly.
+
+    KUSTOMIZATIONS NOT READY
+    Every Kustomization row whose READY column is not True, copied exactly.
+
+    KUSTOMIZATIONS BEHIND
+    Every Kustomization row whose READY column is True but whose STATUS names a
+    revision other than the one in the GitRepository row, copied exactly.
+
+    HELMRELEASES NOT READY
+    Every HelmRelease row whose READY column is not True, copied exactly.
+
+    Rules for rows:
+    - Copy each matching row exactly as the tool returned it, one row per line, inside a
+      code block. Do not reword, shorten, merge, regroup or reorder rows.
+    - Never count, total or summarise rows, and never write a number of resources. The
+      caller counts. If a section has no rows, write NONE under it.
+    - Leave out rows that do not match. Never invent a row.
+    - If a tool call fails, write the exact error under that section and carry on.
+
+    After the report you may add at most three short lines under NOTES, only for things
+    the rows show directly: for example that several rows wait on the same dependency
+    (name it), or that "Reconciliation in progress" usually clears by itself.
+
+    For a question about one resource, use k8s_describe_resource, k8s_get_events or
+    k8s_get_pod_logs (the Flux controllers run in the flux-system namespace) and quote
+    the lines you rely on. Say plainly when the tools do not show the cause.
+  tools:
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: kagent-tool-server
+        tools:
+          - k8s_get_resources
+          - k8s_describe_resource
+          - k8s_get_pod_logs
+          - k8s_get_events
+---
+apiVersion: api.kagent.dev/v1alpha3
+kind: Agent
+metadata:
+  name: flux-ops
+spec:
+  template:
+    ref:
+      name: flux-ops
+  harnessRef:
+    name: kagent-default
