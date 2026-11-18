@@ -39,7 +39,7 @@ ATTACHMENT_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".he
                   ".webm", ".mp3", ".m4a", ".wav", ".ogg", ".docx", ".xlsx", ".pptx"}
 AUDIO_EXT = {".mp3", ".m4a", ".wav", ".ogg", ".opus", ".webm", ".flac", ".aac", ".amr", ".3gp"}
 OWN_REPORTS = {"vault-health", "vault-review", "vault-snapshot"}
-REPORT_SKIP = ("Archive/Briefings/", "Briefings/")  # historical generated notes: don't lint
+REPORT_SKIP = ("Archive/Briefings/", "Agents/Briefings/")  # historical generated notes: don't lint
 
 WIKILINK = re.compile(r"(!?)\[\[([^\[\]\|#\^\n]*)((?:[#\^][^\]\|\n]*)?)(\\?\|[^\]\n]*)?\]\]")
 CODE = re.compile(r"```.*?```|~~~.*?~~~|`[^`\n]*`", re.S)

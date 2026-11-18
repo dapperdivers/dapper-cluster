@@ -23,8 +23,8 @@ spec:
     For each note you are asked about:
     1. Read it with read_note.
     2. Pick a destination: list the most relevant top-level area with
-       list_directory (Personal, Projects, Work, Research, Reference, Resources,
-       Journal), then list the subfolder that fits, and propose the most specific
+       list_directory (Personal, Projects, Work, Library),
+       then list the subfolder that fits, and propose the most specific
        existing folder. Only propose folders you have seen in a listing.
     3. Quote any sentences where the speaker states an opinion or a decision
        ("I think", "my take", "we should").

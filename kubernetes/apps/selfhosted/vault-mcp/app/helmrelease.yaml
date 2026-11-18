@@ -41,7 +41,7 @@ spec:
               - --stdio
               - >-
                 npx -y @bitbonsai/mcpvault@0.18.4 /vault --read-only
-                --exclude Archive/Briefings --exclude NightWatch --exclude Attachments
+                --exclude Archive/Briefings --exclude Agents/NightWatch --exclude Attachments
               - --outputTransport
               - streamableHttp
               - --port

@@ -95,7 +95,7 @@ spec:
             env: &jobEnv
               TZ: *timeZone
               PYTHONDONTWRITEBYTECODE: "1"
-              OUTPUT_DIR: Resources/Generated
+              OUTPUT_DIR: Agents/Generated
               OLLAMA_URL: http://ollama.ai.svc.cluster.local:11434
               OLLAMA_MODEL: gemma4:e4b
             resources: &jobResources
@@ -119,7 +119,7 @@ spec:
               type: RuntimeDefault
 
       # Nightly: backfill missing descriptions with the local model, then the health
-      # check (Resources/Generated/Vault Health.md), so it reports what's still missing.
+      # check (Agents/Generated/Vault Health.md), so it reports what's still missing.
       vault-nightly:
         type: cronjob
         serviceAccount:
@@ -190,8 +190,8 @@ spec:
 
       # Voice drop folder: audio saved anywhere under <vault>/Inbox/Voice/ is transcribed
       # (Speaches), summarized (Ollama) into a note, and moved to Attachments/Voice/.
-      # 04:30: Night Shift morning brief on the Claude subscription -> Briefings/Morning/<date>.md
-      # (sections from Resources/System/Morning Brief Topics.md, plus vault gap suggestions).
+      # 04:30: Night Shift morning brief on the Claude subscription -> Agents/Briefings/Morning/<date>.md
+      # (sections from System/Morning Brief Topics.md, plus vault gap suggestions).
       night-shift:
         type: cronjob
         cronjob:
@@ -227,7 +227,7 @@ spec:
             securityContext: *jobSecurityContext
         pod: *jobPod
 
-      # 03:00: Night Watch cluster triage -> NightWatch/<date>.md (read-only cluster access;
+      # 03:00: Night Watch cluster triage -> Agents/NightWatch/<date>.md (read-only cluster access;
       # new findings triaged by the kagent nightwatch agent on local Ollama). Runs before
       # night-shift (04:30), which links this report; activeDeadlineSeconds keeps it done by 04:00.
       nightwatch:
