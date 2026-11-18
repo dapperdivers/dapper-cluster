@@ -29,6 +29,7 @@ import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import librarian  # noqa: E402
+import processor  # noqa: E402
 import vaultlib as vl  # noqa: E402
 
 VAULT = sys.argv[1] if len(sys.argv) > 1 else "/vault"
@@ -62,6 +63,11 @@ AUTHOR = "voice-inbox"
 ZETTEL_DIR = "Zettels"
 LIBRARIAN_ON = bool(os.environ.get("LIBRARIAN_URL"))
 BACKFILL_PER_RUN = int(os.environ.get("BACKFILL_PER_RUN", "2"))
+# The kagent `claude` agent does the whole processing step when set; the local model and
+# the voice-librarian agent remain the fallback when it fails or is out of usage.
+PROCESSOR_ON = bool(os.environ.get("PROCESSOR_URL"))
+FACTS_NOTE = "Voice Notes.md"
+TOUCHED = set()  # folders that got a Voice Notes entry this run, for the Syncthing rescan
 
 # Filenames recorders commonly use: 260227_1158, 2026-02-07 18-03-17, 20260207_180317, voice-2026-02-26-073130
 STAMPS = [
@@ -157,6 +163,75 @@ def ask_librarian(rel, title, text):
     return lib
 
 
+def ask_processor(rel, when, text):
+    """Everything the claude agent extracted, validated, or None to use the local fallback."""
+    if not (PROCESSOR_ON and text.strip()):
+        return None
+    try:
+        proc = processor.ask(VAULT, when, text)
+    except Exception as e:
+        print(f"{rel}: processor failed ({e}); falling back to the local model", file=sys.stderr)
+        return None
+    print(f"{rel}: processor tasks={len(proc['tasks'])} facts={len(proc['facts'])} "
+          f"zettels={len(proc['zettels'])} folder={proc['folder'] or '-'} dropped={proc['dropped']}")
+    return proc
+
+
+def task_lines(tasks):
+    """Tasks-plugin checkboxes; a due date becomes its calendar marker."""
+    out = []
+    for t in tasks:
+        t = t if isinstance(t, dict) else {"text": t, "due": None}
+        if str(t["text"]).strip():
+            out.append(f"- [ ] {str(t['text']).strip()}" + (f" 📅 {t['due']}" if t.get("due") else ""))
+    return out
+
+
+def write_facts(proc, note_rel, title, when):
+    """Append each fact to '<folder>/Voice Notes.md', a pipeline-owned note per folder."""
+    by_folder = {}
+    for f in proc["facts"]:
+        by_folder.setdefault(f["folder"], []).append(f["text"])
+    rels = []
+    for folder, texts in by_folder.items():
+        rel = os.path.join(folder, FACTS_NOTE)
+        path = os.path.join(VAULT, rel)
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as fh:
+                cur = fh.read().rstrip("\n") + "\n"
+        else:
+            name = os.path.basename(folder)
+            cur = "\n".join([
+                "---", f"created: {dt.date.today()}", "type: log", "status: active", "tags:", "  - voice-note",
+                f"description: {vl.yaml_str(f'Facts and updates about {name} captured from voice memos, oldest first.')}",
+                "generated: true", f"author: {AUTHOR}", "---", "", f"# Voice Notes: {name}", "",
+                "*Appended by the voice pipeline. Move anything worth keeping into the real notes.*", ""])
+        entry = [f"## {when:%Y-%m-%d} {title}", ""] + [f"- {t}" for t in texts] + \
+                ["", f"From {vl.wikilink(note_rel)}.", ""]
+        vl.atomic_write(path, cur + "\n" + "\n".join(entry))
+        TOUCHED.add(folder)
+        rels.append(rel)
+    return rels
+
+
+def routed_section(proc, zettel_rels, fact_rels):
+    lines = ["## Routed", "", "*Sorted by the `claude` agent. This memo stays here as the record.*", ""]
+    dated = sum(1 for t in proc["tasks"] if t.get("due"))
+    if proc["tasks"]:
+        lines.append(f"- **Tasks:** {len(proc['tasks'])} above ({dated} with a due date); they show on the daily page")
+    if fact_rels:
+        lines.append("- **Facts filed in:** " + ", ".join(vl.wikilink(r) for r in fact_rels))
+    if zettel_rels:
+        lines.append("- **Zettels:** " + ", ".join(vl.wikilink(r) for r in zettel_rels))
+    if proc["folder"]:
+        lines.append(f"- **Topic folder:** `{proc['folder']}/`")
+    if proc["related"]:
+        lines.append("- **Related:** " + ", ".join(vl.wikilink(r) for r in proc["related"]))
+    if len(lines) == 4:
+        lines.append("- Nothing to route.")
+    return lines + [""]
+
+
 def write_zettels(lib, note_rel, when):
     """One status: stub note per zettel (schema from Library/Research/Second Brain Architecture -
     Dual Layer Design). Returns their vault paths."""
@@ -205,7 +280,10 @@ def process(src):
     text = collapse_repeats(text)
     print(f"{rel_src}: transcribed {len(text)} chars ({lang}, {duration}s)")
     info = {"title": "", "description": "", "summary": [], "tasks": []}
-    if text:
+    proc = ask_processor(rel_src, when, text)
+    if proc:
+        info = proc
+    elif text:
         try:
             info = vl.ollama_json(SYSTEM, f"Recorded {when:%Y-%m-%d %H:%M}.\nTranscript:\n{text[:12000]}", SCHEMA)
         except Exception as e:  # keep the transcript even without a summary
@@ -220,21 +298,24 @@ def process(src):
 
     dur = f"{int(duration // 60)}m{int(duration % 60):02d}s" if isinstance(duration, (int, float)) else ""
     fm = ["---", f"created: {when:%Y-%m-%d}", f"recorded: {when:%Y-%m-%dT%H:%M}", "type: voice-note",
-          "source: voice", "status: inbox", "tags:", "  - voice-note",
+          "source: voice", f"status: {'processed' if proc else 'inbox'}", "tags:", "  - voice-note",
           f"description: {vl.yaml_str(desc)}", f"audio_file: {vl.yaml_str(audio_rel)}"]
     fm += [f"duration: {vl.yaml_str(dur)}"] if dur else []
     fm += [f"language: {lang}"] if lang else []
     fm += ["generated: true", f"author: {AUTHOR}", "---", ""]
     body = [f"# {title}", "", f"![[{audio_rel}]]", "",
-            f"*Recorded {when:%A %Y-%m-%d %H:%M}{' · ' + dur if dur else ''}. Transcribed and summarized by the local "
-            f"`{AUTHOR}` pipeline; edit freely, then file it out of the inbox.*", ""]
+            f"*Recorded {when:%A %Y-%m-%d %H:%M}{' · ' + dur if dur else ''}. Transcribed by the local "
+            f"`{AUTHOR}` pipeline" + ("; summarized and routed by the `claude` agent.*" if proc else
+                                      " and summarized by the local model; edit freely, then file it out of the inbox.*"), ""]
     if info.get("summary"):
         body += ["## Summary", ""] + [f"- {s.strip()}" for s in info["summary"] if s.strip()] + [""]
     if info.get("tasks"):
-        body += ["## To-do", ""] + [f"- [ ] {t.strip()}" for t in info["tasks"] if t.strip()] + [""]
-    lib = ask_librarian(rel_src, title, text)
+        body += ["## To-do", ""] + task_lines(info["tasks"]) + [""]
+    lib = proc or ask_librarian(rel_src, title, text)
     zettel_rels = write_zettels(lib, note_rel, when) if lib and not vl.DRY else []
-    if lib:
+    if proc:
+        body += routed_section(proc, zettel_rels, [] if vl.DRY else write_facts(proc, note_rel, title, when))
+    elif lib:
         body += librarian_section(lib, zettel_rels)
     body += ["## Transcript", "", text or "*(no speech detected)*", ""]
 
@@ -248,8 +329,9 @@ def process(src):
 
 
 def backfill(limit):
-    """Add the Librarian section (and zettels) to earlier inbox notes this pipeline wrote."""
-    if not LIBRARIAN_ON or limit <= 0:
+    """Route earlier inbox notes this pipeline wrote: with the processor, add tasks, facts,
+    zettels and a Routed section and mark them processed; without it, the Librarian section."""
+    if not (LIBRARIAN_ON or PROCESSOR_ON) or limit <= 0:
         return 0
     inbox = os.path.join(VAULT, INBOX)
     done = 0
@@ -263,36 +345,46 @@ def backfill(limit):
         with open(path, encoding="utf-8") as fh:
             text = fh.read()
         meta = vl.parse_frontmatter(text)
-        if meta.get("author") != AUTHOR or meta.get("status") != "inbox" or "\n## Librarian\n" in text \
-                or "\n## Transcript\n" not in text:
+        if meta.get("author") != AUTHOR or meta.get("status") != "inbox" or "\n## Routed\n" in text \
+                or "\n## Transcript\n" not in text or (not PROCESSOR_ON and "\n## Librarian\n" in text):
             continue
         rel = os.path.relpath(path, VAULT)
         transcript = text.split("\n## Transcript\n", 1)[1].strip()
         title = os.path.splitext(f)[0][16:] or os.path.splitext(f)[0]
         done += 1
-        lib = ask_librarian(rel, title, transcript)
+        try:
+            when = dt.datetime.fromisoformat(str(meta.get("recorded", "")))
+        except ValueError:
+            when = dt.datetime.fromtimestamp(os.path.getmtime(path))
+        proc = ask_processor(rel, when, transcript)
+        lib = proc or (ask_librarian(rel, title, transcript) if "\n## Librarian\n" not in text else None)
         if not lib:
             continue
         if vl.DRY:
-            print(f"would add librarian section to {rel}: {json.dumps(lib)}")
+            print(f"would route {rel}: {json.dumps(lib, default=str)}")
             continue
-        try:
-            when = dt.datetime.strptime(meta.get("recorded", "")[:10], "%Y-%m-%d")
-        except ValueError:
-            when = dt.datetime.fromtimestamp(os.path.getmtime(path))
-        zettel_rels = write_zettels(lib, rel, when)
-        section = "\n".join(librarian_section(lib, zettel_rels))
+        # A note that already has a Librarian section already has its zettels.
+        zettel_rels = write_zettels(lib, rel, when) if "\n## Librarian\n" not in text else []
+        todo = ""
+        if proc:
+            section = "\n".join(routed_section(proc, zettel_rels, write_facts(proc, rel, title, when)))
+            if proc["tasks"] and "\n## To-do\n" not in text:
+                todo = "\n".join(["## To-do", ""] + task_lines(proc["tasks"]) + [""]) + "\n"
+        else:
+            section = "\n".join(librarian_section(lib, zettel_rels))
 
-        def add(t, section=section):
-            if "\n## Librarian\n" in t or "\n## Transcript\n" not in t:
+        def add(t, section=section, todo=todo, routed=bool(proc)):
+            if "\n## Routed\n" in t or "\n## Transcript\n" not in t or (not routed and "\n## Librarian\n" in t):
                 return None
             head, tail = t.split("\n## Transcript\n", 1)
-            return head.rstrip("\n") + "\n\n" + section + "\n## Transcript\n" + tail
+            if routed:
+                head = head.replace("\nstatus: inbox\n", "\nstatus: processed\n", 1)
+            return head.rstrip("\n") + "\n\n" + todo + section + "\n## Transcript\n" + tail
         # Only notes nobody has touched for an hour; an edit that lands meanwhile wins.
         if vl.safe_edit(path, add, min_age_s=3600, keep_mtime=False):
-            print(f"{rel}: backfilled ({len(zettel_rels)} zettels)")
+            print(f"{rel}: backfilled ({'routed' if proc else 'librarian'}, {len(zettel_rels)} zettels)")
         else:
-            print(f"{rel}: changed meanwhile, librarian section not added", file=sys.stderr)
+            print(f"{rel}: changed meanwhile, section not added", file=sys.stderr)
     return done
 
 
@@ -326,7 +418,7 @@ def main():
         except Exception as e:
             print(f"backfill failed: {e}", file=sys.stderr)
             rc = 1
-    if wrote and vl.request_rescan(VAULT, [INBOX, ZETTEL_DIR, AUDIO_DIR]):
+    if wrote and vl.request_rescan(VAULT, [INBOX, ZETTEL_DIR, AUDIO_DIR] + sorted(TOUCHED)):
         print("asked Syncthing to rescan")
     return rc
 

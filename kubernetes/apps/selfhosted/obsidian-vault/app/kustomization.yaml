@@ -16,6 +16,7 @@ configMapGenerator:
       - ./resources/weekly-review.py
       - ./resources/voice-inbox.py
       - ./resources/librarian.py
+      - ./resources/processor.py
       - ./resources/night-shift.py
       - ./resources/nightwatch.py
 generatorOptions:
