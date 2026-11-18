@@ -199,6 +199,43 @@ def request_rescan(vault, subdirs=()):
         return False
 
 
+class AgentLimitError(RuntimeError):
+    """The agent's model provider refused for usage/rate limits: stop making calls."""
+
+
+def agent_reply(url, text, timeout=900):
+    """Send one message to a kagent agent over A2A (JSON-RPC, blocking); return its final
+    answer as text. Raises AgentLimitError on rate/usage limits, RuntimeError otherwise."""
+    import uuid
+    body = {"jsonrpc": "2.0", "id": uuid.uuid4().hex, "method": "SendMessage",
+            "params": {"message": {"messageId": uuid.uuid4().hex, "role": "ROLE_USER",
+                                   "parts": [{"text": text}]}}}
+    req = urllib.request.Request(url, data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json", "A2A-Version": "1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read())
+    if "error" in data:
+        raise RuntimeError(f"agent error: {data['error']}")
+    task = data.get("result", {}).get("task", {})
+    status = task.get("status", {})
+    if status.get("state") != "TASK_STATE_COMPLETED":
+        msg = " ".join(p.get("text", "") for p in (status.get("message") or {}).get("parts") or [])
+        if re.search(r"rate.?limit|usage limit|\b429\b|overloaded|limit reached", msg, re.I):
+            raise AgentLimitError(msg.strip()[:300])
+        raise RuntimeError(f"agent finished in state {status.get('state')}: {msg.strip()[:300]}")
+    return "".join(part.get("text", "") for art in task.get("artifacts") or []
+                   for part in art.get("parts") or []).strip()
+
+
+def json_from_text(t):
+    """The first {...} object in a model's text answer (code fences allowed)."""
+    t = re.sub(r"^```(?:json)?\s*|\s*```$", "", t.strip())
+    start, end = t.find("{"), t.rfind("}")
+    if start == -1 or end <= start:
+        raise ValueError("no JSON object in answer")
+    return json.loads(t[start:end + 1])
+
+
 def ollama_json(system, user, schema, timeout=300):
     """Chat with the local model and return its JSON answer (Ollama structured outputs)."""
     body = json.dumps({
