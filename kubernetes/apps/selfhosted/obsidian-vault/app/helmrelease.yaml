@@ -191,7 +191,8 @@ spec:
       # Voice drop folder: audio saved anywhere under <vault>/Inbox/Voice/ is transcribed
       # (Speaches), summarized (Ollama) into a note, and moved to Attachments/Voice/.
       # 04:30: Night Shift morning brief on the Claude subscription -> Agents/Briefings/Morning/<date>.md
-      # (sections from System/Morning Brief Topics.md, plus vault gap suggestions).
+      # (Security and Feeds sections from the security-brief and feeds-digest agents, sections
+      # from System/Morning Brief Topics.md, plus vault gap suggestions).
       night-shift:
         type: cronjob
         cronjob:
@@ -215,6 +216,9 @@ spec:
             env:
               <<: *jobEnv
               CLAUDE_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/night-editor
+              # Optional sections: without its URL a section is skipped.
+              SECURITY_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/security-brief
+              FEEDS_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/feeds-digest
               GAPS_PER_NIGHT: "3"
               CURATED_PER_NIGHT: "2" # raise once the zettel quality has been reviewed
               BUDGET_MINUTES: "75"
