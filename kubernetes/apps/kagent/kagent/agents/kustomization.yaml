@@ -12,3 +12,4 @@ resources:
   - ./night-editor.yaml
   - ./nightwatch.yaml
   - ./voice-librarian.yaml
+  - ./voice-processor.yaml
