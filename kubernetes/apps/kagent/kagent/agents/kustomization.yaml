@@ -10,5 +10,4 @@ resources:
   - ./nightwatch.yaml
   - ./vault-mcp.yaml
   - ./voice-librarian.yaml
-  - ./voice-triage.yaml
   - ./web-fetch.yaml
