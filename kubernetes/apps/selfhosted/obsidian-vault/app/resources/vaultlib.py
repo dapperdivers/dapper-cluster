@@ -223,19 +223,33 @@ def agent_reply(url, text, timeout=900):
         if re.search(r"rate.?limit|usage limit|\b429\b|overloaded|limit reached", msg, re.I):
             raise AgentLimitError(msg.strip()[:300])
         raise RuntimeError(f"agent finished in state {status.get('state')}: {msg.strip()[:300]}")
-    # Agents with an outputSchema answer in a structured `data` part, not text: return it
-    # as JSON text so json_from_text() works for both kinds of agent.
-    return "".join(part.get("text") or (json.dumps(part["data"]) if "data" in part else "")
-                   for art in task.get("artifacts") or [] for part in art.get("parts") or []).strip()
+    parts = [p for art in task.get("artifacts") or [] for p in art.get("parts") or []]
+    text = "".join(p.get("text", "") for p in parts).strip()
+    if text:
+        return text
+    # No text: an agent with an outputSchema answers in a structured `data` part. Tool calls
+    # and tool results are `data` parts too (they carry args/response), so skip those.
+    answers = [p["data"] for p in parts if isinstance(p.get("data"), dict)
+               and not {"args", "response"} & p["data"].keys()]
+    return json.dumps(answers[-1]) if answers else ""
 
 
 def json_from_text(t):
-    """The first {...} object in a model's text answer (code fences allowed)."""
-    t = re.sub(r"^```(?:json)?\s*|\s*```$", "", t.strip())
-    start, end = t.find("{"), t.rfind("}")
-    if start == -1 or end <= start:
+    """The last complete JSON object in a model's text answer. Models often write prose or
+    fenced blocks around the object, or show a draft before the final one."""
+    dec, found, i = json.JSONDecoder(), None, 0
+    while (i := t.find("{", i)) != -1:
+        try:
+            obj, end = dec.raw_decode(t, i)
+        except ValueError:
+            i += 1
+            continue
+        if isinstance(obj, dict):
+            found = obj
+        i = end
+    if found is None:
         raise ValueError("no JSON object in answer")
-    return json.loads(t[start:end + 1])
+    return found
 
 
 def ollama_json(system, user, schema, timeout=300):

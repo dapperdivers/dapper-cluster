@@ -255,7 +255,13 @@ def triage(f):
     if DESTRUCTIVE.search(fix):
         print(f"withheld destructive suggestion for {f['title']} {obj(f)}: {fix[:200]}", file=sys.stderr)
         fix = WITHHELD
-    return {"severity": sev if sev in SEVERITIES else f["severity"],
+    if sev not in SEVERITIES:
+        sev = f["severity"]
+    # An Alertmanager alert's own severity is a floor: the agent may raise it, not lower it
+    # (it calls a UPS battery alert "info" because everything still runs).
+    if f["category"] == "alert" and RANK.get(sev, 3) > RANK.get(f["severity"], 3):
+        sev = f["severity"]
+    return {"severity": sev,
             "summary": clean(raw.get("summary"), 400),
             "cause": clean(raw.get("likely_cause"), 600),
             "fix": fix,
