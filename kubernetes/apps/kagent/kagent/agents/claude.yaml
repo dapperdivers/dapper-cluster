@@ -110,29 +110,10 @@ spec:
     Cite sources: link every web fact you rely on, and name vault notes as
     [[wikilinks]]. If you could not verify something, say so; never invent facts,
     versions, dates or quotes.
-  # Skills from github.com/dapperdivers/roundtable-arsenal (public, AgentSkills.io format).
-  # kagent pins every skill source: the commit must be a full SHA, so a skill change
-  # means bumping `commit` below by hand. These four were written for kagent agents
-  # (Claude Code harness, WebSearch + web-fetch, read-only vault).
-  skills:
-    - name: obsidian-conventions
-      source:
-        git: &arsenal
-          url: https://github.com/dapperdivers/roundtable-arsenal
-          commit: 75b1ade43e038779e1195740a965868ecbf4d87b
-        path: vault/obsidian-conventions
-    - name: zettel-extraction
-      source:
-        git: *arsenal
-        path: vault/zettel-extraction
-    - name: morning-security-brief
-      source:
-        git: *arsenal
-        path: security/morning-security-brief
-    - name: garden-advisor
-      source:
-        git: *arsenal
-        path: home/garden-advisor
+  # Skills (AgentTemplate.spec.skills, git source pinned to a commit) are not enabled:
+  # with four roundtable-arsenal skills the Claude harness's golden build crashed
+  # (GoldenActorCrashed: the 'kagent' container never answered /readyz), 2026-11-18.
+  # Cause not yet confirmed; see the skills PR notes before retrying.
   tools:
     - mcp:
         server:
