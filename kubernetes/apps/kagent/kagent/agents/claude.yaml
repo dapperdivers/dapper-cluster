@@ -51,9 +51,6 @@ spec:
         secretKeyRef:
           name: claude-setup-token
           key: CLAUDE_CODE_OAUTH_TOKEN
-    # Unauthenticated, for fetching git-sourced skills (AgentTemplate.spec.skills).
-    # Public repos only; no credential is attached.
-    - origin: https://github.com
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: ModelConfig
@@ -113,10 +110,29 @@ spec:
     Cite sources: link every web fact you rely on, and name vault notes as
     [[wikilinks]]. If you could not verify something, say so; never invent facts,
     versions, dates or quotes.
-  # Skills (AgentTemplate.spec.skills, git source pinned to a commit) are not enabled:
-  # with four roundtable-arsenal skills the Claude harness's golden build crashed
-  # (GoldenActorCrashed: the 'kagent' container never answered /readyz), 2026-11-18.
-  # Cause not yet confirmed; see the skills PR notes before retrying.
+  # Skills from the roundtable-arsenal, delivered as an OCI image that Substrate mounts
+  # read-only before the golden build (github.com/dapperdivers/containers, arsenal-skills;
+  # tag = the arsenal commit). Do NOT use git sources here: the harness fetches those
+  # inside the sandbox and its golden build crashed (GoldenActorCrashed, 2026-11-18),
+  # even with github.com in the EgressPolicy. To publish newer skills, bump
+  # ARSENAL_COMMIT in that repo, then the digest below.
+  skills:
+    - name: obsidian-conventions
+      source:
+        oci: &arsenal ghcr.io/dapperdivers/arsenal-skills@sha256:18fd9f553c033ab6f6275a56038a2d3b8ae311ac77e3d1b79915d7ec3cf25da7
+        path: vault/obsidian-conventions
+    - name: zettel-extraction
+      source:
+        oci: *arsenal
+        path: vault/zettel-extraction
+    - name: morning-security-brief
+      source:
+        oci: *arsenal
+        path: security/morning-security-brief
+    - name: garden-advisor
+      source:
+        oci: *arsenal
+        path: home/garden-advisor
   tools:
     - mcp:
         server:
