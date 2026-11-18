@@ -293,8 +293,11 @@ spec:
               <<: *jobEnv
               STT_URL: http://speaches.ai.svc.cluster.local:8000
               STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
-              # kagent agent that suggests filing, related notes and zettels (Zettels/).
-              # Unset to turn the librarian step off.
+              # kagent `claude` agent (Claude subscription) that processes each memo in one call:
+              # summary, tasks with due dates, facts filed per folder, zettels. Unset to process
+              # with the local model and the librarian only; they stay as the fallback.
+              PROCESSOR_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/claude
+              # Fallback: local kagent agent that suggests filing, related notes and zettels.
               LIBRARIAN_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian
               BACKFILL_PER_RUN: "2"
               # Rescan right after writing: the hub's watcher misses these pods' writes.

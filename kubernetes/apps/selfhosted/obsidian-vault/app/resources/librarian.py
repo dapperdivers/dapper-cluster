@@ -68,7 +68,11 @@ def ask(vault, title, transcript, timeout=300):
     folders = candidate_folders(vault)
     prompt = (f"Voice memo: {title}\n\nCandidate folders:\n" + "\n".join(folders) +
               f"\n\nTranscript:\n{transcript[:12000]}")
-    raw = _call(prompt, timeout)
+    return validate(vault, _call(prompt, timeout), transcript, folders)
+
+
+def validate(vault, raw, transcript, folders):
+    """Keep only what checks out against the vault and the transcript."""
     folder = str(raw.get("folder") or "").strip().strip("/")
     related = []
     for p in raw.get("related") or []:
