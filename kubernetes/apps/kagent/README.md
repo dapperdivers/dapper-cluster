@@ -8,12 +8,13 @@ Tracking issue: #4777.
 **This is one stack spread over three namespaces** (plus the vault tool server in `selfhosted`). Upstream fixes the split: agents
 run in `kagent`, kept apart from the Substrate control plane and its signing keys.
 
-| Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                  |
-| ----------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts. |
-| `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.            |
-| `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.        |
-| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                    |
+| Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                                             |
+| ----------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts.                            |
+| `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.                                       |
+| `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.                                   |
+| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                                               |
+| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); network policy allows the public internet only, never the cluster or LAN. |
 
 Install order (enforced with `dependsOn`):
 
@@ -60,3 +61,16 @@ These have no declarative path yet (see #4777). Recreate them before reinstallin
 kubectl port-forward -n kagent svc/kagent-ui 8082:8080   # UI (no auth; don't expose)
 kubectl get agents,workerpools -n kagent
 ```
+
+## The `claude` agent (subscription)
+
+`kagent/agents/claude.yaml` runs Claude Sonnet 5.5 on kagent's Claude Code harness, on the
+Claude subscription (setup-token `MOLT_ANTHROPIC_SETUP_TOKEN`, shared with OpenClaw). The
+token never enters the sandbox: Claude Code sends `Authorization: Bearer <placeholder>` and
+the `claude-subscription` EgressPolicy swaps in the real token at the egress gateway.
+
+This is undocumented in kagent 1.0.1. It relies on kagent allowing `ANTHROPIC_AUTH_TOKEN` and
+`ANTHROPIC_CUSTOM_HEADERS` in Harness env, on Claude Code preferring `ANTHROPIC_AUTH_TOKEN`
+over the (dummy) API key, and on the OAuth beta header. Upgrades can break it; check this
+agent after bumping kagent. Usage counts against the subscription's 5-hour limits.
+Tools: `WebSearch` (Anthropic-side), `web-fetch` and the read-only `vault`.
