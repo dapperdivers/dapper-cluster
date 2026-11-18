@@ -1,0 +1,17 @@
+---
+# Public web pages as Markdown, served by kagent/web-fetch (mcp-server-fetch).
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: web-fetch
+spec:
+  description: Fetch a public web page and return it as Markdown (read in chunks with start_index).
+  url: http://web-fetch.kagent.svc.cluster.local:8000/mcp
+  protocol: STREAMABLE_HTTP
+  timeout: 60s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: web-fetch-secret
+        key: Authorization

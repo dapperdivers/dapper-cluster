@@ -8,3 +8,4 @@ components:
 resources:
   - ./namespace.yaml
   - ./kagent/ks.yaml
+  - ./web-fetch/ks.yaml
