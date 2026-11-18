@@ -47,6 +47,19 @@ BAD_WAIT = {"CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull", "CreateConta
             "CreateContainerError", "InvalidImageName"}
 RANK = {"critical": 0, "warning": 1, "info": 2}
 # Events about these kinds are recorded in `default`; they aren't namespaced.
+# Warning events that are routine churn, not problems: matched on reason, kind and message,
+# and dropped before grouping. Keep these narrow: a message that could also mean a real,
+# lasting fault (e.g. a PVC that never binds) must not be muted.
+BENIGN_EVENTS = [
+    # A scratch PV is deleted a moment before its attachment is released; the retry succeeds.
+    ("VolumeFailedDelete", "PersistentVolume", re.compile(r"is still attached to node")),
+    # Ephemeral-volume pods (runners, VolSync movers) wait for their PVC, then schedule.
+    ("FailedScheduling", "Pod", re.compile(r"waiting for ephemeral volume controller")),
+    # A CephFS snapshot clone is still being copied; the CSI driver retries until it's done.
+    ("ProvisioningFailed", "PersistentVolumeClaim",
+     re.compile(r"clone from snapshot is (pending|already in progress)")),
+]
+
 CLUSTER_KINDS = {"Node", "PersistentVolume", "StorageClass", "VolumeAttachment", "Namespace",
                  "ClusterIssuer", "CSINode", "CSIDriver", "ClusterRole", "ClusterRoleBinding"}
 NOW = dt.datetime.now(dt.timezone.utc)
@@ -209,12 +222,17 @@ def collect():
     # spend the nightly triage budget on duplicates.
     events = k8s("/api/v1/events?fieldSelector=type%3DWarning")
     groups = {}
+    muted = 0
     for e in events:
         when = e.get("lastTimestamp") or e.get("eventTime") or (e.get("metadata") or {}).get("creationTimestamp")
         if (age_s(when) or DAY + 1) > DAY:
             continue
         io = e.get("involvedObject") or {}
         kind = io.get("kind", "?")
+        if any(r == e.get("reason") and k == kind and rx.search(e.get("message") or "")
+               for r, k, rx in BENIGN_EVENTS):
+            muted += 1
+            continue
         ns = "" if kind in CLUSTER_KINDS else e["metadata"]["namespace"]
         g = groups.setdefault((e.get("reason", "?"), kind),
                               {"count": 0, "objects": set(), "namespaces": set(), "message": e.get("message", "")})
@@ -223,6 +241,7 @@ def collect():
         if ns:
             g["namespaces"].add(ns)
     checked["Warning event groups"] = len(groups)
+    checked["Routine warning events muted"] = muted
     for (reason, kind), g in sorted(groups.items(), key=lambda kv: -kv[1]["count"]):
         if g["count"] >= 5:
             objs, nss = sorted(g["objects"]), sorted(g["namespaces"])
@@ -270,7 +289,8 @@ def triage(f):
             "summary": clean(raw.get("summary"), 400),
             "cause": clean(raw.get("likely_cause"), 600),
             "fix": fix,
-            "evidence": [clean(e, 300) for e in (raw.get("evidence") or [])[:5] if str(e).strip()]}
+            "evidence": [clean(re.sub(r"^\s*[-*]\s+", "", str(e)), 300)
+                         for e in (raw.get("evidence") or [])[:5] if str(e).strip()]}
 
 
 # ---------------------------------------------------------------- report
