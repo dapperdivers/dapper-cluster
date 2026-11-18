@@ -216,6 +216,7 @@ spec:
               <<: *jobEnv
               CLAUDE_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/claude
               GAPS_PER_NIGHT: "3"
+              CURATED_PER_NIGHT: "2" # raise once the zettel quality has been reviewed
               BUDGET_MINUTES: "75"
               SYNCTHING_URL: http://obsidian-vault-syncthing:8384
               SYNCTHING_API_KEY:

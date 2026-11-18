@@ -30,3 +30,6 @@ cloudflared.json
 /logs
 # Claude Code session worktrees (ephemeral, created by .claude/bin/claude)
 .claude/worktrees/
+# Python bytecode (the vault scripts are run locally for dry runs)
+__pycache__/
+*.pyc
