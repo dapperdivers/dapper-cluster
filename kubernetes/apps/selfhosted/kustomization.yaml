@@ -13,6 +13,7 @@ resources:
   - ./firefly/ks.yaml
   - ./unifi/ks.yaml
   - ./gotenberg/ks.yaml
+  - ./miniflux/ks.yaml
   - ./paperless-ngx/ks.yaml
   - ./searxng/ks.yaml
   - ./obsidian-vault/ks.yaml

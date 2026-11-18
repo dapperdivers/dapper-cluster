@@ -227,3 +227,18 @@ data:
       - model: authentik_core.application
         identifiers: { slug: paperless }
         attrs: { name: Paperless-ngx, group: home, provider: !KeyOf paperless-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/paperless-ngx.svg", meta_launch_url: "https://docs.${SECRET_DOMAIN}" }
+      # miniflux: native OIDC (OAUTH2_PROVIDER=oidc). Pinned client_id; Authentik
+      # generates the client_secret on first apply -> copy into Infisical as
+      # MINIFLUX_OIDC_CLIENT_SECRET. The callback path is Miniflux's fixed
+      # /oauth2/oidc/callback.
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers: { name: Miniflux OIDC }
+        id: miniflux-oidc
+        attrs:
+          <<: *oidc
+          client_id: miniflux
+          redirect_uris:
+            - { matching_mode: strict, url: "https://rss.${SECRET_DOMAIN}/oauth2/oidc/callback", redirect_uri_type: authorization }
+      - model: authentik_core.application
+        identifiers: { slug: miniflux }
+        attrs: { name: Miniflux, group: home, provider: !KeyOf miniflux-oidc, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/miniflux.svg", meta_launch_url: "https://rss.${SECRET_DOMAIN}" }
