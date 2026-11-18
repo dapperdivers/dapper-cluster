@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: docker.io/library/python
-              tag: 3.13.18-alpine@sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e
+              tag: 3.15.2-alpine@sha256:0f9552bb28711333da16915ec146f5e6bb44a7fdac9ced15dc17c2e0206346dd
             # Lets agents read web pages (the sandbox can't reach the internet itself).
             # mcp-server-fetch turns pages into Markdown and refuses private, loopback,
             # link-local and metadata addresses (every redirect re-checked); the network
