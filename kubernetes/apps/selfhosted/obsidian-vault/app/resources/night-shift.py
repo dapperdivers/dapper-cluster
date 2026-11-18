@@ -172,7 +172,26 @@ def curated_candidates(ledger):
             continue
         found.append((done.get(rel, ""), st.st_mtime, rel))
     found.sort()
+    only = [x.strip() for x in os.environ.get("CURATED_ONLY", "").split(",") if x.strip()]
+    if only:  # testing: just these notes (vault-relative paths)
+        return [rel for _, _, rel in found if rel in only]
     return [rel for _, _, rel in found]
+
+
+def tidy(text, limit):
+    """One plain line: no Markdown emphasis or code ticks (the agent bolds and quotes
+    freely), cut at a word boundary with an ellipsis instead of mid-word."""
+    t = " ".join(re.sub(r"[*`]", "", str(text)).split())
+    t = re.sub(r"^(under|in|after|before)\s+", "", t, flags=re.I).lstrip("# ").strip()
+    if len(t) <= limit:
+        return t
+    return t[:limit].rsplit(" ", 1)[0].rstrip(" ,;:-") + "…"
+
+
+def headline(what):
+    """'Stale: Tailwind JIT' -> '**Stale:** Tailwind JIT' (bold only the label)."""
+    label, sep, rest = what.partition(": ")
+    return f"**{label}:** {rest}" if sep and len(label) <= 24 else what
 
 
 def mine_note(rel):
@@ -193,8 +212,10 @@ def mine_note(rel):
         "\"\", \"context\": \"1-3 sentences\", \"take\": \"verbatim quote\", \"domain\": "
         "\"one lowercase word\", \"confidence\": \"medium\", \"tags\": [\"lowercase\"]}], "
         "\"supplements\": [{\"what\": \"what is stale, new or missing\", \"where\": "
-        "\"heading or line it belongs under\", \"suggestion\": \"Markdown to paste\", "
-        "\"sources\": [\"url\"]}]}. Never invent facts or quotes.", timeout=1200)
+        "\"heading it belongs under\", \"suggestion\": \"Markdown to paste\", "
+        "\"sources\": [\"url\"]}]}. Keep \"what\" to one plain sentence under 200 characters, starting with "
+        "a short label such as Stale, New or Gap and a colon, and \"where\" to a heading text; "
+        "no Markdown emphasis in either. Never invent facts or quotes.", timeout=1200)
     data = vl.json_from_text(raw)
     with open(os.path.join(VAULT, rel), encoding="utf-8") as fh:
         note_flat = " ".join(fh.read().lower().split())
@@ -219,8 +240,8 @@ def mine_note(rel):
     supplements = []
     for it in (data.get("supplements") or [])[:3]:
         if isinstance(it, dict) and str(it.get("suggestion", "")).strip():
-            supplements.append({"what": " ".join(str(it.get("what", "")).split())[:300],
-                                "where": " ".join(str(it.get("where", "")).split())[:150],
+            supplements.append({"what": tidy(it.get("what", ""), 240),
+                                "where": tidy(it.get("where", ""), 100),
                                 "suggestion": str(it["suggestion"]).strip()[:3000],
                                 "sources": [str(u) for u in (it.get("sources") or [])[:5] if str(u).startswith("http")]})
     return zettels, supplements
@@ -349,7 +370,7 @@ def main():
             if written:
                 b += ["- **New zettels:** " + ", ".join(vl.wikilink(r) for r in written), ""]
             for it in sups:
-                b += [f"- **{it['what']}**" + (f" (under *{it['where']}*)" if it["where"] else ""), "",
+                b += [f"- {headline(it['what'])}" + (f" (under *{it['where']}*)" if it["where"] else ""), "",
                       it["suggestion"], ""]
                 if it["sources"]:
                     b += ["  Sources: " + ", ".join(f"<{u}>" for u in it["sources"]), ""]
