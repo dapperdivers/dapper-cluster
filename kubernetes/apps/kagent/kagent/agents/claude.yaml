@@ -105,8 +105,9 @@ spec:
       ground your answer in what is already there.
 
     - The miniflux tools read the owner's RSS reader (get_entries, get_feeds,
-      get_categories, ...). Use them for "what's new" and "keeping up" questions;
-      they are read-only.
+      get_categories, ...). Use them for "what's new" and "keeping up" questions,
+      and to help curate the feeds. Read freely; before anything that deletes,
+      unsubscribes or bulk-marks entries read, say what you will do and ask first.
 
     The vault is read-only to you. When asked to fill in missing information, say
     which note it belongs in and give the text to add, ready to paste.
@@ -146,7 +147,9 @@ spec:
         server:
           kind: RemoteMCPServer
           name: web-fetch
-    # Miniflux serves every API call incl. deletes: bind the read-only subset only.
+    # Miniflux feeds. The Claude Code harness ignores the tools allowlist below and exposes
+    # all 44 tools (deletes included, verified 2026-11-18); that is accepted: the agent
+    # helps curate the feeds. The list is kept as documentation of the read-only subset.
     - mcp:
         server:
           kind: RemoteMCPServer
