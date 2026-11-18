@@ -35,9 +35,10 @@ spec:
 # (mcp__miniflux__delete_*, delete_api_key/category/feed/user, flush_history,
 # create_api_key, get_api_keys, create_user, update_user, mark_all_as_read,
 # mark_category_as_read, mark_feed_as_read). It applies to EVERY agent on this harness
-# and cannot be relaxed per agent; changing it means a new image. Whether the harness
-# honours it is being tested with the tools-canary agent (2026-11-18); until that is
-# confirmed, do not rely on it to make a bound server safe.
+# and cannot be relaxed per agent; changing it means a new image. Verified live
+# 2026-11-18 with a throwaway canary agent: the denied tools are absent from the agent's
+# tool list (33 of 44 Miniflux tools visible), curl reaches allowed origins through the
+# egress gateway and unlisted hosts fail DNS. Tools not on the deny list stay callable.
 #
 # curl and python reach only what the agent's egressPolicyRefs allow (egress.yaml).
 # The env, worker pool and snapshot location must stay identical to claude-code.
