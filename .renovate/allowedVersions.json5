@@ -20,12 +20,14 @@
       // Pin Ceph images to the external Proxmox Ceph major (19.x Squid since 2026-11-03).
       // Bump this together with the Proxmox Ceph upgrade, never ahead of it.
       // (Earlier v18 pin didn't stop the v20 bumps in #1961/#2860; both predate the #3786 rule-order fix.)
-      // Applies to: toolbox and CephCluster cephVersion.image
+      // Applies to: toolbox, CephCluster cephVersion.image, and the Kyverno VolSync mkdir
+      // Job (libcephfs client; #4776 tried to take it to v21).
       matchDatasources: ["docker"],
       matchPackageNames: ["quay.io/ceph/ceph"],
       matchFileNames: [
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/toolbox.yaml",
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/cluster-external.yaml",
+        "kubernetes/apps/kyverno/kyverno/policies/volsync-repository-mkdir.yaml",
       ],
       allowedVersions: "/^v19\\./",
     },

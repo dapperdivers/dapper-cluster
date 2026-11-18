@@ -10,7 +10,7 @@ This configuration connects the Kubernetes cluster to an external Ceph 19.2.x (S
 
 ### External Ceph Cluster
 
-- **Version**: Ceph 19.2.5 (Squid), upgraded from 18.2.8 Reef on 2026-11-03
+- **Version**: Ceph 19.2.7 (Squid) on all daemons as of 2026-11-17 (`ceph versions`); upgraded from 18.2.8 Reef on 2026-11-03
 - **Location**: Proxmox hosts (10.150.0.0/24)
 - **Monitors**: proxmox-02, proxmox-03, proxmox-04
 - **Connection**: External cluster mode (no Ceph daemons in Kubernetes)
