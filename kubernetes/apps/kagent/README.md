@@ -88,8 +88,8 @@ kagent/agents/
 ├── kustomization.yaml     # ./platform + one line per agent file
 ├── platform/              # shared pieces any agent can reference
 │   ├── models.yaml        # ModelConfigs claude-opus / claude-sonnet / claude-haiku + the dummy key
-│   ├── harnesses.yaml     # Harness claude-code (the Claude Code runtime)
-│   ├── egress.yaml        # EgressPolicy claude-subscription + its setup-token ExternalSecret
+│   ├── harnesses.yaml     # Harnesses claude-code and claude-code-tools (see "Harnesses")
+│   ├── egress.yaml        # EgressPolicies (see "Egress policies") + the setup-token ExternalSecret
 │   ├── miniflux.yaml      # tool servers: one RemoteMCPServer per file,
 │   ├── vault-mcp.yaml     #   with its ExternalSecret if it has one
 │   └── web-fetch.yaml
@@ -99,7 +99,50 @@ kagent/agents/
 To add an agent, copy an existing agent file, point it at a ModelConfig, Harness and tool
 servers from `platform/`, and add it to `kustomization.yaml`. Editing an agent file
 rebuilds only that agent's golden snapshot; editing a `platform/` resource rebuilds every
-agent that references it (several minutes each).
+agent that references it (several minutes each). EgressPolicies are the exception: an edit
+applies live.
+
+## Harnesses
+
+A Harness is the runtime an Agent runs on (`Agent.spec.harnessRef`). One Harness per
+toolset: to give agents different tooling, add a Harness, do not change a shared one.
+
+| Harness             | Runtime                                                                                                    | Use it for                                                                                 |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `kagent-default`    | kagent's own runtime (from the chart)                                                                      | Agents on the local Ollama model (`k8s-reader`).                                           |
+| `claude-code`       | Claude Code, kagent's stock image                                                                          | Claude agents that only need MCP tool servers.                                             |
+| `claude-code-tools` | Claude Code on `ghcr.io/dapperdivers/claude-harness-tools` (adds curl, jq, python3, pip, requests, pyyaml) | Claude agents that need a shell with HTTP and JSON tooling, together with egress policies. |
+
+Notes on `claude-code-tools`:
+
+- The image is built in `github.com/dapperdivers/containers` (`claude-harness-tools`) FROM
+  kagent's claude harness image and pinned by digest. **Rebuild and re-pin it on every
+  kagent upgrade**; the base must match
+  `kubectl -n kagent get cm kagent-controller -o yaml | grep -A3 harnessImages`.
+- It bakes in `/etc/claude-code/managed-settings.json`, which denies the destructive
+  Miniflux MCP tools (deletes, flush history, mark-all-read, API key and user management)
+  for every agent on the harness. Whether the harness honours it is under test with the
+  temporary `tools-canary` agent; until confirmed, treat a bound MCP server as fully
+  exposed (the Claude Code harness ignores per-tool allowlists).
+
+## Egress policies
+
+A sandbox reaches its model and its bound tool servers, nothing else. An EgressPolicy
+opens a named set of origins (scheme + host + port, every path), and only for Agents that
+list it in `spec.egressPolicyRefs` (up to 16). All are in `platform/egress.yaml`.
+
+| EgressPolicy            | Opens                                                                                          | Use it for                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `claude-subscription`   | `api.anthropic.com`, with the subscription token injected                                      | Required on every Claude agent.                                                       |
+| `web-search`            | In-cluster SearXNG (`searxng.selfhosted.svc.cluster.local:8080`)                               | Web search from the shell: `/search?q=...&format=json`.                               |
+| `security-feeds`        | NVD, FIRST EPSS, CISA KEV, OSV, GitHub advisories (`api.github.com`)                           | CVE and advisory lookups.                                                             |
+| `github-read`           | `github.com`, `api.github.com`, raw, codeload and release-asset hosts                          | Reading public repos and releases. No token: 60 API requests per hour, shared.        |
+| `package-docs`          | `pypi.org`, `registry.npmjs.org`, `pkg.go.dev`, `artifacthub.io`, `kubernetes.io`, `fluxcd.io` | Package versions and reference docs.                                                  |
+| `cluster-observability` | In-cluster Prometheus (`:9090`) and VictoriaLogs (`:9428`)                                     | **Bound to no agent, on purpose.** No auth, and Prometheus has its admin API enabled. |
+
+In-cluster targets must be written as `http://<svc>.<ns>.svc.cluster.local:<port>`. The
+request leaves from the egress gateway (`app=atenet-egress` in `ate-system`), so a
+CiliumNetworkPolicy on the target has to admit that source.
 
 ## The `claude` agent (subscription)
 

@@ -11,4 +11,6 @@ resources:
   - ./k8s-reader.yaml
   - ./night-editor.yaml
   - ./nightwatch.yaml
+  # TEMPORARY: remove after the tools-harness test (2026-11-18).
+  - ./tools-canary.yaml
   - ./voice-librarian.yaml
