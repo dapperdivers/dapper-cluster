@@ -2,19 +2,20 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Obsidian Vault
 
-# Tests for the obsidian-vault job scripts and a chart render of its HelmRelease: the two
-# things `kustomize build` cannot see (a script that fails to import under `python3 -I`,
-# values the app-template schema rejects). Same checks locally:
-#   scripts/check-obsidian-vault.sh
+# Chart render of the obsidian-vault HelmRelease: `kustomize build` never hands the values
+# to the app-template schema, so a value it rejects would only show up in the cluster.
+# Same check locally:
+#   scripts/helm-values-check.sh kubernetes/apps/selfhosted/obsidian-vault/app/helmrelease.yaml
+# The job scripts and their tests live in the private dapperdivers/vault-jobs repository,
+# which builds the image the CronJobs run.
 
 on:
   pull_request:
     branches: ["main"]
     paths:
-      - kubernetes/apps/selfhosted/obsidian-vault/app/**
+      - kubernetes/apps/selfhosted/obsidian-vault/app/helmrelease.yaml
       # the chart version the HelmRelease is rendered with
       - kubernetes/flux/components/common/repos/app-template/**
-      - scripts/check-obsidian-vault.sh
       - scripts/helm-values-check.sh
       - .github/workflows/obsidian-vault.yaml
 
@@ -27,8 +28,8 @@ permissions:
 
 jobs:
   check:
-    name: Obsidian Vault - Scripts and Chart
-    # GitHub-hosted on purpose: this runs code from the pull request, and the
+    name: Obsidian Vault - Chart
+    # GitHub-hosted on purpose: this runs a script from the pull request, and the
     # self-hosted runners can reach the cluster. No secrets are used.
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -46,9 +47,8 @@ jobs:
           # renovate: datasource=github-releases depName=jdx/mise
           version: v2026.11.10
           cache: false
-          # Only the tools this job uses, at the versions .mise.toml pins: the
-          # Python the jobs' image runs, and the helm and yq used locally.
-          install_args: python aqua:helm/helm aqua:mikefarah/yq
+          # Only the tools this job uses, at the versions .mise.toml pins.
+          install_args: aqua:helm/helm aqua:mikefarah/yq
 
-      - name: Run checks
-        run: scripts/check-obsidian-vault.sh
+      - name: Render the HelmRelease with its chart
+        run: scripts/helm-values-check.sh kubernetes/apps/selfhosted/obsidian-vault/app/helmrelease.yaml
