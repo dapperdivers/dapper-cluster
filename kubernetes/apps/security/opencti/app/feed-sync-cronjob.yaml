@@ -1,0 +1,69 @@
+---
+# Files security-relevant articles from Miniflux in OpenCTI as reports
+# (config/feed-sync.py). Daily, stateless and idempotent: each run re-reads the
+# last few days, and a report's identity comes from its title and date, so a
+# missed or repeated run does no harm.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: opencti-feed-sync
+spec:
+  schedule: "15 10 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile: { type: RuntimeDefault }
+          containers:
+            - name: sync
+              image: docker.io/library/python:3.13-alpine
+              command: ["python3", "/scripts/feed-sync.py"]
+              env:
+                - name: OPENCTI_URL
+                  value: http://opencti-server.security.svc.cluster.local
+                - name: OPENCTI_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: opencti-secret
+                      key: OPENCTI_ADMIN_TOKEN
+                - name: MINIFLUX_URL
+                  value: http://miniflux.selfhosted.svc.cluster.local:8080
+                - name: MINIFLUX_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: opencti-miniflux-secret
+                      key: MINIFLUX_API_KEY
+                # A run reads this many days back, so two missed runs lose nothing.
+                - name: LOOKBACK_DAYS
+                  value: "3"
+                - name: PYTHONUNBUFFERED
+                  value: "1"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: { drop: ["ALL"] }
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: scripts
+              configMap:
+                name: opencti-feed-sync
