@@ -3,7 +3,8 @@
 # obsidian-vault, hourly): a summary, why it matters to the owner, related vault notes,
 # a filing folder and a few ideas worth keeping, as one JSON object that
 # reading-process.py validates before it writes anything into the article's note under
-# Inbox/Reading.
+# Inbox/Reading. The folder it names is acted on: the job moves the note there unattended
+# (READING_AUTOFILE in the obsidian-vault HelmRelease). The agent itself still writes nothing.
 #
 # Same shape and reasoning as voice-processor: an unattended worker that reads text it did
 # not choose (here, whatever a web page said), so it binds the read-only vault and nothing
