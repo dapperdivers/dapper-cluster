@@ -24,8 +24,9 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: ate-system
             app: atenet-egress
-        # Vault pipeline jobs that call agents: voice-inbox (voice-librarian),
-        # night-shift (claude), nightwatch (nightwatch) and reading-process
+        # Vault pipeline jobs that call agents: voice-inbox (voice-processor, then
+        # voice-librarian as the fallback), night-shift (night-editor, feeds-digest,
+        # security-brief), nightwatch (nightwatch) and reading-process
         # (reading-processor).
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: selfhosted
