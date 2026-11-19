@@ -1,0 +1,54 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Obsidian Vault
+
+# Tests for the obsidian-vault job scripts and a chart render of its HelmRelease: the two
+# things `kustomize build` cannot see (a script that fails to import under `python3 -I`,
+# values the app-template schema rejects). Same checks locally:
+#   scripts/check-obsidian-vault.sh
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - kubernetes/apps/selfhosted/obsidian-vault/app/**
+      # the chart version the HelmRelease is rendered with
+      - kubernetes/flux/components/common/repos/app-template/**
+      - scripts/check-obsidian-vault.sh
+      - scripts/helm-values-check.sh
+      - .github/workflows/obsidian-vault.yaml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Obsidian Vault - Scripts and Chart
+    # GitHub-hosted on purpose: this runs code from the pull request, and the
+    # self-hosted runners can reach the cluster. No secrets are used.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Mise
+        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+        with:
+          # Pinned so a broken mise release can't float into CI on its own
+          # (see ci.yaml).
+          # renovate: datasource=github-releases depName=jdx/mise
+          version: v2026.11.10
+          cache: false
+          # Only the tools this job uses, at the versions .mise.toml pins: the
+          # Python the jobs' image runs, and the helm and yq used locally.
+          install_args: python aqua:helm/helm aqua:mikefarah/yq
+
+      - name: Run checks
+        run: scripts/check-obsidian-vault.sh
