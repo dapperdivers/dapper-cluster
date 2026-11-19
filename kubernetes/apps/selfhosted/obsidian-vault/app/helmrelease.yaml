@@ -307,15 +307,14 @@ spec:
               # Fallback: local kagent agent that suggests filing, related notes and zettels.
               LIBRARIAN_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian
               BACKFILL_PER_RUN: "2"
-              # reading-inbox.py: read-only list of starred articles. Optional, so the
-              # voice pipeline still runs if the secret is missing.
+              # reading-inbox.py: read-only list of starred articles. (The chart's schema
+              # rejects `optional` on a secretKeyRef, so the secret must exist.)
               MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080
               MINIFLUX_API_KEY:
                 valueFrom:
                   secretKeyRef:
                     name: obsidian-vault-miniflux-secret
                     key: MINIFLUX_API_KEY
-                    optional: true
               # Rescan right after writing: the hub's watcher misses these pods' writes.
               SYNCTHING_URL: http://obsidian-vault-syncthing:8384
               SYNCTHING_API_KEY:
