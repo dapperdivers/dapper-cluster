@@ -360,6 +360,49 @@ spec:
             securityContext: *jobSecurityContext
         pod: *jobPod
 
+      # Feed sorter: scores new entries in the Miniflux "Security firehose" category with the
+      # local embedding model and marks the low half as read, so what stays unread is worth a
+      # look. What counts as interesting (and a watchlist of names) lives in the vault note
+      # System/Feed Interests.md, never in this public repo; without that note the job writes
+      # a starter and does nothing else. It only ever marks entries read.
+      feed-sorter:
+        type: cronjob
+        cronjob:
+          schedule: "10,40 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 1500
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/feed-sorter.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              EMBED_MODEL: embeddinggemma
+              SORT_CATEGORY: Security firehose
+              # Entries scoring below this percentile of a 30-day sample are marked read.
+              READ_BELOW_PCT: "50"
+              MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080
+              MINIFLUX_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-miniflux-secret
+                    key: MINIFLUX_API_KEY
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod: *jobPod
+
       # Hourly: each new article note under Inbox/Reading gets a "Digest" section from the
       # kagent `reading-processor` agent (Claude subscription): summary, why it matters,
       # related notes, a filing folder and ideas worth keeping. The script validates the
@@ -443,6 +486,7 @@ spec:
           voice-inbox: *vaultMount
           reading-inbox: *vaultMount
           reading-process: *vaultMount
+          feed-sorter: *vaultMount
           night-shift: *vaultMount
           nightwatch: *vaultMount
       scripts:
@@ -458,6 +502,7 @@ spec:
           voice-inbox: *scriptsMount
           reading-inbox: *scriptsMount
           reading-process: *scriptsMount
+          feed-sorter: *scriptsMount
           night-shift: *scriptsMount
           nightwatch: *scriptsMount
       tmp:
@@ -471,6 +516,7 @@ spec:
           voice-inbox: *tmpMount
           reading-inbox: *tmpMount
           reading-process: *tmpMount
+          feed-sorter: *tmpMount
           night-shift: *tmpMount
           nightwatch: *tmpMount
 
