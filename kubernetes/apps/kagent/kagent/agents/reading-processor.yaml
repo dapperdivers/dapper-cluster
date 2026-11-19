@@ -21,8 +21,12 @@ metadata:
   name: reading-processor
 spec:
   description: Unattended processor for the reading-process job - turns one saved article into a summary, why it matters, related vault notes, a filing suggestion and ideas worth keeping, as JSON. Read-only vault tools only.
+  # First agent on Haiku: the job is narrow (one article in, fixed JSON out) and a lighter
+  # model leaves more of the shared subscription limit for the rest. Fallback if the digests
+  # get worse (skipped vault searches, thin "why it matters", bad JSON): set this back to
+  # claude-sonnet. Nothing else needs to change.
   modelConfig:
-    name: claude-sonnet
+    name: claude-haiku
   systemPrompt: |-
     You process saved articles for the owner of a personal knowledge base (an
     Obsidian vault). The owner starred each article in their feed reader because
