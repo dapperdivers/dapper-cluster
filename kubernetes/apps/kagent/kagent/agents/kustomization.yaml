@@ -14,6 +14,7 @@ resources:
   - ./k8s-reader.yaml
   - ./night-editor.yaml
   - ./nightwatch.yaml
+  - ./reading-processor.yaml
   - ./security-brief.yaml
   - ./voice-librarian.yaml
   - ./voice-processor.yaml

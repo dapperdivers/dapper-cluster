@@ -25,14 +25,15 @@ spec:
             k8s:io.kubernetes.pod.namespace: ate-system
             app: atenet-egress
         # Vault pipeline jobs that call agents: voice-inbox (voice-librarian),
-        # night-shift (claude) and nightwatch (nightwatch).
+        # night-shift (claude), nightwatch (nightwatch) and reading-process
+        # (reading-processor).
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: selfhosted
             app.kubernetes.io/name: obsidian-vault
           matchExpressions:
             - key: app.kubernetes.io/controller
               operator: In
-              values: [voice-inbox, night-shift, nightwatch]
+              values: [voice-inbox, night-shift, nightwatch, reading-process]
         # OpenClaw (Tim) delegates tasks to agents through the controller's MCP
         # endpoint. The controller label keeps the molt-syncthing pod out.
         - matchLabels:
