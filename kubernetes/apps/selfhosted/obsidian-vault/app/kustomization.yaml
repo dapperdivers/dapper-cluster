@@ -20,6 +20,7 @@ configMapGenerator:
       - ./resources/processor.py
       - ./resources/reading-inbox.py
       - ./resources/reading-process.py
+      - ./resources/miniflux-export.py
       - ./resources/feed-sorter.py
       - ./resources/night-shift.py
       - ./resources/nightwatch.py
