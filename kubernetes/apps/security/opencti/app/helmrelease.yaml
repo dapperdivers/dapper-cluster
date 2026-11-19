@@ -123,8 +123,7 @@ spec:
           memory: 1Gi
 
     # Low-volume feeds only. Left out on purpose: AlienVault (needed 8Gi),
-    # MalwareBazaar, URLhaus and ThreatFox (two-hourly), EPSS (rewrites every
-    # CVE daily) and CVE (bulk import; needs an NVD API key in /OpenCTI).
+    # MalwareBazaar, URLhaus and ThreatFox (two-hourly).
     connectors:
       cisa-known-exploited-vulnerabilities:
         enabled: true
@@ -154,3 +153,44 @@ spec:
             memory: 256Mi
           limits:
             memory: 512Mi
+      # New and changed CVEs only: no history backfill and no CPE/software
+      # import, which is where the bulk of the old index came from.
+      cve:
+        enabled: true
+        env:
+          CONNECTOR_ID: 5a8c1f0e-6d3b-4e2a-9b7c-3f1d2e4a6b8c
+          CONNECTOR_NAME: Common Vulnerabilities and Exposures
+          CONNECTOR_SCOPE: cve
+          CONNECTOR_LOG_LEVEL: info
+          CVE_INTERVAL: "24"
+          CVE_MAINTAIN_DATA: "true"
+          CVE_PULL_HISTORY: "false"
+          CVE_IMPORT_SOFTWARE: "false"
+        envFromSecrets:
+          CVE_API_KEY:
+            name: *secret
+            key: OPENCTI_NVD_API_KEY
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+      # Enrichment on request only (CONNECTOR_AUTO off): it scores a CVE when
+      # someone asks, instead of rewriting every vulnerability.
+      epss:
+        enabled: true
+        image:
+          repository: opencti/connector-first-epss
+        env:
+          CONNECTOR_ID: 18f1a9e6-a82b-4ef4-9699-ae406fe4a1a6
+          CONNECTOR_NAME: FIRST EPSS
+          CONNECTOR_SCOPE: vulnerability
+          CONNECTOR_LOG_LEVEL: info
+          CONNECTOR_AUTO: "false"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
