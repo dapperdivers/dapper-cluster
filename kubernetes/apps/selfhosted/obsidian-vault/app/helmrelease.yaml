@@ -360,6 +360,40 @@ spec:
             securityContext: *jobSecurityContext
         pod: *jobPod
 
+      # Hourly: each new article note under Inbox/Reading gets a "Digest" section from the
+      # kagent `reading-processor` agent (Claude subscription): summary, why it matters,
+      # related notes, a filing folder and ideas worth keeping. The script validates the
+      # answer and never edits a note touched in the last few minutes. At most five
+      # articles a run; on a usage limit it stops and picks up next hour.
+      reading-process:
+        type: cronjob
+        cronjob:
+          schedule: "40 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3300
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/reading-process.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              READING_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/reading-processor
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod: *jobPod
+
     service:
       syncthing:
         controller: syncthing
@@ -408,6 +442,7 @@ spec:
           vault-weekly-review: *vaultMount
           voice-inbox: *vaultMount
           reading-inbox: *vaultMount
+          reading-process: *vaultMount
           night-shift: *vaultMount
           nightwatch: *vaultMount
       scripts:
@@ -422,6 +457,7 @@ spec:
           vault-weekly-review: *scriptsMount
           voice-inbox: *scriptsMount
           reading-inbox: *scriptsMount
+          reading-process: *scriptsMount
           night-shift: *scriptsMount
           nightwatch: *scriptsMount
       tmp:
@@ -434,6 +470,7 @@ spec:
           vault-weekly-review: *tmpMount
           voice-inbox: *tmpMount
           reading-inbox: *tmpMount
+          reading-process: *tmpMount
           night-shift: *tmpMount
           nightwatch: *tmpMount
 
