@@ -292,8 +292,6 @@ spec:
                 rc=0
                 for v in /vaults/*/; do
                   python3 -I /scripts/voice-inbox.py "$v" || rc=1
-                  # Starred Miniflux articles become notes under Inbox/Reading.
-                  python3 -I /scripts/reading-inbox.py "$v" || rc=1
                 done
                 exit $rc
             env:
@@ -307,17 +305,9 @@ spec:
               # Fallback: local kagent agent that suggests filing, related notes and zettels.
               LIBRARIAN_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian
               BACKFILL_PER_RUN: "2"
-              # reading-inbox.py: read-only list of starred articles. (The chart's schema
-              # rejects `optional` on a secretKeyRef, so the secret must exist.)
-              MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080
-              MINIFLUX_API_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: obsidian-vault-miniflux-secret
-                    key: MINIFLUX_API_KEY
               # Rescan right after writing: the hub's watcher misses these pods' writes.
-              SYNCTHING_URL: http://obsidian-vault-syncthing:8384
-              SYNCTHING_API_KEY:
+              SYNCTHING_URL: &syncthingUrl http://obsidian-vault-syncthing:8384
+              SYNCTHING_API_KEY: &syncthingKey
                 valueFrom:
                   secretKeyRef:
                     name: obsidian-vault-secret
@@ -328,6 +318,45 @@ spec:
                 memory: 64Mi
               limits:
                 memory: 512Mi # whole recording is read into memory for the upload
+            securityContext: *jobSecurityContext
+        pod: *jobPod
+
+      # Reading inbox: articles starred in Miniflux become notes under <vault>/Inbox/Reading/
+      # (link, feed and article text). Reads Miniflux with GET requests only; a ledger beside
+      # the notes stops a filed or deleted note being written again. Its own job, so a
+      # failure here never holds up the voice pipeline.
+      reading-inbox:
+        type: cronjob
+        cronjob:
+          schedule: "*/15 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/reading-inbox.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080
+              # The chart's schema rejects `optional` on a secretKeyRef: the secret must exist.
+              MINIFLUX_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-miniflux-secret
+                    key: MINIFLUX_API_KEY
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
             securityContext: *jobSecurityContext
         pod: *jobPod
 
@@ -378,6 +407,7 @@ spec:
           vault-nightly: *vaultMount
           vault-weekly-review: *vaultMount
           voice-inbox: *vaultMount
+          reading-inbox: *vaultMount
           night-shift: *vaultMount
           nightwatch: *vaultMount
       scripts:
@@ -391,6 +421,7 @@ spec:
           vault-nightly: *scriptsMount
           vault-weekly-review: *scriptsMount
           voice-inbox: *scriptsMount
+          reading-inbox: *scriptsMount
           night-shift: *scriptsMount
           nightwatch: *scriptsMount
       tmp:
@@ -402,6 +433,7 @@ spec:
           vault-nightly: *tmpMount
           vault-weekly-review: *tmpMount
           voice-inbox: *tmpMount
+          reading-inbox: *tmpMount
           night-shift: *tmpMount
           nightwatch: *tmpMount
 
