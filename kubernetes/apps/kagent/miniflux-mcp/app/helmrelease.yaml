@@ -25,8 +25,10 @@ spec:
         containers:
           app:
             # Built from tssujt/miniflux-mcp by github.com/dapperdivers/containers
-            # (non-root, distroless). The server exposes ~40 tools including deletes;
-            # agents see only the read-only allowlist set on the agent's tool binding.
+            # (non-root, distroless). The server exposes ~40 tools including deletes.
+            # Only agents on the kagent-default harness are held to the allowlist on
+            # their tool binding; the Claude Code harnesses ignore it and expose every
+            # tool, except those the claude-code-tools image denies (see the kagent README).
             image:
               repository: ghcr.io/dapperdivers/miniflux-mcp
               tag: 0.8.0@sha256:6723d5f6a90f1c4bc97450fbda8023fe059d3114914667d8e6e7ffd30862ce2a
