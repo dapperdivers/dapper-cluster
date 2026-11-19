@@ -59,7 +59,7 @@ spec:
         hostnames: ["opencti.${SECRET_DOMAIN}"]
 
     worker:
-      replicaCount: 1
+      replicaCount: 2
       resources:
         requests:
           cpu: 100m
@@ -92,15 +92,16 @@ spec:
       replicas: 1
       sysctlInit:
         enabled: false
-      # Heap stays at 2 GB; the rest of the 8Gi limit is page cache for the
-      # index files. request == limit so the cache is not squeezed by neighbours.
-      opensearchJavaOpts: "-Xms2g -Xmx2g"
+      # 4 GB heap; the other ~12 GB of the limit is page cache for the index
+      # files, so reads stay in memory until the index outgrows that.
+      # request == limit so the cache is not squeezed by neighbours.
+      opensearchJavaOpts: "-Xms4g -Xmx4g"
       resources:
         requests:
           cpu: 500m
-          memory: 8Gi
+          memory: 16Gi
         limits:
-          memory: 8Gi
+          memory: 16Gi
       persistence:
         enabled: true
         size: 50Gi
