@@ -8,13 +8,14 @@ Tracking issue: #4777.
 **This is one stack spread over three namespaces** (plus the vault tool server in `selfhosted`). Upstream fixes the split: agents
 run in `kagent`, kept apart from the Substrate control plane and its signing keys.
 
-| Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                                             |
-| ----------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts.                            |
-| `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.                                       |
-| `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.                                   |
-| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                                               |
-| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); network policy allows the public internet only, never the cluster or LAN. |
+| Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                                                            |
+| ----------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts.                                           |
+| `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.                                                      |
+| `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.                                                  |
+| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                                                              |
+| `kagent/miniflux-mcp/`              | `miniflux-mcp`                                    | The Miniflux RSS reader served to agents as an MCP tool server (`RemoteMCPServer` `miniflux`); network policy lets it reach Miniflux only, and only kagent may call it. |
+| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); network policy allows the public internet only, never the cluster or LAN.                |
 
 Install order (enforced with `dependsOn`):
 
@@ -109,6 +110,32 @@ agent that references it (several minutes each). EgressPolicies are the exceptio
 applies live. The `kagent-agent` skill (`.claude/skills/kagent-agent/`) has the full
 recipe, templates and a test script.
 
+### Agents
+
+The live agents are the files listed in `kagent/agents/kustomization.yaml`:
+
+| Agent               | Model                          | Harness             | Tool servers                                     | Called by                                                                                        |
+| ------------------- | ------------------------------ | ------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `claude`            | `claude-opus`                  | `claude-code`       | `vault`, `web-fetch`, `miniflux`                 | The owner, interactively (UI, or OpenClaw through `invoke_agent`).                               |
+| `night-editor`      | `claude-opus`                  | `claude-code`       | `vault`, `web-fetch`                             | The `night-shift` vault job: brief topic sections, vault gap research, the curated-note pass.    |
+| `security-brief`    | `claude-sonnet`                | `claude-code-tools` | `web-fetch`, `miniflux`                          | The `night-shift` vault job, for the brief's Security section. Also has `security-feeds` egress. |
+| `feeds-digest`      | `claude-sonnet`                | `claude-code-tools` | `miniflux`                                       | The `night-shift` vault job, for the brief's Feeds section. Reads only.                          |
+| `feeds-curator`     | `claude-sonnet`                | `claude-code-tools` | `miniflux`                                       | The owner (UI or OpenClaw). Changes feeds only on an explicit instruction; cannot delete.        |
+| `reading-processor` | `claude-sonnet`                | `claude-code`       | `vault`                                          | The `reading-process` vault job, hourly, one saved article per call.                             |
+| `voice-processor`   | `claude-sonnet`                | `claude-code`       | `vault`                                          | The `voice-inbox` vault job, one voice memo per call.                                            |
+| `voice-librarian`   | `default-model-config` (local) | `kagent-default`    | `vault`                                          | The `voice-inbox` vault job, as the fallback when `voice-processor` fails or is out of usage.    |
+| `nightwatch`        | `default-model-config` (local) | `kagent-default`    | `kagent-tool-server` (4 read tools), `web-fetch` | The `nightwatch` vault job, once per new finding.                                                |
+| `k8s-reader`        | `default-model-config` (local) | `kagent-default`    | `kagent-tool-server` (4 read tools)              | Nobody on a schedule; a test agent for questions about the cluster.                              |
+| `flux-ops`          | `default-model-config` (local) | `kagent-default`    | `kagent-tool-server` (4 read tools)              | The owner or a working session, by hand (below).                                                 |
+
+Every Claude agent also lists the `claude-subscription` EgressPolicy. The vault jobs are the
+CronJobs of `selfhosted/obsidian-vault`; each calls its agent over A2A at
+`http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/<agent>`. The
+`kagent-controller` network policy (`kagent/app/ciliumnetworkpolicy.yaml`) admits exactly four
+of those job controllers: `voice-inbox`, `night-shift`, `nightwatch` and `reading-process`.
+A new job that calls an agent has to be added there. The reading pipeline's side of this is in
+`kubernetes/apps/selfhosted/obsidian-vault/README.md`.
+
 ### `flux-ops` (read-only Flux sweep)
 
 Lists Flux Kustomizations and HelmReleases that are not Ready, and Kustomizations behind
@@ -130,11 +157,11 @@ because the Claude harness would expose the whole tool server, `shell` included)
 A Harness is the runtime an Agent runs on (`Agent.spec.harnessRef`). One Harness per
 toolset: to give agents different tooling, add a Harness, do not change a shared one.
 
-| Harness             | Runtime                                                                                                    | Use it for                                                                                 |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `kagent-default`    | kagent's own runtime (from the chart)                                                                      | Agents on the local Ollama model (`k8s-reader`).                                           |
-| `claude-code`       | Claude Code, kagent's stock image                                                                          | Claude agents that only need MCP tool servers.                                             |
-| `claude-code-tools` | Claude Code on `ghcr.io/dapperdivers/claude-harness-tools` (adds curl, jq, python3, pip, requests, pyyaml) | Claude agents that need a shell with HTTP and JSON tooling, together with egress policies. |
+| Harness             | Runtime                                                                                                    | Use it for                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `kagent-default`    | kagent's own runtime (from the chart)                                                                      | Agents on the local Ollama model (`k8s-reader`, `flux-ops`, `nightwatch`, `voice-librarian`). |
+| `claude-code`       | Claude Code, kagent's stock image                                                                          | Claude agents that only need MCP tool servers.                                                |
+| `claude-code-tools` | Claude Code on `ghcr.io/dapperdivers/claude-harness-tools` (adds curl, jq, python3, pip, requests, pyyaml) | Claude agents that need a shell with HTTP and JSON tooling, together with egress policies.    |
 
 Notes on `claude-code-tools`:
 
@@ -180,4 +207,7 @@ This is undocumented in kagent 1.0.1. It relies on kagent allowing `ANTHROPIC_AU
 `ANTHROPIC_CUSTOM_HEADERS` in Harness env, on Claude Code preferring `ANTHROPIC_AUTH_TOKEN`
 over the (dummy) API key, and on the OAuth beta header. Upgrades can break it; check this
 agent after bumping kagent. Usage counts against the subscription's 5-hour limits.
-Tools: `WebSearch` (Anthropic-side), `web-fetch` and the read-only `vault`.
+Tools: `WebSearch` (Anthropic-side), `web-fetch`, the read-only `vault` and `miniflux`. The
+Miniflux allowlist in `claude.yaml` is documentation only: on this harness the agent holds
+every Miniflux tool, deletes included, which is accepted because it is interactive. The
+unattended agents either do not bind `miniflux` or run on `claude-code-tools`.
