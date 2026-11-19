@@ -437,6 +437,45 @@ spec:
             securityContext: *jobSecurityContext
         pod: *jobPod
 
+      # 01:30: copy of the Miniflux configuration into <vault>/System/Miniflux/ (feeds.opml plus
+      # miniflux-config.json: settings, category flags, per-feed options; never feed credentials)
+      # and Agents/Generated/Feed Health.md. Reads Miniflux with GET requests only and rewrites
+      # a file only when it changed. Restore procedure: the docstring of miniflux-export.py.
+      miniflux-export:
+        type: cronjob
+        cronjob:
+          schedule: "30 1 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 900
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *pythonImage
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                rc=0
+                for v in /vaults/*/; do
+                  python3 -I /scripts/miniflux-export.py "$v" || rc=1
+                done
+                exit $rc
+            env:
+              <<: *jobEnv
+              MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080
+              MINIFLUX_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-miniflux-secret
+                    key: MINIFLUX_API_KEY
+              EXPORT_DIR: System/Miniflux
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod: *jobPod
+
     service:
       syncthing:
         controller: syncthing
@@ -486,6 +525,7 @@ spec:
           voice-inbox: *vaultMount
           reading-inbox: *vaultMount
           reading-process: *vaultMount
+          miniflux-export: *vaultMount
           feed-sorter: *vaultMount
           night-shift: *vaultMount
           nightwatch: *vaultMount
@@ -502,6 +542,7 @@ spec:
           voice-inbox: *scriptsMount
           reading-inbox: *scriptsMount
           reading-process: *scriptsMount
+          miniflux-export: *scriptsMount
           feed-sorter: *scriptsMount
           night-shift: *scriptsMount
           nightwatch: *scriptsMount
@@ -516,6 +557,7 @@ spec:
           voice-inbox: *tmpMount
           reading-inbox: *tmpMount
           reading-process: *tmpMount
+          miniflux-export: *tmpMount
           feed-sorter: *tmpMount
           night-shift: *tmpMount
           nightwatch: *tmpMount
