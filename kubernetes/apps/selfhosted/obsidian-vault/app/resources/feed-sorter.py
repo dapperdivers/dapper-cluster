@@ -24,6 +24,24 @@ READ_BELOW_PCT percentile of that sample. The sample is re-measured when the pro
 changes and once a week; the numbers are kept in STATE. Before scoring, repeats of a title
 seen this week and non-English entries are marked read.
 
+Which entries are new: STATE remembers the highest entry id handled so far (`last_id`) and
+each run asks Miniflux for the unread entries after it, oldest first, at most
+SORT_MAX_PER_RUN at a time. So nothing is skipped when the job or Ollama was down for a
+while: the backlog is worked off over the next runs. Only the very first run, with no
+`last_id` yet, looks back SORT_WINDOW_HOURS instead.
+
+What it writes in the vault (all under OUTPUT_DIR, only when something changed):
+  STATE      calibration, `last_id`, the time of the last run that did work, and per-day
+             counts for the last KEEP_DAYS days (new, kept by score / by the watchlist,
+             marked read as low score / duplicate / non-English)
+  DECISIONS  one row per entry handled in the last KEEP_DAYS days (id, title, feed, score,
+             decision, date), at most MAX_ROWS rows
+  REVIEW     a note rewritten on the first run of each day: the counts, the best kept
+             entries, the marked-read ones nearest the cut-off, a sample of the rest, and
+             "misses" (entries the owner starred that the sorter had marked read). It is
+             the place to check the sorter's calls before editing PROFILE_NOTE.
+The log (stdout) only ever shows titles and feed names, never the watchlist.
+
 Usage: feed-sorter.py <vault-dir> [--dry-run]
 """
 import datetime as dt
@@ -49,7 +67,21 @@ WINDOW_H = float(os.environ.get("SORT_WINDOW_HOURS", "3"))
 READ_BELOW_PCT = float(os.environ.get("READ_BELOW_PCT", "50"))
 PROFILE_NOTE = os.environ.get("PROFILE_NOTE", "System/Feed Interests.md")
 STATE = os.environ.get("SORTER_STATE", os.path.join(vl.GENERATED_DIR, "feed-sorter-state.json"))
+DECISIONS = os.environ.get("SORTER_DECISIONS", os.path.join(vl.GENERATED_DIR, "feed-sorter-decisions.json"))
+REVIEW = os.environ.get("SORTER_REVIEW", os.path.join(vl.GENERATED_DIR, "Feed Sorter Review.md"))
+MAX_PER_RUN = int(os.environ.get("SORT_MAX_PER_RUN", "1500"))
+AUTHOR = "feed-sorter"
 RECALIBRATE_DAYS = 7
+KEEP_DAYS = 14
+MAX_ROWS = 5000
+# An entry gets its id before Miniflux commits it, so a slightly lower id can still show up
+# beside a brand-new one. Entries this fresh wait for the next run, so `last_id` never
+# passes one that is not visible yet.
+SETTLE_S = 60
+# decision -> its per-day counter. The first two leave the entry unread, the rest mark it read.
+COUNTERS = {"keep": "kept_score", "watchlist": "kept_watchlist", "low score": "read_low_score",
+            "duplicate": "read_duplicate", "non-English": "read_non_english"}
+READ = ("low score", "duplicate", "non-English")
 W_STAR, W_NOISE = 0.5, 0.7
 PLACEHOLDER = "(replace me)"
 ENGLISH = set("the of and to in is for on with that this as are by from at an be it or has have was will not "
@@ -192,6 +224,178 @@ def calibrate(cat, now, starred_vecs, vi, vn):
     return cal
 
 
+def load(path, default):
+    """(data, text as stored) of a JSON file; the default when it is missing or unusable."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+        data = json.loads(text)
+        if isinstance(data, type(default)):
+            return data, text
+    except (FileNotFoundError, ValueError):
+        pass
+    return default, ""
+
+
+def save(path, text, old):
+    """Write only when the content changed, so Syncthing has nothing to do on a quiet run."""
+    if text != old:
+        vl.atomic_write(path, text)
+    return text
+
+
+def state_text(state):
+    return json.dumps(state, indent=1) + "\n"
+
+
+def rows_text(rows):  # one row per line
+    return "[\n" + ",\n".join(json.dumps(r, ensure_ascii=False) for r in rows) + "\n]\n"
+
+
+def settled(found, now):
+    """The entries (sorted by id) up to the first one stored less than SETTLE_S ago."""
+    out = []
+    for e in found:
+        try:
+            age = (now - dt.datetime.fromisoformat(e["created_at"])).total_seconds()
+        except (KeyError, TypeError, ValueError):
+            age = SETTLE_S
+        if age < SETTLE_S:
+            break
+        out.append(e)
+    return out
+
+
+def fetch_new(cat, last_id, now):
+    """(unread entries not handled yet, oldest first and at most MAX_PER_RUN; how many more wait)."""
+    base = f"categories/{cat}/entries?status=unread&order=id&direction=asc"
+    if last_id is None:
+        # First run. An unread entry's changed_at is the moment Miniflux stored it.
+        since = int((now - dt.timedelta(hours=WINDOW_H)).timestamp())
+        found = sorted(entries(f"{base}&changed_after={since}"), key=lambda e: e["id"])
+        total = len(found)
+    else:
+        found, after, total = [], last_id, 0
+        while len(found) < MAX_PER_RUN:
+            page = api(f"{base}&after_entry_id={after}&limit={min(500, MAX_PER_RUN - len(found))}")
+            if not found:
+                total = page["total"]
+            found += page["entries"]
+            if not page["entries"] or len(found) >= total:
+                break
+            after = page["entries"][-1]["id"]
+    batch = settled(found, now)[:MAX_PER_RUN]
+    return batch, max(0, total - len(batch))
+
+
+def decide(batch, seen, patterns, vs, vi, vn, cal):
+    """[(entry, decision, score or None)] in batch order. `seen` holds the title keys of earlier entries."""
+    out, to_score = {}, []
+    for e in batch:
+        k = title_key(e)
+        if watch_hit(e, patterns):
+            out[e["id"]] = ("watchlist", None)
+        elif k in seen:
+            out[e["id"]] = ("duplicate", None)
+        elif not is_english(e):
+            out[e["id"]] = ("non-English", None)
+        else:
+            to_score.append(e)
+        seen.add(k)
+    for r in raw_scores(to_score, vs, vi, vn, cal["star"][0]):
+        s = final(r, cal)
+        out[r["e"]["id"]] = ("low score" if s < cal["cut"] else "keep", s)
+    return [(e, *out[e["id"]]) for e in batch]
+
+
+def record(state, rows, decided, now):
+    """Add one run's decisions to the day counters, the decision rows and the high-water mark."""
+    today = now.astimezone(vl.TZ).date().isoformat()
+    day = state.setdefault("days", {}).setdefault(today, dict.fromkeys(["new", *COUNTERS.values()], 0))
+    day["new"] += len(decided)
+    for _, decision, _ in decided:
+        day[COUNTERS[decision]] += 1
+    handled = {e["id"] for e, _, _ in decided}
+    rows[:] = [r for r in rows if r["id"] not in handled] + [
+        {"id": e["id"], "title": " ".join(e["title"].split())[:200], "feed": e["feed"]["title"],
+         "score": None if s is None else round(s, 3), "decision": decision, "date": today}
+        for e, decision, s in decided]
+    state["last_id"] = max(handled | {state.get("last_id") or 0})
+    state["last_run"] = now.isoformat()
+
+
+def prune(state, rows, today):
+    """Drop day counters and decision rows older than KEEP_DAYS, and keep at most MAX_ROWS rows."""
+    first = (today - dt.timedelta(days=KEEP_DAYS - 1)).isoformat()
+    if "days" in state:
+        state["days"] = {d: c for d, c in sorted(state["days"].items()) if d >= first}
+    rows[:] = [r for r in rows if r["date"] >= first][-MAX_ROWS:]
+
+
+def spread(rows, n):
+    """n rows evenly spaced over a list (all of it when shorter)."""
+    if len(rows) <= n:
+        return list(rows)
+    return [rows[round(i * (len(rows) - 1) / (n - 1))] for i in range(n)]
+
+
+def cell(s):
+    return " ".join(str(s).split()).replace("|", "\\|").replace("[[", "[ [")
+
+
+def table(rows, decision=False):
+    if not rows:
+        return ["None.", ""]
+    out = ["| Title | Feed | Score |" + (" Decision |" if decision else ""),
+           "| --- | --- | ---: |" + (" --- |" if decision else "")]
+    for r in rows:
+        score = "n/a" if r["score"] is None else f"{r['score']:+.2f}"
+        out.append(f"| {cell(r['title'])[:140]} | {cell(r['feed'])[:40]} | {score} |"
+                   + (f" {r['decision']} |" if decision else ""))
+    return out + [""]
+
+
+def review_note(days, rows, starred_ids, cut, today):
+    """The daily review note: counts, the calls worth checking, and starred entries the sorter got wrong."""
+    yday = today - dt.timedelta(days=1)
+    week = [(yday - dt.timedelta(days=i)).isoformat() for i in range(7)]
+    keys = ["new"] + list(COUNTERS.values())
+
+    def counts(label, dates):
+        return f"| {label} | " + " | ".join(str(sum(days.get(d, {}).get(k, 0) for d in dates)) for k in keys) + " |"
+
+    recent = [r for r in rows if r["date"] >= yday.isoformat()]
+    kept = sorted((r for r in recent if r["decision"] == "keep"), key=lambda r: -r["score"])
+    low = sorted((r for r in recent if r["decision"] == "low score"), key=lambda r: -r["score"])
+    misses = [r for r in reversed(rows) if r["id"] in starred_ids
+              and (r["decision"] in READ or (r["score"] is not None and r["score"] < cut))]
+    profile = vl.wikilink(PROFILE_NOTE)
+    return "\n".join([
+        "---", "type: index", "status: active", "tags:", "  - system/feed-sorter", "generated: true",
+        f"author: {AUTHOR}",
+        "description: " + vl.yaml_str(
+            f'Daily check on the feed sorter\'s calls in the Miniflux "{CATEGORY}" category: counts, the best '
+            "kept entries, the marked-read ones nearest the cut-off, and starred entries it had marked read."),
+        "---", "",
+        "# Feed Sorter Review", "",
+        f"> Generated {today.isoformat()} by the `{AUTHOR}` CronJob, once a day. Do not edit; changes are overwritten.",
+        f"> To act on it, edit {profile}: add or reword an interest for something that should have been kept, "
+        "add a noise bullet for something that should not. The sorter re-measures itself on its next run.", "",
+        f"Entries scoring below {cut:+.2f} are marked read. Nothing is deleted: a marked-read entry is still "
+        "in Miniflux's History, and starring one there lists it under Misses.", "",
+        "## Counts", "",
+        "| Period | New | Kept by score | Kept by watchlist | Read: low score | Read: duplicate | Read: non-English |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        counts(f"Yesterday ({yday.isoformat()})", week[:1]), counts("Last 7 days", week), "",
+        "## Misses", "",
+        f"Entries you starred in the last {KEEP_DAYS} days that the sorter had marked read, or scored below "
+        "today's cut-off.", "", *table(misses, decision=True),
+        "## Top kept", "", "The highest-scoring entries left unread since yesterday.", "", *table(kept[:15]),
+        "## Borderline", "", "Marked read since yesterday, closest below the cut-off.", "", *table(low[:15]),
+        "## Other marked read", "", "A sample across the rest of the scores.", "", *table(spread(low[15:], 10)),
+    ])
+
+
 def main():
     if not KEY or MF == "/v1/":
         print("feed-sorter: MINIFLUX_URL / MINIFLUX_API_KEY not set; nothing to do")
@@ -221,12 +425,9 @@ def main():
     starred = api("entries?starred=true&limit=200&order=changed_at&direction=desc")["entries"]
     vs = embed([doc(e) for e in starred]) if starred else []
 
-    state_path = os.path.join(VAULT, STATE)
-    try:
-        with open(state_path, encoding="utf-8") as fh:
-            state = json.load(fh)
-    except (FileNotFoundError, ValueError):
-        state = {}
+    state_path, rows_path = os.path.join(VAULT, STATE), os.path.join(VAULT, DECISIONS)
+    state, state_old = load(state_path, {})
+    rows, rows_old = load(rows_path, [])
     digest = hashlib.sha256(json.dumps([profile["interests"], profile["noise"], READ_BELOW_PCT]).encode()).hexdigest()[:16]
     age = (now - dt.datetime.fromisoformat(state["at"])).days if state.get("at") else 999
     if state.get("profile") != digest or age >= RECALIBRATE_DAYS:
@@ -234,58 +435,52 @@ def main():
         if cal is None:
             print("feed-sorter: fewer than 50 entries in the last 30 days; too few to calibrate, nothing marked")
             return 0
-        state = {"profile": digest, "at": now.isoformat(), "cal": cal}
+        state.update(profile=digest, at=now.isoformat(), cal=cal)
         print(f"feed-sorter: calibrated on {cal['sample']} entries; cut-off {cal['cut']:+.2f} "
               f"(the {READ_BELOW_PCT:.0f}th percentile)")
-        vl.atomic_write(state_path, json.dumps(state, indent=1) + "\n")
+        state_old = save(state_path, state_text(state), state_old)  # now: measuring is the slow part
     cal = state["cal"]
 
-    # New arrivals: an unread entry's changed_at is the moment Miniflux stored it.
-    since = int((now - dt.timedelta(hours=WINDOW_H)).timestamp())
-    batch = entries(f"categories/{cat}/entries?status=unread&changed_after={since}&order=published_at&direction=desc")
+    batch, waiting = fetch_new(cat, state.get("last_id"), now)
     if not batch:
         print("feed-sorter: no new unread entries")
-        return 0
-    # Titles already seen this week (read or unread), to catch the same story posted twice.
-    week = int((now - dt.timedelta(days=7)).timestamp())
-    ids = {e["id"] for e in batch}
-    seen = {title_key(e) for e in entries(f"categories/{cat}/entries?published_after={week}") if e["id"] not in ids}
-    drop, watched, to_score = {}, [], []
-    for e in sorted(batch, key=lambda e: e["id"]):
-        k, hit = title_key(e), watch_hit(e, patterns)
-        if hit:
-            watched.append(e)
-        elif k in seen:
-            drop[e["id"]] = "duplicate"
-        elif not is_english(e):
-            drop[e["id"]] = "non-English"
-        else:
-            to_score.append(e)
-        seen.add(k)
-    kept = []
-    for r in raw_scores(to_score, vs, vi, vn, cal["star"][0]):
-        s = final(r, cal)
-        if s < cal["cut"]:
-            drop[r["e"]["id"]] = "low score"
-        else:
-            kept.append((s, r["e"]))
-    kept.sort(key=lambda x: -x[0])
-    by_id = {e["id"]: e for e in batch}
-    # Titles and feeds only in the log: never the watchlist names themselves.
-    for s, e in kept[:8]:
-        print(f"  keep {s:+.2f}  {e['title'][:90]}  [{e['feed']['title'][:28]}]")
-    for i, why in list(drop.items())[:8]:
-        print(f"  read ({why})  {by_id[i]['title'][:80]}  [{by_id[i]['feed']['title'][:28]}]")
-    if drop and not vl.DRY:
-        todo = list(drop)
-        for i in range(0, len(todo), 200):
-            api("entries", {"entry_ids": todo[i:i + 200], "status": "read"}, "PUT")
-    reasons = {}
-    for why in drop.values():
-        reasons[why] = reasons.get(why, 0) + 1
-    print(f"feed-sorter: {len(batch)} new; {len(kept)} left unread by score, {len(watched)} kept by the watchlist, "
-          f"{len(drop)} {'would be ' if vl.DRY else ''}marked read "
-          f"({', '.join(f'{v} {k}' for k, v in sorted(reasons.items())) or 'none'})")
+    else:
+        # Titles of earlier entries this week (read or unread), to catch the same story posted twice.
+        week = int((now - dt.timedelta(days=7)).timestamp())
+        ids = {e["id"] for e in batch}
+        seen = {title_key(e) for e in entries(f"categories/{cat}/entries?published_after={week}")
+                if e["id"] not in ids and e["id"] < batch[-1]["id"]}
+        decided = decide(batch, seen, patterns, vs, vi, vn, cal)
+        kept = sorted(((s, e) for e, d, s in decided if d == "keep"), key=lambda x: -x[0])
+        drop = [(e, d) for e, d, _ in decided if d in READ]
+        # Titles and feeds only in the log: never the watchlist names themselves.
+        for s, e in kept[:8]:
+            print(f"  keep {s:+.2f}  {e['title'][:90]}  [{e['feed']['title'][:28]}]")
+        for e, why in drop[:8]:
+            print(f"  read ({why})  {e['title'][:80]}  [{e['feed']['title'][:28]}]")
+        if drop and not vl.DRY:
+            todo = [e["id"] for e, _ in drop]
+            for i in range(0, len(todo), 200):
+                api("entries", {"entry_ids": todo[i:i + 200], "status": "read"}, "PUT")
+        record(state, rows, decided, now)  # after Miniflux took the changes: a failed run is redone
+        reasons = {}
+        for _, why in drop:
+            reasons[why] = reasons.get(why, 0) + 1
+        print(f"feed-sorter: {len(batch)} new; {len(kept)} left unread by score, "
+              f"{sum(d == 'watchlist' for _, d, _ in decided)} kept by the watchlist, "
+              f"{len(drop)} {'would be ' if vl.DRY else ''}marked read "
+              f"({', '.join(f'{v} {k}' for k, v in sorted(reasons.items())) or 'none'})"
+              + (f"; {waiting} more wait for the next run" if waiting else ""))
+
+    today = now.astimezone(vl.TZ).date()
+    prune(state, rows, today)
+    if state.get("review") != today.isoformat():  # the first run of the day
+        review = review_note(state.get("days", {}), rows, {e["id"] for e in starred}, cal["cut"], today)
+        print(f"feed-sorter: {REVIEW}: {vl.write_if_changed(VAULT, REVIEW, review)}")
+        state["review"] = today.isoformat()
+        vl.request_rescan(VAULT, (os.path.dirname(REVIEW),))
+    save(rows_path, rows_text(rows), rows_old)
+    save(state_path, state_text(state), state_old)
     return 0
 
 
