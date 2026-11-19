@@ -105,6 +105,10 @@ spec:
         enabled: true
         size: 50Gi
         storageClass: ceph-rbd
+        # The volume-permissions init container defaults to busybox:latest,
+        # which the restrict-latest-tag policy rejects.
+        image: busybox
+        imageTag: "1.37"
 
     rabbitmq:
       auth:
