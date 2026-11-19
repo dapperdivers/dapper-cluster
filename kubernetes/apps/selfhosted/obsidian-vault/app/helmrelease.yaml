@@ -80,9 +80,11 @@ spec:
           failedJobsHistory: 2
         containers:
           app:
+            # The job scripts live in the private dapperdivers/vault-jobs repo, which builds this
+            # public image with them in /scripts (python:3.15-slim, uid 1000).
             image: &pythonImage
-              repository: python
-              tag: 3.15@sha256:46837ed3105db0029b6d656816185c6258e3b39690532fb782428e0a5fd76182
+              repository: ghcr.io/dapperdivers/vault-jobs
+              tag: 2026.11.19.2@sha256:4dce036f175b7c417aa314220df69af215cf81fdcefdca85b331247ccd9b972a
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -442,7 +444,8 @@ spec:
       # 01:30: copy of the Miniflux configuration into <vault>/System/Miniflux/ (feeds.opml plus
       # miniflux-config.json: settings, category flags, per-feed options; never feed credentials)
       # and Agents/Generated/Feed Health.md. Reads Miniflux with GET requests only and rewrites
-      # a file only when it changed. Restore procedure: the docstring of miniflux-export.py.
+      # a file only when it changed. Restore procedure: the docstring of miniflux-export.py
+      # (in the vault-jobs repository).
       miniflux-export:
         type: cronjob
         cronjob:
@@ -531,23 +534,6 @@ spec:
           feed-sorter: *vaultMount
           night-shift: *vaultMount
           nightwatch: *vaultMount
-      scripts:
-        type: configMap
-        name: vault-scripts
-        advancedMounts:
-          vault-snapshot: &scriptsMount
-            app:
-              - path: /scripts
-                readOnly: true
-          vault-nightly: *scriptsMount
-          vault-weekly-review: *scriptsMount
-          voice-inbox: *scriptsMount
-          reading-inbox: *scriptsMount
-          reading-process: *scriptsMount
-          miniflux-export: *scriptsMount
-          feed-sorter: *scriptsMount
-          night-shift: *scriptsMount
-          nightwatch: *scriptsMount
       tmp:
         type: emptyDir
         advancedMounts:

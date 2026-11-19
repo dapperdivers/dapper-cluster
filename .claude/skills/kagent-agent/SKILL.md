@@ -82,7 +82,8 @@ curl, scripts or services the sandbox lacks (those need `claude-code-tools` plus
    - Claude agents: built-in WebSearch works; built-in WebFetch does not (use `web-fetch`).
    - No bare `{word}` in `kagent-default` prompts (ADK treats it as a variable).
 5. If a script calls it: use `vaultlib.agent_reply()` + `vl.json_from_text()` (see
-   `kubernetes/apps/selfhosted/obsidian-vault/app/resources/`), validate every field, make
+   `scripts/vaultlib.py` in the private `dapperdivers/vault-jobs` repo, which builds the
+   image the vault CronJobs run), validate every field, make
    the agent URL an optional env var so the job still works if the agent is missing, and
    check the caller pod is admitted by `kagent/app/ciliumnetworkpolicy.yaml`.
 

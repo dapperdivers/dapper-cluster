@@ -122,12 +122,6 @@ tasks:
       - flux --namespace {{.NS}} get helmrelease {{.HR}}
       - which flux helm
 
-  check-obsidian-vault:
-    desc: Test the obsidian-vault job scripts and render its HelmRelease with the chart (what CI runs)
-    cmd: "{{.ROOT_DIR}}/scripts/check-obsidian-vault.sh"
-    preconditions:
-      - which python3 helm yq
-
   # https://docs.github.com/en/enterprise-cloud@latest/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/deploying-runner-scale-sets-with-actions-runner-controller#upgrading-arc
   upgrade-arc:
     desc: Upgrade the ARC
