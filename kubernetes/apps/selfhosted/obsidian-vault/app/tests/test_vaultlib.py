@@ -124,5 +124,40 @@ class Wikilink(unittest.TestCase):
         self.assertEqual(vl.wikilink("Attachments/plan.pdf"), "[[Attachments/plan.pdf]]")
 
 
+class NoteSections(unittest.TestCase):
+    TEXT = """---
+type: reference
+---
+
+- a bullet above the first heading is ignored
+
+## Soups
+
+- leek and potato
+* minestrone
+Not a bullet.
+  - nested still counts
+
+### A deeper heading does not start a section
+
+## Empty one
+
+## SOUPS
+
+-   tomato
+"""
+
+    def test_bullets_by_lower_cased_heading(self):
+        self.assertEqual(vl.note_sections(self.TEXT), {
+            "soups": ["leek and potato", "minestrone", "nested still counts", "tomato"], "empty one": []})
+
+    def test_no_headings(self):
+        self.assertEqual(vl.note_sections("Just prose.\n- and a bullet\n"), {})
+        self.assertEqual(vl.note_sections(""), {})
+
+    def test_frontmatter_is_not_read_as_a_section(self):
+        self.assertEqual(vl.note_sections("---\ntags:\n  - a\n---\n## Real\n- one\n"), {"real": ["one"]})
+
+
 if __name__ == "__main__":
     unittest.main()

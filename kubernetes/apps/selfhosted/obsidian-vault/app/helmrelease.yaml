@@ -219,6 +219,8 @@ spec:
               # Optional sections: without its URL a section is skipped.
               SECURITY_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/security-brief
               FEEDS_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/feeds-digest
+              # The category the feed-sorter job pre-filters: the digest reads only what it left unread there.
+              SORTED_CATEGORY: &sortedCategory Security firehose
               GAPS_PER_NIGHT: "3"
               CURATED_PER_NIGHT: "2" # raise once the zettel quality has been reviewed
               BUDGET_MINUTES: "75"
@@ -388,7 +390,7 @@ spec:
             env:
               <<: *jobEnv
               EMBED_MODEL: embeddinggemma
-              SORT_CATEGORY: Security firehose
+              SORT_CATEGORY: *sortedCategory
               # Entries scoring below this percentile of a 30-day sample are marked read.
               READ_BELOW_PCT: "50"
               MINIFLUX_URL: http://miniflux.selfhosted.svc.cluster.local:8080

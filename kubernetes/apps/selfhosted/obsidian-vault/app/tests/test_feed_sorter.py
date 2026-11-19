@@ -65,6 +65,13 @@ class ReadProfile(unittest.TestCase):
     def test_the_starter_note_has_nothing_to_score_against(self):
         self.assertEqual(fs.read_profile(fs.STARTER), {"interests": [], "noise": [], "watchlist": []})
 
+    def test_sections_of_other_jobs_change_nothing(self):
+        # night-shift.py reads "## Priority categories" from the same note.
+        extra = PROFILE + "\n## Priority categories\n\n- Example category\n\n## Interests\n\n- soup\n"
+        expected = fs.read_profile(PROFILE)
+        expected["interests"] = expected["interests"] + ["soup"]
+        self.assertEqual(fs.read_profile(extra), expected)
+
     def test_note_without_frontmatter_or_sections(self):
         self.assertEqual(fs.read_profile("## interests\n- soup\n")["interests"], ["soup"])
         self.assertEqual(fs.read_profile("Just prose.\n"), {"interests": [], "noise": [], "watchlist": []})

@@ -12,6 +12,7 @@ private vault, in PROFILE_NOTE, with three sections of bullets:
   ## Interests   one topic per bullet; an entry is scored by its nearest one
   ## Noise       kinds of entry to push down
   ## Watchlist   names (companies, products); an entry that mentions one is always kept
+Any other section is ignored here ("## Priority categories" is read by night-shift.py).
 If the note does not exist the job writes a starter with placeholder bullets and does
 nothing else until the owner has edited it.
 
@@ -174,18 +175,12 @@ def title_key(e):
 
 
 def read_profile(text):
-    """{'interests': [...], 'noise': [...], 'watchlist': [...]} from the note's ## sections."""
-    _, body, _ = vl.split_frontmatter(text)
-    out, key = {"interests": [], "noise": [], "watchlist": []}, None
-    for line in body.split("\n"):
-        h = re.match(r"^##\s+(.+?)\s*$", line)
-        if h:
-            key = h.group(1).strip().lower()
-            continue
-        b = re.match(r"^\s*[-*]\s+(.+?)\s*$", line)
-        if b and key in out and PLACEHOLDER not in b.group(1):
-            out[key].append(b.group(1))
-    return out
+    """{'interests': [...], 'noise': [...], 'watchlist': [...]} from the note's ## sections.
+    Sections with any other heading are not the sorter's and are ignored (night-shift.py
+    reads "## Priority categories" from the same note)."""
+    sections = vl.note_sections(text)
+    return {key: [b for b in sections.get(key, []) if PLACEHOLDER not in b]
+            for key in ("interests", "noise", "watchlist")}
 
 
 def watch_hit(e, patterns):
