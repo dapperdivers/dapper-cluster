@@ -84,7 +84,7 @@ spec:
             # public image with them in /scripts (python:3.15-slim, uid 1000).
             image: &pythonImage
               repository: ghcr.io/dapperdivers/vault-jobs
-              tag: 2026.11.19.2@sha256:4dce036f175b7c417aa314220df69af215cf81fdcefdca85b331247ccd9b972a
+              tag: 2026.11.19.5@sha256:16385292836b3db06ee999288aece14f2cbad72e652bd79988129c680983ea9e
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -412,6 +412,10 @@ spec:
       # related notes, a filing folder and ideas worth keeping. The script validates the
       # answer and never edits a note touched in the last few minutes. At most five
       # articles a run; on a usage limit it stops and picks up next hour.
+      # READING_AUTOFILE: a note that has its digest is then moved, by the next run, out of
+      # the inbox into the folder the agent chose (Library/Reading when it chose none). Nobody
+      # reviews the move: a starred article counts as read. Remove the setting to go back to
+      # filing by hand; notes already moved stay where they are.
       reading-process:
         type: cronjob
         cronjob:
@@ -435,6 +439,7 @@ spec:
             env:
               <<: *jobEnv
               READING_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/reading-processor
+              READING_AUTOFILE: "true"
               SYNCTHING_URL: *syncthingUrl
               SYNCTHING_API_KEY: *syncthingKey
             resources: *jobResources
