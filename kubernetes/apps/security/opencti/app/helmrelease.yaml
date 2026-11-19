@@ -302,3 +302,64 @@ spec:
             memory: 128Mi
           limits:
             memory: 256Mi
+
+      # Publicly claimed ransomware victims with group, date, country and
+      # sector: the trend line for who is hitting transportation. Starts from
+      # now (no history backfill); leak-site domains and post links are off.
+      ransomwarelive:
+        enabled: true
+        env:
+          CONNECTOR_ID: 69f15add-d7ee-4f54-8309-95c0c98a0789
+          CONNECTOR_NAME: Ransomware.live
+          CONNECTOR_SCOPE: identity,location,intrusion-set,report,relationship
+          CONNECTOR_LOG_LEVEL: info
+          CONNECTOR_DURATION_PERIOD: PT12H
+          RANSOMWARELIVE_API_BASE_URL: https://api.ransomware.live/v2
+          RANSOMWARELIVE_CREATE_THREAT_ACTOR: "false"
+          RANSOMWARELIVE_CREATE_INTRUSION_SET: "true"
+          RANSOMWARELIVE_CREATE_CAMPAIGN: "false"
+          RANSOMWARELIVE_CREATE_REPORT: "true"
+          RANSOMWARELIVE_CREATE_LEAK_SITE_DOMAINS: "false"
+          RANSOMWARELIVE_CREATE_LEAK_POST_REFS: "false"
+          RANSOMWARELIVE_PULL_HISTORY: "false"
+          RANSOMWARELIVE_MARKING_VALUE: TLP:CLEAR
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+
+      # OTX pulses as reports, kept narrow: only pulses since 2026-11-01,
+      # once a day, no observables and no file hashes. The retired deployment
+      # pulled everything since 2024 with observables and needed 8Gi.
+      alienvault:
+        enabled: true
+        env:
+          CONNECTOR_ID: 8bbae241-6289-4faf-b7d6-7503bed50bbc
+          CONNECTOR_NAME: AlienVault OTX
+          CONNECTOR_SCOPE: alienvault
+          CONNECTOR_LOG_LEVEL: info
+          CONNECTOR_DURATION_PERIOD: PT24H
+          ALIENVAULT_BASE_URL: https://otx.alienvault.com
+          ALIENVAULT_TLP: White
+          ALIENVAULT_PULSE_START_TIMESTAMP: "2026-11-01T00:00:00Z"
+          ALIENVAULT_REPORT_TYPE: threat-report
+          ALIENVAULT_REPORT_STATUS: New
+          ALIENVAULT_CREATE_OBSERVABLES: "false"
+          ALIENVAULT_CREATE_INDICATORS: "true"
+          ALIENVAULT_EXCLUDED_PULSE_INDICATOR_TYPES: FileHash-MD5,FileHash-SHA1,FileHash-SHA256,FileHash-PEHASH,FileHash-IMPHASH
+          ALIENVAULT_GUESS_MALWARE: "true"
+          ALIENVAULT_GUESS_CVE: "true"
+          ALIENVAULT_ENABLE_RELATIONSHIPS: "true"
+          ALIENVAULT_ENABLE_ATTACK_PATTERNS_INDICATES: "false"
+        envFromSecrets:
+          ALIENVAULT_API_KEY:
+            name: *secret
+            key: OPENCTI_ALIENVAULT_API_KEY
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
