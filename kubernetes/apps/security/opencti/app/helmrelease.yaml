@@ -199,3 +199,106 @@ spec:
             memory: 128Mi
           limits:
             memory: 256Mi
+      # Reference data: sectors, countries and regions, so reports can be tied
+      # to an industry or geography. Small, refreshed weekly.
+      opencti:
+        enabled: true
+        env:
+          CONNECTOR_ID: 8058d2e0-3d45-492f-a8f3-9c365a58372d
+          CONNECTOR_NAME: OpenCTI Datasets
+          CONNECTOR_SCOPE: marking-definition,identity,location
+          CONNECTOR_LOG_LEVEL: info
+          CONFIG_SECTORS_FILE_URL: https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/sectors.json
+          CONFIG_GEOGRAPHY_FILE_URL: https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/geography.json
+          CONFIG_COMPANIES_FILE_URL: https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/companies.json
+          CONFIG_REMOVE_CREATOR: "false"
+          CONFIG_INTERVAL: "7"
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+
+      # Look-ups that run only when asked for from an observable's page
+      # (CONNECTOR_AUTO off), so they add no background load.
+      shodan:
+        enabled: true
+        env:
+          CONNECTOR_ID: 82b58916-a654-4cd4-81de-700eb72a5c94
+          CONNECTOR_NAME: Shodan
+          CONNECTOR_SCOPE: ipv4-addr,indicator
+          CONNECTOR_AUTO: "false"
+          CONNECTOR_LOG_LEVEL: info
+        envFromSecrets:
+          SHODAN_TOKEN:
+            name: *secret
+            key: SHODAN_API_KEY
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+
+      shodan-internetdb:
+        enabled: true
+        env:
+          CONNECTOR_ID: 73d4fdfa-0e8f-498c-894a-6f09d9973410
+          CONNECTOR_NAME: Shodan InternetDB
+          CONNECTOR_SCOPE: IPv4-Addr
+          CONNECTOR_AUTO: "false"
+          CONNECTOR_LOG_LEVEL: info
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+
+      # Upload a report (PDF, HTML, text, Word) and extract its indicators,
+      # CVEs and techniques. Results are reviewed before they are imported.
+      import-document:
+        enabled: true
+        env:
+          CONNECTOR_ID: efc80ccb-605f-486a-8505-102861b9e17a
+          CONNECTOR_NAME: ImportDocument
+          CONNECTOR_SCOPE: application/pdf,text/plain,text/csv,text/html,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document
+          CONNECTOR_AUTO: "false"
+          CONNECTOR_VALIDATE_BEFORE_IMPORT: "true"
+          CONNECTOR_LOG_LEVEL: info
+          IMPORT_DOCUMENT_CREATE_INDICATOR: "false"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+      export-file-stix:
+        enabled: true
+        env:
+          CONNECTOR_ID: 0235dd1b-7191-46f1-9272-4e94d82b2a8a
+          CONNECTOR_NAME: ExportFileStix2
+          CONNECTOR_SCOPE: application/vnd.oasis.stix+json
+          CONNECTOR_LOG_LEVEL: info
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+
+      export-file-csv:
+        enabled: true
+        env:
+          CONNECTOR_ID: bbb48bd8-19ea-4c28-b61a-f0829fa82a38
+          CONNECTOR_NAME: ExportFileCsv
+          CONNECTOR_SCOPE: text/csv
+          CONNECTOR_LOG_LEVEL: info
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
