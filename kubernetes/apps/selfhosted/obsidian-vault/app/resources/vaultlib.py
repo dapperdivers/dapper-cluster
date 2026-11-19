@@ -65,6 +65,24 @@ def parse_frontmatter(text):
     return data
 
 
+def note_sections(text):
+    """{lower-cased "## Heading": [its "- " / "* " bullets]} of a note the owner edits as lists
+    under headings (System/Feed Interests.md). Other lines, bullets above the first heading
+    and the frontmatter are ignored; a heading that appears twice keeps one list."""
+    _, body, _ = split_frontmatter(text)
+    out, key = {}, None
+    for line in body.split("\n"):
+        h = re.match(r"^##\s+(.+?)\s*$", line)
+        if h:
+            key = h.group(1).strip().lower()
+            out.setdefault(key, [])
+            continue
+        b = re.match(r"^\s*[-*]\s+(.+?)\s*$", line)
+        if b and key is not None:
+            out[key].append(b.group(1))
+    return out
+
+
 def is_true(v):
     return str(v).lower() in ("true", "yes", "1")
 

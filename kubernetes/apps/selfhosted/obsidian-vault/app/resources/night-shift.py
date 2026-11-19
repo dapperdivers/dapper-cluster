@@ -6,14 +6,20 @@ Morning brief -> Agents/Briefings/Morning/<YYYY-MM-DD>.md
     `security-brief` agent (SECURITY_AGENT_URL; unset = no such section);
   - Feeds: up to FEEDS_MAX_ITEMS entries from the owner's RSS reader published since the
     last successful run (first run 24h, never more than 72h), picked by the kagent
-    `feeds-digest` agent (FEEDS_AGENT_URL; unset = no such section);
+    `feeds-digest` agent (FEEDS_AGENT_URL; unset = no such section). The categories the
+    owner lists under "## Priority categories" in PROFILE_NOTE (a private vault note, read
+    every run) are read first and listed first; in SORTED_CATEGORY, which the feed-sorter
+    job pre-filters, only the entries it left unread are considered;
   - one section per "## Heading" in System/Morning Brief Topics.md (the owner
     edits that note; this job only reads it), each researched by the kagent `claude`
     agent (web search, web-fetch, read-only vault);
   - vault gaps: up to GAPS_PER_NIGHT notes with TODO/TBD/?? markers or a needs-research
     tag (Projects, Library; any area when tagged) are researched
     and answered as "ready to paste" suggestions. Notes are never edited;
-  - links to the night's NightWatch report and new zettels, when there are any.
+  - links to the night's NightWatch report and new zettels, when there are any;
+  - pipeline health: whether the feed sorter, the reading inbox and the Miniflux export are
+    keeping up, read from the files those jobs leave in the vault (no network). Its
+    warnings are repeated under Problems.
 
 Curated-note pass (after the brief): up to CURATED_PER_NIGHT long-form notes from
 CURATED_AREAS (default Projects, Research), oldest first and never twice in a row, get
@@ -43,6 +49,11 @@ FEEDS_URL = os.environ.get("FEEDS_AGENT_URL", "")
 SECURITY_URL = os.environ.get("SECURITY_AGENT_URL", "")
 FEEDS_MAX = int(os.environ.get("FEEDS_MAX_ITEMS", "12"))
 FEEDS_CATEGORIES = os.environ.get("FEEDS_CATEGORIES", "")  # comma-separated Miniflux categories; empty = all
+# The Miniflux category the feed-sorter job pre-filters (its SORT_CATEGORY); empty = none.
+SORTED_CATEGORY = os.environ.get("SORTED_CATEGORY", "Security firehose").strip()
+PROFILE_NOTE = os.environ.get("PROFILE_NOTE", "System/Feed Interests.md")  # the sorter's note
+PRIORITY_HEADING = "priority categories"
+PRIORITY_MAX = 10
 SECURITY_MAX = int(os.environ.get("SECURITY_MAX_ITEMS", "6"))
 TOPICS = os.environ.get("BRIEF_TOPICS_NOTE", "System/Morning Brief Topics.md")
 OUT_DIR = "Agents/Briefings/Morning"
@@ -59,6 +70,18 @@ CURATED_MIN_BYTES = 1500
 ZETTEL_DIR = "Zettels"
 CONFIDENCE = {"high", "medium", "low", "speculative"}
 TAG_OK = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
+# Pipeline health: where the other jobs leave their files, and when to worry.
+SORTER_STATE = os.path.join(vl.GENERATED_DIR, "feed-sorter-state.json")
+SORTER_REVIEW = os.path.join(vl.GENERATED_DIR, "Feed Sorter Review.md")
+FEED_HEALTH = os.path.join(vl.GENERATED_DIR, "Feed Health.md")
+READING_DIR = os.environ.get("READING_DIR", "Inbox/Reading")
+READING_TRIES = os.path.join(READING_DIR, "process-ledger.json")
+READING_MAX_TRIES = 3  # reading-process.py gives up on a note after this many failures
+EXPORT_DIR = os.environ.get("EXPORT_DIR", "System/Miniflux")
+EXPORT_FILES = (os.path.join(EXPORT_DIR, "miniflux-config.json"), os.path.join(EXPORT_DIR, "feeds.opml"), FEED_HEALTH)
+SORTER_STALE_H = 3    # the sorter runs twice an hour
+WAITING_H = 3         # reading-process runs every hour
+EXPORT_STALE_H = 36   # miniflux-export runs every night
 START = time.monotonic()
 
 
@@ -162,24 +185,80 @@ def feeds_since(ledger, now):
     return max(since, now - dt.timedelta(hours=72))
 
 
+def category_name(text):
+    """One Miniflux category name from a bullet the owner wrote: one line, no quoting or
+    Markdown marks (it is quoted inside the request), at most 60 characters."""
+    return " ".join(re.sub(r"[\"`*\[\]]", "", str(text or "")).split())[:60].strip()
+
+
+def priority_categories(vault):
+    """Category names under "## Priority categories" in PROFILE_NOTE, in the owner's order.
+    [] when the note or the section is missing or unreadable: the digest then treats every
+    category alike."""
+    try:
+        with open(os.path.join(vault, PROFILE_NOTE), encoding="utf-8") as fh:
+            bullets = vl.note_sections(fh.read()).get(PRIORITY_HEADING, [])
+    except (OSError, UnicodeDecodeError):
+        return []
+    names = {}
+    for b in bullets:
+        name = category_name(b)
+        if name and "(replace me)" not in name:  # the sorter's placeholder for an unedited bullet
+            names.setdefault(name.lower(), name)
+    return list(names.values())[:PRIORITY_MAX]
+
+
+def feeds_request(now, since, cats, priority=(), sorted_category="", max_items=12):
+    """The text sent to the feeds-digest agent. With no priority categories and no sorted
+    category it asks for every category alike."""
+    text = (
+        f"Feeds digest for my morning brief. Now: {now:%Y-%m-%d %H:%M} UTC. Since: "
+        f"{since:%Y-%m-%d %H:%M} UTC (published_after={int(since.timestamp())}). Categories: {cats}.\n"
+        f"Read the entries published since then and pick at most {max_items} worth my time, most "
+        "important first.\n")
+    if priority:
+        text += (
+            "Priority categories: " + ", ".join(f'"{c}"' for c in priority) + ". Read these before "
+            "any other category, in this order, and read them completely: page through every "
+            "entry published since then before you spend any of your reading limit elsewhere. "
+            "Put the items you pick from them first in \"items\", ahead of the items from the "
+            "other categories. An entry there still has to be worth my time to be picked. If one "
+            "of these names matches no category, say so in \"notes\".\n")
+    if sorted_category:
+        text += (
+            f"Pre-sorted category: \"{category_name(sorted_category)}\". A sorter job has already "
+            "marked the low-value entries there as read, so in this one category read only the "
+            "entries that are still unread: add status=unread to the call (keep published_after) "
+            "and leave its read entries out. For this category only, that replaces your rule of "
+            "ignoring read/unread status; in every other category keep ignoring it. This is "
+            "still reading only: never change the status of an entry.\n")
+    return text + (
+        "Reply with only a JSON object: {\"items\": [{\"category\": \"the entry's Miniflux "
+        "category\", \"title\": \"entry title\", \"feed\": \"feed title\", \"url\": \"entry "
+        "URL\", \"why\": \"one sentence, under 200 characters\"}], \"notes\": \"what you did not "
+        "fully read, or empty\", \"errors\": [\"tool failures\"]}. Copy title, feed and url from "
+        "the tool results. Use an empty items list if nothing matters. Never invent items.")
+
+
+def priority_first(rows, priority):
+    """The items of the priority categories first (in the owner's order), then the rest;
+    the agent's own order is kept within each. Makes the order sure whatever the agent did."""
+    rank = {c.lower(): i for i, c in enumerate(priority)}
+    return sorted(rows, key=lambda it: rank.get(" ".join(str(it.get("category") or "").split()).lower(), len(rank)))
+
+
 def feeds_section(ledger):
     """(Markdown bullets grouped by category, problems). Moves ledger["feeds_since"] forward
     only when the agent's answer was usable, so a failed night is covered by the next one."""
     now = dt.datetime.now(dt.timezone.utc)
     since = feeds_since(ledger, now)
     cats = ", ".join(c.strip() for c in FEEDS_CATEGORIES.split(",") if c.strip()) or "all"
-    raw = ask(
-        f"Feeds digest for my morning brief. Now: {now:%Y-%m-%d %H:%M} UTC. Since: "
-        f"{since:%Y-%m-%d %H:%M} UTC (published_after={int(since.timestamp())}). Categories: {cats}.\n"
-        f"Read the entries published since then and pick at most {FEEDS_MAX} worth my time, most "
-        "important first.\n"
-        "Reply with only a JSON object: {\"items\": [{\"category\": \"the entry's Miniflux "
-        "category\", \"title\": \"entry title\", \"feed\": \"feed title\", \"url\": \"entry "
-        "URL\", \"why\": \"one sentence, under 200 characters\"}], \"notes\": \"what you did not "
-        "fully read, or empty\", \"errors\": [\"tool failures\"]}. Copy title, feed and url from "
-        "the tool results. Use an empty items list if nothing matters. Never invent items.",
-        timeout=600, url=FEEDS_URL)
+    priority = priority_categories(VAULT)
+    print(f"feeds: {len(priority)} priority categor{'y' if len(priority) == 1 else 'ies'} from the vault; "
+          f"pre-sorted category {'set' if SORTED_CATEGORY else 'not set'}")  # counts only: the names are private
+    raw = ask(feeds_request(now, since, cats, priority, SORTED_CATEGORY, FEEDS_MAX), timeout=600, url=FEEDS_URL)
     data, rows = reply_items(raw)
+    rows = priority_first(rows, priority)
     groups, seen = {}, set()
     for it in rows:
         url, title = http_url(it.get("url")), plain(it.get("title"), 160)
@@ -422,6 +501,150 @@ def overnight(today):
     return lines
 
 
+def load_json(path):
+    """(the JSON object in a file, None), or (None, why not: "missing" or "unreadable")."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        return None, "missing"
+    except (OSError, ValueError):
+        return None, "unreadable"
+    return (data, None) if isinstance(data, dict) else (None, "unreadable")
+
+
+def when(value):
+    """An ISO date-and-time string as an aware datetime (UTC when it names no zone), else
+    None. A bare date is None too: it says too little about how long ago."""
+    if not isinstance(value, str) or len(value) < 16:
+        return None
+    try:
+        t = dt.datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)
+
+
+def count(value):
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else 0
+
+
+def ago(delta):
+    hours = delta.total_seconds() / 3600
+    return f"{hours:.0f} h" if hours < 48 else f"{hours / 24:.0f} d"
+
+
+def sorter_health(vault, now):
+    """(one line, warnings) from the feed sorter's state file: yesterday's counts, and a
+    warning when the file is missing or the sorter has handled nothing for SORTER_STALE_H
+    hours (`last_run` is its last run that found new entries)."""
+    state, why = load_json(os.path.join(vault, SORTER_STATE))
+    if state is None:
+        return (f"Feed sorter: no data (state file {why}).",
+                [f"Feed sorter: state file {SORTER_STATE} is {why}; is the job running?"])
+    yday = (now.astimezone(vl.TZ).date() - dt.timedelta(days=1)).isoformat()
+    days = state.get("days") if isinstance(state.get("days"), dict) else {}
+    day = days.get(yday)
+    if isinstance(day, dict):
+        unread = count(day.get("kept_score")) + count(day.get("kept_watchlist"))
+        read = sum(count(v) for k, v in day.items() if str(k).startswith("read_"))
+        line = f"Feed sorter: yesterday {count(day.get('new'))} new, {unread} left unread, {read} marked read."
+    else:
+        line = f"Feed sorter: no counts for yesterday ({yday})."
+    last = when(state.get("last_run"))
+    if last is None:
+        return line, ["Feed sorter: the state file records no last run."]
+    if now - last > dt.timedelta(hours=SORTER_STALE_H):
+        return line, [f"Feed sorter: has handled no new entry for {ago(now - last)} "
+                      f"(last: {last.astimezone(vl.TZ):%a %H:%M}); it runs twice an hour."]
+    return line, []
+
+
+def reading_health(vault, now):
+    """(one line, warnings) from the article notes in READING_DIR: added in the last 24 h,
+    processed, waiting; a warning for notes waiting more than WAITING_H hours and for notes
+    reading-process.py gave up on."""
+    folder = os.path.join(vault, READING_DIR)
+    try:
+        names = sorted(n for n in os.listdir(folder) if n.endswith(".md"))
+    except OSError:
+        return f"Reading inbox: no data (no {READING_DIR} folder).", []
+    tries, _ = load_json(os.path.join(vault, READING_TRIES))  # missing or unreadable: no failures known
+    tries = tries or {}
+    added = done = 0
+    waiting, gave_up = [], []
+    for name in names:
+        path = os.path.join(folder, name)
+        try:
+            with open(path, encoding="utf-8") as fh:
+                meta = vl.parse_frontmatter(fh.read(8192))
+            created = when(meta.get("created")) or dt.datetime.fromtimestamp(os.path.getmtime(path), dt.timezone.utc)
+        except (OSError, UnicodeDecodeError):
+            continue
+        if meta.get("type") != "article":
+            continue
+        recent = now - created <= dt.timedelta(hours=24)
+        added += recent
+        if meta.get("processed"):
+            done += recent
+        elif count(tries.get(name)) >= READING_MAX_TRIES:
+            gave_up.append((created, name))
+        else:
+            waiting.append((created, name))
+    line = (f"Reading inbox: {added} added in the last 24 h, {done} of them processed; "
+            f"{len(waiting)} waiting" + (f", {len(gave_up)} given up" if gave_up else "") + ".")
+    warnings = []
+    late = sorted(w for w in waiting if now - w[0] > dt.timedelta(hours=WAITING_H))
+    if late:
+        warnings.append(f"Reading inbox: {len(late)} article(s) waiting more than {WAITING_H} h to be processed "
+                        f"(oldest {ago(now - late[0][0])}: {vl.wikilink(late[0][1])}).")
+    if gave_up:
+        warnings.append(f"Reading inbox: {len(gave_up)} article(s) given up after {READING_MAX_TRIES} failed "
+                        f"attempts (e.g. {vl.wikilink(sorted(gave_up)[0][1])}).")
+    return line, warnings
+
+
+def export_health(vault, now):
+    """Warnings about the nightly Miniflux export: the configuration copy is missing, or
+    none of the export's files changed for EXPORT_STALE_H hours. The job rewrites a file
+    only when its content changed, so the newest of its files is what shows a recent run
+    (the Feed Health note carries counts that move every day)."""
+    times = []
+    for rel in EXPORT_FILES:
+        try:
+            times.append(os.path.getmtime(os.path.join(vault, rel)))
+        except OSError:
+            pass
+    warnings = []
+    if not os.path.isfile(os.path.join(vault, EXPORT_FILES[0])):
+        warnings.append(f"Miniflux export: {EXPORT_FILES[0]} is missing; there is no copy of the reader's configuration.")
+    if times:
+        age = now - dt.datetime.fromtimestamp(max(times), dt.timezone.utc)
+        if age > dt.timedelta(hours=EXPORT_STALE_H):
+            warnings.append(f"Miniflux export: nothing written for {ago(age)}; it runs every night.")
+    return warnings
+
+
+def pipeline_health(vault, now):
+    """(Markdown bullets for the brief, warnings to repeat under Problems). `now` is an
+    aware datetime. Reads only files in the vault and never raises: whatever cannot be
+    read becomes a "no data" line."""
+    try:
+        sorter, warnings = sorter_health(vault, now)
+        reading, more = reading_health(vault, now)
+        warnings = warnings + more + export_health(vault, now)
+        lines = [f"- **Warning:** {w}" for w in warnings] or [
+            "- All well: the feed sorter, the reading inbox and the Miniflux export are keeping up."]
+        lines += [f"- {sorter}", f"- {reading}"]
+        notes = [vl.wikilink(rel, os.path.basename(rel)[:-3]) for rel in (FEED_HEALTH, SORTER_REVIEW)
+                 if os.path.isfile(os.path.join(vault, rel))]
+        if notes:
+            lines.append("- Details: " + ", ".join(notes))
+        return lines, warnings
+    except Exception as e:  # a health check must never cost the brief
+        return [f"- No data: the pipeline health check failed ({type(e).__name__})."], []
+
+
 def main():
     if not vl.vault_ready(VAULT) or not AGENT_URL:
         return 0
@@ -525,6 +748,11 @@ def main():
     ov = overnight(today)
     if ov:
         b += ["## Overnight", ""] + ov + [""]
+    health, warnings = pipeline_health(VAULT, dt.datetime.now(dt.timezone.utc))
+    b += ["## Pipeline health", ""] + health + [""]
+    problems += warnings
+    if warnings:
+        print(f"pipeline health: {len(warnings)} warning(s)", file=sys.stderr)
     if problems:
         b += ["## Problems", ""] + [f"- {p[:300]}" for p in problems] + [""]
 
