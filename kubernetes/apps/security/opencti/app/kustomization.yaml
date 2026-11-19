@@ -7,3 +7,13 @@ resources:
   - ./externalsecret.yaml
   - ./ocirepository.yaml
   - ./helmrelease.yaml
+  - ./feed-sync-cronjob.yaml
+configMapGenerator:
+  # Hashed: a script change renames it and the CronJob picks up the new name.
+  - name: opencti-feed-sync
+    files:
+      - feed-sync.py=./config/feed-sync.py
+    options:
+      annotations:
+        # Keep ${...} in the script out of Flux postBuild substitution.
+        kustomize.toolkit.fluxcd.io/substitute: disabled
