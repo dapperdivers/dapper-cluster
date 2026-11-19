@@ -1,0 +1,156 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: opencti
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: opencti
+  timeout: 30m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    fullnameOverride: opencti
+
+    # This deployment is deliberately small. The previous one was retired
+    # (#4527) because OpenSearch read ~760 MiB/s from Ceph: 20 GB of indices
+    # against ~1 GB of page cache. So: few connectors, one worker, and an
+    # OpenSearch memory limit well above its heap so the index stays cached.
+
+    opencti:
+      adminEmail: admin@chelonianlabs.com
+      adminPasswordExistingSecret:
+        name: &secret opencti-secret
+        key: OPENCTI_ADMIN_PASSWORD
+      adminTokenExistingSecret:
+        name: *secret
+        key: OPENCTI_ADMIN_TOKEN
+      encryptionKeyExistingSecret:
+        name: *secret
+        key: OPENCTI_ENCRYPTION_KEY
+
+    server:
+      nodeOptions: "--max-old-space-size=4096"
+      # Cap the Redis event stream (stream.opencti). The default of 2,000,000
+      # entries at ~3.5 KB each can exceed 5 GB and fill the shared Dragonfly,
+      # which then rejects writes for every tenant. 200k entries is ~700 MB.
+      extraEnv:
+        - name: REDIS__TRIMMING
+          value: "200000"
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2Gi
+        limits:
+          memory: 4Gi
+      route:
+        enabled: true
+        parentRefs:
+          - name: internal
+            namespace: network
+        hostnames: ["opencti.${SECRET_DOMAIN}"]
+
+    worker:
+      replicaCount: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+
+    serviceMonitor:
+      enabled: true
+
+    # Shared Dragonfly in the database namespace (passwordless).
+    externalRedis:
+      hostname: dragonfly.database.svc.cluster.local
+
+    # Garage; the bucket and key come from storage/garage's provision Job.
+    rustfs:
+      enabled: false
+    externalS3:
+      enabled: true
+      endpoint: garage.storage.svc.cluster.local
+      port: 3900
+      region: us-east-1
+      bucketName: opencti
+      existingSecret:
+        name: *secret
+        accessKeyKey: S3_ACCESS_KEY
+        secretKeyKey: S3_SECRET_KEY
+
+    opensearch:
+      replicas: 1
+      sysctlInit:
+        enabled: false
+      # Heap stays at 2 GB; the rest of the 8Gi limit is page cache for the
+      # index files. request == limit so the cache is not squeezed by neighbours.
+      opensearchJavaOpts: "-Xms2g -Xmx2g"
+      resources:
+        requests:
+          cpu: 500m
+          memory: 8Gi
+        limits:
+          memory: 8Gi
+      persistence:
+        enabled: true
+        size: 50Gi
+        storageClass: ceph-rbd
+
+    rabbitmq:
+      auth:
+        existingSecret:
+          name: *secret
+          key: OPENCTI_RABBITMQ_PASSWORD
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: ceph-rbd
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+
+    # Low-volume feeds only. Left out on purpose: AlienVault (needed 8Gi),
+    # MalwareBazaar, URLhaus and ThreatFox (two-hourly), EPSS (rewrites every
+    # CVE daily) and CVE (bulk import; needs an NVD API key in /OpenCTI).
+    connectors:
+      cisa-known-exploited-vulnerabilities:
+        enabled: true
+        env:
+          CONNECTOR_ID: 07cadcfd-3f09-412a-ad19-478c84086178
+          CONNECTOR_NAME: CISA Known Exploited Vulnerabilities
+          CONNECTOR_SCOPE: cisa
+          CONNECTOR_LOG_LEVEL: info
+          CONNECTOR_DURATION_PERIOD: PT24H
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+      mitre:
+        enabled: true
+        env:
+          CONNECTOR_ID: fabbfeb2-633c-42c6-b812-287d35df008b
+          CONNECTOR_NAME: MITRE ATT&CK
+          CONNECTOR_SCOPE: tool,report,malware,identity,campaign,intrusion-set,attack-pattern,course-of-action,x-mitre-data-source,x-mitre-data-component,x-mitre-matrix,x-mitre-tactic,x-mitre-collection
+          CONNECTOR_LOG_LEVEL: info
+          CONNECTOR_DURATION_PERIOD: P7D
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
