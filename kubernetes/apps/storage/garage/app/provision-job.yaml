@@ -32,6 +32,7 @@ spec:
               value: >-
                 cloudnative-pg:CNPG
                 cloudnative-pg:OFFSITE:ro
+                opencti:OPENCTI
           envFrom:
             - secretRef:
                 name: garage-secret

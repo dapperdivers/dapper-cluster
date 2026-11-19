@@ -1,0 +1,76 @@
+---
+# Bucket keys that are generated in the cluster instead of typed into
+# Infisical by hand. Each PushSecret asks its generator for a value and writes
+# it to /Infrastructure/Garage. updatePolicy IfNotExists means that happens
+# once: later refreshes (and a rebuilt cluster) leave the stored value alone,
+# so the key Garage imported keeps matching the one the consumer reads.
+# deletionPolicy defaults to None: removing a PushSecret keeps the key.
+#
+# Garage key format: id = "GK" + 24 hex characters, secret = 64 hex characters.
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/generators.external-secrets.io/password_v1alpha1.json
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: garage-opencti-access-key-id
+spec:
+  length: 12
+  symbols: 0
+  encoding: hex
+  prefix: GK
+  secretKeys: [GARAGE_OPENCTI_ACCESS_KEY_ID]
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/generators.external-secrets.io/password_v1alpha1.json
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: garage-opencti-secret-access-key
+spec:
+  length: 32
+  symbols: 0
+  encoding: hex
+  secretKeys: [GARAGE_OPENCTI_SECRET_ACCESS_KEY]
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: garage-opencti-access-key-id
+spec:
+  refreshInterval: 1h
+  updatePolicy: IfNotExists
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: infisical
+  selector:
+    generatorRef:
+      apiVersion: generators.external-secrets.io/v1alpha1
+      kind: Password
+      name: garage-opencti-access-key-id
+  data:
+    - match:
+        secretKey: GARAGE_OPENCTI_ACCESS_KEY_ID
+        remoteRef:
+          remoteKey: /Infrastructure/Garage/GARAGE_OPENCTI_ACCESS_KEY_ID
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: garage-opencti-secret-access-key
+spec:
+  refreshInterval: 1h
+  updatePolicy: IfNotExists
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: infisical
+  selector:
+    generatorRef:
+      apiVersion: generators.external-secrets.io/v1alpha1
+      kind: Password
+      name: garage-opencti-secret-access-key
+  data:
+    - match:
+        secretKey: GARAGE_OPENCTI_SECRET_ACCESS_KEY
+        remoteRef:
+          remoteKey: /Infrastructure/Garage/GARAGE_OPENCTI_SECRET_ACCESS_KEY
