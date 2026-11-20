@@ -129,11 +129,13 @@ The live agents are the files listed in `kagent/agents/kustomization.yaml`:
 | `flux-ops`          | `default-model-config` (local) | `kagent-default`    | `kagent-tool-server` (4 read tools)              | The owner or a working session, by hand (below).                                                 |
 
 Every Claude agent also lists the `claude-subscription` EgressPolicy. The vault jobs are the
-CronJobs of `selfhosted/obsidian-vault`; each calls its agent over A2A at
+CronJobs of the `vault-jobs` HelmRelease (`selfhosted/obsidian-vault/jobs`); each calls its
+agent over A2A at
 `http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/<agent>`. The
-`kagent-controller` network policy (`kagent/app/ciliumnetworkpolicy.yaml`) admits exactly four
-of those job controllers: `voice-inbox`, `night-shift`, `nightwatch` and `reading-process`.
-A new job that calls an agent has to be added there. The reading pipeline's side of this is in
+`kagent-controller` network policy (`kagent/app/ciliumnetworkpolicy.yaml`) admits pods in
+`selfhosted` that carry the label `kagent-client: "true"`; today four job controllers set it:
+`voice-inbox`, `night-shift`, `nightwatch` and `reading-process`. A new job that calls an
+agent sets the same label (`pod.labels: *callsAgents`); the policy needs no change. The reading pipeline's side of this is in
 `kubernetes/apps/selfhosted/obsidian-vault/README.md`.
 
 ### `flux-ops` (read-only Flux sweep)

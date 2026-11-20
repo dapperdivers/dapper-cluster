@@ -1,0 +1,387 @@
+---
+# The scheduled vault jobs, one CronJob per controller (`vault-jobs-<job>`). The scripts live
+# in the private dapperdivers/vault-jobs repo, which builds the public image they run from.
+#
+# To add a job: copy a controller below and change its name, schedule, deadline, `args` and
+# `env`. `args` names the script(s) in the image without ".py"; the image's entrypoint runs
+# them once for every vault under /vaults. Everything else comes from this file's shared
+# parts: the pod security context (defaultPodOptions), the vault and /tmp mounts
+# (persistence, globalMounts) and the anchors on the first controller.
+# A job that calls a kagent agent also sets `pod.labels: *callsAgents`: the kagent-controller
+# network policy admits pods in this namespace that carry that label.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vault-jobs
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
+    controllers:
+      # Plain-Markdown views of each vault (Vault Snapshot + Vault Catalog) for agents
+      # that read raw files and can't run Dataview. Rewrites only on change; writes
+      # <file>.tmp then renames (ignored via the vault's .stglobalignore).
+      snapshot:
+        type: cronjob
+        cronjob:
+          schedule: "15 * * * *"
+          timeZone: &timeZone ${TIME_ZONE}
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: &image
+              repository: ghcr.io/dapperdivers/vault-jobs
+              tag: 2026.11.20.7@sha256:6593e37496a51cdd66f645736bd437a6d3012f4b9bfe3d088bc13acbe1b4884a
+            args: [vault-snapshot]
+            env: &jobEnv
+              TZ: *timeZone
+              OUTPUT_DIR: Agents/Generated
+              OLLAMA_URL: http://ollama.ai.svc.cluster.local:11434
+              OLLAMA_MODEL: gemma4:e4b
+            resources: &jobResources
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            securityContext: &jobSecurityContext
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+
+      # Nightly: backfill missing descriptions with the local model, then the health
+      # check (Agents/Generated/Vault Health.md), so it reports what's still missing.
+      nightly:
+        type: cronjob
+        cronjob:
+          schedule: "0 2 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [describe, health]
+            env:
+              <<: *jobEnv
+              MAX_NOTES: "40"
+              MIN_AGE_HOURS: "6"
+              # Rescan right after writing: the hub's watcher misses these pods' writes.
+              SYNCTHING_URL: &syncthingUrl http://obsidian-vault-syncthing:8384
+              SYNCTHING_API_KEY: &syncthingKey
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-secret
+                    key: SYNCTHING_API_KEY
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          # The health check reads volsync ReplicationSource status (the vault-jobs Role below).
+          automountServiceAccountToken: true
+
+      # Sunday morning: Journal/<YYYY>/Weekly/<YYYY>-W<ww> Weekly Review.md for the past week.
+      weekly-review:
+        type: cronjob
+        cronjob:
+          schedule: "0 7 * * 0"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 1800
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [weekly-review]
+            env: *jobEnv
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+
+      # 04:30: Night Shift morning brief on the Claude subscription -> Agents/Briefings/Morning/<date>.md
+      # (Security and Feeds sections from the security-brief and feeds-digest agents, sections
+      # from System/Morning Brief Topics.md, plus vault gap suggestions).
+      night-shift:
+        type: cronjob
+        cronjob:
+          schedule: "30 4 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 5400
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [night-shift]
+            env:
+              <<: *jobEnv
+              CLAUDE_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/night-editor
+              # Optional sections: without its URL a section is skipped.
+              SECURITY_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/security-brief
+              FEEDS_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/feeds-digest
+              # The category the feed-sorter job pre-filters: the digest reads only what it left unread there.
+              SORTED_CATEGORY: &sortedCategory Security firehose
+              GAPS_PER_NIGHT: "3"
+              CURATED_PER_NIGHT: "2" # raise once the zettel quality has been reviewed
+              BUDGET_MINUTES: "75"
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          labels: &callsAgents
+            kagent-client: "true"
+
+      # 03:00: Night Watch cluster triage -> Agents/NightWatch/<date>.md (read-only cluster access;
+      # new findings triaged by the kagent nightwatch agent on local Ollama). Runs before
+      # night-shift (04:30), which links this report; activeDeadlineSeconds keeps it done by 04:00.
+      nightwatch:
+        type: cronjob
+        serviceAccount:
+          name: obsidian-vault-nightwatch # rbac.yaml: read-only, cluster-wide, no Secrets
+        cronjob:
+          schedule: "0 3 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [nightwatch]
+            env:
+              <<: *jobEnv
+              NIGHTWATCH_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/nightwatch
+              ALERTMANAGER_URL: http://kube-prometheus-stack-alertmanager.observability.svc.cluster.local:9093
+              MAX_TRIAGE: "5"
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          labels: *callsAgents
+          automountServiceAccountToken: true
+
+      # Voice drop folder: audio saved anywhere under <vault>/Inbox/Voice/ is transcribed
+      # (Speaches), processed into a note, and moved to Attachments/Voice/.
+      voice-inbox:
+        type: cronjob
+        cronjob:
+          schedule: "*/15 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3000
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [voice-inbox]
+            env:
+              <<: *jobEnv
+              STT_URL: http://speaches.ai.svc.cluster.local:8000
+              STT_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
+              # kagent `voice-processor` agent (Claude subscription) that processes each memo in one call:
+              # summary, tasks with due dates, facts filed per folder, zettels. Unset to process
+              # with the local model and the librarian only; they stay as the fallback.
+              PROCESSOR_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-processor
+              # Fallback: local kagent agent that suggests filing, related notes and zettels.
+              LIBRARIAN_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/voice-librarian
+              BACKFILL_PER_RUN: "2"
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 512Mi # whole recording is read into memory for the upload
+            securityContext: *jobSecurityContext
+        pod:
+          labels: *callsAgents
+
+      # Reading inbox: articles starred in Miniflux become notes under <vault>/Inbox/Reading/
+      # (link, feed and article text). Reads Miniflux with GET requests only; a ledger beside
+      # the notes stops a filed or deleted note being written again. Its own job, so a
+      # failure here never holds up the voice pipeline.
+      reading-inbox:
+        type: cronjob
+        cronjob:
+          schedule: "*/15 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 600
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [reading-inbox]
+            env:
+              <<: *jobEnv
+              MINIFLUX_URL: &minifluxUrl http://miniflux.selfhosted.svc.cluster.local:8080
+              # The chart's schema rejects `optional` on a secretKeyRef: the secret must exist.
+              MINIFLUX_API_KEY: &minifluxKey
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-vault-miniflux-secret
+                    key: MINIFLUX_API_KEY
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+
+      # Feed sorter: scores new entries in the Miniflux "Security firehose" category with the
+      # local embedding model and marks the low half as read, so what stays unread is worth a
+      # look. What counts as interesting (and a watchlist of names) lives in the vault note
+      # System/Feed Interests.md, never in this public repo; without that note the job writes
+      # a starter and does nothing else. It only ever marks entries read.
+      feed-sorter:
+        type: cronjob
+        cronjob:
+          schedule: "10,40 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 1500
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [feed-sorter]
+            env:
+              <<: *jobEnv
+              EMBED_MODEL: embeddinggemma
+              SORT_CATEGORY: *sortedCategory
+              # Entries scoring below this percentile of a 30-day sample are marked read.
+              READ_BELOW_PCT: "50"
+              MINIFLUX_URL: *minifluxUrl
+              MINIFLUX_API_KEY: *minifluxKey
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+
+      # Hourly: each new article note under Inbox/Reading gets a "Digest" section from the
+      # kagent `reading-processor` agent (Claude subscription): summary, why it matters,
+      # related notes, a filing folder and ideas worth keeping. The script validates the
+      # answer and never edits a note touched in the last few minutes. At most five
+      # articles a run; on a usage limit it stops and picks up next hour.
+      # READING_AUTOFILE: a note that has its digest is then moved, by the next run, out of
+      # the inbox into the folder the agent chose (Library/Reading when it chose none). Nobody
+      # reviews the move: a starred article counts as read. Remove the setting to go back to
+      # filing by hand; notes already moved stay where they are.
+      reading-process:
+        type: cronjob
+        cronjob:
+          schedule: "40 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 3300
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [reading-process]
+            env:
+              <<: *jobEnv
+              READING_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/reading-processor
+              READING_AUTOFILE: "true"
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          labels: *callsAgents
+
+      # 01:30: copy of the Miniflux configuration into <vault>/System/Miniflux/ (feeds.opml plus
+      # miniflux-config.json: settings, category flags, per-feed options; never feed credentials)
+      # and Agents/Generated/Feed Health.md. Reads Miniflux with GET requests only and rewrites
+      # a file only when it changed. Restore procedure: the docstring of miniflux-export.py
+      # (in the vault-jobs repository).
+      miniflux-export:
+        type: cronjob
+        cronjob:
+          schedule: "30 1 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 900
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [miniflux-export]
+            env:
+              <<: *jobEnv
+              MINIFLUX_URL: *minifluxUrl
+              MINIFLUX_API_KEY: *minifluxKey
+              EXPORT_DIR: System/Miniflux
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+
+    persistence:
+      # One entry per vault (PVC created by its own Flux Kustomization in ../ks.yaml). Every
+      # job sees every vault.
+      second-brain:
+        existingClaim: obsidian-second-brain
+        globalMounts:
+          - path: /vaults/second-brain
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+
+    # The one service account defined here is the one app-template gives every controller
+    # that names no other. Only nightly mounts its token.
+    serviceAccount:
+      vault-jobs: {}
+
+    rbac:
+      roles:
+        vault-jobs:
+          type: Role
+          rules:
+            - apiGroups: ["volsync.backube"]
+              resources: ["replicationsources"]
+              verbs: ["get", "list"]
+      bindings:
+        vault-jobs:
+          type: RoleBinding
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: Role
+            identifier: vault-jobs
+          subjects:
+            - kind: ServiceAccount
+              identifier: vault-jobs

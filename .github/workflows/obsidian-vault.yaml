@@ -2,10 +2,10 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Obsidian Vault
 
-# Chart render of the obsidian-vault HelmRelease: `kustomize build` never hands the values
-# to the app-template schema, so a value it rejects would only show up in the cluster.
-# Same check locally:
-#   scripts/helm-values-check.sh kubernetes/apps/selfhosted/obsidian-vault/app/helmrelease.yaml
+# Chart render of the obsidian-vault HelmReleases (Syncthing in app/, the vault jobs in
+# jobs/): `kustomize build` never hands the values to the app-template schema, so a value
+# it rejects would only show up in the cluster. Same check locally:
+#   scripts/helm-values-check.sh kubernetes/apps/selfhosted/obsidian-vault/*/helmrelease.yaml
 # The job scripts and their tests live in the private dapperdivers/vault-jobs repository,
 # which builds the image the CronJobs run.
 
@@ -14,6 +14,7 @@ on:
     branches: ["main"]
     paths:
       - kubernetes/apps/selfhosted/obsidian-vault/app/helmrelease.yaml
+      - kubernetes/apps/selfhosted/obsidian-vault/jobs/helmrelease.yaml
       # the chart version the HelmRelease is rendered with
       - kubernetes/flux/components/common/repos/app-template/**
       - scripts/helm-values-check.sh
@@ -50,5 +51,5 @@ jobs:
           # Only the tools this job uses, at the versions .mise.toml pins.
           install_args: aqua:helm/helm aqua:mikefarah/yq
 
-      - name: Render the HelmRelease with its chart
-        run: scripts/helm-values-check.sh kubernetes/apps/selfhosted/obsidian-vault/app/helmrelease.yaml
+      - name: Render the HelmReleases with their chart
+        run: scripts/helm-values-check.sh kubernetes/apps/selfhosted/obsidian-vault/*/helmrelease.yaml

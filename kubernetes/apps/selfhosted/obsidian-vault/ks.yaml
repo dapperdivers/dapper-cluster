@@ -2,7 +2,7 @@
 # One Kustomization per vault: each gets its own PVC (named ${APP}) with hourly local +
 # daily R2 restic backups, and restores itself from backup if the PVC is ever recreated.
 # To add a vault: copy this block + ./vaults/<name>/, then mount it in app/helmrelease.yaml
-# and add the folder in the Syncthing UI. Its restic repo dir (/volsync/<name>) is created
+# (Syncthing) and jobs/helmrelease.yaml (the jobs), and add the folder in the Syncthing UI. Its restic repo dir (/volsync/<name>) is created
 # automatically by the kyverno volsync-repository-mkdir policy when the repository PV appears.
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -40,14 +40,12 @@ spec:
       VOLSYNC_CACHE_CAPACITY: 2Gi
       VOLSYNC_STORAGECLASS: cephfs-shared
       VOLSYNC_SNAPSHOTCLASS: cephfs-snapshot
-      VOLSYNC_ACCESSMODES: ReadWriteMany # Syncthing + vault-snapshot CronJob mount it together
+      VOLSYNC_ACCESSMODES: ReadWriteMany # Syncthing + the vault CronJobs mount it together
       VOLSYNC_PUID: "1000"
       VOLSYNC_PGID: "1000"
 ---
-# Syncthing hub for all vaults + the vault CronJobs (snapshot, nightly descriptions/health,
-# weekly review, voice inbox, night shift, night watch, and the reading pipeline: feed
-# sorter, reading inbox, reading process, Miniflux export; see README.md). Its own PVC holds the
-# Syncthing config/identity (backed up, so the device ID survives a rebuild).
+# Syncthing hub for all vaults. Its own PVC holds the Syncthing config/identity (backed up,
+# so the device ID survives a rebuild). The secrets the jobs below read are here too.
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -85,3 +83,33 @@ spec:
       VOLSYNC_CAPACITY: 1Gi
       VOLSYNC_CACHE_CAPACITY: 1Gi
       VOLSYNC_PGID: "1000"
+---
+# The scheduled vault jobs (HelmRelease `vault-jobs`): snapshot, nightly descriptions/health,
+# weekly review, voice inbox, night shift, night watch, and the reading pipeline: feed
+# sorter, reading inbox, reading process, Miniflux export; see README.md. To add a job, add
+# a controller to jobs/helmrelease.yaml.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app vault-jobs
+  namespace: &namespace selfhosted
+spec:
+  targetNamespace: *namespace
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    # Syncthing, the vault PVCs and the two secrets the jobs read.
+    - name: obsidian-vault
+      namespace: *namespace
+  path: ./kubernetes/apps/selfhosted/obsidian-vault/jobs
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m

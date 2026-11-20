@@ -6,8 +6,9 @@ starred articles into notes, an agent that writes a digest into each note, the F
 Pipeline health sections of the morning brief, and a nightly export of the reader's
 configuration.
 
-The same HelmRelease also runs the Syncthing hub and the other vault jobs (`vault-snapshot`,
-`vault-nightly`, `vault-weekly-review`, `voice-inbox`, `nightwatch`). They are not covered here.
+The same HelmRelease (`vault-jobs`, in `jobs/`) also runs the other vault jobs (`snapshot`,
+`nightly`, `weekly-review`, `voice-inbox`, `nightwatch`); the Syncthing hub is the
+`obsidian-vault` HelmRelease in `app/`. They are not covered here.
 
 > **The scripts are moving.** The job scripts are being moved out of this repository into a
 > private one that builds an image (`dapperdivers/vault-jobs`). This guide therefore names jobs,
@@ -66,8 +67,8 @@ flowchart TD
 
 ## Jobs
 
-All are controllers of the `obsidian-vault` HelmRelease in `selfhosted`; the CronJob is named
-`obsidian-vault-<job>`. Schedules are in `${TIME_ZONE}` from the cluster settings
+All are controllers of the `vault-jobs` HelmRelease in `selfhosted`; the CronJob is named
+`vault-jobs-<job>`. Schedules are in `${TIME_ZONE}` from the cluster settings
 (`America/Chicago`). Every job has `concurrencyPolicy: Forbid`, keeps one successful and two
 failed Jobs, skips a vault that has no `.stfolder` marker (not synced yet), and asks the
 Syncthing hub for a rescan after writing.
@@ -199,7 +200,7 @@ today): `SORT_MAX_PER_RUN` (1500 entries a run), `SORT_WINDOW_HOURS` (3, first r
 
 ```sh
 # Last schedule and last success of every vault job
-kubectl get cronjob -n selfhosted -l app.kubernetes.io/name=obsidian-vault
+kubectl get cronjob -n selfhosted -l app.kubernetes.io/name=vault-jobs
 
 # Runs still kept for one job (one successful, two failed), and their logs
 kubectl get jobs -n selfhosted -l app.kubernetes.io/controller=feed-sorter
@@ -318,12 +319,12 @@ until the feeds are back.
   count is back above half.
 - **The drop is intended** (you really removed most of the feeds): run the export once with
   `--force`. That is a command-line flag, not an environment variable, so the one-off Job needs
-  its command replaced; see the last example below.
+  its arguments replaced; see the last example below.
 
 ### Run a job once by hand
 
 ```sh
-kubectl create job -n selfhosted --from=cronjob/obsidian-vault-reading-process reading-process-manual
+kubectl create job -n selfhosted --from=cronjob/vault-jobs-reading-process reading-process-manual
 kubectl logs -n selfhosted job/reading-process-manual -f
 kubectl delete job -n selfhosted reading-process-manual
 ```
@@ -336,28 +337,22 @@ To override an environment variable for one run, edit the Job before creating it
 `READING_PROCESS_PER_RUN` whether or not the CronJob already has it:
 
 ```sh
-kubectl create job -n selfhosted --from=cronjob/obsidian-vault-reading-process reading-process-manual \
+kubectl create job -n selfhosted --from=cronjob/vault-jobs-reading-process reading-process-manual \
   --dry-run=client -o json \
   | jq '.spec.template.spec.containers[0].env |= (map(select(.name != "READING_PROCESS_PER_RUN")) + [{"name": "READING_PROCESS_PER_RUN", "value": "20"}])' \
   | kubectl create -f -
 ```
 
-Flags (`--dry-run` on every job, `--force` on the export) go on the command line instead. Look
-at the current command first, then replace it with the flag added:
+Flags (`--dry-run` on every job, `--force` on the export) go in the container's arguments
+instead. The arguments are the job's name; the image's entrypoint passes whatever follows a
+`--` on to the script, for every vault:
 
 ```sh
-kubectl get cronjob -n selfhosted obsidian-vault-miniflux-export \
-  -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].args[0]}'
-
-kubectl create job -n selfhosted --from=cronjob/obsidian-vault-miniflux-export miniflux-export-force \
+kubectl create job -n selfhosted --from=cronjob/vault-jobs-miniflux-export miniflux-export-force \
   --dry-run=client -o json \
-  | jq '.spec.template.spec.containers[0].args = ["python3 -I /scripts/miniflux-export.py /vaults/second-brain --force"]' \
+  | jq '.spec.template.spec.containers[0].args = ["miniflux-export", "--", "--force"]' \
   | kubectl create -f -
 ```
-
-The command in that last example matches the CronJob as it is today (scripts mounted at
-`/scripts`, one vault at `/vaults/second-brain`). It will change with the move to an image; use
-what the first command prints.
 
 ## Restoring Miniflux from the export
 
@@ -431,7 +426,7 @@ This repository is public; the vault is not. The rule for anything added to this
 
 Today, in this repository:
 
-- CronJobs, schedules and environment: `app/helmrelease.yaml`.
+- CronJobs, schedules and environment: `jobs/helmrelease.yaml`.
 - Scripts: `app/resources/`, one per job with the job's name (`night-shift.py` for the brief),
   plus the shared helper `vaultlib.py`. They are mounted from the `vault-scripts` ConfigMap,
   which `app/kustomization.yaml` generates. Each script's docstring is its reference.
