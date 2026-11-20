@@ -304,7 +304,7 @@ spec:
             memory: 256Mi
 
       # Publicly claimed ransomware victims with group, date, country and
-      # sector: the trend line for who is hitting transportation. Starts from
+      # sector, which gives victim counts per sector over time. Starts from
       # now (no history backfill); leak-site domains and post links are off.
       ransomwarelive:
         enabled: true
