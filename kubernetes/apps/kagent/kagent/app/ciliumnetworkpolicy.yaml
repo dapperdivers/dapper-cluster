@@ -10,7 +10,7 @@ kind: CiliumNetworkPolicy
 metadata:
   name: kagent-controller
 spec:
-  description: A2A/MCP/REST API, only from the UI, agents via Substrate's egress gateway, the vault pipeline jobs and OpenClaw.
+  description: A2A/MCP/REST API, only from the UI, agents via Substrate's egress gateway, labelled jobs in selfhosted and OpenClaw.
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: kagent
@@ -24,17 +24,14 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: ate-system
             app: atenet-egress
-        # Vault pipeline jobs that call agents: voice-inbox (voice-processor, then
-        # voice-librarian as the fallback), night-shift (night-editor, feeds-digest,
-        # security-brief), nightwatch (nightwatch) and reading-process
-        # (reading-processor).
+        # Scheduled jobs that call agents. A job opts in with the pod label
+        # `kagent-client: "true"`, so a new one needs no change here. Today these are
+        # the vault jobs (selfhosted/obsidian-vault/jobs): voice-inbox, night-shift,
+        # nightwatch and reading-process. Only the selfhosted namespace is admitted;
+        # for jobs in another namespace, add a block like this one for it.
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: selfhosted
-            app.kubernetes.io/name: obsidian-vault
-          matchExpressions:
-            - key: app.kubernetes.io/controller
-              operator: In
-              values: [voice-inbox, night-shift, nightwatch, reading-process]
+            kagent-client: "true"
         # OpenClaw (Tim) delegates tasks to agents through the controller's MCP
         # endpoint. The controller label keeps the molt-syncthing pod out.
         - matchLabels:

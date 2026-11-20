@@ -2,7 +2,7 @@
 # Night Watch reads cluster state for its nightly checks (nightwatch.py in the vault-jobs image).
 # Read-only and cluster-wide; no Secrets. Declared here rather than in the
 # HelmRelease so app-template keeps assigning its one service account to the
-# other vault controllers.
+# other job controllers.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
