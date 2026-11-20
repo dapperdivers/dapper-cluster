@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
+# smartctl_exporter runs on the Proxmox hosts themselves (systemd unit, :9633),
+# not in the cluster: the Talos nodes are VMs and only see virtual disks. The
+# physical disks, including every Ceph OSD, are on the hypervisors.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: smartctl-exporter
+spec:
+  jobName: smartctl-exporter
+  metricsPath: /metrics
+  scrapeInterval: 1m
+  scrapeTimeout: 30s
+  staticConfigs:
+    - targets:
+        - proxmox-01.manor:9633
+        - proxmox-02.manor:9633
+        - proxmox-03.manor:9633
+        - proxmox-04.manor:9633
+  relabelings:
+    # proxmox-01.manor:9633 -> proxmox-01, so dashboards show the host name.
+    - sourceLabels: [__address__]
+      regex: ([^.:]+).*
+      targetLabel: instance
