@@ -11,6 +11,7 @@ resources:
   - ./feeds-curator.yaml
   - ./feeds-digest.yaml
   - ./flux-ops.yaml
+  - ./intel-triage.yaml
   - ./k8s-reader.yaml
   - ./night-editor.yaml
   - ./nightwatch.yaml

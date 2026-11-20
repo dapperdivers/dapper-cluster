@@ -1,8 +1,11 @@
 ---
-# Files security-relevant articles from Miniflux in OpenCTI as reports
-# (config/feed-sync.py). Daily, stateless and idempotent: each run re-reads the
-# last few days, and a report's identity comes from its title and date, so a
-# missed or repeated run does no harm.
+# Files articles from Miniflux in OpenCTI as reports (config/feed-sync.py).
+# What counts as relevant is not in this repository: the profile comes from
+# Infisical, the watchlist and theme labels from OpenCTI, and the kagent
+# intel-triage agent judges each candidate against them.
+# Daily, stateless and idempotent: each run re-reads the last few days, and a
+# report's identity comes from its title and date, so a missed or repeated run
+# does no harm.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -16,8 +19,12 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 2
-      activeDeadlineSeconds: 900
+      activeDeadlineSeconds: 3600
       template:
+        metadata:
+          labels:
+            # Selected by the kagent-controller network policy.
+            app.kubernetes.io/name: opencti-feed-sync
         spec:
           restartPolicy: OnFailure
           securityContext:
@@ -44,6 +51,13 @@ spec:
                     secretKeyRef:
                       name: opencti-miniflux-secret
                       key: MINIFLUX_API_KEY
+                - name: TRIAGE_AGENT_URL
+                  value: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/intel-triage
+                - name: FEED_PROFILE
+                  valueFrom:
+                    secretKeyRef:
+                      name: opencti-secret
+                      key: OPENCTI_FEED_PROFILE
                 # A run reads this many days back, so two missed runs lose nothing.
                 - name: LOOKBACK_DAYS
                   value: "3"
