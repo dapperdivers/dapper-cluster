@@ -1,0 +1,79 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+# Alerts on the SMART readings Ceph takes of each OSD disk once a day
+# (see resources/exporter.py). All warnings: Ceph's redundancy means a single
+# failing disk is a "plan the swap" job, not a 3am one.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ceph-smart
+spec:
+  groups:
+    - name: ceph-smart.rules
+      rules:
+        # The failure counters worth acting on, one series per disk and counter,
+        # keyed by serial number because sdX names move between reboots.
+        # Corrected-error counters (delayed ECC) are left out on purpose: they
+        # climb on healthy disks and need no action.
+        - record: ceph_smart:disk_failure_counter
+          expr: |
+            (
+              label_replace(smartctl_read_total_uncorrected_errors, "counter", "uncorrected read errors", "", "")
+              or label_replace(smartctl_write_total_uncorrected_errors, "counter", "uncorrected write errors", "", "")
+              or label_replace(smartctl_verify_total_uncorrected_errors, "counter", "uncorrected verify errors", "", "")
+              or label_replace(smartctl_scsi_grown_defect_list, "counter", "grown defects", "", "")
+              or label_replace(
+                smartctl_device_attribute{attribute_value_type="raw", attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable"},
+                "counter", "$1", "attribute_name", "(.+)")
+            )
+            * on (instance, device) group_left (serial_number, ceph_daemon) smartctl_device
+        - alert: CephDiskErrorsGrowing
+          annotations:
+            summary: >-
+              {{ $labels.ceph_daemon }} disk ({{ $labels.instance }} {{ $labels.device }},
+              serial {{ $labels.serial_number }}): {{ $labels.counter }} went up since yesterday.
+            description: >-
+              The count is now {{ $value }}. A disk that keeps adding unreadable or
+              remapped sectors is on its way out, and losing it unplanned leaves its
+              data on one copy (cephfs_media has only two). Check
+              `smartctl -a` on the host, order a spare, and drain the OSD while it is
+              still up.
+          # Readings change once a day, so this compares with the value 24h earlier
+          # and stays up for about a day after each increase.
+          expr: |
+            ceph_smart:disk_failure_counter
+            > on (serial_number, counter) group_left ()
+            (ceph_smart:disk_failure_counter offset 1d)
+          for: 10m
+          labels:
+            severity: warning
+        - alert: CephDiskSmartFailed
+          annotations:
+            summary: >-
+              {{ $labels.ceph_daemon }} disk ({{ $labels.instance }} {{ $labels.device }},
+              serial {{ $labels.serial_number }}) fails its SMART health check.
+            description: >-
+              The drive itself reports it is failing. Order a spare and drain the
+              OSD while it is still up.
+          expr: |
+            (smartctl_device_smart_status == 0)
+            + on (instance, device) group_left (serial_number, ceph_daemon) smartctl_device
+          for: 10m
+          labels:
+            severity: warning
+        - alert: CephSmartDataStale
+          annotations:
+            summary: No fresh disk SMART readings from Ceph for 3 days.
+            description: >-
+              The disk alerts above are running on old data or none. Check the
+              ceph-smart-exporter pod logs (rook-ceph namespace) and that Ceph's daily
+              scrape still runs (`ceph device get-health-metrics <devid>` should show
+              a sample from today).
+          expr: |
+            (time() - max(ceph_smart_sample_timestamp_seconds) > 3 * 86400)
+            or
+            absent(ceph_smart_sample_timestamp_seconds)
+          for: 30m
+          labels:
+            # A monitoring gap, not a disk fault: fix same-day.
+            severity: warning
