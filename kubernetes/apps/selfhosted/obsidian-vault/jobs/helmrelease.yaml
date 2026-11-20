@@ -55,7 +55,7 @@ spec:
           app:
             image: &image
               repository: ghcr.io/dapperdivers/vault-jobs
-              tag: 2026.11.19.5@sha256:16385292836b3db06ee999288aece14f2cbad72e652bd79988129c680983ea9e
+              tag: 2026.11.20.7@sha256:6593e37496a51cdd66f645736bd437a6d3012f4b9bfe3d088bc13acbe1b4884a
             args: [vault-snapshot]
             env: &jobEnv
               TZ: *timeZone
