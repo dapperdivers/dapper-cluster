@@ -1,21 +1,16 @@
 ---
-# Silence known noisy Ceph alerts
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: ceph-node-nfsmount-diskspace-warning
-spec:
-  matchers:
-    - name: alertname
-      value: CephNodeDiskspaceWarning
-    - name: mountpoint
-      value: /etc/nfsmount.conf
----
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: ceph-node-network-packet-drops
-spec:
-  matchers:
-    - name: alertname
-      value: CephNodeNetworkPacketDrops
+# Alertmanager silences kept in git (silence-operator `Silence` resources).
+# Each one needs a comment saying why it exists, and should be temporary: a
+# silence that has been here for months means the alert should be rewritten or
+# deleted instead.
+#
+# None at the moment. Example:
+#
+# apiVersion: observability.giantswarm.io/v1alpha2
+# kind: Silence
+# metadata:
+#   name: example
+# spec:
+#   matchers:
+#     - name: alertname
+#       value: SomeAlert
