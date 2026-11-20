@@ -27,6 +27,7 @@
       matchFileNames: [
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/toolbox.yaml",
         "kubernetes/apps/rook-ceph/rook-ceph-cluster/app/cluster-external.yaml",
+        "kubernetes/apps/rook-ceph/ceph-smart-exporter/app/helmrelease.yaml",
         "kubernetes/apps/kyverno/kyverno/policies/volsync-repository-mkdir.yaml",
       ],
       allowedVersions: "/^v19\\./",

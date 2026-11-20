@@ -1,0 +1,128 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# Disk SMART metrics without anything on the hypervisors: Ceph already has each
+# OSD run smartctl on its disk once a day, and this serves the newest reading
+# per disk to Prometheus. See resources/exporter.py.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ceph-smart-exporter
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      ceph-smart-exporter:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              # PINNED: must match the external Ceph cluster (19.2.x Squid), same as
+              # the toolbox. .renovate/allowedVersions.json5 limits this to v19.x.
+              repository: quay.io/ceph/ceph
+              tag: v19.2.7
+            command:
+              - /bin/bash
+              - -c
+              - |
+                cat <<EOF > /etc/ceph/ceph.conf
+                [global]
+                mon_host = $(ROOK_CEPH_MON_HOST)
+
+                [client.admin]
+                keyring = /etc/ceph/keyring
+                EOF
+                (umask 077; cat <<EOF > /etc/ceph/keyring
+                [client.admin]
+                key = $(ROOK_CEPH_ADMIN_KEY)
+                EOF
+                )
+                exec python3 /app/exporter.py
+            env:
+              PORT: &port 9633
+              # Ceph takes a new reading once a day; every 6h is plenty.
+              REFRESH_SECONDS: "21600"
+              # Same credentials as the toolbox (rook-ceph-cluster/app/toolbox.yaml).
+              ROOK_CEPH_MON_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: rook-ceph-config
+                    key: mon_host
+              ROOK_CEPH_ADMIN_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: rook-ceph-mon
+                    key: admin-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: *port
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2016
+        runAsGroup: 2016
+        seccompProfile: { type: RuntimeDefault }
+    service:
+      app:
+        controller: ceph-smart-exporter
+        ports:
+          metrics:
+            port: *port
+    serviceMonitor:
+      app:
+        serviceName: ceph-smart-exporter
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 2m
+            scrapeTimeout: 10s
+            # The exporter sets instance to the disk's host (proxmox-0X).
+            honorLabels: true
+    persistence:
+      script:
+        type: configMap
+        name: ceph-smart-exporter-script
+        globalMounts:
+          - path: /app/exporter.py
+            subPath: exporter.py
+            readOnly: true
+      ceph-config:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: /etc/ceph
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
