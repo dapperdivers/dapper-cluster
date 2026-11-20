@@ -122,6 +122,7 @@ The live agents are the files listed in `kagent/agents/kustomization.yaml`:
 | `feeds-digest`      | `claude-sonnet`                | `claude-code-tools` | `miniflux`                                       | The `night-shift` vault job, for the brief's Feeds section. Reads only.                          |
 | `feeds-curator`     | `claude-sonnet`                | `claude-code-tools` | `miniflux`                                       | The owner (UI or OpenClaw). Changes feeds only on an explicit instruction; cannot delete.        |
 | `reading-processor` | `claude-haiku`                 | `claude-code`       | `vault`                                          | The `reading-process` vault job, hourly, one saved article per call.                             |
+| `link-suggester`    | `claude-haiku`                 | `claude-code`       | `vault`                                          | The `link-suggester` vault job, nightly, one unlinked note per call.                             |
 | `voice-processor`   | `claude-sonnet`                | `claude-code`       | `vault`                                          | The `voice-inbox` vault job, one voice memo per call.                                            |
 | `voice-librarian`   | `default-model-config` (local) | `kagent-default`    | `vault`                                          | The `voice-inbox` vault job, as the fallback when `voice-processor` fails or is out of usage.    |
 | `nightwatch`        | `default-model-config` (local) | `kagent-default`    | `kagent-tool-server` (4 read tools), `web-fetch` | The `nightwatch` vault job, once per new finding.                                                |
@@ -133,8 +134,8 @@ CronJobs of the `vault-jobs` HelmRelease (`selfhosted/obsidian-vault/jobs`); eac
 agent over A2A at
 `http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/<agent>`. The
 `kagent-controller` network policy (`kagent/app/ciliumnetworkpolicy.yaml`) admits pods in
-`selfhosted` that carry the label `kagent-client: "true"`; today four job controllers set it:
-`voice-inbox`, `night-shift`, `nightwatch` and `reading-process`. A new job that calls an
+`selfhosted` that carry the label `kagent-client: "true"`; today five job controllers set it:
+`voice-inbox`, `night-shift`, `nightwatch`, `reading-process` and `link-suggester`. A new job that calls an
 agent sets the same label (`pod.labels: *callsAgents`); the policy needs no change. The reading pipeline's side of this is in
 `kubernetes/apps/selfhosted/obsidian-vault/README.md`.
 

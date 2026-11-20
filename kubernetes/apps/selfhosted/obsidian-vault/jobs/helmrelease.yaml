@@ -55,7 +55,7 @@ spec:
           app:
             image: &image
               repository: ghcr.io/dapperdivers/vault-jobs
-              tag: 2026.11.20.7@sha256:6593e37496a51cdd66f645736bd437a6d3012f4b9bfe3d088bc13acbe1b4884a
+              tag: 2026.11.20.9@sha256:ba386559b5515b0061185ca5f5bd22d547c1dba0db0e1772364fcaf8cb693ae1
             args: [vault-snapshot]
             env: &jobEnv
               TZ: *timeZone
@@ -315,6 +315,36 @@ spec:
               <<: *jobEnv
               READING_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/reading-processor
               READING_AUTOFILE: "true"
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          labels: *callsAgents
+
+      # 00:20: a few notes that have no link to or from another note are sent, one per call,
+      # to the kagent `link-suggester` agent (Claude subscription, Haiku), which names the
+      # existing notes each relates to. The script checks every suggested path against the
+      # vault and writes Agents/Generated/Link Suggestions.md; it never edits a note. A note
+      # is not asked about again for 90 days. Timed clear of the other nightly jobs (01:30
+      # to 04:30) and of the hourly reading-process (:40), which shares the usage limit.
+      link-suggester:
+        type: cronjob
+        cronjob:
+          schedule: "20 0 * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 2400
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [link-suggester]
+            env:
+              <<: *jobEnv
+              LINK_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/link-suggester
+              LINK_SUGGEST_PER_RUN: "3"
               SYNCTHING_URL: *syncthingUrl
               SYNCTHING_API_KEY: *syncthingKey
             resources: *jobResources

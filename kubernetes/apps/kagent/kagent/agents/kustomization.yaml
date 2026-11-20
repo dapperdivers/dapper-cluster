@@ -13,6 +13,7 @@ resources:
   - ./flux-ops.yaml
   - ./intel-triage.yaml
   - ./k8s-reader.yaml
+  - ./link-suggester.yaml
   - ./night-editor.yaml
   - ./nightwatch.yaml
   - ./reading-processor.yaml
