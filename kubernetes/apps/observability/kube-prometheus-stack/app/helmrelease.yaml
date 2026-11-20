@@ -99,8 +99,16 @@ spec:
       <<: *kubeControllerManager # etcd runs on control plane nodes
     kubeProxy:
       enabled: false
+    prometheusOperator:
+      # Kubelet targets as EndpointSlices, to match serviceDiscoveryRole below.
+      kubeletEndpointsEnabled: false
+      kubeletEndpointSliceEnabled: true
     prometheus:
       prometheusSpec:
+        # Find ServiceMonitor targets through EndpointSlices. The v1 Endpoints API
+        # is deprecated (k8s 1.33+), and Rook only writes an EndpointSlice for the
+        # external Ceph managers, so on the old role Ceph was never scraped.
+        serviceDiscoveryRole: EndpointSlice
         # External hostname so each alert's generatorURL (the ntfy/pushover click
         # link) deep-links to a resolvable host instead of the in-cluster .svc address.
         externalUrl: https://prometheus.${SECRET_DOMAIN}
