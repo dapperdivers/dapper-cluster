@@ -27,9 +27,13 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio
-              tag: latest@sha256:0c580bccd90a092cdab6732dabd84181b2e1e7a8bb5fca535bb8dc9d47b0b930
+              tag: latest@sha256:21e847bc6cca06a57d31e5ef4f319820282b7d89bedd282a43ea4a4251231a58
             env:
               ALLOWED_DOMAINS: "https://www.${SECRET_DOMAIN_PERSONAL},https://${SECRET_DOMAIN_PERSONAL}"
+              # The gateway forwards no visitor address, so the app's limiter
+              # would put every visitor in one bucket. Rate limit at the
+              # Cloudflare edge instead.
+              RATE_LIMIT_MAX: "0"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
