@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+# Ceph runs on the Proxmox hosts, outside the cluster, so Rook ships no rules for
+# it. These lean on Ceph's own health checks instead of re-deriving them: Ceph
+# already decides what is a warning and what is an error.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ceph-external
+spec:
+  groups:
+    - name: ceph-external.rules
+      rules:
+        - alert: CephHealthError
+          annotations:
+            summary: Ceph is in HEALTH_ERR.
+            description: >-
+              Ceph reports an error: data may be unavailable or at risk, and every
+              PVC and VM disk depends on it. Run `ceph health detail` (toolbox or any
+              Proxmox host) and act on the named check now.
+          expr: |
+            ceph_health_status == 2
+          for: 5m
+          labels:
+            # Storage for the whole cluster and the VMs under it: worth waking up for.
+            severity: critical
+        - alert: CephHealthWarning
+          annotations:
+            summary: "Ceph health check {{ $labels.name }} is active."
+            description: >-
+              Ceph has been in HEALTH_WARN for {{ $labels.name }} for 15 minutes
+              (examples: OSD_DOWN, OSD_NEARFULL, PG_DEGRADED, MON_DOWN). Redundancy
+              or capacity is reduced. Run `ceph health detail` and fix it today,
+              before a second fault turns it into an error.
+          # One alert per named check. Left out on purpose, because nothing can be
+          # done about them short of moving the HDD OSDs' DB/WAL to flash, and Ceph
+          # keeps each raised for 24h: BLUESTORE_SLOW_OP_ALERT and
+          # DB_DEVICE_STALLED_READ_ALERT. Watch those on the dashboard.
+          expr: |
+            ceph_health_detail{severity="HEALTH_WARN", name!~"BLUESTORE_SLOW_OP_ALERT|DB_DEVICE_STALLED_READ_ALERT"} == 1
+          for: 15m
+          labels:
+            severity: warning
+        - alert: CephMetricsAbsent
+          annotations:
+            summary: Prometheus has no Ceph health metrics.
+            description: >-
+              No Ceph manager is returning metrics, so the Ceph alerts above cannot
+              fire. Standby managers answer with an empty page, so the scrape target
+              still shows as up. Check that the active manager (`ceph mgr stat`) is
+              in externalMgrEndpoints and that its prometheus module is on.
+          expr: |
+            absent(ceph_health_status)
+          for: 15m
+          labels:
+            # A monitoring gap, not a storage fault: fix same-day.
+            severity: warning

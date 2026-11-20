@@ -18,11 +18,18 @@ spec:
   # CephCluster settings for external mode
   dataDirHostPath: /var/lib/rook
 
-  # Optional: Monitor external cluster health
-  # Uncomment and set your Ceph manager IPs from the 10.150.0.0/24 network
+  # Scrape the Ceph managers' Prometheus module on the Proxmox hosts. Only the
+  # active manager returns metrics (standbys answer with an empty page), so every
+  # manager is listed and the data follows whichever one is active.
   monitoring:
     enabled: true
+    # Required: without it Rook writes port 0 into the rook-ceph-mgr-external
+    # EndpointSlice and nothing is scraped (no Ceph metrics until 2026-11-20).
+    externalMgrPrometheusPort: 9283
+    # The manager refreshes its metrics every 15s; Rook's 10s default only re-reads them.
+    interval: 30s
     externalMgrEndpoints:
+      - ip: "10.150.0.1"
       - ip: "10.150.0.2"
       - ip: "10.150.0.3"
       - ip: "10.150.0.4"

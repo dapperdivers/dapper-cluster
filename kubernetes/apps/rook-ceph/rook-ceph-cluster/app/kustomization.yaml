@@ -9,3 +9,4 @@ resources:
   - ./cluster-external.yaml
   - ./storageclasses.yaml
   - ./toolbox.yaml
+  - ./prometheusrule.yaml
