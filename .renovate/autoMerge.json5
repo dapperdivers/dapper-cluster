@@ -83,8 +83,6 @@
         // Observability
         "/grafana/",
         "/prometheus/",
-        "/loki/",
-        "/promtail/",
         "/goldilocks/",
         // Home automation
         "/home-assistant/",
