@@ -10,3 +10,4 @@ resources:
   - ./rook-ceph-operator/ks.yaml
   - ./ceph-csi-drivers/ks.yaml
   - ./rook-ceph-cluster/ks.yaml
+  - ./ceph-smart-exporter/ks.yaml
