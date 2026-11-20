@@ -41,6 +41,11 @@ spec:
             k8s:io.kubernetes.pod.namespace: ai
             app.kubernetes.io/name: molt
             app.kubernetes.io/controller: molt
+        # opencti-feed-sync (security/opencti) asks the intel-triage agent which feed
+        # articles to file.
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: security
+            app.kubernetes.io/name: opencti-feed-sync
       toPorts:
         - ports:
             - port: "8083"
