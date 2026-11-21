@@ -14,13 +14,17 @@ cluster:
       default-watch-cache-size: "100"
       # OIDC authentication (structured multi-issuer) lives in its own patch:
       # ./patches/controller/apiserver-oidc.yaml
+    # Live heap sits at ~2-3 GiB per apiserver (219 CRDs, ~1,100 watches on the
+    # busiest one), flat over a week: no leak. At 4Gi, GOMEMLIMIT (95% of the
+    # limit, set by Talos) left no headroom and control-1 was OOM-killed on
+    # 2026-11-20. Node has 16 GiB; peak use <50%.
     resources:
       requests:
         cpu: 500m
-        memory: 1Gi
+        memory: 3Gi
       limits:
         cpu: 2000m
-        memory: 4Gi
+        memory: 6Gi
     admissionControl:
       - name: PodSecurity
         configuration:
