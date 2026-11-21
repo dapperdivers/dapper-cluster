@@ -15,6 +15,13 @@
 # Output contains cluster secrets: never write it inside the repo.
 set -euo pipefail
 
+# The output holds cluster secrets (CA keys, tokens). Never print it to a screen:
+# send it to a 0600 file or straight into `talosctl ... --file <(./render.sh host)`.
+if [ -t 1 ]; then
+  echo "render.sh: refusing to write secrets to a terminal; redirect stdout to a file or talosctl --file <(...)" >&2
+  exit 2
+fi
+
 CLUSTER_NAME="kubernetes"
 CLUSTER_ENDPOINT="https://10.100.0.40:6443"
 
