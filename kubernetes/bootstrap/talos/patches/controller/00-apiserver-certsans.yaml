@@ -1,0 +1,5 @@
+cluster:
+  apiServer:
+    certSANs:
+      - 10.100.0.40 # control-plane VIP
+      - 127.0.0.1

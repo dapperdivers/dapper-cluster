@@ -134,7 +134,7 @@
       description: "Auto-merge mise CLI tool patch updates",
       // .mise.toml pins local/CI tooling (flux2, sops, kustomize, talosctl, ...).
       // These never touch the cluster directly, so patch bumps ride through.
-      // Minor/major stay manual: they can change talhelper/flate/kustomize output.
+      // Minor/major stay manual: they can change talosctl/flate/kustomize output.
       // cloudflared is pinned here too and is held by the networking deny rule.
       matchManagers: ["mise"],
       automerge: true,

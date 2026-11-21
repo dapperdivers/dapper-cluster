@@ -5,4 +5,3 @@ cluster:
         disabled: true
       service:
         disabled: false
-

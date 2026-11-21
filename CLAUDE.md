@@ -195,9 +195,9 @@ For complex applications with multiple components (like Cilium with app + gatewa
 ### Bootstrap & Configuration (`kubernetes/bootstrap/`)
 
 - **`talos/`** - Talos Linux cluster configuration
-  - `clusterconfig/` - Node-specific configurations
-  - `patches/` - Cluster patches and customizations
-  - `talconfig.yaml` - Main Talos configuration
+  - `nodes/<role>/<hostname>.yaml` - Per-node patches (the directory is the role)
+  - `patches/{controller,global}/` - Role-wide and cluster-wide patches
+  - `versions.yaml` - Talos/Kubernetes versions; `render.sh` builds a node's config with plain `talosctl` (no talhelper, see its README)
 - **`apps/`** - Helmfile for initial application deployment
 
 ### Flux Configuration (`kubernetes/flux/`)
@@ -247,12 +247,13 @@ task kubernetes:restart-helmrelease HR=<name>
 ### Talos Operations
 
 ```bash
-# Generate Talos configuration
-task talos:generate-config
+# Dry run: what applying the rendered config would change (run before any apply)
+task talos:diff-node IP=<ip>
+task talos:diff-cluster
 
-# Apply config to all nodes / a single node [IP=required]
-task talos:apply-cluster
+# Apply config to a single node / all nodes [IP=required]
 task talos:apply-node IP=<ip>
+task talos:apply-cluster
 
 # Bootstrap the cluster (then the apps)
 task bootstrap:talos

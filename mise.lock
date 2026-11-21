@@ -46,38 +46,6 @@ url = "https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-wi
 url_api = "https://api.github.com/repos/FiloSottile/age/releases/assets/535541937"
 provenance = "github-attestations"
 
-[[tools."aqua:budimanjojo/talhelper"]]
-version = "3.1.17"
-backend = "aqua:budimanjojo/talhelper"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.linux-arm64"]
-checksum = "sha256:1841915ec6f533ef653baedc5f1cbf68683e0ca9a72f240ac2f257d94f68798b"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_arm64.tar.gz"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.linux-arm64-musl"]
-checksum = "sha256:1841915ec6f533ef653baedc5f1cbf68683e0ca9a72f240ac2f257d94f68798b"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_arm64.tar.gz"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.linux-x64"]
-checksum = "sha256:dff9162569004637b6a842c4020d909b0ffbc7fbbe2fca23a754708db95be204"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_amd64.tar.gz"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.linux-x64-musl"]
-checksum = "sha256:dff9162569004637b6a842c4020d909b0ffbc7fbbe2fca23a754708db95be204"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_linux_amd64.tar.gz"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.macos-arm64"]
-checksum = "sha256:cf86526d730010193d3e858f13242e5f0c94fdcefe5e001716c552211b1e95b0"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_darwin_arm64.tar.gz"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.macos-x64"]
-checksum = "sha256:29dec70a5b2049058e4adf5ff6f236ca74fb51500ebb8e41e381ad1d49d60a09"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_darwin_amd64.tar.gz"
-
-[tools."aqua:budimanjojo/talhelper"."platforms.windows-x64"]
-checksum = "sha256:415f079abd09fa686b29a4d02de03cd6c5d8339cc6d497f2f4a54da6765c0a79"
-url = "https://github.com/budimanjojo/talhelper/releases/download/v3.1.17/talhelper_windows_amd64.tar.gz"
-
 [[tools."aqua:cloudflare/cloudflared"]]
 version = "2026.7.2"
 backend = "aqua:cloudflare/cloudflared"
@@ -761,9 +729,8 @@ version = "0.13.9"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv."platforms.linux-arm64"]
-checksum = "sha256:0797542018e541a9288855df555c8077eed06f7a47d206362030480e8ecc9f3d"
-url = "https://github.com/astral-sh/uv/releases/download/0.13.9/uv-aarch64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/758513657"
+checksum = "sha256:37fbb7c5bc66cf99c12aa881949d216181e201dec449772c4329e56487d61179"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.9/uv-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-arm64-musl"]
@@ -773,9 +740,8 @@ url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/758513671"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:a7fbaff2b9a271d85c1bdb540941090fd1ce011797b4abeb48e4dcd39c2471d5"
-url = "https://github.com/astral-sh/uv/releases/download/0.13.9/uv-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/758513954"
+checksum = "sha256:58ccf5f1792b8a5a88d01bc910ea131a8b3db4a319a17ad5fad75e0845a3e271"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.9/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl"]
