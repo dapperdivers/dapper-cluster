@@ -1,0 +1,47 @@
+# talos-node-large-1 (10.100.0.54). Its role comes from the directory this file is in.
+# Nodes that host Agent Substrate gVisor workers (kagent, #4777).
+# Substrate runs its own runsc inside an unprivileged worker pod, which needs to
+# create user namespaces. Talos defaults this to 0 as hardening, which makes the
+# sandbox fail with "fork/exec ...: no space left on device". Only enable it on
+# nodes labelled workload.cluster.io/agent-sandbox, where the worker pool is pinned.
+machine:
+  install:
+    disk: /dev/sda
+    image: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3:${TALOS_VERSION}
+  nodeLabels:
+    workload.cluster.io/agent-sandbox: "true"
+  sysctls:
+    user.max_user_namespaces: "11255"
+---
+apiVersion: v1alpha1
+kind: HostnameConfig
+auto: "off"
+hostname: talos-node-large-1
+---
+apiVersion: v1alpha1
+kind: LinkAliasConfig
+name: ethSel0
+selector:
+  match: glob("bc:24:11:7d:6d:e5", mac(link.hardware_addr))
+---
+apiVersion: v1alpha1
+kind: LinkAliasConfig
+name: ethSel1
+selector:
+  match: glob("bc:24:11:b5:70:e8", mac(link.hardware_addr))
+---
+apiVersion: v1alpha1
+kind: LinkConfig
+name: ethSel0
+mtu: 9000
+addresses:
+  - address: 10.100.0.54/24
+routes:
+  - gateway: 10.100.0.1
+---
+apiVersion: v1alpha1
+kind: LinkConfig
+name: ethSel1
+mtu: 9000
+addresses:
+  - address: 10.150.0.14/24

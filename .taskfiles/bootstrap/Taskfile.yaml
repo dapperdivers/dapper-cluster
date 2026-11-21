@@ -7,18 +7,30 @@ set: [pipefail]
 tasks:
   talos:
     desc: Bootstrap the Talos cluster
-    dir: "{{.TALHELPER_DIR}}"
+    dir: "{{.TALOS_DIR}}"
     cmds:
-      - "[ -f talsecret.sops.yaml ] || talhelper gensecret | sops --filename-override talos/talsecret.sops.yaml --encrypt /dev/stdin > talsecret.sops.yaml"
-      - talhelper genconfig
-      - talhelper gencommand apply --extra-flags="--insecure" | bash
-      - until talhelper gencommand bootstrap | bash; do sleep 10; done
-      - until talhelper gencommand kubeconfig --extra-flags="{{.ROOT_DIR}} --force" | bash; do sleep 10; done
+      # New secrets bundle only if none exists (a talosctl secrets bundle, SOPS-encrypted).
+      - |
+        if [ ! -f talsecret.sops.yaml ]; then
+          tmp="$(mktemp -d)" && talosctl gen secrets --output-file "$tmp/secrets.yaml" \
+            && sops --filename-override talos/talsecret.sops.yaml --encrypt "$tmp/secrets.yaml" > talsecret.sops.yaml
+          rm -rf "$tmp"
+        fi
+      - |
+        ./nodes.sh | while read -r host ip _; do
+          echo "### $host ($ip)"
+          talosctl --nodes "$ip" apply-config --insecure --file <(./render.sh "$host")
+        done
+      - until talosctl --nodes {{.CONTROLLER}} bootstrap; do sleep 10; done
+      - until talosctl --nodes {{.CONTROLLER}} kubeconfig {{.ROOT_DIR}} --force; do sleep 10; done
+    vars:
+      CONTROLLER:
+        sh: '{{.TALOS_DIR}}/nodes.sh | awk ''$3 == "controlplane" {print $2; exit}'''
     preconditions:
       - test -f {{.ROOT_DIR}}/.sops.yaml
       - test -f {{.SOPS_AGE_KEY_FILE}}
-      - test -f {{.TALHELPER_DIR}}/talconfig.yaml
-      - which talhelper sops
+      - test -f {{.TALOS_DIR}}/versions.yaml
+      - which talosctl sops yq envsubst
 
   apps:
     desc: Bootstrap apps into the Talos cluster

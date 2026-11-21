@@ -79,7 +79,7 @@ DO NOT read or modify:
 - **mise**: Tool version manager that configures the development environment
 - **task**: Task runner that provides standardized commands (see Taskfile.yaml)
 - **flux**: GitOps controller for Kubernetes
-- **talhelper**: Helper tool for managing Talos Linux configurations
+- **talosctl**: Renders (via kubernetes/bootstrap/talos/render.sh) and applies Talos machine configs
 - **kubectl**: Kubernetes command-line tool
 - **helm/helmfile**: Kubernetes package managers
 - **sops/age**: Secret encryption tools

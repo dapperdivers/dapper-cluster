@@ -13,17 +13,17 @@ This directory contains utilities for standardizing YAML files in your Kubernete
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `task yaml:standardize -- path/to/file.yaml` | Standardize a single YAML file |
-| `task yaml:standardize-all -- [options]` | Standardize all YAML files in the kubernetes directory |
-| `task yaml:diff -- path/to/file.yaml` | Show diff between original and standardized file |
-| `task yaml:diff-all -- [options]` | Show diffs for all files |
-| `task yaml:validate -- path/to/file.yaml` | Validate a YAML file |
-| `task yaml:validate-all -- [options]` | Validate all YAML files |
-| `task yaml:verify -- path/to/file.yaml` | Standardize a file and verify it still works |
-| `task yaml:verify-all -- [options]` | Standardize all files and verify they still work |
-| `task yaml:install-deps` | Install required dependencies |
+| Command                                      | Description                                            |
+| -------------------------------------------- | ------------------------------------------------------ |
+| `task yaml:standardize -- path/to/file.yaml` | Standardize a single YAML file                         |
+| `task yaml:standardize-all -- [options]`     | Standardize all YAML files in the kubernetes directory |
+| `task yaml:diff -- path/to/file.yaml`        | Show diff between original and standardized file       |
+| `task yaml:diff-all -- [options]`            | Show diffs for all files                               |
+| `task yaml:validate -- path/to/file.yaml`    | Validate a YAML file                                   |
+| `task yaml:validate-all -- [options]`        | Validate all YAML files                                |
+| `task yaml:verify -- path/to/file.yaml`      | Standardize a file and verify it still works           |
+| `task yaml:verify-all -- [options]`          | Standardize all files and verify they still work       |
+| `task yaml:install-deps`                     | Install required dependencies                          |
 
 ## Options
 
@@ -37,7 +37,7 @@ This directory contains utilities for standardizing YAML files in your Kubernete
 task yaml:standardize-all -- --dry-run
 
 # Exclude certain directories
-task yaml:standardize-all -- --exclude bootstrap --exclude talconfig
+task yaml:standardize-all -- --exclude bootstrap
 
 # Standardize a specific file
 task yaml:standardize -- kubernetes/apps/cert-manager/cert-manager/ks.yaml

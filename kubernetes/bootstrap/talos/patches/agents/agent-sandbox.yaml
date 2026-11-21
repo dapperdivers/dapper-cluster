@@ -1,8 +1,0 @@
-# Nodes that host Agent Substrate gVisor workers (kagent, #4777).
-# Substrate runs its own runsc inside an unprivileged worker pod, which needs to
-# create user namespaces. Talos defaults this to 0 as hardening, which makes the
-# sandbox fail with "fork/exec ...: no space left on device". Only enable it on
-# nodes labelled workload.cluster.io/agent-sandbox, where the worker pool is pinned.
-machine:
-  sysctls:
-    user.max_user_namespaces: "11255"
