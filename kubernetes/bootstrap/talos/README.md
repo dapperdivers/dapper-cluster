@@ -18,6 +18,7 @@ the rendered output contains cluster secrets and is never written to disk by the
 | `nodes/<role>/<hostname>.yaml` | Per-node patch: install image/disk, labels, hostname and network documents |
 | `render.sh <hostname>`         | Prints the full machine config for a node                                  |
 | `nodes.sh [ip\|hostname]`      | Lists nodes as `<hostname> <ip> <role> <install-image>`                    |
+| `diff.sh <hostname>`           | Dry run against the node; prints a summary of the change without values    |
 | `clusterconfig/talosconfig`    | Admin client config (gitignored)                                           |
 
 The directory a node file sits in (`controlplane/` or `worker/`) is its role.
@@ -70,15 +71,20 @@ To rotate the service-account key again, add a `KubeServiceAccountConfig` patch 
 ## Tasks
 
 ```sh
-task talos:diff-node IP=10.100.0.50     # dry run: what would change on one node
-task talos:diff-cluster                 # dry run against every node
-task talos:apply-node IP=10.100.0.50    # shows the diff, asks, then applies
+task talos:diff-node IP=10.100.0.50     # dry run: summary of what would change on one node
+task talos:diff-cluster                 # the same for every node
+task talos:apply-node IP=10.100.0.50    # shows the summary, asks, then applies
 task talos:render-config IP=10.100.0.50 # print the config (contains secrets)
 ```
 
 Always run a diff before applying. When the repo and the nodes agree, every node reports
-`No changes.` The diff shows config lines, secrets included, whenever something differs: keep its
-output out of logs and shared terminals.
+`no changes`.
+
+The diff tasks print a summary only: whether a reboot is needed, how many lines change, and which
+keys and documents are added or removed. Values are never shown, because a machine config diff
+contains CA keys and tokens. That makes the tasks safe in CI logs and agent sessions.
+`task talos:diff-node IP=… FULL=true` prints talosctl's raw diff for when you need to see the
+values yourself.
 
 ## Adding a node
 
