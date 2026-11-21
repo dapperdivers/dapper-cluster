@@ -1,0 +1,33 @@
+# etcd has no 1.14 document yet: it stays in the v1alpha1 config.
+cluster:
+  etcd:
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
+      quota-backend-bytes: "1073741824" # 1 GiB (double peak usage of ~350MB)
+      # Widen raft timeouts to tolerate ~20-22ms WAL fsync latency on Proxmox VM
+      # disks (SSD/hardware migration ruled out). Stops leader flapping when a
+      # heartbeat is delayed by a slow fsync. election-timeout is 10x heartbeat.
+      heartbeat-interval: "250" # default 100ms
+      election-timeout: "2500" # default 1000ms
+    advertisedSubnets:
+      - 10.100.0.0/24
+---
+apiVersion: v1alpha1
+kind: KubeControllerManagerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+apiVersion: v1alpha1
+kind: KubeSchedulerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+# CoreDNS is deployed by Flux, not by Talos.
+apiVersion: v1alpha1
+kind: KubeCoreDNSConfig
+enabled: false
+---
+# Cilium replaces kube-proxy.
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false

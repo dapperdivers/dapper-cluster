@@ -1,0 +1,18 @@
+# Talos API certificate SANs (still a v1alpha1 field).
+machine:
+  certSANs:
+    - 10.100.0.40 # control-plane VIP
+    - 127.0.0.1
+---
+apiVersion: v1alpha1
+kind: KubeNetworkConfig
+podSubnets:
+  - 10.69.0.0/16
+serviceSubnets:
+  - 10.96.0.0/16
+---
+# No Talos-managed CNI: Cilium is installed by the bootstrap helmfile.
+# (This was `cluster.network.cni.name: none`.)
+apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+$patch: delete

@@ -22,9 +22,12 @@ tasks:
       - which talosctl sops yq envsubst
 
   diff-node:
-    desc: Show what applying the rendered config would change on a node (dry run) [IP=required]
-    cmd: talosctl --nodes {{.IP}} apply-config --dry-run --file <(./render.sh "$({{.TALOS_DIR}}/nodes.sh {{.IP}} | cut -d' ' -f1)")
+    desc: Summarise what applying the rendered config would change on a node (dry run, no values shown) [IP=required] [FULL=false]
+    cmd: FULL={{.FULL}} ./diff.sh "$({{.TALOS_DIR}}/nodes.sh {{.IP}} | cut -d' ' -f1)"
     dir: "{{.TALOS_DIR}}"
+    vars:
+      # FULL=true prints talosctl's raw diff, which contains CA keys and tokens.
+      FULL: '{{.FULL | default "false"}}'
     requires:
       vars: [IP]
     preconditions:
@@ -33,12 +36,11 @@ tasks:
       - which talosctl sops yq envsubst
 
   diff-cluster:
-    desc: Dry-run the rendered config against every node
+    desc: Dry-run the rendered config against every node (summary only, no values shown)
     dir: "{{.TALOS_DIR}}"
     cmd: |
-      ./nodes.sh | while read -r host ip _; do
-        echo "### $host ($ip)"
-        talosctl --nodes "$ip" apply-config --dry-run --file <(./render.sh "$host") | grep -E '^(@@|[+-] )' || echo "no changes"
+      ./nodes.sh | while read -r host _; do
+        ./diff.sh "$host" || true
       done
     preconditions:
       - test -f {{.SOPS_AGE_KEY_FILE}}
@@ -57,7 +59,7 @@ tasks:
       INSECURE: '{{.INSECURE | default "false"}}'
     requires:
       vars: [IP]
-    prompt: Apply the rendered Talos config to {{.IP}} (diff shown first)... continue?
+    prompt: Apply the rendered Talos config to {{.IP}} (summary of the change shown first)... continue?
     preconditions:
       - sh: '{{if eq .INSECURE "true"}}exit 0{{else}}talosctl --nodes {{.IP}} get machineconfig{{end}}'
         msg: "Node {{.IP}} is not reachable or not configured. Use INSECURE=true for first-time setup."

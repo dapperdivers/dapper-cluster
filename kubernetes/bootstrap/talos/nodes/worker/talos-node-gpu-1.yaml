@@ -1,20 +1,40 @@
 # talos-node-gpu-1 (10.100.0.53). Its role comes from the directory this file is in.
-machine:
-  install:
-    disk: /dev/sda
-    image: factory.talos.dev/installer/1f6caf935b35f840ea19acb12d2dcc6d8f9c7d47fc621b1fcebb4a04c5e3130d:${TALOS_VERSION}
-  nodeLabels:
-    hardware.cluster.io/gpu: "p100"
-    nvidia.com/gpu.present: "true"
-    nvidia.com/mps.capable: "true"
-  kernel:
-    modules:
-      - name: nvidia
-      - name: nvidia_uvm
-      - name: nvidia_drm
-      - name: nvidia_modeset
-  sysctls:
-    net.core.bpf_jit_harden: 1
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+installer:
+  image: factory.talos.dev/installer/1f6caf935b35f840ea19acb12d2dcc6d8f9c7d47fc621b1fcebb4a04c5e3130d:${TALOS_VERSION}
+provisioning:
+  diskSelector:
+    match: disk.dev_path == "/dev/sda"
+  wipe: false
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  hardware.cluster.io/gpu: "p100"
+  nvidia.com/gpu.present: "true"
+  nvidia.com/mps.capable: "true"
+---
+apiVersion: v1alpha1
+kind: SysctlConfig
+params:
+  net.core.bpf_jit_harden: "1"
+---
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: nvidia
+---
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: nvidia_uvm
+---
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: nvidia_drm
+---
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: nvidia_modeset
 ---
 apiVersion: v1alpha1
 kind: HostnameConfig

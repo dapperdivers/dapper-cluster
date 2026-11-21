@@ -14,7 +14,7 @@ for f in "$dir"/nodes/*/*.yaml; do
   host="$(basename "$f" .yaml)"
   role="$(basename "$(dirname "$f")")"
   ip="$(yq -e 'select(.kind == "LinkConfig" and .name == "ethSel0") | .addresses[0].address' "$f" | cut -d/ -f1)"
-  image="$(yq -e 'select(document_index == 0) | .machine.install.image' "$f" | envsubst '${TALOS_VERSION}')"
+  image="$(yq -e 'select(.kind == "UnattendedInstallConfig") | .installer.image' "$f" | envsubst '${TALOS_VERSION}')"
   if [ $# -eq 0 ] || [ "$1" = "$ip" ] || [ "$1" = "$host" ]; then
     echo "$host $ip $role $image"
     found=1

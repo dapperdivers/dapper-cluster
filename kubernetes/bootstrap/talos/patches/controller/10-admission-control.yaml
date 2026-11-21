@@ -1,3 +1,12 @@
-cluster:
-  apiServer:
-    admissionControl: []
+# PodSecurity admission. The base document already carries the defaults
+# (enforce baseline, audit/warn restricted) and the kube-system exemption; this
+# keeps the v1beta1 config version the cluster runs and adds our exemption
+# (lists in patches append).
+apiVersion: v1alpha1
+kind: KubeAdmissionControlConfig
+name: PodSecurity
+configuration:
+  apiVersion: pod-security.admission.config.k8s.io/v1beta1
+  exemptions:
+    namespaces:
+      - openebs-system
