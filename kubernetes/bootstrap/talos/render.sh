@@ -58,6 +58,11 @@ patch_args=()
 i=0
 for p in "${role_patches[@]}" "$dir"/patches/global/*.yaml "$node_file"; do
   envsubst '${TALOS_VERSION} ${KUBERNETES_VERSION}' < "$p" > "$work/patch-$i.yaml"
+  # The service-account signing key comes from the secrets bundle, never the repo.
+  if yq -e 'select(.kind == "KubeServiceAccountConfig")' "$work/patch-$i.yaml" >/dev/null 2>&1; then
+    SA_KEY="$(yq -e '.certs.k8sserviceaccount.key' "$work/secrets.yaml" | base64 -d)" \
+      yq -i '(select(.kind == "KubeServiceAccountConfig") | .issuer.privateKey) = strenv(SA_KEY)' "$work/patch-$i.yaml"
+  fi
   patch_args+=(--patch "@$work/patch-$i.yaml")
   i=$((i + 1))
 done
