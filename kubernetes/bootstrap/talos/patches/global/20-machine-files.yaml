@@ -1,3 +1,8 @@
+# Still the deprecated v1alpha1 `machine.files` on purpose (Talos warns about it).
+# The 1.14 replacement is a CRICustomizationConfig document, but the name
+# "customization" is reserved for this legacy file, and any other name changes the
+# header of the merged containerd config, which makes Talos restart containerd on
+# every node. Convert it together with a planned reboot (e.g. a Talos upgrade).
 machine:
   files:
     - op: create

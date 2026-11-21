@@ -1,0 +1,14 @@
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  # Conservative but safe kubelet settings
+  max-pods: "250"
+  # Aggressive image GC to prevent disk pressure on image-heavy nodes
+  image-gc-high-threshold: "75"
+  image-gc-low-threshold: "65"
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+nodeIP:
+  validSubnets:
+    - 10.100.0.0/24

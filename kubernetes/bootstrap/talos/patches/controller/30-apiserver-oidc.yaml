@@ -2,20 +2,16 @@
 #
 # Authentik gives every application its OWN issuer URL (…/application/o/<slug>/), so the
 # legacy single-issuer --oidc-* flags can only ever trust one app. This uses the k8s
-# Structured Authentication Config (apiserver.config.k8s.io/v1, GA in 1.30) to trust
-# MULTIPLE issuers — one JWT authenticator per app, each scoped to its own audience.
-# Both map preferred_username -> user and groups -> groups with the `oidc:` prefix, so
-# the oidc-rbac ClusterRoleBindings apply identically regardless of which app issued the
-# token. x509 cert auth (talosconfig / admin kubeconfig) remains the break-glass.
+# Structured Authentication Config to trust MULTIPLE issuers — one JWT authenticator per
+# app, each scoped to its own audience. Both map preferred_username -> user and
+# groups -> groups with the `oidc:` prefix, so the oidc-rbac ClusterRoleBindings apply
+# identically regardless of which app issued the token. x509 cert auth (talosconfig /
+# admin kubeconfig) remains the break-glass.
 #
-# Delivery: machine.files writes the config to the control-plane nodes;
-# apiServer.extraVolumes mounts it read-only into the static pod; --authentication-config
-# points the apiserver at it. --authentication-config is mutually exclusive with --oidc-*.
-#
-# IMPORTANT: machine.files MUST write to a writable host path (/var/...). Writing under
-# /etc/kubernetes makes Talos overlay that dir read-only, which breaks the kubelet's own
-# PKI writes and takes the node NotReady. So the file lives at /var/lib/... on the host and
-# is mounted into the apiserver pod at /etc/kubernetes/authentication (container-only).
+# Delivery: Talos renders `configuration` below into the apiserver's
+# --authentication-config file itself (as apiserver.config.k8s.io/v1beta1) and restarts
+# the apiserver when it changes. Before the 1.14 config contract this was a machine.files
+# entry under /var/lib/kubernetes/authentication plus an extraVolume and an extraArg.
 #
 # Adding a new OIDC-to-apiserver app (e.g. another dashboard) = add a jwt authenticator
 # block below with that app's issuer + audience.
@@ -31,57 +27,50 @@
 #   - uid <- sub: audit-stable identity. preferred_username is user-editable in
 #     Authentik; sub (sub_mode: hashed_user_id) is immutable. Never bind kind: User
 #     RBAC to oidc: usernames.
-# NOTE: never add an `anonymous:` section to the config — Talos sets
-# --anonymous-auth=false and the combination is rejected by the apiserver
-# (siderolabs/talos#11324).
-cluster:
-  apiServer:
-    extraArgs:
-      authentication-config: /etc/kubernetes/authentication/config.yaml
-    extraVolumes:
-      - hostPath: /var/lib/kubernetes/authentication # writable host path (NOT /etc/kubernetes)
-        mountPath: /etc/kubernetes/authentication # container-only mount point
-        readonly: true
-machine:
-  files:
-    - op: create
-      path: /var/lib/kubernetes/authentication/config.yaml # writable host path
-      permissions: 0o644
-      content: |
-        apiVersion: apiserver.config.k8s.io/v1
-        kind: AuthenticationConfiguration
-        jwt:
-          # kubectl CLI (kubelogin)
-          - issuer:
-              url: "https://sso.chelonianlabs.com/application/o/kubectl/"
-              audiences:
-                - "kubectl"
-            claimMappings:
-              username:
-                claim: "preferred_username"
-                prefix: "oidc:"
-              groups:
-                claim: "groups"
-                prefix: "oidc:"
-              uid:
-                claim: "sub"
-            userValidationRules:
-              - expression: 'user.groups.exists(g, g in ["oidc:kubernetes-admins", "oidc:kubernetes-viewers"])'
-                message: "not a member of a kubernetes access group"
-          # Headlamp web dashboard
-          - issuer:
-              url: "https://sso.chelonianlabs.com/application/o/headlamp/"
-              audiences:
-                - "headlamp"
-            claimMappings:
-              username:
-                claim: "preferred_username"
-                prefix: "oidc:"
-              groups:
-                claim: "groups"
-                prefix: "oidc:"
-              uid:
-                claim: "sub"
-            userValidationRules:
-              - expression: 'user.groups.exists(g, g in ["oidc:kubernetes-admins", "oidc:kubernetes-viewers"])'
-                message: "not a member of a kubernetes access group"
+#
+# anonymous: Talos now always uses this file and no longer passes --anonymous-auth=false,
+# and its default document allows anonymous /livez, /readyz and /healthz. Anonymous access
+# stays fully off here, as it was. That is tied to `startupProbes: false` in
+# 00-apiserver.yaml: the apiserver pod's probes are anonymous requests.
+# (`configuration` is replaced as a whole by a patch, not merged, so everything the
+# apiserver should use must be in this file.)
+apiVersion: v1alpha1
+kind: KubeAuthenticationConfig
+configuration:
+  anonymous:
+    enabled: false
+  jwt:
+    # kubectl CLI (kubelogin)
+    - issuer:
+        url: "https://sso.chelonianlabs.com/application/o/kubectl/"
+        audiences:
+          - "kubectl"
+      claimMappings:
+        username:
+          claim: "preferred_username"
+          prefix: "oidc:"
+        groups:
+          claim: "groups"
+          prefix: "oidc:"
+        uid:
+          claim: "sub"
+      userValidationRules:
+        - expression: 'user.groups.exists(g, g in ["oidc:kubernetes-admins", "oidc:kubernetes-viewers"])'
+          message: "not a member of a kubernetes access group"
+    # Headlamp web dashboard
+    - issuer:
+        url: "https://sso.chelonianlabs.com/application/o/headlamp/"
+        audiences:
+          - "headlamp"
+      claimMappings:
+        username:
+          claim: "preferred_username"
+          prefix: "oidc:"
+        groups:
+          claim: "groups"
+          prefix: "oidc:"
+        uid:
+          claim: "sub"
+      userValidationRules:
+        - expression: 'user.groups.exists(g, g in ["oidc:kubernetes-admins", "oidc:kubernetes-viewers"])'
+          message: "not a member of a kubernetes access group"

@@ -1,0 +1,23 @@
+# A v1.14 `talosctl gen config` base turns on things the cluster has never run with.
+# The config-contract move is meant to change nothing, so each of those documents is
+# removed here, which is exactly the state the nodes were in under the v1.13 contract.
+# To adopt one later, delete its block below (and test on one worker first).
+#
+# Workload isolation: runs the container plane in the sandbox namespace.
+# Absent document = off.
+apiVersion: v1alpha1
+kind: SecurityProfileConfig
+$patch: delete
+---
+# Secure mount (nosuid,nodev) for EPHEMERAL (/var). Absent document = not secure,
+# as today. /var holds containerd, kubelet and hostPath data, so check workloads
+# before turning this on.
+apiVersion: v1alpha1
+kind: VolumeConfig
+name: EPHEMERAL
+$patch: delete
+---
+# Weekly fstrim of the system volumes. Absent document = no scheduled trim.
+apiVersion: v1alpha1
+kind: FilesystemTrimConfig
+$patch: delete

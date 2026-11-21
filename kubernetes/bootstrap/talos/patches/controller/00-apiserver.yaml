@@ -1,0 +1,35 @@
+apiVersion: v1alpha1
+kind: KubeAPIServerConfig
+certExtraSANs:
+  - 10.100.0.40 # control-plane VIP
+  - 127.0.0.1
+extraArgs:
+  # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
+  enable-aggregator-routing: "true"
+  feature-gates: MutatingAdmissionPolicy=true
+  runtime-config: admissionregistration.k8s.io/v1beta1=true
+  # Increase timeouts and request handling capacity
+  request-timeout: "300s"
+  max-requests-inflight: "800"
+  max-mutating-requests-inflight: "400"
+  # Reduce watch cache memory usage
+  default-watch-cache-size: "100"
+  # OIDC authentication lives in KubeAuthenticationConfig (30-apiserver-oidc.yaml);
+  # Talos rejects authentication-config / oidc-* / anonymous-auth here.
+# Live heap sits at ~2-3 GiB per apiserver (219 CRDs, ~1,100 watches on the
+# busiest one), flat over a week: no leak. At 4Gi, GOMEMLIMIT (95% of the
+# limit, set by Talos) left no headroom and control-1 was OOM-killed on
+# 2026-11-20. Node has 16 GiB; peak use <50%.
+resources:
+  requests:
+    cpu: 500m
+    memory: 3Gi
+  limits:
+    cpu: 2000m
+    memory: 6Gi
+# No kubelet probes on the apiserver pod, as before the 1.14 contract (this field
+# switches the startup, liveness AND readiness probes; the document default is on).
+# The probes are unauthenticated requests to /livez and /readyz, and anonymous access
+# is off (30-apiserver-oidc.yaml), so they would get a 401 and the kubelet would kill
+# the apiserver. Only turn this on together with anonymous access to the health paths.
+startupProbes: false

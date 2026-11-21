@@ -5,6 +5,7 @@
 talosVersion: v1.14.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.37.2
-# Config contract passed to `talosctl gen config --talos-version`. Pinned to
-# v1.13 until the patches move to the v1.14 multi-document format.
-configContract: v1.13
+# Config contract passed to `talosctl gen config --talos-version`: it decides which
+# documents and defaults the generated base has. Raise it deliberately, never with a
+# Talos bump; see README.md ("Config contract").
+configContract: v1.14

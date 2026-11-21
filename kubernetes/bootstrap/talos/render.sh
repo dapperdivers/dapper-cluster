@@ -8,8 +8,8 @@
 #   2. patches/controller/*.yaml   (control-plane nodes only)
 #   3. patches/global/*.yaml       (every node)
 #   4. nodes/<role>/<hostname>.yaml
-# Role patches go before global ones to keep list order identical to what talhelper
-# produced (e.g. machine.files, kubernetesTalosAPIAccess namespaces).
+# The base already holds every secret (CAs, tokens, the service-account signing key) in
+# its own document, so patches never carry secret material.
 #
 # ${TALOS_VERSION} and ${KUBERNETES_VERSION} in patches are substituted from versions.yaml.
 # Output contains cluster secrets: never write it inside the repo.
@@ -61,15 +61,18 @@ talosctl gen config "$CLUSTER_NAME" "$CLUSTER_ENDPOINT" \
   --with-docs=false --with-examples=false \
   --output "$work/base.yaml" >/dev/null 2>&1
 
+# Up to the v1.13 contract Talos wrote the secrets-at-rest EncryptionConfig itself:
+# secretbox first, then the identity (plaintext) provider as a read fallback. The v1.14
+# base carries the config as a KubeEtcdEncryptionConfig document with secretbox only.
+# Keep the fallback so the apiserver reads exactly what it could read before; a patch
+# can't do this (lists append, which would add a second "secrets" entry).
+# No-op on workers: the document is control-plane only.
+yq -i '(select(.kind == "KubeEtcdEncryptionConfig") | .config.resources[0].providers) += [{"identity": {}}]' "$work/base.yaml"
+
 patch_args=()
 i=0
 for p in "${role_patches[@]}" "$dir"/patches/global/*.yaml "$node_file"; do
   envsubst '${TALOS_VERSION} ${KUBERNETES_VERSION}' < "$p" > "$work/patch-$i.yaml"
-  # The service-account signing key comes from the secrets bundle, never the repo.
-  if yq -e 'select(.kind == "KubeServiceAccountConfig")' "$work/patch-$i.yaml" >/dev/null 2>&1; then
-    SA_KEY="$(yq -e '.certs.k8sserviceaccount.key' "$work/secrets.yaml" | base64 -d)" \
-      yq -i '(select(.kind == "KubeServiceAccountConfig") | .issuer.privateKey) = strenv(SA_KEY)' "$work/patch-$i.yaml"
-  fi
   patch_args+=(--patch "@$work/patch-$i.yaml")
   i=$((i + 1))
 done

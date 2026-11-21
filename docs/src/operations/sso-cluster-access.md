@@ -24,12 +24,11 @@ unreachable Authentik degrades only OIDC token validation, never apiserver start
   `Headlamp OIDC` (confidential, `client_id: headlamp`).
 - **Issuers**: `https://sso.chelonianlabs.com/application/o/kubectl/` and
   `…/o/headlamp/` (trailing slash required).
-- **apiserver config**: `kubernetes/bootstrap/talos/patches/controller/apiserver-oidc.yaml`
-  — the auth config is written via `machine.files` to `/var/lib/kubernetes/authentication/`
-  (must be a writable `/var` path — a `machine.files` entry under `/etc/kubernetes` makes
-  Talos overlay that dir read-only and breaks the kubelet's PKI writes) and mounted into
-  the apiserver pod. Adding another OIDC app = one more `jwt:` block. Applying this patch
-  requires a per-node reboot (`machine.files` changes are not immediate-mode).
+- **apiserver config**: `kubernetes/bootstrap/talos/patches/controller/30-apiserver-oidc.yaml`
+  — a Talos `KubeAuthenticationConfig` document. Talos renders it into the apiserver's
+  `--authentication-config` file and restarts the apiserver when it changes (no reboot).
+  Anonymous access is turned off in the same document. Adding another OIDC app = one more
+  `jwt:` block.
 - **RBAC**: `kubernetes/apps/kube-system/oidc-rbac/` binds
   `oidc:kubernetes-admins` → `cluster-admin` and `oidc:kubernetes-viewers` → `view`;
   both issuers map claims with the same `oidc:` prefix, so bindings apply to both.

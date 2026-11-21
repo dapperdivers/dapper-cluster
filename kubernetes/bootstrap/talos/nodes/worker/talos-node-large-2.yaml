@@ -1,8 +1,12 @@
 # talos-node-large-2 (10.100.0.55). Its role comes from the directory this file is in.
-machine:
-  install:
-    disk: /dev/sda
-    image: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3:${TALOS_VERSION}
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+installer:
+  image: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3:${TALOS_VERSION}
+provisioning:
+  diskSelector:
+    match: disk.dev_path == "/dev/sda"
+  wipe: false
 ---
 apiVersion: v1alpha1
 kind: HostnameConfig

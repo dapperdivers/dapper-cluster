@@ -1,0 +1,19 @@
+# Talos API access from Kubernetes pods (ServiceAccount-based): the GitHub runners,
+# kube-system and tuppr (system-upgrade).
+apiVersion: v1alpha1
+kind: KubeTalosAPIAccessConfig
+allowedRoles:
+  - os:admin
+allowedKubernetesNamespaces:
+  - actions-runner-system
+  - kube-system
+  - system-upgrade
+---
+# Control planes resolve cluster member names through host DNS and do not forward
+# kube-dns to it. Workers keep the generated defaults (forwardKubeDNSToHost: true).
+apiVersion: v1alpha1
+kind: ResolverConfig
+hostDNS:
+  enabled: true
+  forwardKubeDNSToHost: false
+  resolveMemberNames: true

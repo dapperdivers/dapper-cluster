@@ -4,14 +4,24 @@
 # create user namespaces. Talos defaults this to 0 as hardening, which makes the
 # sandbox fail with "fork/exec ...: no space left on device". Only enable it on
 # nodes labelled workload.cluster.io/agent-sandbox, where the worker pool is pinned.
-machine:
-  install:
-    disk: /dev/sda
-    image: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3:${TALOS_VERSION}
-  nodeLabels:
-    workload.cluster.io/agent-sandbox: "true"
-  sysctls:
-    user.max_user_namespaces: "11255"
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+installer:
+  image: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3:${TALOS_VERSION}
+provisioning:
+  diskSelector:
+    match: disk.dev_path == "/dev/sda"
+  wipe: false
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  workload.cluster.io/agent-sandbox: "true"
+---
+apiVersion: v1alpha1
+kind: SysctlConfig
+params:
+  user.max_user_namespaces: "11255"
 ---
 apiVersion: v1alpha1
 kind: HostnameConfig
