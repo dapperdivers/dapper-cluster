@@ -352,6 +352,38 @@ spec:
         pod:
           labels: *callsAgents
 
+      # Sundays 05:30: article notes filed in the last two weeks (digest and the owner's own
+      # notes only) go to the kagent `blog-scout` agent (Claude subscription, Opus) in one
+      # call, which proposes the few worth a blog post, grounded in the owner's notes. The
+      # script validates every idea (pillar folder exists, sources are the owner's curated
+      # notes, articles were sent, title is new) and writes each as a NEW note under
+      # Projects/Blog/Ideas/<pillar>/ with stage: suggested. It never edits or overwrites a
+      # note, and nothing here publishes: posts reach the site only through the separate push.
+      # Timed after the night jobs (to 04:30), before weekly-review (07:00), clear of
+      # reading-process (:40), which shares the usage limit.
+      blog-scout:
+        type: cronjob
+        cronjob:
+          schedule: "30 5 * * 0"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 1800
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [blog-scout]
+            env:
+              <<: *jobEnv
+              BLOG_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/blog-scout
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          labels: *callsAgents
+
       # 01:30: copy of the Miniflux configuration into <vault>/System/Miniflux/ (feeds.opml plus
       # miniflux-config.json: settings, category flags, per-feed options; never feed credentials)
       # and Agents/Generated/Feed Health.md. Reads Miniflux with GET requests only and rewrites
