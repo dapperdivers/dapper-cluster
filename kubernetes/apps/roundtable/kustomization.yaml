@@ -10,4 +10,4 @@ resources:
   - ./infrastructure/ks.yaml # RBAC, secret, limitrange, monitoring, vault PV/PVC, workspace PVC
   - ./operator/ks.yaml # Round Table operator + dashboard (Deployment backend only)
   # agent-sandbox comes back in M2 (roundtable-k8s/roundtable#95, #163).
-  # Knights/Chains/tables are tracked separately (roundtable-k8s/roundtable#187).
+  - ./knights/ks.yaml # Knights (first: galahad on claude-knight, #187)

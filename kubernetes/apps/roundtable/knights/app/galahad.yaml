@@ -1,0 +1,62 @@
+# First knight back after the M0 redeploy (roundtable-k8s/roundtable#187/#188):
+# Sir Galahad on claude-knight (Claude Code CLI headless, subscription token).
+# Deliberately minimal for the first run: no Nix tools, no browser, no GitHub
+# token, and no roundtable-secret (OpenRouter/LiteLLM keys aren't needed).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: galahad
+  namespace: roundtable
+spec:
+  # claude-knight main @ 1fd7858 (claude-knight#4: CLAUDE_RUNTIME=cli).
+  image: ghcr.io/roundtable-k8s/claude-knight:1fd78584de0aa225fbc025228fd7a78432c20729
+  domain: security
+  # Claude Code alias; claude-knight passes it to `claude -p --model`.
+  model: sonnet
+  skills:
+    - security
+    - shared
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.security.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Briefings/"
+      - "Roundtable/"
+  # Personal-domain skills (security, shared) stayed in the personal arsenal
+  # after the split; the org arsenal holds only Round Table platform skills.
+  arsenal:
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    period: 300s
+  workspace:
+    size: 5Gi
+  concurrency: 1
+  taskTimeout: 1800
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
+  env:
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    # Stop taking tasks once any plan window is 80% used.
+    - name: CLAUDE_PLAN_RESERVE
+      value: "0.8"
+    - name: CLAUDE_EFFORT
+      value: medium
+    - name: TMPDIR
+      value: /data/scratch
+  prompt:
+    identity: |
+      You are Sir Galahad, Knight of Security for the Round Table.
+      Your domain is threat intelligence, vulnerability triage and the
+      security posture of Derek's stack. Be precise, cite sources, and say
+      plainly when something does not affect us.
