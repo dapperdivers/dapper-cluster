@@ -13,6 +13,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: dunce-bot-key
+  namespace: roundtable
 spec:
   secretStoreRef:
     kind: ClusterSecretStore
@@ -33,6 +34,7 @@ apiVersion: generators.external-secrets.io/v1alpha1
 kind: GithubAccessToken
 metadata:
   name: dunce-bot-roundtable
+  namespace: roundtable
 spec:
   # dunce-bot app and its installation on the roundtable-k8s org (not secret).
   appID: "1040936"
@@ -59,6 +61,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: roundtable-github-token
+  namespace: roundtable
 spec:
   refreshInterval: 30m
   target:
