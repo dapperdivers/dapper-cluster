@@ -44,6 +44,34 @@ spec:
           valueExpr: labels[?"revision"].orValue("unknown")
           colorExpr: '"blue"'
 
+        # GitOps health from the Flux Operator's flux_resource_info.
+        # "waiting" is not-Ready only because a dependency or a rollout is still
+        # in progress (normal right after a node roll); "failing" is everything
+        # else that is not Ready. Suspended objects are left out of both.
+        - title: Kustomizations
+          id: flux_kustomization_count
+          query: count(flux_resource_info{kind="Kustomization"})
+          valueExpr: humanizeCommas(result)
+          colorExpr: '"blue"'
+
+        - title: HelmReleases
+          id: flux_helmrelease_count
+          query: count(flux_resource_info{kind="HelmRelease"})
+          valueExpr: humanizeCommas(result)
+          colorExpr: '"blue"'
+
+        - title: Flux waiting
+          id: flux_waiting_count
+          query: count(flux_resource_info{kind=~"Kustomization|HelmRelease|GitRepository|OCIRepository|HelmRepository|HelmChart", suspended!="True", ready!="True", reason=~"DependencyNotReady|Progressing.*"}) or vector(0)
+          valueExpr: humanizeCommas(result)
+          colorExpr: 'result == 0.0 ? "green" : "orange"'
+
+        - title: Flux failing
+          id: flux_failing_count
+          query: count(flux_resource_info{kind=~"Kustomization|HelmRelease|GitRepository|OCIRepository|HelmRepository|HelmChart", suspended!="True", ready!="True", reason!~"DependencyNotReady|Progressing.*"}) or vector(0)
+          valueExpr: humanizeCommas(result)
+          colorExpr: 'result == 0.0 ? "green" : "red"'
+
         - title: Nodes
           id: cluster_node_count
           query: count(count by (node) (kube_node_status_condition{condition="Ready"}))
@@ -77,17 +105,20 @@ spec:
           valueExpr: humanizeCommas(math.round(result)) + "w"
           colorExpr: 'colorScale(result, [2500.0, 3500.0], ["green", "orange", "red"])'
 
+        # An older cluster is not a problem, so no warning colours
         - title: Age
           id: cluster_age_days
           query: round(time() - min(kube_node_created))
           valueExpr: humanizeDurationDays(result)
-          colorExpr: 'colorScale(result, [15552000.0, 31104000.0], ["green", "orange", "red"])'
+          colorExpr: '"blue"'
 
+        # Average node uptime. Rolling Talos upgrades reboot every node, so it is
+        # often under a day: show minutes, then hours, then days instead of "0d".
         - title: Uptime
           id: cluster_uptime_days
           query: round(avg(node_time_seconds{kubernetes_node!=""} - node_boot_time_seconds{kubernetes_node!=""}))
-          valueExpr: humanizeDurationDays(result)
-          colorExpr: 'colorScale(result, [15552000.0, 31104000.0], ["green", "orange", "red"])'
+          valueExpr: 'result < 3600.0 ? string(int(result / 60.0)) + "m" : result < 86400.0 ? string(int(result / 3600.0)) + "h" : humanizeDurationDays(result)'
+          colorExpr: '"green"'
 
         - title: Alerts
           id: cluster_alert_count
