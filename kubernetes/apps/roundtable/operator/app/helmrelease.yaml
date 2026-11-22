@@ -22,21 +22,21 @@ spec:
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.
-    # TODO(roundtable-k8s/roundtable#186): the operator tag MUST be a build
-    # that includes the #186 fix (Knight controller only watches Sandbox when
-    # discovery shows the kind is served). Every build up to and including
-    # main @ 2402dce (chart 0.15.1) crashloops without agent-sandbox
-    # v1alpha1. Replace the placeholder below with that build's full SHA.
+    # Operator = main @ 75513c1 (roundtable-k8s/roundtable#190): the Knight
+    # controller only watches Sandbox when discovery shows the kind is
+    # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: PENDING-ROUNDTABLE-186-FIX
+      tag: 75513c1438a039810100459b859b786db8a69372
       pullPolicy: IfNotPresent
-    # knight/dashboard match the chart 0.15.1 pins; re-check them against
-    # the fixed chart's values.yaml when it is pinned.
+    # agent-sandbox is not installed here (returns in M2, #163): run
+    # Deployment-only and skip discovery.
+    sandboxBackend: "false"
     images:
+      # pi-knight main @ b32b3be (pi-knight#48: per-run session retention).
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: 311d428aba9aea3d9b2e37feab237c378046e718
+        tag: b32b3be24f14651e54fee2ddb4175ff6c6942416
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
         tag: 24615ccda6af6136eb81ee07e535c00bd73095a5
