@@ -1,0 +1,71 @@
+# GitHub access for Round Table knights via the dunce-bot GitHub App
+# (roundtable-k8s/roundtable#187). ESO mints short-lived installation tokens
+# (1h) with permissions narrowed below the app's own: no `workflows` or
+# `pages`, so a prompt-injected knight cannot push workflow changes that would
+# run with repo secrets. Only the roundtable-k8s repos listed below.
+#
+# The token lands in its own Secret, refreshed every 30m. Knights must read it
+# as a mounted FILE (which updates in place), not as env (env is frozen at pod
+# start and the token expires after an hour); see roundtable-k8s/roundtable#194.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: dunce-bot-key
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: dunce-bot-key
+    template:
+      engineVersion: v2
+      data:
+        privateKey: "{{ .DUNCE_BOT_APP_PRIVATE_KEY }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^DUNCE_BOT_APP_PRIVATE_KEY$
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/generators.external-secrets.io/githubaccesstoken_v1alpha1.json
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: GithubAccessToken
+metadata:
+  name: dunce-bot-roundtable
+spec:
+  # dunce-bot app and its installation on the roundtable-k8s org (not secret).
+  appID: "1040936"
+  installID: "184814865"
+  repositories:
+    - roundtable
+    - pi-knight
+    - roundtable-ui
+    - claude-knight
+    - arsenal
+  permissions:
+    contents: write
+    pull_requests: write
+    issues: write
+    metadata: read
+  auth:
+    privateKey:
+      secretRef:
+        name: dunce-bot-key
+        key: privateKey
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: roundtable-github-token
+spec:
+  refreshInterval: 30m
+  target:
+    name: roundtable-github-token
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: GithubAccessToken
+          name: dunce-bot-roundtable
