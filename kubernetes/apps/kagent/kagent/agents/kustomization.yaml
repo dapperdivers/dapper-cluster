@@ -7,6 +7,7 @@ resources:
   # tool servers (RemoteMCPServers), one file per concern.
   - ./platform
   # One file per agent (its AgentTemplate + Agent only). To add an agent, add a file here.
+  - ./blog-drafter.yaml
   - ./blog-scout.yaml
   - ./claude.yaml
   - ./feeds-curator.yaml
