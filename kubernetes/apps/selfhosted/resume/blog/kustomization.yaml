@@ -1,0 +1,7 @@
+---
+# Intentionally empty: the Flux Kustomization injects the volsync components, which
+# create the blog-content PVC and its backup/restore resources.
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: []

@@ -89,6 +89,14 @@ spec:
             app:
               - path: /tmp
                 readOnly: false
+      # The built blog (PVC from ../ks.yaml), served by the app at /blog
+      blog:
+        existingClaim: blog-content
+        advancedMounts:
+          resume:
+            app:
+              - path: /app/blog-static
+                readOnly: true
     service:
       app:
         controller: *app

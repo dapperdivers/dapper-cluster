@@ -13,6 +13,8 @@ spec:
   dependsOn:
     - name: volsync
       namespace: storage
+    - name: blog-content
+      namespace: selfhosted
   path: "./kubernetes/apps/selfhosted/resume/app"
   prune: true
   sourceRef:
@@ -26,3 +28,45 @@ spec:
   postBuild:
     substitute:
       APP: *app
+---
+# The built blog served at derekmackley.com/blog. A publisher job writes the static
+# site here; the resume pod mounts it read-only. Content is rebuilt from the vault, so
+# a daily backup is plenty; it restores itself if the PVC is ever recreated.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app blog-content
+  namespace: &namespace selfhosted
+spec:
+  targetNamespace: *namespace
+  components:
+    - ../../../../flux/components/volsync/repository
+    - ../../../../flux/components/volsync/operations
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    - name: volsync
+      namespace: storage
+  path: ./kubernetes/apps/selfhosted/resume/blog
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 10m
+  postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 2Gi
+      VOLSYNC_CACHE_CAPACITY: 1Gi
+      VOLSYNC_STORAGECLASS: cephfs-shared
+      VOLSYNC_SNAPSHOTCLASS: cephfs-snapshot
+      VOLSYNC_ACCESSMODES: ReadWriteMany # publisher job writes, resume pods read
+      VOLSYNC_SCHEDULE: "0 3 * * *"
+      VOLSYNC_PUID: "1000"
+      VOLSYNC_PGID: "1000"
