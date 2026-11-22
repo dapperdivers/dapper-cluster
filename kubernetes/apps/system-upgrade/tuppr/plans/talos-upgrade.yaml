@@ -9,13 +9,6 @@ spec:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
     version: v1.14.6
 
-  # TEMPORARY canary (2026-11-21): first upgrade since the machine configs moved to the
-  # v1.14 config contract (UnattendedInstallConfig). One worker first; remove this
-  # selector to roll the rest.
-  nodeSelector:
-    matchLabels:
-      kubernetes.io/hostname: talos-node-small-1
-
   policy:
     rebootMode: powercycle
     # Whole per-node talosctl upgrade (drain + install + reboot)
