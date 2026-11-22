@@ -49,8 +49,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio-blog
-              # Pin to the first published image's tag@digest before merging (see the PR)
-              tag: latest
+              tag: sha-0326949@sha256:a785cfce87b333798438d349cd311503fe70617d6bd3f96d81ff9340d2821293
             env:
               ARTICLES_DIR: /content/articles
               SITE_DIR: /content/site
