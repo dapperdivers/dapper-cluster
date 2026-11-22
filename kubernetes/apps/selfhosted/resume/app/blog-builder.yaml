@@ -1,0 +1,77 @@
+---
+# Builds derekmackley.com/blog from pushed articles. Every few minutes it hashes
+# blog-content/articles; when they (or the builder image) changed it runs `astro build`
+# in scratch space, copies the result to blog-content/site/releases/<stamp>-<hash> and
+# switches site/current to it with one rename, keeping the newest three releases. When
+# nothing changed it exits in about a second.
+#
+# It never sees the Obsidian vault: the only volume is blog-content. Articles arrive
+# there from the private-side push; the resume pod serves site/current read-only.
+# Image: developer-portfolio's blog/Dockerfile (ghcr.io/dapperdivers/developer-portfolio-blog).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: blog-builder
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+    controllers:
+      blog-builder:
+        type: cronjob
+        cronjob:
+          schedule: "*/5 * * * *"
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 900
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image:
+              repository: ghcr.io/dapperdivers/developer-portfolio-blog
+              tag: sha-0326949@sha256:a785cfce87b333798438d349cd311503fe70617d6bd3f96d81ff9340d2821293
+            env:
+              ARTICLES_DIR: /content/articles
+              SITE_DIR: /content/site
+              KEEP_RELEASES: "3"
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+    persistence:
+      content:
+        existingClaim: blog-content
+        globalMounts:
+          - path: /content
+      tmp:
+        type: emptyDir
+        sizeLimit: 1Gi
+        globalMounts:
+          - path: /tmp

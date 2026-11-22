@@ -131,6 +131,14 @@ data:
       - model: authentik_core.application
         identifiers: { slug: firefly }
         attrs: { name: Firefly III, group: home, provider: !KeyOf firefly-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firefly-iii.svg", meta_launch_url: "https://firefly.${SECRET_DOMAIN}" }
+      # blog-desk (preview and make live for derekmackley.com/blog; the app also checks the admins group)
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers: { name: Provider for Blog Desk }
+        id: blogdesk-provider
+        attrs: { <<: *proxy, external_host: "https://blog-desk.${SECRET_DOMAIN}" }
+      - model: authentik_core.application
+        identifiers: { slug: blog-desk }
+        attrs: { name: Blog Desk, group: home, provider: !KeyOf blogdesk-provider, meta_icon: "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/ghost.svg", meta_launch_url: "https://blog-desk.${SECRET_DOMAIN}" }
       # peanut — UPS dashboard; app itself runs AUTH_DISABLED (no built-in auth)
       - model: authentik_providers_proxy.proxyprovider
         identifiers: { name: Provider for PeaNUT }
@@ -258,6 +266,7 @@ data:
             - !KeyOf 4kbazarr-provider
             - !KeyOf posterizarr-provider
             - !KeyOf firefly-provider
+            - !KeyOf blogdesk-provider
             - !KeyOf peanut-provider
             - !KeyOf prometheus-provider
             - !KeyOf alertmanager-provider
