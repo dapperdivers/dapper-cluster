@@ -1,0 +1,28 @@
+# Claude subscription setup-token for claude-knight knights. It is the same token
+# kagent's claude-code harness uses (MOLT_ANTHROPIC_SETUP_TOKEN in Infisical), so
+# knights share the plan's usage windows with kagent and interactive use;
+# CLAUDE_PLAN_RESERVE on each knight keeps headroom. claude-knight runs the
+# official Claude Code CLI headless (CLAUDE_RUNTIME=cli) in subscription mode.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: claude-setup-token
+  namespace: roundtable
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: claude-setup-token
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        CLAUDE_CODE_OAUTH_TOKEN: "{{ .MOLT_ANTHROPIC_SETUP_TOKEN }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^MOLT_ANTHROPIC_SETUP_TOKEN$
