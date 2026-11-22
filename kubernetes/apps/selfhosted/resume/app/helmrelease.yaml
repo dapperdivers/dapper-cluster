@@ -34,6 +34,9 @@ spec:
               # would put every visitor in one bucket. Rate limit at the
               # Cloudflare edge instead.
               RATE_LIMIT_MAX: "0"
+              # The live blog release: blog-builder points site/current at the newest
+              # build with an atomic symlink switch, so no restart is needed
+              BLOG_PATH: /app/blog-static/site/current
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -89,7 +92,8 @@ spec:
             app:
               - path: /tmp
                 readOnly: false
-      # The built blog (PVC from ../ks.yaml), served by the app at /blog
+      # The blog volume (PVC from ../ks.yaml), read-only. The app serves only site/current
+      # (BLOG_PATH); articles/ is the builder's input and is never served.
       blog:
         existingClaim: blog-content
         advancedMounts:
