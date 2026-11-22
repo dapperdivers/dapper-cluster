@@ -88,6 +88,10 @@ spec:
                 # deliberately, against the current schema.
 
                 mkdir -p -m 700 /tmp/xdg-cache
+                # 2026.11.6 also rejects a temp root under a group-writable
+                # ancestor unless it is sticky; /home/node must stay g+w for
+                # fsGroup, so mark it sticky (a recursive fsGroup chown clears it).
+                chmod +t /home/node
                 exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
             resources:
               requests:
