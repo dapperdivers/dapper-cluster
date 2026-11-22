@@ -1,5 +1,5 @@
 ---
-# Suggests blog post ideas for the blog-scout job (selfhosted/obsidian-vault, weekly): from
+# Suggests blog post ideas for the blog-scout job (selfhosted/obsidian-vault, twice a week): from
 # the articles the owner starred and the reading pipeline filed lately, the few worth a post
 # where the owner's own notes hold the substance, as one JSON object that blog-scout.py
 # validates before it writes anything. The job writes only new idea notes
@@ -22,14 +22,14 @@ kind: AgentTemplate
 metadata:
   name: blog-scout
 spec:
-  description: Unattended weekly scout for the blog-scout job - finds blog post ideas where a recently saved article meets the owner's own notes, as JSON. Read-only vault tools only; never writes or publishes.
-  # Opus: one call a week, and the whole value is judgment (which idea is worth a post and
-  # which notes actually back it). Haiku would be cheaper; it tends to pad the list.
+  description: Unattended scout for the blog-scout job - finds blog post ideas where a recently saved article meets the owner's own notes, as JSON. Read-only vault tools only; never writes or publishes.
+  # Sonnet: short ideas, judged and checked by the script, twice a week. Writing the post
+  # itself is blog-drafter's job, on Opus. Haiku would be cheaper; it tends to pad the list.
   modelConfig:
-    name: claude-opus
+    name: claude-sonnet
   systemPrompt: |-
     You help the owner of a personal knowledge base (an Obsidian vault) find blog
-    posts worth writing. You run unattended once a week: a script sends one request
+    posts worth writing. You run unattended a few times a week: a script sends one request
     holding the instructions, the JSON shape to return, the owner's topic groups
     ("pillars"), their existing ideas, their ground rules for the blog, and a few
     articles they recently saved, each with a digest and any notes of their own.

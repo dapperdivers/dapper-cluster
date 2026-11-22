@@ -55,7 +55,7 @@ spec:
           app:
             image: &image
               repository: ghcr.io/dapperdivers/vault-jobs
-              tag: 2026.11.22.11@sha256:b57ef6ca18e90c336ccf66d0bb86bc2250459ead9212c981ee870681d1643567
+              tag: 2026.11.22.13@sha256:303547def6b6f10646c60a328f9fad6e05e8787552fc93e7f315d587dffe380b
             args: [vault-snapshot]
             env: &jobEnv
               TZ: *timeZone
@@ -352,8 +352,9 @@ spec:
         pod:
           labels: *callsAgents
 
-      # Sundays 05:30: article notes filed in the last two weeks (digest and the owner's own
-      # notes only) go to the kagent `blog-scout` agent (Claude subscription, Opus) in one
+      # Sundays and Wednesdays 05:30: article notes filed in the last two weeks and not yet
+      # shown to it (digest and the owner's own notes only) go to the kagent `blog-scout`
+      # agent (Claude subscription, Sonnet) in one
       # call, which proposes the few worth a blog post, grounded in the owner's notes. The
       # script validates every idea (pillar folder exists, sources are the owner's curated
       # notes, articles were sent, title is new) and writes each as a NEW note under
@@ -364,7 +365,7 @@ spec:
       blog-scout:
         type: cronjob
         cronjob:
-          schedule: "30 5 * * 0"
+          schedule: "30 5 * * 0,3"
           timeZone: *timeZone
           concurrencyPolicy: Forbid
           activeDeadlineSeconds: 1800
@@ -377,6 +378,36 @@ spec:
             env:
               <<: *jobEnv
               BLOG_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/blog-scout
+              SYNCTHING_URL: *syncthingUrl
+              SYNCTHING_API_KEY: *syncthingKey
+            resources: *jobResources
+            securityContext: *jobSecurityContext
+        pod:
+          labels: *callsAgents
+
+      # Hourly at :25: drafts the blog notes the owner set to `stage: drafting` (one per run,
+      # oldest first, once the note has been left alone for 10 minutes) with the kagent
+      # `blog-drafter` agent (Claude subscription, Opus). The post goes under the note's
+      # `## Draft`, with a `## Draft check` list of claims above it, and the note moves to
+      # `stage: draft`. It never overwrites text under `## Draft`, and nothing here
+      # publishes. A run with nothing at `stage: drafting` makes no call. Clear of
+      # reading-process (:40), which shares the usage limit.
+      blog-drafter:
+        type: cronjob
+        cronjob:
+          schedule: "25 * * * *"
+          timeZone: *timeZone
+          concurrencyPolicy: Forbid
+          activeDeadlineSeconds: 1800
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+        containers:
+          app:
+            image: *image
+            args: [blog-drafter]
+            env:
+              <<: *jobEnv
+              BLOG_DRAFT_AGENT_URL: http://kagent-controller.kagent.svc.cluster.local:8083/agents/kagent/blog-drafter
               SYNCTHING_URL: *syncthingUrl
               SYNCTHING_API_KEY: *syncthingKey
             resources: *jobResources
