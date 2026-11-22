@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dapperdivers/developer-portfolio
-              tag: latest@sha256:0a83acfcf1f14d194b30521ae7db2fed2b67e3e85b1e84a58f6b2dab7ad68537
+              tag: latest@sha256:df510c27acc9406698c2ec395181181459001c755cb2b7ed1e026038d3c18098
             env:
               ALLOWED_DOMAINS: "https://www.${SECRET_DOMAIN_PERSONAL},https://${SECRET_DOMAIN_PERSONAL}"
               # The gateway forwards no visitor address, so the app's limiter
