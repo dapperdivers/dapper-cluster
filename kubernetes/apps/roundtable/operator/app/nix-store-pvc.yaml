@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/persistentvolumeclaim.json
+---
+# Shared Nix store for the Round Table fleet. The operator's per-knight
+# nix-build Jobs mount this read-write (one writer); knight pods mount it
+# read-only (many readers). Replaces 25 per-knight 5Gi RWO stores.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roundtable-nix-store
+  namespace: roundtable
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: cephfs-shared

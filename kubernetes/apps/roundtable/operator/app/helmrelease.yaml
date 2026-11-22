@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: roundtable-operator
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: roundtable-operator
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    # Images are pinned by full git SHA (immutable tags) from the
+    # roundtable-k8s org registry.
+    # TODO(roundtable-k8s/roundtable#186): the operator tag MUST be a build
+    # that includes the #186 fix (Knight controller only watches Sandbox when
+    # discovery shows the kind is served). Every build up to and including
+    # main @ 2402dce (chart 0.15.1) crashloops without agent-sandbox
+    # v1alpha1. Replace the placeholder below with that build's full SHA.
+    image:
+      repository: ghcr.io/roundtable-k8s/roundtable
+      tag: PENDING-ROUNDTABLE-186-FIX
+      pullPolicy: IfNotPresent
+    # knight/dashboard match the chart 0.15.1 pins; re-check them against
+    # the fixed chart's values.yaml when it is pinned.
+    images:
+      piKnight:
+        repository: ghcr.io/roundtable-k8s/pi-knight
+        tag: 311d428aba9aea3d9b2e37feab237c378046e718
+      dashboard:
+        repository: ghcr.io/roundtable-k8s/roundtable-ui
+        tag: 24615ccda6af6136eb81ee07e535c00bd73095a5
+
+    # Operator manager. The chart default memory limit is 128Mi; the old
+    # deployment ran with 256Mi. Pending the crashloop investigation
+    # (roundtable-k8s/roundtable#186), tune here.
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+    # Completion webhooks (spec.notify) stay disabled: the OpenClaw (molt)
+    # receiver was dropped in #4736. An empty list rejects every notify URL.
+    notify:
+      allowedURLPrefixes: []
+
+    # Persistent nix-daemon builder: a single root Deployment owns the shared
+    # Nix store (roundtable-nix-store) and builds knight tools dispatched via
+    # the roundtable-nix-buildqueue PVC. Both PVCs live next to this file.
+    nixBuilder:
+      enabled: true
+
+    # Built-in planner knight (Deployment runtime backend, the operator default).
+    planner:
+      enabled: true
+      domain: operator
+      model: openrouter/moonshotai/kimi-k2.6:exacto
+      skills:
+        - operator
+        - shared
+      natsPrefix: fleet-a
+      concurrency: 1
+      taskTimeout: 600
+      arsenal:
+        repo: https://github.com/roundtable-k8s/arsenal.git
+        ref: main
+        period: 5m
+      envFrom:
+        - secretRef:
+            name: roundtable-secret
+
+    # Round Table UI, exposed on the internal gateway by httproute.yaml.
+    dashboard:
+      enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 128Mi
+      vault:
+        enabled: true
+        claimName: roundtable-vault
