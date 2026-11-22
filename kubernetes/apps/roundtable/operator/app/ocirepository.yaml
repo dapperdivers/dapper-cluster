@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: roundtable-operator
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    # 0.15.2 = first chart with the #186 fix (sandbox backend optional).
+    # Pinned by digest too: CI republishes the same chart version on every
+    # main push (roundtable-k8s/roundtable#191), so the tag alone is mutable.
+    tag: 0.15.2
+    digest: sha256:89536ec2a7699ac15aa656c7bf17337816f8203eda6843ec4a0a842032d76d70
+  url: oci://ghcr.io/roundtable-k8s/charts/roundtable-operator

@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/servicemonitor_v1.json
+# Scrape the Round Table dashboard API (/metrics, roundtable-ui api/main.go).
+# The chart labels the dashboard Service with the chart name plus
+# component=dashboard (the old app.kubernetes.io/name=roundtable-dashboard
+# selector only matches the pods, so it never selected the Service).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: roundtable-dashboard
+  namespace: roundtable
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: roundtable-operator
+      app.kubernetes.io/component: dashboard
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 1m

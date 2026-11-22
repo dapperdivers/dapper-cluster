@@ -71,6 +71,12 @@ jobs:
         # both sides and make flate exit 1. So capture the list, accept a non-zero
         # exit when stdout is still a JSON array, then write it to GITHUB_OUTPUT.
         # Render validation is Konflate's job, not this one's.
+        #
+        # flate also treats any non-image field holding "a/b:c" as an image, which
+        # catches LLM model IDs such as openrouter/moonshotai/kimi-k2.6:exacto
+        # (Round Table Knight spec.model). Drop refs that cannot exist: three or more
+        # path segments with no registry host would resolve to Docker Hub, which only
+        # has namespace/name repositories.
         run: |
           rc=0
           flate diff images -p ./kubernetes/flux/cluster -o json --no-progress > images.json || rc=$?
@@ -79,9 +85,11 @@ jobs:
             exit 1
           fi
           [ "$rc" -eq 0 ] || echo "::warning::flate exited ${rc} (some renders failed, see log); using the image list it produced"
+          jq -c '[.[] | select((split("@")[0] | split("/") | length) < 3 or (split("/")[0] | test("[.:]|^localhost$")))]' images.json > images.filtered.json
+          jq -r --slurpfile kept images.filtered.json '.[] | select(. as $i | $kept[0] | index($i) | not) | "::notice::skipping non-image reference \(.)"' images.json
           {
             echo 'images<<EOF'
-            jq -c . images.json
+            jq -c . images.filtered.json
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 

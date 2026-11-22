@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - rbac.yaml
+  - knight-rbac.yaml
+  - watchman-rbac.yaml
+  - roundtable-secret.yaml
+  - vault-pv.yaml
+  - vault-pvc.yaml
+  - shared-workspace-pvc.yaml
+  - limitrange.yaml
+  - podmonitor.yaml
+  - servicemonitor.yaml
+  - prometheusrule.yaml

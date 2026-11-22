@@ -1,0 +1,51 @@
+---
+# ServiceAccount for Watchman — Night Watch telemetry sweep + Mission dispatch
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: watchman
+  namespace: roundtable
+---
+# Read access for diagnostics (shared knight role: pods, logs, events, flux)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: knight-watchman-read-only
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: knight-kubectl-read-only
+subjects:
+  - kind: ServiceAccount
+    name: watchman
+    namespace: roundtable
+---
+# Watchman is the ONLY knight allowed to create Missions (fix dispatch).
+# Scoped to the roundtable namespace; no update/delete — Missions are
+# fire-and-forget records, cleanup stays human/operator-owned.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: watchman-mission-dispatch
+  namespace: roundtable
+rules:
+  - apiGroups: ["ai.roundtable.io"]
+    resources: ["missions"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["ai.roundtable.io"]
+    resources: ["knights", "chains", "roundtables"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: watchman-mission-dispatch
+  namespace: roundtable
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: watchman-mission-dispatch
+subjects:
+  - kind: ServiceAccount
+    name: watchman
+    namespace: roundtable

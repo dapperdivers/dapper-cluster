@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/persistentvolumeclaim.json
+---
+# Work queue for the persistent nix-daemon builder. The operator writes build
+# requests here and the roundtable-operator-nix-builder Deployment writes
+# results back — a small RWX coordination channel, NOT a Nix store. Both pods
+# mount it; the builder (the store's sole writer) reads requests and publishes
+# profiles into roundtable-nix-store.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roundtable-nix-buildqueue
+  namespace: roundtable
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs-shared

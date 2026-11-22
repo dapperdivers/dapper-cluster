@@ -1,0 +1,45 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: knight-kubectl-read-only
+  namespace: roundtable
+rules:
+  # Query and inspect resources (no mutations)
+  - apiGroups: ["", "apps", "batch", "flux.fluxcd.io"]
+    resources: ["pods", "deployments", "statefulsets", "jobs", "kustomizations", "helmreleases"]
+    verbs: ["get", "list", "watch"]
+  # Logs (inspection only)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # Events (debugging)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: knight-tristan-read-only
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: knight-kubectl-read-only
+subjects:
+  - kind: ServiceAccount
+    name: tristan
+    namespace: roundtable
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: knight-galahad-read-only
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: knight-kubectl-read-only
+subjects:
+  - kind: ServiceAccount
+    name: galahad
+    namespace: roundtable

@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/limitrange.json
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: roundtable-ephemeral-storage
+  namespace: roundtable
+spec:
+  # Knight containers (and their sidecars) declare cpu/memory but no
+  # ephemeral-storage, so with request=0 the kubelet evicts them first under
+  # node disk pressure (see galahad/agravain evictions on talos-node-large-2).
+  # These defaults give every container a reservation (so it is protected and
+  # the scheduler can spread pods) and a ceiling (so one runaway scratch/browser
+  # cache cannot starve the node). Containers may still override per-container.
+  limits:
+    - type: Container
+      defaultRequest:
+        ephemeral-storage: 1Gi
+      default:
+        ephemeral-storage: 4Gi
