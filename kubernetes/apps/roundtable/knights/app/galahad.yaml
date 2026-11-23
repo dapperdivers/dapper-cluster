@@ -1,6 +1,6 @@
 # First knight back after the M0 redeploy (roundtable-k8s/roundtable#187/#188):
 # Sir Galahad on claude-knight (Claude Code CLI headless, subscription token).
-# Kept minimal: no Nix tools, no browser, no roundtable-secret. GitHub access is
+# Kept minimal: a small Nix tool set, no browser, no roundtable-secret. GitHub access is
 # the scoped dunce-bot token file only.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
 ---
@@ -18,6 +18,16 @@ spec:
   skills:
     - security
     - shared
+  # Built once into a tools image (registry.${SECRET_DOMAIN}/knight-tools, tag =
+  # hash of this list) and mounted read-only at /nix; see toolsImage in
+  # ../../operator/app/helmrelease.yaml. First knight on tools images
+  # (roundtable-k8s/roundtable#196).
+  tools:
+    nix:
+      - dnsutils
+      - jq
+      - nmap
+      - whois
   nats:
     url: nats://nats.database.svc:4222
     subjects:
