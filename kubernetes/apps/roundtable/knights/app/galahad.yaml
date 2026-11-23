@@ -1,7 +1,7 @@
 # First knight back after the M0 redeploy (roundtable-k8s/roundtable#187/#188):
 # Sir Galahad on claude-knight (Claude Code CLI headless, subscription token).
-# Deliberately minimal for the first run: no Nix tools, no browser, no GitHub
-# token, and no roundtable-secret (OpenRouter/LiteLLM keys aren't needed).
+# Kept minimal: no Nix tools, no browser, no roundtable-secret. GitHub access is
+# the scoped dunce-bot token file only.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
 ---
 apiVersion: ai.roundtable.io/v1alpha1
@@ -10,8 +10,8 @@ metadata:
   name: galahad
   namespace: roundtable
 spec:
-  # claude-knight main @ 1fd7858 (claude-knight#4: CLAUDE_RUNTIME=cli).
-  image: ghcr.io/roundtable-k8s/claude-knight:1fd78584de0aa225fbc025228fd7a78432c20729
+  # claude-knight main @ 1ce1ff7 (claude-knight#5: GITHUB_TOKEN_FILE; includes #4 CLI runtime).
+  image: ghcr.io/roundtable-k8s/claude-knight:1ce1ff790728ff22dcbf7d24fd0778ea2dbb0fa3
   domain: security
   # Claude Code alias; claude-knight passes it to `claude -p --model`.
   model: sonnet
@@ -39,6 +39,11 @@ spec:
     period: 300s
   workspace:
     size: 5Gi
+  # dunce-bot token as a refreshing file (GITHUB_TOKEN_FILE), roundtable-k8s/roundtable#194.
+  github:
+    tokenSecretRef:
+      name: roundtable-github-token
+      key: token
   concurrency: 1
   taskTimeout: 1800
   envFrom:

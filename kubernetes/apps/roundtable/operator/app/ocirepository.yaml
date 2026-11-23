@@ -10,9 +10,9 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    # 0.15.2 = first chart with the #186 fix (sandbox backend optional).
+    # 0.16.0 = spec.github.tokenSecretRef / planner.github (#194); includes the #186 fix.
     # Pinned by digest too: CI republishes the same chart version on every
     # main push (roundtable-k8s/roundtable#191), so the tag alone is mutable.
-    tag: 0.15.2
-    digest: sha256:89536ec2a7699ac15aa656c7bf17337816f8203eda6843ec4a0a842032d76d70
+    tag: 0.16.0
+    digest: sha256:11334373588a6ed649bc5e68d4979546f355d5435e9e6f5994db06cb4ef90166
   url: oci://ghcr.io/roundtable-k8s/charts/roundtable-operator
