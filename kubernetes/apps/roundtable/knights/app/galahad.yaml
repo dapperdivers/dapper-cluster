@@ -25,6 +25,7 @@ spec:
   tools:
     nix:
       - dnsutils
+      - httpie
       - jq
       - nmap
       - testssl
