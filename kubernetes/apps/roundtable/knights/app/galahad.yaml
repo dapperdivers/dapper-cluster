@@ -10,8 +10,8 @@ metadata:
   name: galahad
   namespace: roundtable
 spec:
-  # claude-knight main @ 1ce1ff7 (claude-knight#5: GITHUB_TOKEN_FILE; includes #4 CLI runtime).
-  image: ghcr.io/roundtable-k8s/claude-knight:1ce1ff790728ff22dcbf7d24fd0778ea2dbb0fa3
+  # claude-knight main @ 2365a3a (#6 no Claude attribution; includes #4 CLI runtime, #5 token file).
+  image: ghcr.io/roundtable-k8s/claude-knight:2365a3a4bee92744be6e36c212e3fbc0ad1a782d
   domain: security
   # Claude Code alias; claude-knight passes it to `claude -p --model`.
   model: sonnet

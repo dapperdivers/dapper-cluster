@@ -11,8 +11,8 @@ metadata:
     ai.roundtable.io/table: roundtable-dev
     ai.roundtable.io/round-table: roundtable-dev
 spec:
-  # claude-knight main @ 1ce1ff7 (CLI runtime + GITHUB_TOKEN_FILE).
-  image: ghcr.io/roundtable-k8s/claude-knight:1ce1ff790728ff22dcbf7d24fd0778ea2dbb0fa3
+  # claude-knight main @ 2365a3a (CLI runtime, GITHUB_TOKEN_FILE, no Claude attribution #6).
+  image: ghcr.io/roundtable-k8s/claude-knight:2365a3a4bee92744be6e36c212e3fbc0ad1a782d
   domain: operator
   model: sonnet
   skills:
