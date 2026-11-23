@@ -38,10 +38,10 @@ spec:
     # Deployment-only and skip discovery.
     sandboxBackend: "false"
     images:
-      # pi-knight main @ 445d8d8 (pi-knight#49: GITHUB_TOKEN_FILE credential helper + gh shim).
+      # pi-knight main @ 8283a93 (pi-knight#51: pi-coding-agent 1.6, 1.x patterns, stale code removed).
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: 445d8d890c24b1964dd30a237a7bc84dbccdb549
+        tag: 8283a930aa97af2633fc46662caa44cf6b817ec8
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
         tag: 24615ccda6af6136eb81ee07e535c00bd73095a5
