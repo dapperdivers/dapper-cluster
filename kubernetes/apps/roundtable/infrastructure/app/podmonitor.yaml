@@ -1,7 +1,9 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/podmonitor_v1.json
 # Scrape pi-knight runtime metrics (pi_knight_tasks_total, pi_knight_llm_cost_dollars_total, ...)
-# Knight pods are operator-managed and expose no named ports, hence portNumber.
+# Knight pods are operator-managed and declare no container ports, so
+# `portNumber` matched nothing (the operator keeps only targets whose declared
+# port is 3000): KnightMetricsAbsent fired. Scrape podIP:3000 directly instead.
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
@@ -12,6 +14,14 @@ spec:
     matchLabels:
       app.kubernetes.io/name: knight
   podMetricsEndpoints:
-    - portNumber: 3000
-      path: /metrics
+    - path: /metrics
       interval: 1m
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_ip]
+          targetLabel: __address__
+          replacement: $1:3000
+        # A pod with no declared ports yields one target per container; keep
+        # only the knight runtime container.
+        - sourceLabels: [__meta_kubernetes_pod_container_name]
+          regex: app
+          action: keep
