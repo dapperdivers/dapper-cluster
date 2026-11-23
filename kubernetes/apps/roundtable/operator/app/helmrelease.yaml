@@ -22,14 +22,15 @@ spec:
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.
-    # Operator = main @ 3c3cb44 (roundtable-k8s/roundtable#200: a knight stays on
-    # its published tools image while a changed tool list builds; includes #196
-    # per-knight tools images, #195 GitHub token file and #190): the Knight
+    # Operator = main @ 09a7c51 (roundtable-k8s/roundtable#203: shared Nix store
+    # removed; #202: rebuild a tools image the registry lost; #201: RoundTable
+    # spec.secrets for standing knights; includes #200, #196 per-knight tools
+    # images, #195 GitHub token file and #190): the Knight
     # controller only watches Sandbox when discovery shows the kind is
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 3c3cb448005c41bc2556de412de4e5d6f364d399
+      tag: 09a7c515d02815e73689684f5cd6191e7322f530
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
@@ -68,12 +69,6 @@ spec:
       repository: registry.${SECRET_DOMAIN}/knight-tools
       pushRepository: roundtable-registry.roundtable.svc.cluster.local:5000/knight-tools
       pushInsecure: true
-
-    # The shared-store nix-daemon builder is superseded by toolsImage. Its two
-    # PVCs (nix-store, nix-buildqueue) are still declared next to this file and
-    # go away in a follow-up once tools images are proven here.
-    nixBuilder:
-      enabled: false
 
     # Built-in planner knight (Deployment runtime backend, the operator default).
     planner:
