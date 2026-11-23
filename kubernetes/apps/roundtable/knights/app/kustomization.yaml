@@ -5,3 +5,9 @@ kind: Kustomization
 resources:
   - claude-setup-token.yaml
   - galahad.yaml
+  # Round Table dev team (roundtable-k8s/roundtable#187)
+  - roundtable-dev.yaml
+  - rt-lead.yaml
+  - rt-ui.yaml
+  - rt-operator.yaml
+  - rt-ui-implement-issue.yaml
