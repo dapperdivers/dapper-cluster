@@ -50,7 +50,14 @@ spec:
       period: 300s
   workspace:
     size: 10Gi
-  concurrency: 1
+  # Parallel tasks in one pod (per-task workdir, claude-knight#10; pull-when-free, #13).
+  concurrency: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1536Mi
+    limits:
+      memory: 4Gi
   taskTimeout: 2700
   envFrom:
     - secretRef:
