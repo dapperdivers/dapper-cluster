@@ -145,6 +145,29 @@ jobs:
           advanced-security: false
           annotations: true
 
+  roundtable-validate:
+    name: Round Table - Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Mise
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise
+          version: v2026.11.12
+          cache: false
+          # Only the tools this job uses (versions come from .mise.toml).
+          install_args: aqua:helm/helm aqua:mikefarah/yq aqua:yannh/kubeconform
+
+      # Round Table custom resources vs. the CRDs of the chart digest Flux
+      # deploys (roundtable-k8s/roundtable#254), plus a negative test.
+      - name: Validate Round Table manifests
+        run: .github/scripts/validate-roundtable.sh
+
   # Single aggregate check: the one to mark required in a branch ruleset.
   status:
     if: ${{ !cancelled() }}
@@ -154,6 +177,7 @@ jobs:
       - image-pull-extract
       - image-pull
       - zizmor
+      - roundtable-validate
     runs-on: ubuntu-latest
     permissions: {}
     steps:

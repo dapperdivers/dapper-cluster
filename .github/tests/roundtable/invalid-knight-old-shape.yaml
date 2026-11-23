@@ -1,0 +1,16 @@
+---
+# Negative fixture for .github/scripts/validate-roundtable.sh: a Knight in the
+# pre-#241 shape (taskTimeout, resources without requests/limits). It must fail
+# validation; if it passes, the CRD schemas aren't being applied.
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: old-shape
+  namespace: roundtable
+spec:
+  domain: test
+  model: sonnet
+  taskTimeout: 900
+  resources:
+    cpu: "2"
+    memory: 2Gi
