@@ -49,9 +49,15 @@ spec:
       ref: main
       periodSeconds: 300
   workspace:
-    size: 10Gi
+    mode: ephemeral
+    size: 20Gi
   # Parallel tasks in one pod (per-task workdir, claude-knight#10; pull-when-free, #13).
-  concurrency: 3
+  concurrency: 2
+  # KEDA scales 1..3 pods on JetStream lag (roundtable#221); pods pull only
+  # into free slots, so lag is real backlog. Ephemeral per-pod workspace
+  # (fresh clone per task anyway).
+  replicas: 1
+  maxReplicas: 3
   # 3 parallel tasks of Go builds + envtest: request more than a small node
   # (5950m allocatable) so the scheduler places coders on the 16-core nodes.
   resources:
