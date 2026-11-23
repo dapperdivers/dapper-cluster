@@ -49,6 +49,11 @@ spec:
     size: 5Gi
   concurrency: 1
   taskTimeout: 900
+  # OpenRouter key. Table spec.secrets don't reach standing knights yet
+  # (roundtable-k8s/roundtable#198), so reference it directly.
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
   env:
     - name: TMPDIR
       value: /data/scratch

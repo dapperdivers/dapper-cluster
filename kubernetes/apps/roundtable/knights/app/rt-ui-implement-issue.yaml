@@ -11,8 +11,9 @@ metadata:
 spec:
   roundTableRef: roundtable-dev
   description: rt-ui implements a roundtable-ui issue and opens a PR; rt-lead reviews it.
-  # First target: the M0 acceptance test (roundtable-k8s/roundtable#188).
-  input: '{"repo": "roundtable-k8s/roundtable-ui", "issue": 122}'
+  # M0 acceptance test (roundtable-k8s/roundtable#188). #122 turned out to be
+  # already fixed (roundtable-ui#130), so the retry targets #126.
+  input: '{"repo": "roundtable-k8s/roundtable-ui", "issue": 126}'
   timeout: 3600
   steps:
     - name: implement
