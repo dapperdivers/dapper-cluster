@@ -22,13 +22,13 @@ spec:
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.
-    # Operator = main @ 5dda9cd (roundtable-k8s/roundtable#195: GitHub token file;
-    # includes #190): the Knight
+    # Operator = main @ 0167ba9 (roundtable-k8s/roundtable#196: per-knight tools
+    # images; includes #195 GitHub token file and #190): the Knight
     # controller only watches Sandbox when discovery shows the kind is
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 5dda9cdff6b184c5b68e7242c2262997f61d55f8
+      tag: 0167ba9ce960267722cf89d80837f5ce55dd5503
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
@@ -58,11 +58,21 @@ spec:
     notify:
       allowedURLPrefixes: []
 
-    # Persistent nix-daemon builder: a single root Deployment owns the shared
-    # Nix store (roundtable-nix-store) and builds knight tools dispatched via
-    # the roundtable-nix-buildqueue PVC. Both PVCs live next to this file.
+    # Per-knight tools images: for each unique spec.tools.nix list the operator
+    # runs a one-off Job that builds an OCI image with nix2container and pushes
+    # it to the in-cluster zot registry (../../registry); the knight mounts it
+    # read-only at /nix as an image volume. Nodes pull through the internal
+    # gateway (TLS); the build Job pushes to the Service over plain HTTP.
+    toolsImage:
+      repository: registry.${SECRET_DOMAIN}/knight-tools
+      pushRepository: roundtable-registry.roundtable.svc.cluster.local:5000/knight-tools
+      pushInsecure: true
+
+    # The shared-store nix-daemon builder is superseded by toolsImage. Its two
+    # PVCs (nix-store, nix-buildqueue) are still declared next to this file and
+    # go away in a follow-up once tools images are proven here.
     nixBuilder:
-      enabled: true
+      enabled: false
 
     # Built-in planner knight (Deployment runtime backend, the operator default).
     planner:

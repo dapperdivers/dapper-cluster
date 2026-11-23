@@ -16,6 +16,9 @@ spec:
     # roundtable-secret (planner envFrom) + roundtable-vault PVC (dashboard).
     - name: roundtable-infrastructure
       namespace: roundtable
+    # Tools image builds push to the registry.
+    - name: roundtable-registry
+      namespace: roundtable
   path: ./kubernetes/apps/roundtable/operator/app
   prune: true
   sourceRef:
