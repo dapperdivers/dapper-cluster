@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+---
+# In-cluster OCI registry (zot) for per-knight tools images. The operator
+# builds one image per unique tool list (tag = tools hash) with nix2container
+# and knights mount it read-only as an image volume.
+#
+# Access model, no credentials involved:
+#   - Pushes go to the in-cluster Service (plain HTTP). Anonymous clients may
+#     read and create, never update or delete, so an existing tag cannot be
+#     overwritten.
+#   - Nodes pull through the internal gateway (TLS, wildcard cert). That route
+#     only matches GET and HEAD, so the LAN-facing side is read-only.
+# The content is a rebuildable cache: no backups.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: roundtable-registry
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      roundtable-registry:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/project-zot/zot-linux-amd64
+              tag: v2.1.23
+            args: ["serve", "/etc/zot/config.json"]
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /v2/
+                    port: &port 5000
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
+              readiness: *probe
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 20m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+
+    service:
+      app:
+        controller: roundtable-registry
+        ports:
+          http:
+            port: *port
+
+    route:
+      app:
+        hostnames: ["registry.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: internal
+            namespace: network
+        rules:
+          # Read-only from the LAN: pushes only reach the Service in-cluster.
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+                method: GET
+              - path:
+                  type: PathPrefix
+                  value: /
+                method: HEAD
+            backendRefs:
+              - identifier: app
+                port: *port
+
+    configMaps:
+      config:
+        data:
+          config.json: |
+            {
+              "distSpecVersion": "1.1.1",
+              "storage": {
+                "rootDirectory": "/var/lib/registry",
+                "dedupe": true,
+                "gc": true,
+                "gcDelay": "2h",
+                "gcInterval": "24h"
+              },
+              "http": {
+                "address": "0.0.0.0",
+                "port": "5000",
+                "accessControl": {
+                  "repositories": {
+                    "**": {
+                      "anonymousPolicy": ["read", "create"]
+                    }
+                  }
+                }
+              },
+              "log": { "level": "info" }
+            }
+
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /etc/zot/config.json
+            subPath: config.json
+            readOnly: true
+      data:
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 50Gi
+        globalMounts:
+          - path: /var/lib/registry
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
