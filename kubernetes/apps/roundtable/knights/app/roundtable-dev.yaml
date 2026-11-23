@@ -35,7 +35,7 @@ spec:
       name: roundtable-github-token
       key: token
   defaults:
-    taskTimeout: 2700
+    taskTimeoutSeconds: 2700
     concurrency: 1
   policies:
     maxKnights: 10

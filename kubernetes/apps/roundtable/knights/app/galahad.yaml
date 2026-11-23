@@ -48,7 +48,7 @@ spec:
   arsenal:
     repo: https://github.com/dapperdivers/roundtable-arsenal
     ref: main
-    period: 300s
+    periodSeconds: 300
   workspace:
     size: 5Gi
   # dunce-bot token as a refreshing file (GITHUB_TOKEN_FILE), roundtable-k8s/roundtable#194.
@@ -57,7 +57,7 @@ spec:
       name: roundtable-github-token
       key: token
   concurrency: 1
-  taskTimeout: 1800
+  taskTimeoutSeconds: 1800
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN

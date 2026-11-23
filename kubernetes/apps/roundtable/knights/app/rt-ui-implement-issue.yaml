@@ -9,17 +9,19 @@ metadata:
   name: rt-ui-implement-issue
   namespace: roundtable
 spec:
-  roundTableRef: roundtable-dev
+  roundTableRef:
+    name: roundtable-dev
   description: rt-ui implements a roundtable-ui issue and opens a PR; rt-lead reviews it.
   # M0 acceptance test (roundtable-k8s/roundtable#188). #122 and #126 were
   # already fixed on main (stacked June PRs never auto-closed them); #152 is a
   # real gap the knights found while checking #126.
   input: '{"repo": "roundtable-k8s/roundtable-ui", "issue": 152}'
-  timeout: 3600
+  timeoutSeconds: 3600
   steps:
     - name: implement
-      knightRef: rt-ui
-      timeout: 2700
+      knightRef:
+        name: rt-ui
+      timeoutSeconds: 2700
       task: |
         Implement this GitHub issue end to end: {{ .Input }}
         Read it with `gh issue view <issue> -R <repo> --comments`, then follow
@@ -27,10 +29,11 @@ spec:
         with tests, build and test, push, and open a PR that says "Closes #<issue>".
         Do not merge. Answer with the PR URL first, then a short summary.
     - name: review
-      knightRef: rt-lead
+      knightRef:
+        name: rt-lead
       dependsOn:
         - implement
-      timeout: 600
+      timeoutSeconds: 600
       task: |
         rt-ui reports on {{ .Input }}:
 

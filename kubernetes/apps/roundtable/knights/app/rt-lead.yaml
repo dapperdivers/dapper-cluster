@@ -41,16 +41,16 @@ spec:
     name: personal
     repo: https://github.com/dapperdivers/roundtable-arsenal
     ref: main
-    period: 300s
+    periodSeconds: 300
   arsenals:
     - name: platform
       repo: https://github.com/roundtable-k8s/arsenal
       ref: main
-      period: 300s
+      periodSeconds: 300
   workspace:
     size: 5Gi
   concurrency: 3
-  taskTimeout: 900
+  taskTimeoutSeconds: 900
   env:
     - name: TMPDIR
       value: /data/scratch
@@ -88,5 +88,9 @@ spec:
       - Final answer: the verdict line, whether you queued the merge, and the
         key points.
   resources:
-    cpu: "1"
-    memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi

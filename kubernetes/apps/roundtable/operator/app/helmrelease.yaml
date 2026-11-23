@@ -81,11 +81,11 @@ spec:
         - shared
       natsPrefix: fleet-a
       concurrency: 1
-      taskTimeout: 600
+      taskTimeoutSeconds: 600
       arsenal:
         repo: https://github.com/roundtable-k8s/arsenal.git
         ref: main
-        period: 5m
+        periodSeconds: 300
       # dunce-bot installation token (narrowed scopes), mounted as a refreshing
       # file; see infrastructure/app/github-token.yaml (roundtable-k8s/roundtable#194).
       github:

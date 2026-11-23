@@ -43,20 +43,24 @@ spec:
     name: personal
     repo: https://github.com/dapperdivers/roundtable-arsenal
     ref: main
-    period: 300s
+    periodSeconds: 300
   arsenals:
     - name: platform
       repo: https://github.com/roundtable-k8s/arsenal
       ref: main
-      period: 300s
+      periodSeconds: 300
   workspace:
     size: 10Gi
   # Parallel tasks in one pod (per-task workdir, claude-knight#10; pull-when-free, #13).
   concurrency: 3
   resources:
-    cpu: "2"
-    memory: 4Gi
-  taskTimeout: 3600 # CRD max
+    requests:
+      cpu: 500m
+      memory: 1536Mi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  taskTimeoutSeconds: 3600 # CRD max
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
