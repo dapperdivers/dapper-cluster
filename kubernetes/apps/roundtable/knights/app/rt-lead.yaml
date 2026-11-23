@@ -1,4 +1,4 @@
-# Round Table dev team lead on pi-knight (Kimi K2.6 via OpenRouter): plans and
+# Round Table dev team lead on pi-knight (GLM-5.3 via OpenRouter): plans and
 # reviews, doesn't write code. Runs on OpenRouter rather than the Claude plan to
 # keep subscription usage for the coders.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
@@ -13,7 +13,9 @@ metadata:
     ai.roundtable.io/round-table: roundtable-dev
 spec:
   domain: lead
-  model: openrouter/moonshotai/kimi-k2.6:exacto
+  # Default OpenRouter routing (price-weighted). GLM-5.3 providers range $0.07-1.40/M input;
+  # :exacto would pin the pricier ones. Kimi K2.6 cost ~$2-4 per review.
+  model: openrouter/z-ai/glm-5.3
   skills:
     - shared
     - coding
