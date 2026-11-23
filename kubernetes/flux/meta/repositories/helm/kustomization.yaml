@@ -5,4 +5,5 @@ kind: Kustomization
 resources:
   - ./emqx.yaml
   - ./kagent.yaml
+  - ./kedacore.yaml
   - ./nats.yaml
