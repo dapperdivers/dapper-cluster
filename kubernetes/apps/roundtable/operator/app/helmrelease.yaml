@@ -37,6 +37,9 @@ spec:
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
     sandboxBackend: "false"
+    # KEDA's JetStream scaler reads /jsz on the monitoring port; the `nats`
+    # Service only exposes 4222, so point it at the headless service.
+    natsMonitoringEndpoint: nats-headless.database.svc:8222
     images:
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
