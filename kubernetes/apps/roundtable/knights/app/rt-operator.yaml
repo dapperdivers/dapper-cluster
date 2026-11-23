@@ -66,7 +66,9 @@ spec:
     # ephemeral-storage covers the emptyDir workspace + /tmp: the namespace
     # LimitRange default (4Gi) evicted rt-operator mid-envtest on 2026-11-23.
     requests:
-      cpu: "6"
+      # 6 CPU each left no room to surge on rollouts (Pending: Insufficient
+      # cpu). Burst to the limit; pin to large nodes via nodeSelector (#242).
+      cpu: "2"
       memory: 6Gi
       ephemeral-storage: 10Gi
     limits:
