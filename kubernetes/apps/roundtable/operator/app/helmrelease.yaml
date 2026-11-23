@@ -22,21 +22,22 @@ spec:
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.
-    # Operator = main @ 75513c1 (roundtable-k8s/roundtable#190): the Knight
+    # Operator = main @ 5dda9cd (roundtable-k8s/roundtable#195: GitHub token file;
+    # includes #190): the Knight
     # controller only watches Sandbox when discovery shows the kind is
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 75513c1438a039810100459b859b786db8a69372
+      tag: 5dda9cdff6b184c5b68e7242c2262997f61d55f8
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
     sandboxBackend: "false"
     images:
-      # pi-knight main @ b32b3be (pi-knight#48: per-run session retention).
+      # pi-knight main @ 445d8d8 (pi-knight#49: GITHUB_TOKEN_FILE credential helper + gh shim).
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: b32b3be24f14651e54fee2ddb4175ff6c6942416
+        tag: 445d8d890c24b1964dd30a237a7bc84dbccdb549
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
         tag: 24615ccda6af6136eb81ee07e535c00bd73095a5
@@ -78,6 +79,12 @@ spec:
         repo: https://github.com/roundtable-k8s/arsenal.git
         ref: main
         period: 5m
+      # dunce-bot installation token (narrowed scopes), mounted as a refreshing
+      # file; see infrastructure/app/github-token.yaml (roundtable-k8s/roundtable#194).
+      github:
+        tokenSecretRef:
+          name: roundtable-github-token
+          key: token
       envFrom:
         - secretRef:
             name: roundtable-secret
