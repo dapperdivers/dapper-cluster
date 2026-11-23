@@ -22,7 +22,9 @@ spec:
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.
-    # Operator = main @ 09a7c51 (roundtable-k8s/roundtable#203: shared Nix store
+    # Operator = main @ c379524 (roundtable-k8s/roundtable#206: tools image
+    # builds use the prebuilt ghcr.io/roundtable-k8s/tools-builder image; #204
+    # chain run-now/retry-failed annotations; #203: shared Nix store
     # removed; #202: rebuild a tools image the registry lost; #201: RoundTable
     # spec.secrets for standing knights; includes #200, #196 per-knight tools
     # images, #195 GitHub token file and #190): the Knight
@@ -30,7 +32,7 @@ spec:
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 86bd132dee9b2d2a284461ab948acb52bbeb29d1
+      tag: c379524fc5f34087af388ad0aecd224b7018df65
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
