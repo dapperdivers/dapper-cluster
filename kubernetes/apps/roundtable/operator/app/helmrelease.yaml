@@ -74,6 +74,24 @@ spec:
       pushRepository: roundtable-registry.roundtable.svc.cluster.local:5000/knight-tools
       pushInsecure: true
 
+    # Closed loop (roundtable-k8s/roundtable#264): the PR pipeline Chain that
+    # issue pickup on roundtable-dev copies for every rt:ready issue. rt-lead
+    # plans, reviews and merges; the planner picks a coder and a model tier.
+    # Model tiering per #263: cheap drafts first, escalate to fast/deep.
+    prPipeline:
+      enabled: true
+      roundTableRef:
+        name: roundtable-dev
+      lead: rt-lead
+      coders:
+        - rt-operator
+        - rt-ui
+      implementModels:
+        - cheap
+        - fast
+        - deep
+      maxIterations: 3
+
     # Built-in planner knight (Deployment runtime backend, the operator default).
     planner:
       enabled: true

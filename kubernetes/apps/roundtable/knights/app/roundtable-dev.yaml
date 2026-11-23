@@ -50,3 +50,24 @@ spec:
   sharedWorkspace:
     claimName: roundtable-workspace
     mountPath: /shared
+  # Closed loop (roundtable-k8s/roundtable#264): poll the trusted repos for
+  # issues labelled rt:ready and start a copy of the pr-pipeline Chain for each.
+  # Defaults kept explicit: rt:in-progress on claim, needs-human (and issues
+  # mentioning workflows/secrets/auth) are never taken. Start small: 2 chains
+  # at once, 1 per repo. To pause: set suspend: true (running chains finish).
+  issuePickup:
+    chainRef:
+      name: pr-pipeline
+    repos:
+      - roundtable-k8s/roundtable
+      - roundtable-k8s/roundtable-ui
+      - roundtable-k8s/pi-knight
+      - roundtable-k8s/claude-knight
+      - roundtable-k8s/arsenal
+    readyLabel: rt:ready
+    inProgressLabel: rt:in-progress
+    needsHumanLabel: needs-human
+    maxActive: 2
+    maxActivePerRepo: 1
+    intervalSeconds: 300
+    suspend: false
