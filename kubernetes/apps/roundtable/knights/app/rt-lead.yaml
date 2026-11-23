@@ -96,6 +96,10 @@ spec:
     requests:
       cpu: "2"
       memory: 2Gi
+      ephemeral-storage: 10Gi
     limits:
       cpu: "4"
       memory: 6Gi
+      # Review test runs write to /tmp; the namespace default (4Gi) evicted
+      # rt-lead mid-review on 2026-11-23.
+      ephemeral-storage: 40Gi
