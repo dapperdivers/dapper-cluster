@@ -22,13 +22,14 @@ spec:
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.
-    # Operator = main @ 0167ba9 (roundtable-k8s/roundtable#196: per-knight tools
-    # images; includes #195 GitHub token file and #190): the Knight
+    # Operator = main @ 3c3cb44 (roundtable-k8s/roundtable#200: a knight stays on
+    # its published tools image while a changed tool list builds; includes #196
+    # per-knight tools images, #195 GitHub token file and #190): the Knight
     # controller only watches Sandbox when discovery shows the kind is
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 0167ba9ce960267722cf89d80837f5ce55dd5503
+      tag: 3c3cb448005c41bc2556de412de4e5d6f364d399
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
