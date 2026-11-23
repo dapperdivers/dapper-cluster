@@ -11,6 +11,11 @@
 #   - Nodes pull through the internal gateway (TLS, wildcard cert). That route
 #     only matches GET and HEAD, so the LAN-facing side is read-only.
 # The content is a rebuildable cache: no backups.
+#
+# Retention: a tag is dropped once it has been neither pushed nor pulled for
+# 30 days, and garbage collection (daily) then frees its layers. A tag a knight
+# still uses can age out if its pod never re-pulls; the operator notices the
+# missing image on its periodic check and rebuilds it.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -112,7 +117,24 @@ spec:
                 "dedupe": true,
                 "gc": true,
                 "gcDelay": "2h",
-                "gcInterval": "24h"
+                "gcInterval": "24h",
+                "retention": {
+                  "delay": "24h",
+                  "policies": [
+                    {
+                      "repositories": ["**"],
+                      "deleteReferrers": true,
+                      "deleteUntagged": true,
+                      "keepTags": [
+                        {
+                          "patterns": [".*"],
+                          "pulledWithin": "720h",
+                          "pushedWithin": "720h"
+                        }
+                      ]
+                    }
+                  ]
+                }
               },
               "http": {
                 "address": "0.0.0.0",
