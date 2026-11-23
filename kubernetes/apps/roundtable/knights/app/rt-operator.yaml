@@ -14,7 +14,8 @@ spec:
   # claude-knight main @ 2365a3a (CLI runtime, GITHUB_TOKEN_FILE, no Claude attribution #6).
   image: ghcr.io/roundtable-k8s/claude-knight:2365a3a4bee92744be6e36c212e3fbc0ad1a782d
   domain: operator
-  model: sonnet
+  # Opus for operator design work (fan-out, scaled knights) until per-task model overrides land.
+  model: opus
   skills:
     - shared
     - coding
@@ -51,7 +52,7 @@ spec:
   workspace:
     size: 10Gi
   concurrency: 1
-  taskTimeout: 2700
+  taskTimeout: 5400
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
