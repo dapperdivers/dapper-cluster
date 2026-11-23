@@ -48,7 +48,9 @@ spec:
       ref: main
       periodSeconds: 300
   workspace:
-    size: 5Gi
+    # Reviews clone + build + test PRs (Go caches, envtest): 5Gi filled up
+    # on 2026-11-23. PVC expanded online to match.
+    size: 30Gi
   concurrency: 4
   taskTimeoutSeconds: 900
   env:
