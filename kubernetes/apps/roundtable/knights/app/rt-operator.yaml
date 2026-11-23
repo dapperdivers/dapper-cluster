@@ -63,12 +63,16 @@ spec:
   # 3 parallel tasks of Go builds + envtest: request more than a small node
   # (5950m allocatable) so the scheduler places coders on the 16-core nodes.
   resources:
+    # ephemeral-storage covers the emptyDir workspace + /tmp: the namespace
+    # LimitRange default (4Gi) evicted rt-operator mid-envtest on 2026-11-23.
     requests:
       cpu: "6"
       memory: 6Gi
+      ephemeral-storage: 10Gi
     limits:
       cpu: "12"
       memory: 16Gi
+      ephemeral-storage: 40Gi
   taskTimeoutSeconds: 3600 # CRD max
   envFrom:
     - secretRef:
