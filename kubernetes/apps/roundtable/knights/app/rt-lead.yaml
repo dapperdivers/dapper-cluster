@@ -49,7 +49,7 @@ spec:
       period: 300s
   workspace:
     size: 5Gi
-  concurrency: 1
+  concurrency: 3
   taskTimeout: 900
   env:
     - name: TMPDIR
@@ -87,3 +87,6 @@ spec:
       - Never add AI attribution lines to anything you post.
       - Final answer: the verdict line, whether you queued the merge, and the
         key points.
+  resources:
+    cpu: "1"
+    memory: 2Gi
