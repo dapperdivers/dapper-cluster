@@ -26,6 +26,11 @@ spec:
       - jq
       - ripgrep
       - fd
+      # Reviews build and test PRs; without these rt-lead installed
+      # toolchains onto its PVC (roundtable#262).
+      - go
+      - gnumake
+      - nodejs_22
   nats:
     url: nats://nats.database.svc:4222
     subjects:
@@ -51,7 +56,8 @@ spec:
     # Reviews clone + build + test PRs (Go caches, envtest): 5Gi filled up
     # on 2026-11-23. PVC expanded online to match.
     size: 30Gi
-  concurrency: 4
+  # Drain on rollout is live (roundtable#246), so 6 slots are safe.
+  concurrency: 6
   taskTimeoutSeconds: 900
   env:
     - name: TMPDIR
@@ -87,6 +93,15 @@ spec:
         create it only if none exists), each with a PR link and a severity
         (bug-risk / hardening / docs / polish). A bug-risk item that is not
         trivial gets its own issue instead.
+      - Review checklist (each is blocking unless noted):
+        * Go `go`/`toolchain` directive bumps in go.mod: the Dockerfile base
+          image and the CI Go version must match, or it is needs changes.
+        * Dockerfile/CI parity: anything CI builds or tests with (Go, Node,
+          tool versions) must match what the image builds with.
+        * Never watch CI (no `gh pr checks --watch`, no polling loops).
+        * Always post the review before queueing.
+        * Exactly one "chore: review follow-ups" issue per repo; never open
+          a second one.
       - Never add AI attribution lines to anything you post.
       - Final answer: the verdict line, whether you queued the merge, and the
         key points.
@@ -98,8 +113,9 @@ spec:
       memory: 2Gi
       ephemeral-storage: 10Gi
     limits:
-      cpu: "4"
-      memory: 6Gi
+      # 6 parallel reviews (roundtable#262).
+      cpu: "6"
+      memory: 8Gi
       # Review test runs write to /tmp; the namespace default (4Gi) evicted
       # rt-lead mid-review on 2026-11-23.
       ephemeral-storage: 40Gi
