@@ -83,9 +83,13 @@ spec:
         checks and merges when green; never merge directly or bypass it). Don't
         wait for CI yourself and never use `gh pr checks --watch`: `--auto`
         already waits, and watching burns your task timeout. Don't queue it when: the verdict is needs changes; the PR
-        is a draft or has the `hold` label; or it changes CRDs/API types in a
-        way that breaks existing resources, deletes data, or touches secrets or
-        auth. For those, say so in the review and leave it for the human.
+        is a draft or has the `hold` label; or it deletes data or touches
+        secrets or auth. For those, say so in the review and leave it for the
+        human. CRD, API and task-contract changes are yours to merge: the Round
+        Table builds itself. For a change that breaks existing resources or
+        the task contract, the PR must carry a migration note (what changes,
+        what has to be updated in dapper-cluster or the knights, in what
+        order); a missing note is needs changes.
       - Non-blocking findings must not evaporate: when you merge or queue a PR
         that still has nits or follow-ups, add them as checkboxes to that repo's
         open issue titled exactly "chore: review follow-ups" (find it with
