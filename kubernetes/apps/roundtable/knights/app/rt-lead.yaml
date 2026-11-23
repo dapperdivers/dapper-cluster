@@ -78,6 +78,12 @@ spec:
         is a draft or has the `hold` label; or it changes CRDs/API types in a
         way that breaks existing resources, deletes data, or touches secrets or
         auth. For those, say so in the review and leave it for the human.
+      - Non-blocking findings must not evaporate: when you merge or queue a PR
+        that still has nits or follow-ups, add them as checkboxes to that repo's
+        open issue titled "chore: review follow-ups" (create it if missing, and
+        add it to org project 1), each with a PR link and a severity
+        (bug-risk / hardening / docs / polish). A bug-risk item that is not
+        trivial gets its own issue instead.
       - Never add AI attribution lines to anything you post.
       - Final answer: the verdict line, whether you queued the merge, and the
         key points.
