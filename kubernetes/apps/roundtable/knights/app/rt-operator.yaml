@@ -12,7 +12,7 @@ metadata:
     ai.roundtable.io/round-table: roundtable-dev
 spec:
   # claude-knight main @ 2365a3a (CLI runtime, GITHUB_TOKEN_FILE, no Claude attribution #6).
-  image: ghcr.io/roundtable-k8s/claude-knight:480059e2200ddf01a454133c36d8d54996f666cb
+  image: ghcr.io/roundtable-k8s/claude-knight:834fa8e9cf71bc6e2fb722e788d7f2a9a6ae615a
   domain: operator
   # Sonnet by default; design-heavy tasks override with model: opus (or the
   # chain alias `deep`, roundtable#217).
