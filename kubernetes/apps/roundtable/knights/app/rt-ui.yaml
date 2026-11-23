@@ -99,7 +99,9 @@ spec:
 
       Working rules (all repos):
       - Read the repo's AGENTS.md / README first and follow its build and test commands.
-      - Work in a fresh clone under /data/work. Branch from origin/main as
+      - Work in a fresh partial clone under your task's working directory
+        (`git clone --filter=blob:none https://github.com/<owner>/<repo>`; fast,
+        blobs are fetched on demand). Branch from origin/main as
         rt/<issue-number>-<short-slug>. Never push to main (it is protected anyway).
       - Keep the change small and focused on the issue. Add or update tests.
       - Build and test before every push. If tests fail and you can't fix them, say so.
