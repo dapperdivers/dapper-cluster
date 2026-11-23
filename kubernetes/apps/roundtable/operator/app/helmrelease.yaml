@@ -76,7 +76,7 @@ spec:
     planner:
       enabled: true
       domain: operator
-      model: openrouter/moonshotai/kimi-k2.6:exacto
+      model: openrouter/z-ai/glm-5.3
       skills:
         - operator
         - shared
