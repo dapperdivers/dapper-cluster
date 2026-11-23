@@ -27,6 +27,7 @@ spec:
       - dnsutils
       - jq
       - nmap
+      - testssl
       - whois
   nats:
     url: nats://nats.database.svc:4222
