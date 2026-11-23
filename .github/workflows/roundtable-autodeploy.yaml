@@ -1,0 +1,91 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# Fast rollout for Round Table (roundtable-k8s): every few minutes, bump the
+# operator/chart, pi-knight, dashboard and claude-knight pins to the newest
+# successful main builds, open (or update) one PR and auto-merge it once the
+# required checks pass. Flux's GitHub receiver applies it within a minute.
+# Rollback = revert the autodeploy commit (and add the `hold` label to the
+# open autodeploy PR to pause). See roundtable-k8s/roundtable#227.
+name: "Round Table Autodeploy"
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: ["roundtable-deploy"]
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: roundtable-autodeploy
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump Round Table images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Generate Token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        id: app-token
+        with:
+          app-id: "${{ secrets.DUNCE_BOT_APP_ID }}"
+          private-key: "${{ secrets.DUNCE_BOT_APP_PRIVATE_KEY }}"
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          token: "${{ steps.app-token.outputs.token }}"
+
+      - name: Skip when paused
+        id: hold
+        env:
+          GH_TOKEN: "${{ steps.app-token.outputs.token }}"
+        run: |
+          held=$(gh pr list --head autodeploy/roundtable --label hold --json number --jq length)
+          echo "held=$held" >> "$GITHUB_OUTPUT"
+
+      - name: Bump images
+        id: bump
+        if: steps.hold.outputs.held == '0'
+        env:
+          GH_TOKEN: "${{ steps.app-token.outputs.token }}"
+        run: |
+          summary=$(.github/scripts/roundtable-autodeploy.sh)
+          if git diff --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          { echo "summary<<SUMMARY_EOF"; echo "$summary"; echo "SUMMARY_EOF"; } >> "$GITHUB_OUTPUT"
+          git diff --stat
+
+      - name: Open or update PR and enable auto-merge
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: "${{ steps.app-token.outputs.token }}"
+          SUMMARY: "${{ steps.bump.outputs.summary }}"
+          REPO: "${{ github.repository }}"
+        run: |
+          git config user.name "dunce-bot[bot]"
+          git config user.email "186783191+dunce-bot[bot]@users.noreply.github.com"
+          git switch -C autodeploy/roundtable
+          git commit -qam "feat(roundtable): autodeploy latest Round Table builds"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" autodeploy/roundtable
+          body=$(printf 'Automated Round Table rollout (newest successful main builds).\n\n%s\n\nRollback: revert this commit. Pause: add the `hold` label to this PR.\n' "$SUMMARY")
+          if [ "$(gh pr list --head autodeploy/roundtable --json number --jq length)" = "0" ]; then
+            gh pr create --head autodeploy/roundtable --base main \
+              --title "feat(roundtable): autodeploy latest Round Table builds" --body "$body"
+          else
+            gh pr edit autodeploy/roundtable --body "$body"
+          fi
+          gh pr merge autodeploy/roundtable --auto --squash --delete-branch

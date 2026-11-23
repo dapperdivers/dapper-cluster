@@ -38,7 +38,6 @@ spec:
     # Deployment-only and skip discovery.
     sandboxBackend: "false"
     images:
-      # pi-knight main @ d32edfc (pi-knight#54: fresh session per run-less task).
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
         tag: d32edfc0ebcbcd063244c00a83274f2ccc09c35d
