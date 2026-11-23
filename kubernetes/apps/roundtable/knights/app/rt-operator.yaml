@@ -52,7 +52,7 @@ spec:
   workspace:
     size: 10Gi
   concurrency: 1
-  taskTimeout: 5400
+  taskTimeout: 3600 # CRD max
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
