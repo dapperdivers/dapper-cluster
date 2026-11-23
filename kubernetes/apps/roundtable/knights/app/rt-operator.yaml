@@ -43,20 +43,26 @@ spec:
     name: personal
     repo: https://github.com/dapperdivers/roundtable-arsenal
     ref: main
-    period: 300s
+    periodSeconds: 300
   arsenals:
     - name: platform
       repo: https://github.com/roundtable-k8s/arsenal
       ref: main
-      period: 300s
+      periodSeconds: 300
   workspace:
     size: 10Gi
   # Parallel tasks in one pod (per-task workdir, claude-knight#10; pull-when-free, #13).
   concurrency: 3
+  # 3 parallel tasks of Go builds + envtest: request more than a small node
+  # (5950m allocatable) so the scheduler places coders on the 16-core nodes.
   resources:
-    cpu: "2"
-    memory: 4Gi
-  taskTimeout: 3600 # CRD max
+    requests:
+      cpu: "6"
+      memory: 6Gi
+    limits:
+      cpu: "12"
+      memory: 16Gi
+  taskTimeoutSeconds: 3600 # CRD max
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
@@ -71,6 +77,14 @@ spec:
       value: /data/scratch
     - name: XDG_CACHE_HOME
       value: /data/scratch/.cache
+    # Keep Go module + lint caches on the PVC (shared across parallel tasks,
+    # survives restarts, off the 4Gi ephemeral-storage limit).
+    - name: GOMODCACHE
+      value: /data/scratch/go/mod
+    - name: GOLANGCI_LINT_CACHE
+      value: /data/scratch/.cache/golangci-lint
+    - name: GOFLAGS
+      value: -modcacherw
   prompt:
     identity: |
       You are rt-operator, the operator specialist of the Round Table dev team.

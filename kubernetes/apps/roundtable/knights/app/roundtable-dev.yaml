@@ -34,8 +34,15 @@ spec:
     tokenSecretRef:
       name: roundtable-github-token
       key: token
+  # Model aliases for chain steps / per-task overrides (roundtable#217). Coder
+  # aliases resolve on claude-knight (Max plan); the lead (pi-knight) keeps its
+  # own default model, see roundtable#244.
+  modelAliases:
+    deep: opus
+    fast: sonnet
+    cheap: haiku
   defaults:
-    taskTimeout: 2700
+    taskTimeoutSeconds: 2700
     concurrency: 1
   policies:
     maxKnights: 10
