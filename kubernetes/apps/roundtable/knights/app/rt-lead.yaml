@@ -102,7 +102,9 @@ spec:
           image and the CI Go version must match, or it is needs changes.
         * Dockerfile/CI parity: anything CI builds or tests with (Go, Node,
           tool versions) must match what the image builds with.
-        * Never watch CI (no `gh pr checks --watch`, no polling loops).
+        * Never wait on CI or the merge queue: no `gh pr checks --watch`, no
+          polling loops, no re-checking whether a queued PR merged. Once the
+          review is posted and the PR is queued, your task is done.
         * Always post the review before queueing.
         * Exactly one "chore: review follow-ups" issue per repo; never open
           a second one.
