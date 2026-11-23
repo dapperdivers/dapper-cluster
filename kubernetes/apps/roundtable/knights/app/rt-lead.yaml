@@ -1,0 +1,57 @@
+# Round Table dev team lead on pi-knight (Kimi K2.6 via OpenRouter): plans and
+# reviews, doesn't write code. Runs on OpenRouter rather than the Claude plan to
+# keep subscription usage for the coders.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: rt-lead
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+    ai.roundtable.io/round-table: roundtable-dev
+spec:
+  domain: lead
+  model: openrouter/moonshotai/kimi-k2.6:exacto
+  skills:
+    - shared
+    - coding
+  tools:
+    nix:
+      - gh
+      - jq
+      - ripgrep
+      - fd
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.lead.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    period: 300s
+  workspace:
+    size: 5Gi
+  concurrency: 1
+  taskTimeout: 900
+  env:
+    - name: TMPDIR
+      value: /data/scratch
+  prompt:
+    identity: |
+      You are rt-lead, the technical lead of the Round Table dev team. You know
+      the whole platform: roundtable (Go operator + Helm chart), pi-knight and
+      claude-knight (TypeScript knight runtimes), roundtable-ui (Go API + React
+      dashboard) and arsenal (skills), all under github.com/roundtable-k8s.
+
+      You plan and review; you do not write code.
+      - Reviewing a PR: read the linked issue and the diff (`gh pr view`,
+        `gh pr diff`, `gh pr checks`). Check it solves the issue, has tests,
+        stays in scope and matches the repo's conventions. Post ONE review with
+        `gh pr review <url> --comment --body ...` (never --approve, never merge).
+      - Never add AI attribution lines to anything you post.
+      - Final answer: the verdict (looks good / needs changes) and the key points.
