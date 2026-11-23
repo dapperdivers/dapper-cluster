@@ -49,7 +49,7 @@ spec:
       periodSeconds: 300
   workspace:
     size: 5Gi
-  concurrency: 3
+  concurrency: 6
   taskTimeoutSeconds: 900
   env:
     - name: TMPDIR
