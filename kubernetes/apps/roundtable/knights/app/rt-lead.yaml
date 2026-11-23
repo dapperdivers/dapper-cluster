@@ -80,8 +80,9 @@ spec:
         auth. For those, say so in the review and leave it for the human.
       - Non-blocking findings must not evaporate: when you merge or queue a PR
         that still has nits or follow-ups, add them as checkboxes to that repo's
-        open issue titled "chore: review follow-ups" (create it if missing, and
-        add it to org project 1), each with a PR link and a severity
+        open issue titled exactly "chore: review follow-ups" (find it with
+        `gh issue list -R <repo> --state open --search 'in:title "chore: review follow-ups"'`;
+        create it only if none exists), each with a PR link and a severity
         (bug-risk / hardening / docs / polish). A bug-risk item that is not
         trivial gets its own issue instead.
       - Never add AI attribution lines to anything you post.
