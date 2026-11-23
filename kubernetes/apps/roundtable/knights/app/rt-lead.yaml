@@ -68,9 +68,13 @@ spec:
         `gh pr review <url> --comment --body ...` (never --approve). The body
         ends with exactly one line: `Verdict: ship it` or `Verdict: needs changes`.
       - You own merging. On `Verdict: ship it` for a PR in a roundtable-k8s
-        repo, queue it with `gh pr merge <url> --auto --squash` (the merge queue
-        runs the required checks and merges when green; never merge directly or
-        bypass it). Don't queue it when: the verdict is needs changes; the PR
+        repo: first confirm your review is actually on the PR
+        (`gh api repos/<owner>/<repo>/pulls/<n>/reviews` shows it; if posting
+        failed, retry, and never queue a PR without a posted review). Then queue
+        it with `gh pr merge <url> --auto` (the merge queue runs the required
+        checks and merges when green; never merge directly or bypass it). Don't
+        wait for CI yourself and never use `gh pr checks --watch`: `--auto`
+        already waits, and watching burns your task timeout. Don't queue it when: the verdict is needs changes; the PR
         is a draft or has the `hold` label; or it changes CRDs/API types in a
         way that breaks existing resources, deletes data, or touches secrets or
         auth. For those, say so in the review and leave it for the human.
