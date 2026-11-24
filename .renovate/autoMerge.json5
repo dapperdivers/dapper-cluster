@@ -201,6 +201,18 @@
       minimumReleaseAge: "1 day",
       ignoreTests: false,
     },
+    {
+      description: "Auto-merge our own tool-server images",
+      // Built by dapperdivers/mcp-servers and dapperdivers/containers, whose CI tests
+      // each image before publishing it. Tags are build dates (2026.11.24.1), so every
+      // update type is allowed: a new month reads as a "minor", a new year as a "major".
+      // The dapperdivers deny rule below carves these two names out to match.
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/dapperdivers/mcp-servers", "ghcr.io/dapperdivers/vault-mcp"],
+      automerge: true,
+      automergeType: "pr",
+      ignoreTests: false,
+    },
 
     // ------------------------------------------------------------------
     // DENY BLOCK — keep last. These override every allow rule above.
@@ -240,7 +252,12 @@
     },
     {
       description: "Disable automerge for dapperdivers images",
-      matchPackageNames: ["/dapperdivers/"],
+      // Except the tool-server images allowed above ("Auto-merge our own tool-server images").
+      matchPackageNames: [
+        "/dapperdivers/",
+        "!ghcr.io/dapperdivers/mcp-servers",
+        "!ghcr.io/dapperdivers/vault-mcp",
+      ],
       automerge: false,
     },
     {
