@@ -24,61 +24,37 @@ spec:
           reloader.stakater.com/auto: "true"
         containers:
           app:
-            image:
-              repository: docker.io/library/python
-              tag: 3.15.2-alpine@sha256:0f9552bb28711333da16915ec146f5e6bb44a7fdac9ced15dc17c2e0206346dd
             # Lets agents read web pages (the sandbox can't reach the internet itself).
-            # mcp-server-fetch turns pages into Markdown and refuses private, loopback,
-            # link-local and metadata addresses (every redirect re-checked); the network
-            # policy is the second layer. mcp-proxy serves it as Streamable HTTP at /mcp.
-            # Python-only, so HTML extraction uses readabilipy's pure-Python path (keeps
-            # text and headings, drops link targets).
-            command: ["/bin/sh", "-c"]
-            args:
-              - |
-                set -e
-                # Agents' calls come through Substrate's egress gateway, which sends the Host
-                # header without the port, hence the portless --allowed-host.
-                # Separate install dirs: the two packages pin conflicting versions of a
-                # shared dependency.
-                pip install --quiet --no-cache-dir --disable-pip-version-check --target /tmp/proxy mcp-proxy==0.15.0
-                pip install --quiet --no-cache-dir --disable-pip-version-check --target /tmp/fetch mcp-server-fetch==2026.11.11
-                export PYTHONPATH=/tmp/proxy
-                exec /tmp/proxy/bin/mcp-proxy --host 0.0.0.0 --port 8000 --stateless \
-                  --allowed-host web-fetch.kagent.svc.cluster.local:8000 \
-                  --allowed-host web-fetch.kagent.svc:8000 --allowed-host web-fetch:8000 \
-                  --allowed-host web-fetch.kagent.svc.cluster.local \
-                  -- /usr/bin/env PYTHONPATH=/tmp/fetch HOME=/tmp /tmp/fetch/bin/mcp-server-fetch \
-                  --user-agent "Mozilla/5.0 (compatible; homelab-research-agent)"
+            # This is the upstream mcp-server-fetch, packaged in
+            # github.com/dapperdivers/mcp-servers (one image for the custom tool servers;
+            # the argument picks which one runs). It turns pages into Markdown and refuses
+            # private, loopback, link-local and metadata addresses (every redirect
+            # re-checked); the network policy is the second layer. Serves MCP Streamable
+            # HTTP at /mcp (bearer token required) and /healthz. HTML extraction is
+            # pure-Python (keeps text and headings, drops link targets).
+            image:
+              repository: ghcr.io/dapperdivers/mcp-servers
+              tag: 2026.11.24.1@sha256:77e78037ebfc5418ed6d1f0cf644ac90850768aacc4f6c1ef6227434c2177295
+            args: [web-fetch]
             env:
               TZ: ${TIME_ZONE}
-              HOME: /tmp
-              MCP_PROXY_AUTH_TOKEN:
+              MCP_AUTH_TOKEN:
                 valueFrom:
                   secretKeyRef:
                     name: web-fetch-secret
                     key: MCP_PROXY_AUTH_TOKEN
-              PYTHONDONTWRITEBYTECODE: "1"
             probes:
               liveness: &probes
                 enabled: true
                 custom: true
                 spec:
-                  tcpSocket:
+                  httpGet:
+                    path: /healthz
                     port: &port 8000
                   periodSeconds: 10
                   timeoutSeconds: 2
                   failureThreshold: 3
               readiness: *probes
-              startup:
-                enabled: true
-                custom: true
-                spec:
-                  tcpSocket:
-                    port: *port
-                  periodSeconds: 5
-                  # Each start pip-installs both packages.
-                  failureThreshold: 60
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -103,8 +79,3 @@ spec:
         ports:
           http:
             port: *port
-    persistence:
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp

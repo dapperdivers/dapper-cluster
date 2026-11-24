@@ -15,7 +15,7 @@ run in `kagent`, kept apart from the Substrate control plane and its signing key
 | `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.                                                  |
 | `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                                                              |
 | `kagent/miniflux-mcp/`              | `miniflux-mcp`                                    | The Miniflux RSS reader served to agents as an MCP tool server (`RemoteMCPServer` `miniflux`); network policy lets it reach Miniflux only, and only kagent may call it. |
-| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); network policy allows the public internet only, never the cluster or LAN.                |
+| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); image from `dapperdivers/mcp-servers`. Public internet only, never the cluster or LAN.   |
 
 Install order (enforced with `dependsOn`):
 
