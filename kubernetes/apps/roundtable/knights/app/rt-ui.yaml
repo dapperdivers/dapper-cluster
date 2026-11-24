@@ -57,7 +57,7 @@ spec:
   # into free slots, so lag is real backlog. Ephemeral per-pod workspace
   # (fresh clone per task anyway).
   replicas: 1
-  maxReplicas: 3
+  maxReplicas: 6
   # 3 parallel tasks of Go builds + envtest: request more than a small node
   # (5950m allocatable) so the scheduler places coders on the 16-core nodes.
   resources:
@@ -80,8 +80,10 @@ spec:
   env:
     - name: CLAUDE_AUTH_MODE
       value: subscription
+    # Wide open (2026-11-24): no knight-side reserve. The plan's own limit still
+    # applies; a limit refusal defers the step until reset (roundtable#321).
     - name: CLAUDE_PLAN_RESERVE
-      value: "0.8"
+      value: "1"
     - name: CLAUDE_EFFORT
       value: medium
     - name: TMPDIR
