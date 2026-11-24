@@ -1,0 +1,84 @@
+# DRAFT (fleet-restore, 2026-11-24). Converted from dapper-cluster 12cbac303^ to the current CRD shape
+# (roundtable-k8s/roundtable#241). Validated with kubectl apply --dry-run=server; never applied.
+# Phase 2. Needs: ServiceAccount patsy + ClusterRoleBinding knight-patsy-read-only (infra/patsy-rbac.yaml; removed in e7b708d14, not restored).
+# Model is the original one; confirm it still exists in pi-knight's catalog or pick a new one.
+# DECISION: vault.readOnly false = write access to the whole vault. Also, until the operator bug in the README is fixed,
+# readOnly: false is reset to true (plus two default writable paths) when the operator adds its finalizer, until Flux re-applies.
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: patsy
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: vault
+  serviceAccountName: patsy
+  # Kimi K2.6 (was openrouter/deepseek/deepseek-v3.2).
+  model: "openrouter/moonshotai/kimi-k2.6:exacto"
+  skills:
+    - shared
+    - vault
+  tools:
+    nix:
+      - tree
+      - bat
+      - delta
+      - sqlite
+      - ripgrep
+      - ripgrep-all
+      # Added 2026-03-09 - Fleet self-improvement assessment
+      - fd # Fast file discovery for vault indexing
+      - fzf # Interactive fuzzy finder for vault exploration
+      - graphviz # Knowledge graph visualization
+      - pandoc # Document format conversion
+      - yq-go # YAML processing (Added 2026-03-23)
+      - kubectl # verify_claims: read-only re-verification (2026-07-05)
+      - jq # verify_claims: ledger JSON updates (2026-07-05)
+  # --- Isolation (whiteboard decision 8, roundtable-k8s/roundtable#377): gVisor + default-deny egress. ---
+  # Every knight is isolated by default; opting out must be explicit. Neither field exists in the CRD yet,
+  # so both are commented out: runtimeClassName comes with #164 (PR #383) and needs #212 on the cluster;
+  # egress comes with #348 (per knight) and #349 (table default). Uncomment when those land.
+  # Role: pi-knight; morning-briefing verify step, fleet-self-improvement scorecard.
+  # runtimeClassName: gvisor
+  # egress:
+  #   allowedHosts:
+  #     - openrouter.ai     # model provider (pi-knight, OPENROUTER_API_KEY from roundtable-secret)
+  #     - github.com        # git-sync sidecar pulling the arsenal (gone once the arsenal is an OCI image volume, #350)
+  #     - <kube-apiserver>  # kubectl with the knight's ServiceAccount: NOT a hostname; needs a toEntities: kube-apiserver rule #348 does not render yet
+  #   allowedPorts: [443]
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.vault.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: false
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  env:
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are Patsy, the loyal coconut carrier of the Round Table.
+      You are NOT a knight — you are the curator, the organizer, the
+      one who cleans up after everyone. Full write access to the vault.

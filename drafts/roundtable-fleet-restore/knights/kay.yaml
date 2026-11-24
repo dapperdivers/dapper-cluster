@@ -1,0 +1,116 @@
+# DRAFT (fleet-restore, 2026-11-24). Converted from dapper-cluster 12cbac303^ to the current CRD shape
+# (roundtable-k8s/roundtable#241). Validated with kubectl apply --dry-run=server; never applied.
+# Phase 1. Needs nothing new (roundtable-secret, roundtable-vault and the personal arsenal exist).
+# Model is the original one; confirm it still exists in pi-knight's catalog or pick a new one.
+# Removed: the dormant ollama-pool env block (OPENAI_BASE_URL etc.); put it back if kay should run on the local pool.
+# Persona for two kagent jobs, each a Chain (decision 13, #214): feeds-digest and night-editor (chains/jobs/).
+# They need a read-only Miniflux key, and deals/weather/CVE lookups as skills or MCP servers. feeds-curator and
+# claude retire as agents: a person asks kay through the gateway MCP endpoint or dashboard chat instead.
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: kay
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: research
+  model: "openrouter/deepseek/deepseek-v3.2"
+  skills:
+    - shared
+    - research
+    - intel
+  tools:
+    nix:
+      - whois
+      - dnsutils
+      - wget
+      - lynx
+      - newsboat
+      - bat
+      - fd
+      - eza
+      - yt-dlp
+      - pandoc
+      - python3 # Required for fetch-news.py and arsenal scripts
+      - jq # JSON processing for API responses
+      # Research & Data Processing (Added 2026-03-23)
+      - ripgrep # Faster grep alternative for large file searches
+      - httpie # User-friendly HTTP client for API research
+      - yq-go # YAML processing for structured data analysis
+      # Web Scraping (Added 2026-04-06)
+      - pup # HTML parser for cleaner web scraping
+  # --- Isolation (whiteboard decision 8, roundtable-k8s/roundtable#377): gVisor + default-deny egress. ---
+  # Every knight is isolated by default; opting out must be explicit. Neither field exists in the CRD yet,
+  # so both are commented out: runtimeClassName comes with #164 (PR #383) and needs #212 on the cluster;
+  # egress comes with #348 (per knight) and #349 (table default). Uncomment when those land.
+  # Role: pi-knight; jobs: feeds-digest, night-editor (chains/jobs/), morning-briefing intel step.
+  # runtimeClassName: gvisor
+  # egress:
+  #   allowedHosts:
+  #     - openrouter.ai                          # model provider (pi-knight, OPENROUTER_API_KEY from roundtable-secret)
+  #     - github.com                             # git-sync sidecar pulling the arsenal (gone once the arsenal is an OCI image volume, #350)
+  #     - searxng.selfhosted.svc.cluster.local   # web search (port 8080, in-cluster: see the README on ports)
+  #     - miniflux.selfhosted.svc.cluster.local  # Miniflux API, read-only key (port 8080, in-cluster)
+  #     - api.ebay.com                           # deals lookups (night-editor), if done by skill instead of the deals MCP server
+  #     - api.gsa.gov                            # GSA Auctions lots (night-editor)
+  #     - api.weather.gov                        # NWS forecast and alerts (night-editor)
+  #     - services.swpc.noaa.gov                 # space weather (night-editor)
+  #     - celestrak.org                          # ISS passes (night-editor)
+  #     - services.nvd.nist.gov                  # NVD CVE API
+  #     - api.first.org                          # EPSS
+  #     - www.cisa.gov                           # CISA KEV
+  #     - <feed hosts>                           # the feeds in intel/news-aggregator (feeds.feedburner.com, krebsonsecurity.com, ...): list them from the skill
+  #   allowedPorts: [443]
+  # OPEN: the persona prompt says 'full internet access' (lynx, wget, yt-dlp). Under an allowlist that is
+  # false: change the prompt, and route page reads through a fetch proxy or a fixed list. Decide in #382.
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.research.>"
+      - "fleet-a.tasks.intel.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  env:
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+  prompt:
+    identity: |
+      You are Sir Kay, Knight of Research and Intelligence for the Round Table.
+      You are the seneschal — resourceful, thorough, and ever-curious.
+      Your domain is research, entertainment, and media curation.
+
+      ## Internet Access
+      You HAVE full internet access. Use these tools:
+      - `curl` — HTTP requests to any URL
+      - `wget` — download files
+      - `lynx` — text-mode web browser
+      - SearXNG search: `bash /workspace/skills/shared/web-search/scripts/search.sh "query" 5`
+      - RSS/news: `python3 /workspace/skills/intel/news-aggregator/scripts/fetch-news.py --hours 24`
+      - Direct SearXNG API: `curl -s "http://searxng.selfhosted.svc.cluster.local:8080/search?q=QUERY&format=json"`
+
+      NEVER say "I don't have internet access." You do. Use it.
