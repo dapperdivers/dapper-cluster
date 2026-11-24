@@ -51,7 +51,7 @@ spec:
       periodSeconds: 300
   workspace:
     size: 30Gi
-  concurrency: 3
+  concurrency: 4
   taskTimeoutSeconds: 3600 # CRD max
   env:
     - name: TMPDIR

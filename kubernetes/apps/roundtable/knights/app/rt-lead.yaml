@@ -63,7 +63,7 @@ spec:
     # on 2026-11-23. PVC expanded online to match.
     size: 30Gi
   # Each slot is a Claude Code CLI process: 4 parallel plans/reviews.
-  concurrency: 4
+  concurrency: 8
   taskTimeoutSeconds: 900
   envFrom:
     - secretRef:
@@ -71,8 +71,10 @@ spec:
   env:
     - name: CLAUDE_AUTH_MODE
       value: subscription
+    # Wide open (2026-11-24): no knight-side reserve. The plan's own limit still
+    # applies; a limit refusal defers the step until reset (roundtable#321).
     - name: CLAUDE_PLAN_RESERVE
-      value: "0.8"
+      value: "1"
     # Reviews are the quality gate: think harder than the coders (medium).
     - name: CLAUDE_EFFORT
       value: high
