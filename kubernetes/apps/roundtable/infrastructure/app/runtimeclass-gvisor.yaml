@@ -1,0 +1,14 @@
+---
+# gVisor for Round Table knights and Agent Sandbox pods (roundtable-k8s/roundtable#164,
+# #212). The runsc handler comes from the siderolabs/gvisor Talos extension, which
+# only the nodes labelled workload.cluster.io/agent-sandbox have, so pods using this
+# class are scheduled onto those nodes.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/node.k8s.io/runtimeclass_v1.json
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+scheduling:
+  nodeSelector:
+    workload.cluster.io/agent-sandbox: "true"

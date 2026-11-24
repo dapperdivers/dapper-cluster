@@ -15,3 +15,4 @@ resources:
   - podmonitor.yaml
   - servicemonitor.yaml
   - prometheusrule.yaml
+  - runtimeclass-gvisor.yaml
