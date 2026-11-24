@@ -1,0 +1,19 @@
+---
+# Hardware prices and surplus lots, served by kagent/deals-mcp. Two read-only search
+# tools (ebay_search, gsa_auctions_search), so it is safe to bind whole on the Claude
+# harnesses, which ignore allowlists.
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: deals
+spec:
+  description: Search live eBay US listings (prices with shipping, per-TB) and active GSA Auctions surplus lots. Read-only.
+  url: http://deals-mcp.kagent.svc.cluster.local:8000/mcp
+  protocol: STREAMABLE_HTTP
+  timeout: 120s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: deals-mcp-secret
+        key: Authorization

@@ -1,0 +1,77 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: deals-mcp
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      deals-mcp:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            # Hardware price lookups for agents from official JSON APIs (eBay Browse, GSA
+            # Auctions). The code lives in github.com/dapperdivers/mcp-servers: one image
+            # for all the custom tool servers, the argument picks which one runs. Serves
+            # MCP Streamable HTTP at /mcp (bearer token required) and /healthz.
+            image:
+              repository: ghcr.io/dapperdivers/mcp-servers
+              tag: 2026.11.24.1@sha256:77e78037ebfc5418ed6d1f0cf644ac90850768aacc4f6c1ef6227434c2177295
+            args: [deals]
+            env:
+              TZ: ${TIME_ZONE}
+            # MCP_AUTH_TOKEN, plus whichever of GSA_API_KEY, EBAY_CLIENT_ID and
+            # EBAY_CLIENT_SECRET exist in Infisical (see externalsecret.yaml).
+            envFrom:
+              - secretRef:
+                  name: deals-mcp-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: &port 8000
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 96Mi
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        controller: deals-mcp
+        ports:
+          http:
+            port: *port

@@ -8,14 +8,15 @@ Tracking issue: #4777.
 **This is one stack spread over three namespaces** (plus the vault tool server in `selfhosted`). Upstream fixes the split: agents
 run in `kagent`, kept apart from the Substrate control plane and its signing keys.
 
-| Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                                                            |
-| ----------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts.                                           |
-| `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.                                                      |
-| `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.                                                  |
-| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                                                              |
-| `kagent/miniflux-mcp/`              | `miniflux-mcp`                                    | The Miniflux RSS reader served to agents as an MCP tool server (`RemoteMCPServer` `miniflux`); network policy lets it reach Miniflux only, and only kagent may call it. |
-| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); network policy allows the public internet only, never the cluster or LAN.                |
+| Folder (= namespace)                | Flux Kustomizations                               | What it runs                                                                                                                                                                                                                |
+| ----------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `podcertificate-controller-system/` | `substrate-podcert`                               | Cluster-wide signer for Kubernetes PodCertificates. Issues the service TLS and pod identity certs every Substrate pod mounts.                                                                                               |
+| `ate-system/`                       | `substrate-crds`, `substrate-atelet`, `substrate` | Agent Substrate: API, identity server, router, egress gateway, RustFS snapshot store, and the `atelet` node agent.                                                                                                          |
+| `kagent/` (here)                    | `kagent-crds`, `kagent`, `kagent-agents`          | kagent controller and UI, the gVisor `WorkerPool` where agents actually run, the Ollama `ModelConfig`, and the agents.                                                                                                      |
+| `selfhosted/vault-mcp/`             | `vault-mcp`                                       | The Obsidian vault, mounted read-only, served to agents as an MCP tool server (`RemoteMCPServer` `vault`).                                                                                                                  |
+| `kagent/miniflux-mcp/`              | `miniflux-mcp`                                    | The Miniflux RSS reader served to agents as an MCP tool server (`RemoteMCPServer` `miniflux`); network policy lets it reach Miniflux only, and only kagent may call it.                                                     |
+| `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); network policy allows the public internet only, never the cluster or LAN.                                                                    |
+| `kagent/deals-mcp/`                 | `deals-mcp`                                       | Hardware price lookups from official APIs, eBay Browse and GSA Auctions (`RemoteMCPServer` `deals`, two read-only search tools). Code and image: `dapperdivers/mcp-servers`. Public internet only, callable by kagent only. |
 
 Install order (enforced with `dependsOn`):
 
@@ -99,7 +100,8 @@ kagent/agents/
 │   ├── egress.yaml        # EgressPolicies (see "Egress policies") + the setup-token ExternalSecret
 │   ├── miniflux.yaml      # tool servers: one RemoteMCPServer per file,
 │   ├── vault-mcp.yaml     #   with its ExternalSecret if it has one
-│   └── web-fetch.yaml
+│   ├── web-fetch.yaml
+│   └── deals.yaml
 └── <agent>.yaml           # one file per agent: its AgentTemplate + Agent, nothing else
 ```
 

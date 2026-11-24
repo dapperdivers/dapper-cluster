@@ -7,6 +7,7 @@ resources:
   - ./harnesses.yaml
   - ./models.yaml
   # Tool servers: one file per RemoteMCPServer, with its ExternalSecret if it has one.
+  - ./deals.yaml
   - ./miniflux.yaml
   - ./vault-mcp.yaml
   - ./web-fetch.yaml
