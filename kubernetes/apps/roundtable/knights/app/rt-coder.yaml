@@ -1,0 +1,105 @@
+# Round Table dev team: general coder on pi-knight (GLM-5.3 via OpenRouter).
+# The Claude coders (rt-operator, rt-ui) share the Claude plan with the human
+# and refuse work above the plan reserve; rt-coder keeps the factory moving
+# while they're out (roundtable-k8s/roundtable#321) and takes work in any repo.
+# OpenRouter key: the operator's default pi-knight env (roundtable-secret).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: rt-coder
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+    ai.roundtable.io/round-table: roundtable-dev
+spec:
+  domain: coder
+  model: openrouter/z-ai/glm-5.3
+  skills:
+    - shared
+    - coding
+    - project
+  tools:
+    # One flake at most (roundtable#248): roundtable's knight-tools pins the
+    # Go toolchain CI uses (go, golangci-lint, controller-gen, helm, envtest,
+    # git, gh, jq, ...). Same pin as rt-operator.
+    flakes:
+      - ref: github:roundtable-k8s/roundtable/9ce25f07505cf6bb5503188fe90e391eea5c4133
+        packages: [knight-tools]
+    # Only what knight-tools doesn't ship (no duplicates: buildEnv collisions).
+    nix:
+      - nodejs_22
+      - ripgrep
+      - fd
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.coder.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  arsenals:
+    - name: platform
+      repo: https://github.com/roundtable-k8s/arsenal
+      ref: main
+      periodSeconds: 300
+  workspace:
+    size: 30Gi
+  concurrency: 3
+  taskTimeoutSeconds: 3600 # CRD max
+  env:
+    - name: TMPDIR
+      value: /data/scratch
+    - name: XDG_CACHE_HOME
+      value: /data/scratch/.cache
+    - name: KUBEBUILDER_ASSETS
+      value: /nix/profile/share/envtest
+    - name: GOMODCACHE
+      value: /data/scratch/go/mod
+    - name: GOLANGCI_LINT_CACHE
+      value: /data/scratch/.cache/golangci-lint
+    - name: GOFLAGS
+      value: -modcacherw
+  prompt:
+    identity: |
+      You are rt-coder, a general coder on the Round Table dev team. You work in
+      any roundtable-k8s repo: roundtable (Go kubebuilder operator + Helm chart),
+      pi-knight and claude-knight (TypeScript knight runtimes), roundtable-ui
+      (Go API + React dashboard) and arsenal (skills).
+
+      Working rules (all repos):
+      - Read the repo's AGENTS.md / README first and follow its build and test commands.
+      - Work in a fresh partial clone under your task's working directory
+        (`git clone --filter=blob:none https://github.com/<owner>/<repo>`).
+        Branch from origin/main as rt/<issue-number>-<short-slug>. Never push to main.
+      - Keep the change small and focused on the issue. Add or update tests.
+      - Build, lint and test before every push, with the same commands CI runs
+        (roundtable: make lint test helm-check; Node repos: npm ci, npx tsc
+        --noEmit, npm test, npm run build; roundtable-ui also go vet ./... and
+        go test ./...). If they fail and you can't fix them, say so plainly.
+      - Conventional commits matching `git log --oneline -5`.
+      - Open the PR with `gh pr create`, body ending "Closes #<n>". NEVER merge,
+        never review, never queue.
+      - NEVER add Co-Authored-By trailers, "Generated with" footers or any AI
+        attribution to commits or PRs.
+      - Your final answer: the PR URL, what changed, test results, and anything
+        you were unsure about.
+
+      Git identity (set in each clone):
+        git config user.name "Round Table"
+        git config user.email "186783191+dunce-bot[bot]@users.noreply.github.com"
+  resources:
+    requests:
+      cpu: "2"
+      memory: 4Gi
+      ephemeral-storage: 10Gi
+    limits:
+      cpu: "8"
+      memory: 12Gi
+      ephemeral-storage: 40Gi
