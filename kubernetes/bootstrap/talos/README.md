@@ -97,5 +97,6 @@ values yourself.
 
 Install images point at Image Factory schematics by ID. Workers and control planes share
 `5cc10e6e…` (qemu-guest-agent, nfsrahead); `talos-node-gpu-1` uses `1f6caf93…` (adds the NVIDIA LTS
-kernel module and container toolkit). To change extensions, POST a new schematic to
+kernel module and container toolkit). gVisor nodes (label `workload.cluster.io/agent-sandbox`) use
+`36c18967…` (adds `siderolabs/gvisor` for the `gvisor` RuntimeClass, roundtable-k8s/roundtable#212). To change extensions, POST a new schematic to
 `https://factory.talos.dev/schematics` and update the ID in the node files.
