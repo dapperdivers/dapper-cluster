@@ -8,7 +8,7 @@
 #   kubernetes/apps/roundtable/infrastructure/app/runtimeclass-gvisor.yaml),
 #   which needs the siderolabs/gvisor extension in the install image.
 #   Schematic 36c18967... = qemu-guest-agent + nfsrahead + gvisor
-#   (roundtable-k8s/roundtable#212). large-1 is the canary; large-2/3 follow.
+#   (roundtable-k8s/roundtable#212). large-2 and large-3 run it too.
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 installer:
