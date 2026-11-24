@@ -17,6 +17,8 @@ run in `kagent`, kept apart from the Substrate control plane and its signing key
 | `kagent/miniflux-mcp/`              | `miniflux-mcp`                                    | The Miniflux RSS reader served to agents as an MCP tool server (`RemoteMCPServer` `miniflux`); network policy lets it reach Miniflux only, and only kagent may call it.                                                     |
 | `kagent/web-fetch/`                 | `web-fetch`                                       | Reads public web pages as Markdown for agents (`RemoteMCPServer` `web-fetch`); image from `dapperdivers/mcp-servers`. Public internet only, never the cluster or LAN.                                                       |
 | `kagent/deals-mcp/`                 | `deals-mcp`                                       | Hardware price lookups from official APIs, eBay Browse and GSA Auctions (`RemoteMCPServer` `deals`, two read-only search tools). Code and image: `dapperdivers/mcp-servers`. Public internet only, callable by kagent only. |
+| `kagent/weather-mcp/`               | `weather-mcp`                                     | US forecast, weather alerts and tonight's sky for a point (`RemoteMCPServer` `weather`: `weather_outlook`, `night_sky`). Code and image: `dapperdivers/mcp-servers`. Public internet only, callable by kagent only.         |
+| `kagent/cve-mcp/`                   | `cve-mcp`                                         | CVE lookups: NVD severity, CISA known-exploited status, EPSS score, recent KEV additions (`RemoteMCPServer` `cve`). Code and image: `dapperdivers/mcp-servers`. Public internet only, callable by kagent only.              |
 
 Install order (enforced with `dependsOn`):
 
@@ -101,7 +103,9 @@ kagent/agents/
 │   ├── miniflux.yaml      # tool servers: one RemoteMCPServer per file,
 │   ├── vault-mcp.yaml     #   with its ExternalSecret if it has one
 │   ├── web-fetch.yaml
-│   └── deals.yaml
+│   ├── deals.yaml
+│   ├── weather.yaml
+│   └── cve.yaml
 └── <agent>.yaml           # one file per agent: its AgentTemplate + Agent, nothing else
 ```
 
