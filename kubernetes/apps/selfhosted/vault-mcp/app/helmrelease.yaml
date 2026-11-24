@@ -24,23 +24,21 @@ spec:
           reloader.stakater.com/auto: "true"
         containers:
           app:
-            image:
-              repository: docker.io/library/node
-              tag: 26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5
             # MCPVault (Obsidian-aware: BM25 search over text and frontmatter, tags,
             # wiki links) only speaks stdio; supergateway serves it as Streamable
             # HTTP at :8000/mcp for kagent's RemoteMCPServer, and requires the API
-            # key from SUPERGATEWAY_API_KEY. --read-only drops MCPVault's write
-            # tools; the read-only mount below is a second layer. --exclude hides
-            # generated material from search and listings (AGENTS.md: skip it
-            # unless asked).
-            command:
-              - npx
-              - -y
-              - supergateway@4.2.2
+            # key from SUPERGATEWAY_API_KEY. Both are baked into the image, built in
+            # github.com/dapperdivers/containers (vault-mcp/); its entrypoint is
+            # supergateway. --read-only drops MCPVault's write tools; the read-only
+            # mount below is a second layer. --exclude hides generated material from
+            # search and listings (AGENTS.md: skip it unless asked).
+            image:
+              repository: ghcr.io/dapperdivers/vault-mcp
+              tag: 2026.11.24.2@sha256:a7fb14c89745d35c009ca39b77fd1ccde0b4a7948bd7ad9abc25fdd12316b75e
+            args:
               - --stdio
               - >-
-                npx -y @bitbonsai/mcpvault@0.18.4 /vault --read-only
+                mcpvault /vault --read-only
                 --exclude Archive/Briefings --exclude Agents/NightWatch --exclude Attachments
               - --outputTransport
               - streamableHttp
@@ -53,9 +51,6 @@ spec:
                   name: vault-mcp-secret
             env:
               TZ: ${TIME_ZONE}
-              HOME: /tmp
-              NPM_CONFIG_CACHE: /tmp/.npm
-              NPM_CONFIG_UPDATE_NOTIFIER: "false"
             probes:
               liveness: &probes
                 enabled: true
@@ -76,8 +71,7 @@ spec:
                     path: /healthz
                     port: *port
                   periodSeconds: 5
-                  # Each start downloads both npm packages.
-                  failureThreshold: 60
+                  failureThreshold: 12
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -109,7 +103,3 @@ spec:
         globalMounts:
           - path: /vault
             readOnly: true
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
