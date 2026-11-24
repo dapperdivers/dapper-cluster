@@ -50,3 +50,50 @@ spec:
   sharedWorkspace:
     claimName: roundtable-workspace
     mountPath: /shared
+  # Closed loop (roundtable-k8s/roundtable#264): poll the trusted repos for
+  # issues labelled rt:ready and start a copy of the pr-pipeline Chain for each.
+  # Defaults kept explicit: rt:in-progress on claim, needs-human (and issues
+  # mentioning workflows/secrets/auth) are never taken. Start small: 2 chains
+  # at once, 1 per repo. To pause: set suspend: true (running chains finish).
+  issuePickup:
+    chainRef:
+      name: pr-pipeline
+    repos:
+      - roundtable-k8s/roundtable
+      - roundtable-k8s/roundtable-ui
+      - roundtable-k8s/pi-knight
+      - roundtable-k8s/claude-knight
+      - roundtable-k8s/arsenal
+    readyLabel: rt:ready
+    inProgressLabel: rt:in-progress
+    needsHumanLabel: needs-human
+    maxActive: 2
+    maxActivePerRepo: 1
+    intervalSeconds: 300
+    suspend: false
+  # Failure feedback (roundtable-k8s/roundtable#226, docs/pr-feedback.md):
+  # watch knight PRs for red CI and merge-queue rejections and send them back
+  # to the author knight (pr-pipeline-feedback Chain); flaky runs get an issue,
+  # exhausted retries get needs-human. PRs no chain opened go to rt-operator.
+  prFeedback:
+    enabled: true
+    repos:
+      - roundtable-k8s/roundtable
+      - roundtable-k8s/roundtable-ui
+      - roundtable-k8s/pi-knight
+      - roundtable-k8s/claude-knight
+      - roundtable-k8s/arsenal
+    maxAttempts: 3
+    fallbackKnightRef:
+      name: rt-operator
+  # Post-deploy smoke (#228): when a new operator/knight version has settled,
+  # run rollout-smoke. Pass: recorded as known-good. Fail: a needs-human issue
+  # in roundtable and status.smoke.held. No `hold` yet: labelling the
+  # autodeploy PR needs a dapper-cluster-scoped token (follow-up), so until
+  # then a human adds `hold` to the autodeploy/roundtable PR on a failure.
+  smoke:
+    enabled: true
+    chainRef:
+      name: rollout-smoke
+    issueRepo: roundtable-k8s/roundtable
+    needsHumanLabel: needs-human
