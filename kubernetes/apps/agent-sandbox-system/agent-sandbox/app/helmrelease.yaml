@@ -1,0 +1,44 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: agent-sandbox
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: ./helm
+      sourceRef:
+        kind: GitRepository
+        name: agent-sandbox
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    namespace:
+      # The namespace comes from Flux (../namespace.yaml).
+      create: false
+      name: agent-sandbox-system
+    image:
+      tag: v1.0.12
+    controller:
+      # SandboxTemplate, SandboxWarmPool and SandboxClaim (needed for mission
+      # knights, roundtable#368).
+      extensions: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    metrics:
+      serviceMonitor:
+        enabled: true
