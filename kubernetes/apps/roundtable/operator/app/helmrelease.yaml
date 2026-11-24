@@ -90,7 +90,14 @@ spec:
         - cheap
         - fast
         - deep
+      # Fix rounds on Sonnet: stronger than a Haiku draft, cheaper than Opus.
+      fixModel: fast
       maxIterations: 3
+      # Failure feedback (#226): a red CI run or a merge-queue rejection of a
+      # knight PR goes back to its author knight; RoundTable spec.prFeedback
+      # switches the watcher on.
+      feedback:
+        enabled: true
 
     # Built-in planner knight (Deployment runtime backend, the operator default).
     planner:

@@ -71,3 +71,18 @@ spec:
     maxActivePerRepo: 1
     intervalSeconds: 300
     suspend: false
+  # Failure feedback (roundtable-k8s/roundtable#226, docs/pr-feedback.md):
+  # watch knight PRs for red CI and merge-queue rejections and send them back
+  # to the author knight (pr-pipeline-feedback Chain); flaky runs get an issue,
+  # exhausted retries get needs-human. PRs no chain opened go to rt-operator.
+  prFeedback:
+    enabled: true
+    repos:
+      - roundtable-k8s/roundtable
+      - roundtable-k8s/roundtable-ui
+      - roundtable-k8s/pi-knight
+      - roundtable-k8s/claude-knight
+      - roundtable-k8s/arsenal
+    maxAttempts: 3
+    fallbackKnightRef:
+      name: rt-operator
