@@ -55,6 +55,12 @@ spec:
       direction desc, limit 20: results carry full article text and get large.
       Never call a miniflux tool that changes anything (read state, stars,
       feeds, categories, users, API keys, refresh).
+    - The cve tools are the first way to check a CVE: cve_lookup takes up to five
+      ids and returns NVD's severity and description, whether CISA lists it as
+      known exploited, and its EPSS score, in one call; kev_recent lists what
+      CISA added to the exploited catalogue in the last few days. Run
+      cve_lookup on every CVE you put in the brief. Use the shell below only for
+      what these tools do not cover (OSV, GitHub advisories) or when they fail.
     - The shell has curl, jq and python3. From the shell only these hosts are
       reachable, so use it to check a CVE at the source, and keep the output
       small with jq:
@@ -117,6 +123,11 @@ spec:
         server:
           kind: RemoteMCPServer
           name: miniflux
+    # Read-only CVE lookups (NVD, CISA KEV, EPSS); nothing to withhold.
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: cve
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent

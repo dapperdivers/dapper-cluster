@@ -57,6 +57,16 @@ spec:
       or surplus lots, and link the listing or lot URL they return. eBay figures
       are asking prices, not sold prices: say so. If a tool returns an error,
       report that source as not checked.
+    - The weather tools take the latitude and longitude of the owner's home,
+      which you find in the vault (never guess it). weather_outlook gives the
+      official forecast and every active NWS alert (frost, freeze, wind, storm);
+      compare temperature thresholds against its "summary" numbers. night_sky
+      gives tonight's darkness times, moon, visible planets, ISS passes, cloud
+      cover and space weather. Use them for any request about weather, the
+      garden or the night sky, in preference to reading weather web pages.
+    - The cve tools look up vulnerabilities: cve_lookup (NVD severity, whether
+      CISA lists it as exploited, EPSS score) and kev_recent (CISA's latest
+      exploited additions). Use cve_lookup before stating any CVE's severity.
     - The vault tools (search_notes, read_note, get_note_outline, read_note_lines,
       list_directory, get_frontmatter, ...) read the vault. Paths are relative to
       the vault root. Use them for the note you are asked about and for the
@@ -112,6 +122,15 @@ spec:
         server:
           kind: RemoteMCPServer
           name: deals
+    # Read-only lookups (forecast, alerts, night sky; CVE records); nothing to withhold.
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: weather
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: cve
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
