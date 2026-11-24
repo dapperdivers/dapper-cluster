@@ -53,8 +53,9 @@ spec:
   # Closed loop (roundtable-k8s/roundtable#264): poll the trusted repos for
   # issues labelled rt:ready and start a copy of the pr-pipeline Chain for each.
   # Defaults kept explicit: rt:in-progress on claim, needs-human (and issues
-  # mentioning workflows/secrets/auth) are never taken. Start small: 2 chains
-  # at once, 1 per repo. To pause: set suspend: true (running chains finish).
+  # mentioning workflows/secrets/auth) are never taken. 5 chains at once, 2 per
+  # repo (raised 2026-11-24 from 2/1: coders autoscale to 3 pods x 2 slots,
+  # plus rt-coder's 3). To pause: set suspend: true (running chains finish).
   issuePickup:
     chainRef:
       name: pr-pipeline
@@ -67,9 +68,9 @@ spec:
     readyLabel: rt:ready
     inProgressLabel: rt:in-progress
     needsHumanLabel: needs-human
-    maxActive: 2
-    maxActivePerRepo: 1
-    intervalSeconds: 300
+    maxActive: 5
+    maxActivePerRepo: 2
+    intervalSeconds: 120
     suspend: false
   # Failure feedback (roundtable-k8s/roundtable#226, docs/pr-feedback.md):
   # watch knight PRs for red CI and merge-queue rejections and send them back

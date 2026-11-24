@@ -1,6 +1,10 @@
-# Round Table dev team lead on pi-knight (GLM-5.3 via OpenRouter): plans and
-# reviews and merges (via the merge queue), doesn't write code. Runs on OpenRouter rather than the Claude plan to
-# keep subscription usage for the coders.
+# Round Table dev team lead on claude-knight (Claude Opus 5.5, subscription):
+# plans the PR pipeline, reviews and merges (via rt-review + the merge queue),
+# doesn't write code. Moved off GLM-5.3/OpenRouter on 2026-11-24: GLM's review
+# judgement was fine, but it often skipped rt-review (verdicts never reached
+# GitHub), claimed merges that never happened, returned unparseable plans, and
+# stalled the whole factory twice on OpenRouter credit. Every PR goes through
+# rt-lead, so it has to be the most reliable step.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
 ---
 apiVersion: ai.roundtable.io/v1alpha1
@@ -12,25 +16,27 @@ metadata:
     ai.roundtable.io/table: roundtable-dev
     ai.roundtable.io/round-table: roundtable-dev
 spec:
+  # Same claude-knight pin as rt-operator / rt-ui.
+  image: ghcr.io/roundtable-k8s/claude-knight:26a4e0fa80bfaaf0b321a94580af19d5f5050808
   domain: lead
-  # Default OpenRouter routing (price-weighted). GLM-5.3 providers range $0.07-1.40/M input;
-  # :exacto would pin the pricier ones. Kimi K2.6 cost ~$2-4 per review.
-  model: openrouter/z-ai/glm-5.3
+  # Opus (latest, 5.5) for planning and review: the quality gate for every PR.
+  model: opus
   skills:
     - shared
     - coding
     - project
   tools:
+    # Reviews build and test PRs with CI's exact toolchain: roundtable's
+    # knight-tools (go, golangci-lint, controller-gen, helm, envtest, gh, jq),
+    # same pin as rt-operator. One flake at most (roundtable#248); Node 22
+    # comes from the claude-knight image.
+    flakes:
+      - ref: github:roundtable-k8s/roundtable/9ce25f07505cf6bb5503188fe90e391eea5c4133
+        packages:
+          - knight-tools
     nix:
-      - gh
-      - jq
       - ripgrep
       - fd
-      # Reviews build and test PRs; without these rt-lead installed
-      # toolchains onto its PVC (roundtable#262).
-      - go
-      - gnumake
-      - nodejs_22
   nats:
     url: nats://nats.database.svc:4222
     subjects:
@@ -56,12 +62,32 @@ spec:
     # Reviews clone + build + test PRs (Go caches, envtest): 5Gi filled up
     # on 2026-11-23. PVC expanded online to match.
     size: 30Gi
-  # Drain on rollout is live (roundtable#246), so 6 slots are safe.
-  concurrency: 6
+  # Each slot is a Claude Code CLI process: 4 parallel plans/reviews.
+  concurrency: 4
   taskTimeoutSeconds: 900
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
   env:
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    - name: CLAUDE_PLAN_RESERVE
+      value: "0.8"
+    # Reviews are the quality gate: think harder than the coders (medium).
+    - name: CLAUDE_EFFORT
+      value: high
+    - name: KUBEBUILDER_ASSETS
+      value: /nix/profile/share/envtest
     - name: TMPDIR
       value: /data/scratch
+    - name: XDG_CACHE_HOME
+      value: /data/scratch/.cache
+    - name: GOMODCACHE
+      value: /data/scratch/go/mod
+    - name: GOLANGCI_LINT_CACHE
+      value: /data/scratch/.cache/golangci-lint
+    - name: GOFLAGS
+      value: -modcacherw
   prompt:
     identity: |
       You are rt-lead, the technical lead of the Round Table dev team. You know
@@ -115,9 +141,9 @@ spec:
       memory: 2Gi
       ephemeral-storage: 10Gi
     limits:
-      # 6 parallel reviews (roundtable#262).
+      # 4 parallel reviews, each a Claude Code CLI plus test runs.
       cpu: "6"
-      memory: 8Gi
+      memory: 12Gi
       # Review test runs write to /tmp; the namespace default (4Gi) evicted
       # rt-lead mid-review on 2026-11-23.
       ephemeral-storage: 40Gi
