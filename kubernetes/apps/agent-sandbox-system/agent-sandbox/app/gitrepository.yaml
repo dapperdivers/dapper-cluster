@@ -1,0 +1,20 @@
+---
+# Agent Sandbox (kubernetes-sigs/agent-sandbox): Sandbox, SandboxTemplate,
+# SandboxWarmPool and SandboxClaim CRDs plus the controller, for Round Table's
+# sandbox runtime backend (roundtable-k8s/roundtable#95, #160, #366). Isolation
+# comes from a RuntimeClass (gVisor, roundtable#212); the two are complementary.
+# Upstream doesn't publish the chart to a registry, so Flux reads it from the
+# release tag. Bump the tag and image.tag in helmrelease.yaml together, by hand.
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/source.toolkit.fluxcd.io/gitrepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: agent-sandbox
+spec:
+  interval: 1h
+  url: https://github.com/kubernetes-sigs/agent-sandbox
+  ref:
+    tag: v1.0.12
+  ignore: |
+    /*
+    !/helm
