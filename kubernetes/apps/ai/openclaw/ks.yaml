@@ -31,6 +31,8 @@ spec:
   postBuild:
     substitute:
       APP: molt
+      VOLSYNC_SCHEDULE: "0 * * * *"
+      VOLSYNC_SCHEDULE_REMOTE: "30 0 * * *"
       VOLSYNC_CAPACITY: 40Gi
       VOLSYNC_CACHE_CAPACITY: 50Gi
       VOLSYNC_PGID: "1000"

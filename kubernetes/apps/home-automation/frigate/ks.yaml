@@ -38,4 +38,6 @@ spec:
       # model cache). Recordings live on a separate cephfs PVC and are far too
       # large to back up — they are expendable by design.
       APP: frigate-config
+      VOLSYNC_SCHEDULE: "5 * * * *"
+      VOLSYNC_SCHEDULE_REMOTE: "35 0 * * *"
       VOLSYNC_CAPACITY: 20Gi

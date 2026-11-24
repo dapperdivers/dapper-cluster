@@ -33,4 +33,6 @@ spec:
   postBuild:
     substitute:
       APP: zigbee2mqtt-garage-config
+      VOLSYNC_SCHEDULE: "10 * * * *"
+      VOLSYNC_SCHEDULE_REMOTE: "40 0 * * *"
       VOLSYNC_CAPACITY: 5Gi
