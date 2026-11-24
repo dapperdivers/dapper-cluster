@@ -8,3 +8,4 @@ resources:
   - ./restrict-latest-tag.yaml
   - ./verify-home-operations-images.yaml
   - ./volsync-repository-mkdir.yaml
+  - ./volsync-schedule-stagger.yaml

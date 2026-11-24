@@ -1,0 +1,50 @@
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: volsync-schedule-stagger
+  annotations:
+    policies.kyverno.io/title: VolSync Schedule Stagger
+    policies.kyverno.io/subject: ReplicationSource
+    policies.kyverno.io/description: >-
+      All ceph-rbd volumes share three SSD OSDs, and dozens of VolSync snapshots
+      taken in the same minute stalled them for 5-8 seconds. VolSync has no
+      jitter option, so a ReplicationSource left on a volsync component default
+      schedule ("0 * * * *" local, "30 0 * * *" remote) gets its minute from a
+      hash of its source PVC name instead. The remote minute is the local one
+      plus 30, so an app's two backups never start together. Any other schedule
+      (set with VOLSYNC_SCHEDULE / VOLSYNC_SCHEDULE_REMOTE) is left alone.
+spec:
+  failurePolicy: Ignore
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [volsync.backube]
+        apiVersions: ["*"]
+        operations: [CREATE, UPDATE]
+        resources: [replicationsources]
+  matchConditions:
+    - name: on-a-component-default-schedule
+      expression: >-
+        object.spec.?sourcePVC.orValue('') != '' &&
+        object.spec.?trigger.schedule.orValue('') in ['0 * * * *', '30 0 * * *']
+  variables:
+    - name: hex
+      expression: sha256(object.spec.sourcePVC)
+    - name: digits
+      expression: "'0123456789abcdef'"
+    # First three hex digits of the hash (0-4095), folded into a minute.
+    - name: minute
+      expression: >-
+        (variables.digits.indexOf(variables.hex.charAt(0)) * 256 +
+        variables.digits.indexOf(variables.hex.charAt(1)) * 16 +
+        variables.digits.indexOf(variables.hex.charAt(2))) % 60
+    - name: schedule
+      expression: >-
+        object.spec.trigger.schedule == '0 * * * *'
+        ? string(variables.minute) + ' * * * *'
+        : string((variables.minute + 30) % 60) + ' 0 * * *'
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [JSONPatch{op: "replace", path: "/spec/trigger/schedule", value: variables.schedule}]

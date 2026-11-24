@@ -28,21 +28,23 @@ spec:
     substitute:
       APP: *app # the PVC + restic repo are named after ${APP}
       VOLSYNC_CAPACITY: 1Gi # app data PVC size (default 5Gi)
-      VOLSYNC_SCHEDULE: "17 * * * *" # hourly local backup: pick a free minute (see below)
-      VOLSYNC_SCHEDULE_REMOTE: "47 0 * * *" # daily R2 backup: local minute + 30, hour 0
 ```
 
-**Pick a backup minute for every new app.** Without the two schedule lines the app backs up at
-`:00` and `00:30` UTC with every other app that left them out. All `ceph-rbd` volumes share three
-SSD OSDs, and 30+ snapshots taken in the same minute stalled them for 5-8 seconds (BlueStore slow
-ops, November 2026). List the minutes already taken and choose the least used one:
+**Backup minutes are spread automatically; don't set a schedule unless you need a specific one.**
+All `ceph-rbd` volumes share three SSD OSDs, and 30+ snapshots taken in the same minute stalled
+them for 5-8 seconds (BlueStore slow ops, November 2026). The component defaults are `0 * * * *`
+(local, hourly) and `30 0 * * *` (R2, daily), and the Kyverno MutatingPolicy
+`volsync-schedule-stagger` (`kubernetes/apps/kyverno/kyverno/policies/`) rewrites the minute of
+any ReplicationSource still on a default: `sha256(sourcePVC) % 60` for local, that plus 30 for R2.
+So the live schedule differs from the template, and that is expected:
 
 ```bash
-grep -rhoE 'VOLSYNC_SCHEDULE: "[0-9]+ ' kubernetes/apps | sort -t'"' -k2 -n | uniq -c
+kubectl get replicationsource -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,SCHEDULE:.spec.trigger.schedule
 ```
 
-Set the remote schedule to that minute plus 30 (mod 60) in hour 0, so an app's local and R2 backups
-never start together. Once every minute is taken, two apps per minute is fine.
+Set `VOLSYNC_SCHEDULE` / `VOLSYNC_SCHEDULE_REMOTE` only for a different cadence (e.g.
+`"5 */6 * * *"`); the policy leaves any non-default schedule alone. Apps that existed before the
+policy carry explicit minutes in their `ks.yaml`; leave those as they are.
 
 Other optional substitutions (defaults in parens): `VOLSYNC_STORAGECLASS` (ceph-rbd),
 `VOLSYNC_SNAPSHOTCLASS` (ceph-rbd-snapshot), `VOLSYNC_COPYMETHOD` (Snapshot),

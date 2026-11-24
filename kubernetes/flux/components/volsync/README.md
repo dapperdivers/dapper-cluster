@@ -44,10 +44,13 @@ VOLSYNC_CAPACITY: <size> # PVC size (e.g., 5Gi)
 | `VOLSYNC_PUID`               | `1000`              | Mover pod user ID           |
 | `VOLSYNC_PGID`               | `150`               | Mover pod group ID          |
 
-Give every app its own minute in both schedules. All `ceph-rbd` volumes share three SSD
-OSDs, and dozens of snapshots taken in the same minute stalled them for 5-8 seconds
-(BlueStore slow ops, November 2026). VolSync has no jitter option, so pick a minute no
-other app uses: `grep -rh VOLSYNC_SCHEDULE kubernetes/apps | sort` lists the ones taken.
+Backups are spread across the hour. All `ceph-rbd` volumes share three SSD OSDs, and
+dozens of snapshots taken in the same minute stalled them for 5-8 seconds (BlueStore slow
+ops, November 2026). VolSync has no jitter option, so the Kyverno MutatingPolicy
+`volsync-schedule-stagger` rewrites the minute of any ReplicationSource left on a default
+schedule (`sha256(sourcePVC) % 60` for local, that plus 30 for remote). Apps that predate
+the policy carry explicit minutes in their `ks.yaml`. Set a schedule only when an app
+needs a different cadence; the policy leaves non-default schedules alone.
 
 ## Architecture
 
