@@ -1,12 +1,25 @@
 # talos-node-large-3 (10.100.0.56). Its role comes from the directory this file is in.
+# gVisor node for sandboxed agents, like large-1 (see that file for why the
+# label and the user-namespace sysctl go together). Schematic 36c18967... adds
+# siderolabs/gvisor for the `gvisor` RuntimeClass (roundtable-k8s/roundtable#212).
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 installer:
-  image: factory.talos.dev/installer/5cc10e6e83c6e3b32167fe812094d4715c9fa3e1a77bcfe61fa4cf71b4b9fed3:${TALOS_VERSION}
+  image: factory.talos.dev/installer/36c18967cadc8f0e76ff8c1e1492b65f404e2e897012f5a4c147f45b4fae12e3:${TALOS_VERSION}
 provisioning:
   diskSelector:
     match: disk.dev_path == "/dev/sda"
   wipe: false
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  workload.cluster.io/agent-sandbox: "true"
+---
+apiVersion: v1alpha1
+kind: SysctlConfig
+params:
+  user.max_user_namespaces: "11255"
 ---
 apiVersion: v1alpha1
 kind: HostnameConfig
