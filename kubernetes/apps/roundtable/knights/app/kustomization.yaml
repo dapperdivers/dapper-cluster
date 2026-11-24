@@ -10,3 +10,4 @@ resources:
   - rt-lead.yaml
   - rt-ui.yaml
   - rt-operator.yaml
+  - rt-coder.yaml
