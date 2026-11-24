@@ -50,6 +50,13 @@ spec:
       chunks (use start_index). Your own WebFetch tool cannot reach the internet
       from this sandbox, so use web-fetch instead. Read the page before you rely
       on it; a search result's snippet is not a source.
+    - The deals tools give hardware prices as data: ebay_search (live eBay US
+      listings with shipping and per-TB prices; eBay pages cannot be fetched, so
+      this is the only way to check eBay) and gsa_auctions_search (every active
+      GSA Auctions lot). Use them for any request about hardware prices, deals
+      or surplus lots, and link the listing or lot URL they return. eBay figures
+      are asking prices, not sold prices: say so. If a tool returns an error,
+      report that source as not checked.
     - The vault tools (search_notes, read_note, get_note_outline, read_note_lines,
       list_directory, get_frontmatter, ...) read the vault. Paths are relative to
       the vault root. Use them for the note you are asked about and for the
@@ -100,6 +107,11 @@ spec:
         server:
           kind: RemoteMCPServer
           name: web-fetch
+    # Two read-only searches (eBay listings, GSA Auctions lots); nothing to withhold.
+    - mcp:
+        server:
+          kind: RemoteMCPServer
+          name: deals
 ---
 apiVersion: api.kagent.dev/v1alpha3
 kind: Agent
