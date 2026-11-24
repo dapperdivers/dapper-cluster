@@ -30,20 +30,28 @@ spec:
       VOLSYNC_CAPACITY: 1Gi # app data PVC size (default 5Gi)
 ```
 
-**Backup minutes are spread automatically; don't set a schedule unless you need a specific one.**
-All `ceph-rbd` volumes share three SSD OSDs, and 30+ snapshots taken in the same minute stalled
-them for 5-8 seconds (BlueStore slow ops, November 2026). The component defaults are `0 * * * *`
-(local, hourly) and `30 0 * * *` (R2, daily), and the Kyverno MutatingPolicy
-`volsync-schedule-stagger` (`kubernetes/apps/kyverno/kyverno/policies/`) rewrites the minute of
-any ReplicationSource still on a default: `sha256(sourcePVC) % 60` for local, that plus 30 for R2.
+**Backup times are spread automatically; don't set a schedule unless you need a different cadence.**
+Local backups run every 3 hours and R2 backups daily. All `ceph-rbd` volumes share three SSD OSDs,
+and 30+ snapshots taken in the same minute stalled them for 5-8 seconds (BlueStore slow ops,
+November 2026). So the schedules in the component are placeholders, and the Kyverno
+MutatingPolicy `volsync-schedule-stagger` (`kubernetes/apps/kyverno/kyverno/policies/`) rewrites
+them from `sha256(sourcePVC)`:
+
+| Placeholder   | Meaning                 | Becomes                                      |
+| ------------- | ----------------------- | -------------------------------------------- |
+| `0 */3 * * *` | local default, every 3h | own minute + hour offset in a 180-min cycle  |
+| `0 * * * *`   | local, hourly (opt-in)  | own minute of the hour                       |
+| `30 0 * * *`  | R2 default, daily       | own minute + 30, between 00:00 and 00:59 UTC |
+
 So the live schedule differs from the template, and that is expected:
 
 ```bash
 kubectl get replicationsource -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,SCHEDULE:.spec.trigger.schedule
 ```
 
-Set `VOLSYNC_SCHEDULE` / `VOLSYNC_SCHEDULE_REMOTE` only for a different cadence (e.g.
-`"5 */6 * * *"`); the policy leaves any non-default schedule alone.
+For an app where losing up to 3 hours of changes hurts (vaultwarden, home-assistant, paperless-ngx,
+actual, obsidian-second-brain today), set `VOLSYNC_SCHEDULE: "0 * * * *"` and it is still staggered.
+Any other schedule (e.g. `"5 */6 * * *"`) is used exactly as written, so pick its minute yourself.
 
 Other optional substitutions (defaults in parens): `VOLSYNC_STORAGECLASS` (ceph-rbd),
 `VOLSYNC_SNAPSHOTCLASS` (ceph-rbd-snapshot), `VOLSYNC_COPYMETHOD` (Snapshot),

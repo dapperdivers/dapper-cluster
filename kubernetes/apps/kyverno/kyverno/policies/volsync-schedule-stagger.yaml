@@ -9,11 +9,13 @@ metadata:
     policies.kyverno.io/description: >-
       All ceph-rbd volumes share three SSD OSDs, and dozens of VolSync snapshots
       taken in the same minute stalled them for 5-8 seconds. VolSync has no
-      jitter option, so a ReplicationSource left on a volsync component default
-      schedule ("0 * * * *" local, "30 0 * * *" remote) gets its minute from a
-      hash of its source PVC name instead. The remote minute is the local one
-      plus 30, so an app's two backups never start together. Any other schedule
-      (set with VOLSYNC_SCHEDULE / VOLSYNC_SCHEDULE_REMOTE) is left alone.
+      jitter option, so a ReplicationSource on one of the placeholder schedules
+      below gets its start time from a hash of its source PVC name instead:
+      "0 */3 * * *" (the component's local default, every 3 hours) is spread
+      over a 180-minute cycle, "0 * * * *" (hourly opt-in) over the hour, and
+      "30 0 * * *" (the remote default, daily) over 00:00-00:59 UTC at the
+      local minute plus 30, so an app's local and remote backups never start
+      together. Any other schedule is left alone.
 spec:
   failurePolicy: Ignore
   matchConstraints:
@@ -23,24 +25,37 @@ spec:
         operations: [CREATE, UPDATE]
         resources: [replicationsources]
   matchConditions:
-    - name: on-a-component-default-schedule
+    - name: on-a-placeholder-schedule
       expression: >-
         object.spec.?sourcePVC.orValue('') != '' &&
-        object.spec.?trigger.schedule.orValue('') in ['0 * * * *', '30 0 * * *']
+        object.spec.?trigger.schedule.orValue('') in ['0 */3 * * *', '0 * * * *', '30 0 * * *']
   variables:
     - name: hex
       expression: sha256(object.spec.sourcePVC)
     - name: digits
       expression: "'0123456789abcdef'"
-    # First three hex digits of the hash (0-4095), folded into a minute.
-    - name: minute
+    # First three hex digits of the hash (0-4095), folded into a 3-hour cycle.
+    # 180 is a multiple of 60, so `slot % 60` is the same minute the hourly and
+    # remote schedules have used since the policy was added.
+    - name: slot
       expression: >-
         (variables.digits.indexOf(variables.hex.charAt(0)) * 256 +
         variables.digits.indexOf(variables.hex.charAt(1)) * 16 +
-        variables.digits.indexOf(variables.hex.charAt(2))) % 60
+        variables.digits.indexOf(variables.hex.charAt(2))) % 180
+    - name: minute
+      expression: variables.slot % 60
+    # VolSync's schedule pattern rejects a stepped range like "1-23/3", so the
+    # 3-hourly hours are spelled out.
+    - name: hours
+      expression: >-
+        variables.slot / 60 == 0 ? '0,3,6,9,12,15,18,21'
+        : variables.slot / 60 == 1 ? '1,4,7,10,13,16,19,22'
+        : '2,5,8,11,14,17,20,23'
     - name: schedule
       expression: >-
-        object.spec.trigger.schedule == '0 * * * *'
+        object.spec.trigger.schedule == '0 */3 * * *'
+        ? string(variables.minute) + ' ' + variables.hours + ' * * *'
+        : object.spec.trigger.schedule == '0 * * * *'
         ? string(variables.minute) + ' * * * *'
         : string((variables.minute + 30) % 60) + ' 0 * * *'
   mutations:
