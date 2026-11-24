@@ -17,7 +17,7 @@ metadata:
     ai.roundtable.io/round-table: roundtable-dev
 spec:
   # Same claude-knight pin as rt-operator / rt-ui.
-  image: ghcr.io/roundtable-k8s/claude-knight:26a4e0fa80bfaaf0b321a94580af19d5f5050808
+  image: ghcr.io/roundtable-k8s/claude-knight:299448cd3ea30eb4f63c27c71ef69cd327d4e88f
   domain: lead
   # Opus (latest, 5.5) for planning and review: the quality gate for every PR.
   model: opus

@@ -11,7 +11,7 @@ metadata:
   namespace: roundtable
 spec:
   # claude-knight main @ 2365a3a (#6 no Claude attribution; includes #4 CLI runtime, #5 token file).
-  image: ghcr.io/roundtable-k8s/claude-knight:26a4e0fa80bfaaf0b321a94580af19d5f5050808
+  image: ghcr.io/roundtable-k8s/claude-knight:299448cd3ea30eb4f63c27c71ef69cd327d4e88f
   domain: security
   # Claude Code alias; claude-knight passes it to `claude -p --model`.
   model: sonnet
