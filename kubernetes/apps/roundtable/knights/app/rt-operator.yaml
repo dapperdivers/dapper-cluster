@@ -21,12 +21,18 @@ spec:
     - shared
     - coding
   tools:
+    # The repo's pinned toolchain (roundtable-k8s/roundtable#248): the same
+    # go, golangci-lint, controller-gen, helm, kustomize, setup-envtest,
+    # kubectl, kind, gnumake, git, gh, jq and yq-go as `nix develop` and CI,
+    # plus the envtest assets. Pinned to a commit: the tools image only
+    # rebuilds when this ref changes, so bump it when the flake changes.
+    flakes:
+      - ref: github:roundtable-k8s/roundtable/9ce25f07505cf6bb5503188fe90e391eea5c4133
+        packages:
+          - knight-tools
+    # Only what knight-tools doesn't already ship (duplicates collide in the
+    # image's buildEnv: different nixpkgs pins).
     nix:
-      - gh
-      - go
-      - gnumake
-      - yq-go
-      - jq
       - ripgrep
       - fd
   nats:
@@ -80,6 +86,10 @@ spec:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
   env:
+    # envtest assets from knight-tools: `make test` uses them instead of
+    # downloading kube-apiserver/etcd on every task (roundtable#248).
+    - name: KUBEBUILDER_ASSETS
+      value: /nix/profile/share/envtest
     - name: CLAUDE_AUTH_MODE
       value: subscription
     - name: CLAUDE_PLAN_RESERVE
