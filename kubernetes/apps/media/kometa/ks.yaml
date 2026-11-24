@@ -35,7 +35,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_SCHEDULE_REMOTE: "48 0 * * *"
       VOLSYNC_CAPACITY: 20Gi
       VOLSYNC_CACHE_CAPACITY: 20Gi
       VOLSYNC_SCHEDULE: "5 */6 * * *" # config changes via git-sync; PVC is mostly static poster originals, so 6h beats hourly

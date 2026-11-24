@@ -43,8 +43,7 @@ kubectl get replicationsource -A -o custom-columns=NS:.metadata.namespace,NAME:.
 ```
 
 Set `VOLSYNC_SCHEDULE` / `VOLSYNC_SCHEDULE_REMOTE` only for a different cadence (e.g.
-`"5 */6 * * *"`); the policy leaves any non-default schedule alone. Apps that existed before the
-policy carry explicit minutes in their `ks.yaml`; leave those as they are.
+`"5 */6 * * *"`); the policy leaves any non-default schedule alone.
 
 Other optional substitutions (defaults in parens): `VOLSYNC_STORAGECLASS` (ceph-rbd),
 `VOLSYNC_SNAPSHOTCLASS` (ceph-rbd-snapshot), `VOLSYNC_COPYMETHOD` (Snapshot),

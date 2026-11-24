@@ -48,9 +48,9 @@ Backups are spread across the hour. All `ceph-rbd` volumes share three SSD OSDs,
 dozens of snapshots taken in the same minute stalled them for 5-8 seconds (BlueStore slow
 ops, November 2026). VolSync has no jitter option, so the Kyverno MutatingPolicy
 `volsync-schedule-stagger` rewrites the minute of any ReplicationSource left on a default
-schedule (`sha256(sourcePVC) % 60` for local, that plus 30 for remote). Apps that predate
-the policy carry explicit minutes in their `ks.yaml`. Set a schedule only when an app
-needs a different cadence; the policy leaves non-default schedules alone.
+schedule (`sha256(sourcePVC) % 60` for local, that plus 30 for remote), so the live
+schedule differs from this template. Set a schedule only when an app needs a different
+cadence; the policy leaves non-default schedules alone.
 
 ## Architecture
 

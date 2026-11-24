@@ -33,6 +33,4 @@ spec:
   postBuild:
     substitute:
       APP: zigbee2mqtt-config
-      VOLSYNC_SCHEDULE: "11 * * * *"
-      VOLSYNC_SCHEDULE_REMOTE: "41 0 * * *"
       VOLSYNC_CAPACITY: 5Gi

@@ -31,6 +31,4 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_SCHEDULE: "24 * * * *"
-      VOLSYNC_SCHEDULE_REMOTE: "55 0 * * *"
       VOLSYNC_CAPACITY: 5Gi

@@ -62,7 +62,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_SCHEDULE_REMOTE: "25 0 * * *"
       VOLSYNC_CAPACITY: 2Gi
       VOLSYNC_CACHE_CAPACITY: 1Gi
       VOLSYNC_STORAGECLASS: cephfs-shared
