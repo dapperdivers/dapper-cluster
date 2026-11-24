@@ -80,6 +80,23 @@ rules:
     resources: [persistentvolumes]
     verbs: [get, list, watch]
 ---
+# volsync-schedule-stagger target: ReplicationSource read. Mutation works at
+# admission without it, but the policy reports RBACPermissionsGranted=False /
+# ready=false until the reports controller can read the kind.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno:replicationsources-read
+  labels:
+    app.kubernetes.io/part-of: kyverno
+    rbac.kyverno.io/aggregate-to-admission-controller: "true"
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+    rbac.kyverno.io/aggregate-to-reports-controller: "true"
+rules:
+  - apiGroups: [volsync.backube]
+    resources: [replicationsources]
+    verbs: [get, list, watch]
+---
 # volsync-repository-mkdir output: Jobs in rook-ceph. Kept separate from the
 # PV read so the reports controller doesn't get Job write access.
 apiVersion: rbac.authorization.k8s.io/v1
