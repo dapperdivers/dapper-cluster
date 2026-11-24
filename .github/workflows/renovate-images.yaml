@@ -1,0 +1,93 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Renovate (image repos)"
+
+# Renovate for the repositories that build this cluster's own images. They have no
+# Renovate of their own and no copy of the bot's key, so they are run from here with a
+# token scoped to exactly those repositories. Kept apart from renovate.yaml so that a
+# problem here (the bot not installed on one of them, a bad config there) can never stop
+# this repository's own updates.
+#
+# Each repository carries its own renovate.json5 and its own automerge policy. The chain
+# for an upstream release is: Renovate PR there -> that repo's CI -> merge -> new image
+# tag -> renovate.yaml here bumps the pin (see "Auto-merge our own tool-server images"
+# in .renovate/autoMerge.json5).
+#
+# Requires the bot app to be installed on every repository in REPOSITORIES.
+
+on:
+  schedule:
+    # Every two hours, off the top of the hour (GitHub sheds :00 schedules under load).
+    - cron: "32 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: Dry Run
+        default: "false"
+        required: false
+      logLevel:
+        description: Log Level
+        default: debug
+        required: false
+      version:
+        description: Renovate version
+        default: latest
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Repository names only, comma-separated; the owner is this repository's owner.
+  REPOSITORIES: mcp-servers,containers
+
+jobs:
+  main:
+    name: Renovate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Generate Token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        id: app-token
+        with:
+          app-id: "${{ secrets.DUNCE_BOT_APP_ID }}"
+          private-key: "${{ secrets.DUNCE_BOT_APP_PRIVATE_KEY }}"
+          owner: "${{ github.repository_owner }}"
+          repositories: "${{ env.REPOSITORIES }}"
+          # Branches/commits, PRs, the dependency dashboard issue, status checks,
+          # and workflow-file updates (action pins).
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          permission-statuses: write
+          permission-workflows: write
+
+      - name: List the repositories for Renovate
+        id: repos
+        env:
+          OWNER: "${{ github.repository_owner }}"
+        run: |
+          list=""
+          for name in $(echo "${REPOSITORIES}" | tr ',' ' '); do
+            list="${list:+${list},}${OWNER}/${name}"
+          done
+          echo "list=${list}" >> "${GITHUB_OUTPUT}"
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@acdd6bda8b035c99ce59d5675816af2aa65a1774 # v46.3.14
+        env:
+          LOG_LEVEL: "${{ inputs.logLevel || 'debug' }}"
+          RENOVATE_REPOSITORIES: "${{ steps.repos.outputs.list }}"
+          RENOVATE_DRY_RUN: "${{ inputs.dryRun }}"
+          RENOVATE_INTERNAL_CHECKS_FILTER: strict
+          RENOVATE_PLATFORM: github
+          RENOVATE_PLATFORM_COMMIT: true
+        with:
+          token: "${{ steps.app-token.outputs.token }}"
+          renovate-version: "${{ inputs.version || 'latest' }}"
