@@ -25,30 +25,41 @@ spec:
 ## Required Variables
 
 ```yaml
-APP: <app-name>               # Application name
-VOLSYNC_CAPACITY: <size>      # PVC size (e.g., 5Gi)
+APP: <app-name> # Application name
+VOLSYNC_CAPACITY: <size> # PVC size (e.g., 5Gi)
 ```
 
 ## Optional Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VOLSYNC_STORAGECLASS` | `ceph-rbd` | App PVC storage class |
-| `VOLSYNC_SNAPSHOTCLASS` | `ceph-rbd-snapshot` | Snapshot class |
-| `VOLSYNC_CACHE_STORAGECLASS` | `ceph-rbd` | Cache PVC storage class |
-| `VOLSYNC_CACHE_CAPACITY` | `10Gi` | Cache size |
-| `VOLSYNC_COPYMETHOD` | `Snapshot` | Copy method |
-| `VOLSYNC_ACCESSMODES` | `ReadWriteOnce` | App PVC access mode |
-| `VOLSYNC_SCHEDULE` | `0 * * * *` | Local backup schedule |
-| `VOLSYNC_PUID` | `1000` | Mover pod user ID |
-| `VOLSYNC_PGID` | `150` | Mover pod group ID |
+| Variable                     | Default             | Description                 |
+| ---------------------------- | ------------------- | --------------------------- |
+| `VOLSYNC_STORAGECLASS`       | `ceph-rbd`          | App PVC storage class       |
+| `VOLSYNC_SNAPSHOTCLASS`      | `ceph-rbd-snapshot` | Snapshot class              |
+| `VOLSYNC_CACHE_STORAGECLASS` | `ceph-rbd`          | Cache PVC storage class     |
+| `VOLSYNC_CACHE_CAPACITY`     | `10Gi`              | Cache size                  |
+| `VOLSYNC_COPYMETHOD`         | `Snapshot`          | Copy method                 |
+| `VOLSYNC_ACCESSMODES`        | `ReadWriteOnce`     | App PVC access mode         |
+| `VOLSYNC_SCHEDULE`           | `0 * * * *`         | Local backup schedule       |
+| `VOLSYNC_SCHEDULE_REMOTE`    | `30 0 * * *`        | Remote (R2) backup schedule |
+| `VOLSYNC_PUID`               | `1000`              | Mover pod user ID           |
+| `VOLSYNC_PGID`               | `150`               | Mover pod group ID          |
+
+Backups are spread across the hour. All `ceph-rbd` volumes share three SSD OSDs, and
+dozens of snapshots taken in the same minute stalled them for 5-8 seconds (BlueStore slow
+ops, November 2026). VolSync has no jitter option, so the Kyverno MutatingPolicy
+`volsync-schedule-stagger` rewrites the minute of any ReplicationSource left on a default
+schedule (`sha256(sourcePVC) % 60` for local, that plus 30 for remote), so the live
+schedule differs from this template. Set a schedule only when an app needs a different
+cadence; the policy leaves non-default schedules alone.
 
 ## Architecture
 
 ### Phase 1: Repository
+
 Creates CephFS repository at `/k8s-backups/volsync/${APP}` for storing Restic backups.
 
 ### Phase 2: Operations
+
 - **ReplicationDestination**: Restores from backup on first deployment
 - **App PVC**: Uses `dataSourceRef` to restore from snapshot
 - **Local ReplicationSource**: Hourly backups to CephFS (24h + 7d retention)
@@ -56,12 +67,12 @@ Creates CephFS repository at `/k8s-backups/volsync/${APP}` for storing Restic ba
 
 ## Storage Classes
 
-| Resource | Storage Class | Pool | Type |
-|----------|---------------|------|------|
-| Repository | `cephfs-static` | cephfs_backups | CephFS RWX (static PV) |
-| App PVC | `ceph-rbd` | rook-pvc-pool | RBD RWO |
-| Cache | `ceph-rbd` | rook-pvc-pool | RBD RWO |
-| Snapshots | `ceph-rbd-snapshot` | - | RBD |
+| Resource   | Storage Class       | Pool           | Type                   |
+| ---------- | ------------------- | -------------- | ---------------------- |
+| Repository | `cephfs-static`     | cephfs_backups | CephFS RWX (static PV) |
+| App PVC    | `ceph-rbd`          | rook-pvc-pool  | RBD RWO                |
+| Cache      | `ceph-rbd`          | rook-pvc-pool  | RBD RWO                |
+| Snapshots  | `ceph-rbd-snapshot` | -              | RBD                    |
 
 ## Troubleshooting
 
