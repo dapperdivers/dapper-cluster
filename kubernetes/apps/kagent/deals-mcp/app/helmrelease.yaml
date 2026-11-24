@@ -30,7 +30,7 @@ spec:
             # MCP Streamable HTTP at /mcp (bearer token required) and /healthz.
             image:
               repository: ghcr.io/dapperdivers/mcp-servers
-              tag: 2026.11.24.1@sha256:77e78037ebfc5418ed6d1f0cf644ac90850768aacc4f6c1ef6227434c2177295
+              tag: 2026.11.24.4@sha256:31f82a4252d65da18bbb7cbcc151d51eee2d7aba3550d81cb659bd7bd64d67b7
             args: [deals]
             env:
               TZ: ${TIME_ZONE}
