@@ -99,15 +99,6 @@ spec:
       feedback:
         enabled: true
 
-    # Post-deploy smoke (#228, docs/post-deploy-smoke.md): after every rollout
-    # the rollout-smoke Chain checks each knight (identity, git/gh, skills,
-    # guardrails, session isolation). Knights default to the pipeline's lead
-    # and coders.
-    smoke:
-      enabled: true
-      roundTableRef:
-        name: roundtable-dev
-
     # Built-in planner knight (Deployment runtime backend, the operator default).
     planner:
       enabled: true
