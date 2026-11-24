@@ -1,0 +1,114 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: deals-mcp
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      deals-mcp:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/library/python
+              tag: 3.15.2-alpine@sha256:0f9552bb28711333da16915ec146f5e6bb44a7fdac9ced15dc17c2e0206346dd
+            # Hardware price lookups for agents from official JSON APIs (eBay Browse, GSA
+            # Auctions); resources/server.py is the whole server and uses only the standard
+            # library plus the MCP SDK. Same serving pattern as web-fetch: mcp-proxy runs
+            # the stdio server and serves it as Streamable HTTP at /mcp.
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                set -e
+                # Agents' calls come through Substrate's egress gateway, which sends the Host
+                # header without the port, hence the portless --allowed-host.
+                # Separate install dirs: mcp-proxy pins its own version of the MCP SDK.
+                pip install --quiet --no-cache-dir --disable-pip-version-check --target /tmp/proxy mcp-proxy==0.15.0
+                pip install --quiet --no-cache-dir --disable-pip-version-check --target /tmp/sdk mcp==2.3.0
+                export PYTHONPATH=/tmp/proxy
+                exec /tmp/proxy/bin/mcp-proxy --host 0.0.0.0 --port 8000 --stateless \
+                  --allowed-host deals-mcp.kagent.svc.cluster.local:8000 \
+                  --allowed-host deals-mcp.kagent.svc:8000 --allowed-host deals-mcp:8000 \
+                  --allowed-host deals-mcp.kagent.svc.cluster.local \
+                  --pass-environment \
+                  -- /usr/bin/env PYTHONPATH=/tmp/sdk HOME=/tmp python /app/server.py
+            env:
+              TZ: ${TIME_ZONE}
+              HOME: /tmp
+              PYTHONDONTWRITEBYTECODE: "1"
+            # MCP_PROXY_AUTH_TOKEN, plus whichever of GSA_API_KEY, EBAY_CLIENT_ID and
+            # EBAY_CLIENT_SECRET exist in Infisical (see externalsecret.yaml).
+            envFrom:
+              - secretRef:
+                  name: deals-mcp-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: &port 8000
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 5
+                  # Each start pip-installs both packages.
+                  failureThreshold: 60
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        controller: deals-mcp
+        ports:
+          http:
+            port: *port
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      server:
+        type: configMap
+        name: deals-mcp-server
+        globalMounts:
+          - path: /app/server.py
+            subPath: server.py
+            readOnly: true
