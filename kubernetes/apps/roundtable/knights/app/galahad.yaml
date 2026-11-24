@@ -41,8 +41,8 @@ spec:
     claimName: roundtable-vault
     readOnly: true
     writablePaths:
-      - "Briefings/"
-      - "Roundtable/"
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
   # Personal-domain skills (security, shared) stayed in the personal arsenal
   # after the split; the org arsenal holds only Round Table platform skills.
   arsenal:
