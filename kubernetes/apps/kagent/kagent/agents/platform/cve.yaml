@@ -1,0 +1,20 @@
+---
+# CVE lookups from public sources: NVD severity, CISA known-exploited status and
+# the EPSS exploit-probability score, plus recent additions to CISA's catalogue.
+# Served by kagent/cve-mcp. Tools: cve_lookup, kev_recent. All read-only, so it is safe to bind
+# whole on the Claude harnesses, which ignore allowlists.
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: cve
+spec:
+  description: Look up CVEs (NVD severity, CISA known-exploited status, EPSS score) and list recent CISA KEV additions. Read-only.
+  url: http://cve-mcp.kagent.svc.cluster.local:8000/mcp
+  protocol: STREAMABLE_HTTP
+  timeout: 120s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: cve-mcp-secret
+        key: Authorization

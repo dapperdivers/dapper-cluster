@@ -7,7 +7,9 @@ components:
   - ../../flux/components/common
 resources:
   - ./namespace.yaml
+  - ./cve-mcp/ks.yaml
   - ./deals-mcp/ks.yaml
   - ./kagent/ks.yaml
   - ./miniflux-mcp/ks.yaml
+  - ./weather-mcp/ks.yaml
   - ./web-fetch/ks.yaml

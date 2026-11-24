@@ -1,0 +1,20 @@
+---
+# US forecast, weather alerts and tonight's sky for a point (NWS, NOAA space
+# weather, CelesTrak, NASA; planets and ISS passes are computed in the pod).
+# Served by kagent/weather-mcp. Tools: weather_outlook, night_sky. All read-only, so it is safe to bind
+# whole on the Claude harnesses, which ignore allowlists.
+apiVersion: api.kagent.dev/v1alpha3
+kind: RemoteMCPServer
+metadata:
+  name: weather
+spec:
+  description: US forecast and active weather alerts for a point, and what is visible in tonight's sky (moon, planets, ISS passes, clouds). Read-only.
+  url: http://weather-mcp.kagent.svc.cluster.local:8000/mcp
+  protocol: STREAMABLE_HTTP
+  timeout: 120s
+  headersFrom:
+    - name: Authorization
+      valueFrom:
+        type: Secret
+        name: weather-mcp-secret
+        key: Authorization
