@@ -56,7 +56,8 @@ flowchart TD
    `reading-processor` agent and inserts a `## Digest` section above `## My notes`: summary, why
    it matters, related notes, a suggested folder, ideas worth a note of their own. The hourly run
    after that **files the note**: it moves it out of `Inbox/Reading/` into the folder the digest
-   names (`Library/Reading/` when it names none), sets `status: active` and adds `filed: <date>`.
+   names (`Library/Reading/` when it names none), sets `status: active`, adds `filed: <date>` and puts the folder's tag first in its tags when
+   the vault note `System/Folder Tags.md` lists one for that folder.
    Nobody reviews the move: a starred article counts as read.
 6. **Morning brief.** At 04:30 `night-shift` asks the kagent `feeds-digest` agent for the
    entries worth reading since the last successful brief and writes them under "Feeds". It also
