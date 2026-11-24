@@ -1,0 +1,107 @@
+# First knight back after the M0 redeploy (roundtable-k8s/roundtable#187/#188):
+# Sir Galahad on claude-knight (Claude Code CLI headless, subscription token).
+# Kept minimal: a small Nix tool set, no browser, no roundtable-secret. GitHub access is
+# the scoped dunce-bot token file only.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: galahad
+  namespace: roundtable
+  # DRAFT CHANGE (fleet-restore): join the personal table, plus the commented isolation block below.
+  # Persona for the kagent job security-brief, as a Chain (decision 13, #214): chains/jobs/security-brief.yaml.
+  labels:
+    ai.roundtable.io/round-table: personal
+    ai.roundtable.io/table: personal
+spec:
+  # claude-knight main @ 2365a3a (#6 no Claude attribution; includes #4 CLI runtime, #5 token file).
+  image: ghcr.io/roundtable-k8s/claude-knight:26a4e0fa80bfaaf0b321a94580af19d5f5050808
+  domain: security
+  # Claude Code alias; claude-knight passes it to `claude -p --model`.
+  model: sonnet
+  skills:
+    - security
+    - shared
+  # Built once into a tools image (registry.${SECRET_DOMAIN}/knight-tools, tag =
+  # hash of this list) and mounted read-only at /nix; see toolsImage in
+  # ../../operator/app/helmrelease.yaml. First knight on tools images
+  # (roundtable-k8s/roundtable#196).
+  tools:
+    nix:
+      - dnsutils
+      - httpie
+      - jq
+      - nmap
+      - testssl
+      - whois
+  # --- Isolation (whiteboard decision 8, roundtable-k8s/roundtable#377): gVisor + default-deny egress. ---
+  # Every knight is isolated by default; opting out must be explicit. Neither field exists in the CRD yet,
+  # so both are commented out: runtimeClassName comes with #164 (PR #383) and needs #212 on the cluster;
+  # egress comes with #348 (per knight) and #349 (table default). Uncomment when those land.
+  # Role: claude-knight; jobs: security-brief (chains/jobs/security-brief.yaml), morning-briefing security step.
+  # runtimeClassName: gvisor
+  # egress:
+  #   allowedHosts:
+  #     - api.anthropic.com                          # Claude subscription (claude-knight); set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 so it needs nothing else
+  #     - github.com                                 # git-sync sidecar pulling the arsenal (gone once the arsenal is an OCI image volume, #350)
+  #     - api.github.com                             # gh / GitHub API with the knight's token
+  #     - miniflux.selfhosted.svc.cluster.local      # Miniflux API, read-only key (port 8080, in-cluster)
+  #     - services.nvd.nist.gov                      # NVD CVE API
+  #     - api.first.org                              # EPSS
+  #     - www.cisa.gov                               # CISA KEV
+  #     - api.osv.dev                                # OSV
+  #     - opencti-server.security.svc.cluster.local  # OpenCTI GraphQL (phase 3, #380; port 80, in-cluster)
+  #     - api.shodan.io                              # Shodan (phase 3, only if the credential comes back)
+  #   allowedPorts: [443]
+  # OPEN: reading vendor advisories and news means arbitrary hosts; an allowlist needs a fetch proxy
+  # (one allowlisted in-cluster fetch service) or a fixed list of advisory sites. Decide in #382.
+  # OPEN: nmap/testssl scan arbitrary targets; they cannot work under an allowlist. Drop them or
+  # allow a named target list.
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.security.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  # Personal-domain skills (security, shared) stayed in the personal arsenal
+  # after the split; the org arsenal holds only Round Table platform skills.
+  arsenal:
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  workspace:
+    size: 5Gi
+  # dunce-bot token as a refreshing file (GITHUB_TOKEN_FILE), roundtable-k8s/roundtable#194.
+  github:
+    tokenSecretRef:
+      name: roundtable-github-token
+      key: token
+  concurrency: 1
+  taskTimeoutSeconds: 1800
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
+  env:
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    # Stop taking tasks once any plan window is 80% used.
+    - name: CLAUDE_PLAN_RESERVE
+      value: "0.8"
+    - name: CLAUDE_EFFORT
+      value: medium
+    - name: TMPDIR
+      value: /data/scratch
+  prompt:
+    identity: |
+      You are Sir Galahad, Knight of Security for the Round Table.
+      Your domain is threat intelligence, vulnerability triage and the
+      security posture of Derek's stack. Be precise, cite sources, and say
+      plainly when something does not affect us.

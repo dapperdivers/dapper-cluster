@@ -1,0 +1,78 @@
+# Personal RoundTable, converted from dapper-cluster 12cbac303^ knights/app/roundtable.yaml
+# to the standard-types CRD shape (roundtable-k8s/roundtable#241).
+# Changes from the original:
+#   - defaults.taskTimeout -> taskTimeoutSeconds; defaults.resources {cpu,memory} -> ResourceRequirements
+#     (the old values were ignored by the pod builder; they are now applied as requests).
+#   - suspended -> suspend; defaults.image "" dropped (operator default = pi-knight).
+#   - spec.secrets [roundtable-secret] REMOVED on purpose: table secrets are injected into every
+#     knight on the table, and galahad (claude-knight) was redeployed without roundtable-secret.
+#     Each pi-knight keeps its own envFrom roundtable-secret, as the originals did.
+#   - vault.writablePaths follow the vault re-organisation (Agents/...). Note: table-level
+#     spec.vault is NOT inherited by standing knights (only spec.sharedWorkspace and
+#     defaults.resources/workspace are); every knight carries its own spec.vault.
+#   - knightSelector matches the current label; knights carry the legacy label too.
+#   - Stream names kept (fleet_a_*): galahad and the planner already use them.
+# Models are the originals; pick current ones before applying.
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: RoundTable
+metadata:
+  name: personal
+  namespace: roundtable
+spec:
+  description: |
+    Derek's personal life management fleet. Handles security research, threat intel,
+    penetration testing, personal finance, career coaching, home automation, wellness,
+    infrastructure monitoring, knowledge management, and general research.
+    Route here for: anything about Derek's life, homelab, career, finances, health, or security work.
+    Do NOT route Round Table platform development here — use the roundtable-dev table instead.
+  nats:
+    url: nats://nats.database.svc:4222
+    subjectPrefix: fleet-a
+    tasksStream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    createStreams: true
+    streamRetention: WorkQueue
+  knightTemplates:
+    base:
+      model: "openrouter/deepseek/deepseek-v3.2"
+      domain: general
+      skills:
+        - shared
+      tools:
+        nix:
+          - jq
+          - curl
+          - tree
+      nats:
+        url: nats://nats.database.svc:4222
+        stream: fleet_a_tasks
+        resultsStream: fleet_a_results
+        subjects:
+          - "fleet-a.tasks.general.>"
+  knightSelector:
+    matchLabels:
+      ai.roundtable.io/round-table: personal
+  defaults:
+    model: "openrouter/deepseek/deepseek-v3.2"
+    taskTimeoutSeconds: 600
+    concurrency: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+  policies:
+    costBudgetUSD: "0"
+    maxConcurrentTasks: 0
+    maxKnights: 15
+    maxMissions: 10
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  sharedWorkspace:
+    claimName: roundtable-workspace
+    mountPath: /shared
+  suspend: false

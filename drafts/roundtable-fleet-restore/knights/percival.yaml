@@ -1,0 +1,81 @@
+# DRAFT (fleet-restore, 2026-11-24). Converted from dapper-cluster 12cbac303^ to the current CRD shape
+# (roundtable-k8s/roundtable#241). Validated with kubectl apply --dry-run=server; never applied.
+# Phase 3 (credentials). Needs: ExternalSecret percival -> Secret percival-secret (infra/percival-externalsecret.yaml;
+# Infisical key PAPERLESS_TOKEN: nothing on main references it any more, so check it still exists).
+# Model is the original one; confirm it still exists in pi-knight's catalog or pick a new one.
+# Removed: the dormant ollama-pool env block.
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: percival
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: finance
+  model: "openrouter/deepseek/deepseek-v3.2"
+  skills:
+    - shared
+    - finance
+  tools:
+    nix:
+      - gnuplot
+      - bc
+      - sqlite
+      - units
+      - dateutils
+      - python3
+      - jq
+      - curl
+  # --- Isolation (whiteboard decision 8, roundtable-k8s/roundtable#377): gVisor + default-deny egress. ---
+  # Every knight is isolated by default; opting out must be explicit. Neither field exists in the CRD yet,
+  # so both are commented out: runtimeClassName comes with #164 (PR #383) and needs #212 on the cluster;
+  # egress comes with #348 (per knight) and #349 (table default). Uncomment when those land.
+  # Role: pi-knight; morning-briefing finance step (phase 3).
+  # runtimeClassName: gvisor
+  # egress:
+  #   allowedHosts:
+  #     - openrouter.ai                           # model provider (pi-knight, OPENROUTER_API_KEY from roundtable-secret)
+  #     - github.com                              # git-sync sidecar pulling the arsenal (gone once the arsenal is an OCI image volume, #350)
+  #     - paperless.selfhosted.svc.cluster.local  # Paperless API (port 8000, in-cluster)
+  #   allowedPorts: [443]
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.finance.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  env:
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  envFrom:
+    - secretRef:
+        name: roundtable-secret
+    - secretRef:
+        name: percival-secret
+  prompt:
+    identity: |
+      You are Sir Percival, Knight of Finance for the Round Table.
+      You are the seeker — methodical, trustworthy, and precise with
+      numbers. Your domain is financial planning, tax prep, and budgeting.
