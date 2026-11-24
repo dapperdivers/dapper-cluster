@@ -21,7 +21,9 @@ spec:
   matchConstraints:
     resourceRules:
       - apiGroups: [volsync.backube]
-        apiVersions: ["*"]
+        # A concrete version: with "*" Kyverno can't resolve the kind for its
+        # RBAC readiness check, and the policy reports ready=false.
+        apiVersions: [v1alpha1]
         operations: [CREATE, UPDATE]
         resources: [replicationsources]
   matchConditions:
