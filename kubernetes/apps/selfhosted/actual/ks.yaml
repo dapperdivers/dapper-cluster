@@ -31,4 +31,5 @@ spec:
   postBuild:
     substitute:
       APP: *app
+      VOLSYNC_SCHEDULE: "0 * * * *" # hourly: losing hours of changes here hurts
       VOLSYNC_CAPACITY: 1Gi
