@@ -46,7 +46,7 @@ spec:
         tag: 2abe58803711bd4d1b620699510c8a646bd75f1f
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
-        tag: 6aeaf31a6450be1681f0e9187ab1ff4397f53898
+        tag: a4b17cf89ed48ed3c60d9172d576719710d6bfd6
 
     # Operator manager. The chart default memory limit is 128Mi; the old
     # deployment ran with 256Mi. Pending the crashloop investigation
