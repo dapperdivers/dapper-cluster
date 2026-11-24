@@ -72,3 +72,45 @@ spec:
           apiVersion: generators.external-secrets.io/v1alpha1
           kind: GithubAccessToken
           name: dunce-bot-roundtable
+---
+# Smoke auto-hold (roundtable-k8s/roundtable#264): when a post-rollout smoke
+# fails, the operator labels the autodeploy PR in dapper-cluster with `hold`,
+# which stops further autodeploys. This token is separate from the knights'
+# token and can only touch dapper-cluster pull requests: no contents, no
+# workflows. dunce-bot's installation on the dapperdivers account (not secret).
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/generators.external-secrets.io/githubaccesstoken_v1alpha1.json
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: GithubAccessToken
+metadata:
+  name: dunce-bot-smoke-hold
+  namespace: roundtable
+spec:
+  appID: "1040936"
+  installID: "56558271"
+  repositories:
+    - dapper-cluster
+  permissions:
+    pull_requests: write
+    metadata: read
+  auth:
+    privateKey:
+      secretRef:
+        name: dunce-bot-key
+        key: privateKey
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: roundtable-smoke-hold-token
+  namespace: roundtable
+spec:
+  refreshInterval: 30m
+  target:
+    name: roundtable-smoke-hold-token
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: GithubAccessToken
+          name: dunce-bot-smoke-hold

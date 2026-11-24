@@ -88,12 +88,19 @@ spec:
       name: rt-operator
   # Post-deploy smoke (#228): when a new operator/knight version has settled,
   # run rollout-smoke. Pass: recorded as known-good. Fail: a needs-human issue
-  # in roundtable and status.smoke.held. No `hold` yet: labelling the
-  # autodeploy PR needs a dapper-cluster-scoped token (follow-up), so until
-  # then a human adds `hold` to the autodeploy/roundtable PR on a failure.
+  # in roundtable, status.smoke.held, and the `hold` label on the
+  # autodeploy/roundtable PR (stops further autodeploys; remove the label to
+  # resume). Token: roundtable-smoke-hold-token (dapper-cluster PRs only).
   smoke:
     enabled: true
     chainRef:
       name: rollout-smoke
     issueRepo: roundtable-k8s/roundtable
     needsHumanLabel: needs-human
+    hold:
+      repo: dapperdivers/dapper-cluster
+      branch: autodeploy/roundtable
+      label: hold
+      tokenSecretRef:
+        name: roundtable-smoke-hold-token
+        key: token
