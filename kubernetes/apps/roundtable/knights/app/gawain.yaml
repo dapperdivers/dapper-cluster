@@ -12,7 +12,7 @@ metadata:
     # legacy label: shared-workspace mount and the mission planner still read only this one
     ai.roundtable.io/table: personal
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:fd6ed360c2025701400ee78e99316a5898db6946
+  image: ghcr.io/roundtable-k8s/claude-knight:8632eb0b1b12dd85bd131ad32cb5d321391eea14
   domain: project
   # Kimi K2.6 — gawain is the briefing SYNTHESIS knight, the one step where
   # output quality matters most, so it runs on the strongest cheap cloud model
