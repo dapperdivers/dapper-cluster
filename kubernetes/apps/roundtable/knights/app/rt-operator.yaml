@@ -15,6 +15,24 @@ spec:
   # Previous image: 299448cd (old claude-knight repo).
   image: ghcr.io/roundtable-k8s/claude-knight:c6ece34df30576ee88e1db9f24a112e464ecbda4
   domain: operator
+  # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
+  # egress. The operator adds NATS, DNS, the Kubernetes API, the model
+  # providers and the arsenal git hosts. These are the extra hosts for GitHub,
+  # npm and Go modules (as on rt-coder and rt-ui), plus the Kubernetes and Helm
+  # download hosts the operator repo's make targets use (envtest, helm).
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - github.com
+      - api.github.com
+      - codeload.github.com
+      - "*.githubusercontent.com"
+      - registry.npmjs.org
+      - proxy.golang.org
+      - sum.golang.org
+      - storage.googleapis.com
+      - dl.k8s.io
+      - get.helm.sh
   # Sonnet by default; design-heavy tasks override with model: opus (or the
   # chain alias `deep`, roundtable#217).
   model: sonnet
