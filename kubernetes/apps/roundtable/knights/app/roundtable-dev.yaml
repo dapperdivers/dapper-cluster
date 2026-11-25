@@ -53,7 +53,7 @@ spec:
   # Closed loop (roundtable-k8s/roundtable#264): poll the trusted repos for
   # issues labelled rt:ready and start a copy of the pr-pipeline Chain for each.
   # Defaults kept explicit: rt:in-progress on claim, needs-human (and issues
-  # mentioning workflows/secrets/auth) are never taken. 12 chains at once, 4 per
+  # touching .github/workflows) are never taken. 12 chains at once, 4 per
   # repo (wide open 2026-11-24: coders autoscale to 6 pods x 2 slots,
   # plus rt-coder's 4). To pause: set suspend: true (running chains finish).
   issuePickup:
@@ -67,6 +67,15 @@ spec:
     readyLabel: rt:ready
     inProgressLabel: rt:in-progress
     needsHumanLabel: needs-human
+    # Only issues that touch CI workflow files are kept from the knights by
+    # their text: the knights' token cannot push those. The default word list
+    # (secret, auth, credentials) is dropped on purpose: it skipped test
+    # suites, docs and gateway work that merely mention those words, and
+    # safety comes from narrow credentials, review and merge-guard instead
+    # (whiteboard decision 7, roundtable-k8s/roundtable#377). The needs-human
+    # label still keeps an issue with a human.
+    humanPatterns:
+      - '\.github/workflows'
     maxActive: 12
     maxActivePerRepo: 4
     intervalSeconds: 60
