@@ -92,6 +92,10 @@ spec:
         - deep
       # Fix rounds on Sonnet: stronger than a Haiku draft, cheaper than Opus.
       fixModel: fast
+      # When a Claude coder refuses a step for plan quota, re-run it on rt-coder
+      # (GLM via OpenRouter) instead of waiting for the window to reset
+      # (roundtable-k8s/roundtable#321).
+      fallbackCoder: rt-coder
       maxIterations: 3
       # Failure feedback (#226): a red CI run or a merge-queue rejection of a
       # knight PR goes back to its author knight; RoundTable spec.prFeedback
