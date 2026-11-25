@@ -13,9 +13,9 @@ metadata:
 spec:
   description: |
     Round Table platform development team. Route here for: operator features,
-    CRD changes, knight runtime work (pi-knight, claude-knight), dashboard
+    CRD changes, knight runtime work (the knights monorepo: pi-knight, claude-knight, core), dashboard
     (roundtable-ui) bugs and features, arsenal skills, CI for the roundtable-k8s
-    repos. Repos: roundtable, pi-knight, claude-knight, roundtable-ui, arsenal.
+    repos. Repos: roundtable, knights, roundtable-ui, arsenal.
     Do NOT route personal tasks, security research, finance or homelab work here.
   nats:
     url: nats://nats.database.svc:4222
@@ -62,8 +62,7 @@ spec:
     repos:
       - roundtable-k8s/roundtable
       - roundtable-k8s/roundtable-ui
-      - roundtable-k8s/pi-knight
-      - roundtable-k8s/claude-knight
+      - roundtable-k8s/knights
       - roundtable-k8s/arsenal
     readyLabel: rt:ready
     inProgressLabel: rt:in-progress
@@ -81,8 +80,7 @@ spec:
     repos:
       - roundtable-k8s/roundtable
       - roundtable-k8s/roundtable-ui
-      - roundtable-k8s/pi-knight
-      - roundtable-k8s/claude-knight
+      - roundtable-k8s/knights
       - roundtable-k8s/arsenal
     maxAttempts: 3
     fallbackKnightRef:

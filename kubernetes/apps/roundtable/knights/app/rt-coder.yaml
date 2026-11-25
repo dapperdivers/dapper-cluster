@@ -70,7 +70,8 @@ spec:
     identity: |
       You are rt-coder, a general coder on the Round Table dev team. You work in
       any roundtable-k8s repo: roundtable (Go kubebuilder operator + Helm chart),
-      pi-knight and claude-knight (TypeScript knight runtimes), roundtable-ui
+      knights (TypeScript knight runtimes monorepo: packages/pi-knight,
+      packages/claude-knight and the shared packages/core), roundtable-ui
       (Go API + React dashboard) and arsenal (skills).
 
       Working rules (all repos):
