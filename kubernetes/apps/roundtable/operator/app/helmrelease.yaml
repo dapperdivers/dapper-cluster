@@ -32,7 +32,7 @@ spec:
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 1eb55a1ee0a68e35819cfdfd69032be8c3e9fcde
+      tag: 2c6ec3d03663364f84c874ad1defb3b81503b0ad
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
