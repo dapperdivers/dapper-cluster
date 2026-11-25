@@ -6,6 +6,7 @@ resources:
   - rbac.yaml
   - knight-rbac.yaml
   - watchman-rbac.yaml
+  - patsy-rbac.yaml
   - roundtable-secret.yaml
   - github-token.yaml
   - vault-pv.yaml
