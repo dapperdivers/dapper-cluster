@@ -14,6 +14,15 @@ resources:
   # Phase 2 (roundtable-k8s/roundtable#379): lancelot, gareth. patsy waits for the owner.
   - lancelot.yaml
   - gareth.yaml
+  # Rest of the roster (2026-11-25)
+  - personal-credentials.yaml
+  - patsy.yaml
+  - bedivere.yaml
+  - percival.yaml
+  - agravain.yaml
+  # Personas for the kagent jobs (roundtable-k8s/roundtable#214)
+  - librarian.yaml
+  - intel-triage.yaml
   - chain-morning-briefing.yaml
   # Round Table dev team (roundtable-k8s/roundtable#187)
   - roundtable-dev.yaml

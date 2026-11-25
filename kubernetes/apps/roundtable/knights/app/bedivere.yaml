@@ -1,0 +1,86 @@
+# Sir Bedivere: home persona on the personal table (claude-knight). Home Assistant through its API.
+# Restored 2026-11-25 on the owner's instruction to bring the whole roster back.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: bedivere
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  image: ghcr.io/roundtable-k8s/claude-knight:8632eb0b1b12dd85bd131ad32cb5d321391eea14
+  domain: home
+  model: sonnet
+  skills:
+    - shared
+    - home
+  tools:
+    nix:
+      - python3
+      - curl
+      - jq
+  # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
+  # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
+  # arsenal git host. Home Assistant is reached in-cluster.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - api.github.com
+      - wttr.in
+    allowedServices:
+      - name: home-assistant
+        namespace: home
+        ports: [8123]
+  # Scales to zero when idle and back up when a task arrives.
+  lifecycle:
+    suspendPolicy: auto
+    idleTimeoutSeconds: 900
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "personal.tasks.home.>"
+    stream: personal_tasks
+    resultsStream: personal_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    # Own folders only (whiteboard decision 10).
+    writablePaths:
+      - "Agents/Briefings/Home/"
+      - "Agents/Briefings/Ledger/"
+      - "Agents/Roundtable/"
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
+    - secretRef:
+        name: bedivere-secret
+  env:
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    - name: CLAUDE_PLAN_RESERVE
+      value: "0.8"
+    - name: CLAUDE_EFFORT
+      value: medium
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  prompt:
+    identity: |
+      You are Sir Bedivere, Knight of the Household for the Round Table.
+      You are the loyal marshal — practical, organized, and dependable.
+      Your domain is home management, life admin, and household projects.

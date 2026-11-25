@@ -1,0 +1,94 @@
+# Patsy: vault curator persona on the personal table (claude-knight). Reads the whole vault and
+# writes only the folders listed below; cluster read through ServiceAccount patsy.
+# Restored 2026-11-25 on the owner's instruction to bring the whole roster back.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: patsy
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  image: ghcr.io/roundtable-k8s/claude-knight:8632eb0b1b12dd85bd131ad32cb5d321391eea14
+  domain: vault
+  serviceAccountName: patsy
+  # Kimi K2.6 (was openrouter/deepseek/deepseek-v3.2).
+  model: sonnet
+  skills:
+    - shared
+    - vault
+  tools:
+    nix:
+      - tree
+      - bat
+      - delta
+      - sqlite
+      - ripgrep
+      - ripgrep-all
+      # Added 2026-03-09 - Fleet self-improvement assessment
+      - fd # Fast file discovery for vault indexing
+      - fzf # Interactive fuzzy finder for vault exploration
+      - graphviz # Knowledge graph visualization
+      - pandoc # Document format conversion
+      - yq-go # YAML processing (Added 2026-03-23)
+      - kubectl # verify_claims: read-only re-verification (2026-07-05)
+      - jq # verify_claims: ledger JSON updates (2026-07-05)
+  # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
+  # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
+  # arsenal git host.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - api.github.com
+  # Scales to zero when idle and back up when a task arrives.
+  lifecycle:
+    suspendPolicy: auto
+    idleTimeoutSeconds: 900
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "personal.tasks.vault.>"
+    stream: personal_tasks
+    resultsStream: personal_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    # Read-only base with these writable folders (owner: bring the whole
+    # roster back; recommendation (b) on roundtable-k8s/roundtable#379).
+    readOnly: true
+    writablePaths:
+      - "Agents/"
+      - "Zettels/"
+      - "Inbox/"
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
+  env:
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    - name: CLAUDE_PLAN_RESERVE
+      value: "0.8"
+    - name: CLAUDE_EFFORT
+      value: medium
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  prompt:
+    identity: |
+      You are Patsy, the loyal coconut carrier of the Round Table.
+      You are NOT a knight — you are the curator, the organizer, the
+      one who cleans up after everyone. Full write access to the vault.
