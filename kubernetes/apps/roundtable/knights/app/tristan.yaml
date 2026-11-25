@@ -50,6 +50,7 @@ spec:
       - jq # JSON processing
       - tree
       - curl
+      - python3 # runs the vault-jobs scripts (standard library only)
   # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
   # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
   # arsenal git host; tristan reads the cluster through the API and needs
@@ -59,6 +60,11 @@ spec:
   egress:
     allowedHosts:
       - api.github.com
+    allowedServices:
+      # Firing alerts, read by nightwatch.py.
+      - name: kube-prometheus-stack-alertmanager
+        namespace: observability
+        ports: [9093]
   # Scales to zero when idle and back up when a task arrives (KEDA on the
   # knight's JetStream consumer); the pod stays 15 minutes after its last task.
   lifecycle:
@@ -79,6 +85,9 @@ spec:
     # vault-jobs night-shift brief and is read-only to every knight.
     writablePaths:
       - "Agents/Briefings/HomeLab/"
+      # Native nightwatch writes here while it runs beside the vault-jobs CronJob
+      # (which keeps Agents/NightWatch/ and its ledger).
+      - "Agents/NightWatch-rt/"
       - "Agents/Briefings/Ledger/"
       - "Agents/Roundtable/"
   arsenals:
@@ -86,6 +95,13 @@ spec:
       repo: https://github.com/dapperdivers/roundtable-arsenal
       ref: main
       periodSeconds: 300
+    # The owner's job scripts, straight from the public vault-jobs image (the
+    # repo stays private): mounted read-only at /arsenal/vault-jobs/scripts.
+    # Used by the native nightwatch (roundtable-k8s/roundtable#570).
+    - name: vault-jobs
+      oci:
+        reference: ghcr.io/dapperdivers/vault-jobs:2026.11.25.17@sha256:34ba8df6c5a9829acfdc57793813d735ceca00d4051d9f9d1877bd85866f7ad6
+        pullPolicy: IfNotPresent
   workspace:
     size: "10Gi"
   concurrency: 2
@@ -94,6 +110,15 @@ spec:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
   env:
+    # Settings nightwatch.py reads (same values the vault-jobs CronJob uses).
+    - name: ALERTMANAGER_URL
+      value: http://kube-prometheus-stack-alertmanager.observability.svc.cluster.local:9093
+    - name: NIGHTWATCH_OUT_DIR
+      value: Agents/NightWatch-rt
+    - name: MAX_TRIAGE
+      value: "5"
+    - name: TZ
+      value: America/Chicago
     - name: CLAUDE_AUTH_MODE
       value: subscription
     # Stop taking tasks once any plan window is 80% used, so the personal
