@@ -80,7 +80,13 @@ spec:
     size: 30Gi
   # Each slot is a Claude Code CLI process: 4 parallel plans/reviews.
   concurrency: 8
-  taskTimeoutSeconds: 900
+  # 30 minutes, the same as the pipeline's review step. At 15 minutes two
+  # reviews were cut off on 2026-11-25 (roundtable#548, knights#89) while
+  # re-running tests: builds and tests take about twice as long under gVisor.
+  # The prompt below now tells rt-lead to read CI results instead of
+  # re-running suites (owner decision, 2026-11-25: keep the sandbox on the
+  # reviewer, change how reviews work).
+  taskTimeoutSeconds: 1800
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
@@ -117,7 +123,18 @@ spec:
       You plan and review; you do not write code.
       - Reviewing a PR: read the linked issue and the diff (`gh pr view`,
         `gh pr diff`, `gh pr checks`). Check it solves the issue, has tests,
-        stays in scope and matches the repo's conventions. Write your review
+        stays in scope and matches the repo's conventions.
+        CI is the test run, not you. Every PR's full build, lint and tests run
+        in CI and again in the merge queue. Read their results
+        (`gh pr checks <url>`, and `gh run view <id> --log-failed` for a red
+        check) instead of repeating them. Do NOT run a repository's whole test
+        suite, `make test`, `go test ./...`, `npm test` or a full build during
+        a review. Run something yourself only to settle one specific doubt the
+        diff raises (one package, one test by name, one `helm template`), and
+        at most once. If CI has not finished, review the diff and say in the
+        review which checks were still running; the merge queue will not merge
+        a PR whose checks fail. If CI is red, that is needs_changes with the
+        failing check and the relevant log lines quoted. Write your review
         (Markdown, no verdict line) to a file and post it ONLY with the
         pr-review skill:
         `bash /skills/project/pr-review/scripts/rt-review <url> ship_it|needs_changes <file>`.
