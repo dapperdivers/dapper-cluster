@@ -90,11 +90,11 @@ bump_hr() { # <label> <repo> <workflow> <yq path> [image name, default = repo]
 # is empty.
 # HOLD_KNIGHT_IMAGES=true pins the knight runtime images (pi-knight and
 # claude-knight) where they are: the operator, chart and dashboard still roll
-# out. Set while the runtimes are being restructured in roundtable-k8s/knights
-# (shared core, roundtable-k8s/roundtable#437), so a half-migrated runtime never
-# reaches the knights that run the factory. Set it back to false to resume, after
-# trying the new image on one knight first.
-HOLD_KNIGHT_IMAGES=true
+# out. Use it when the runtimes are being restructured, and try the new image on
+# one knight before setting it back to false. Held 2026-11-25 for the move to
+# the roundtable-k8s/knights monorepo and shared core; lifted the same day after
+# all four dev knights passed a task on the monorepo image.
+HOLD_KNIGHT_IMAGES=false
 
 if [ "$HOLD_KNIGHT_IMAGES" != true ]; then
   bump_hr pi-knight knights pi-knight '.spec.values.images.piKnight.tag' pi-knight

@@ -14,11 +14,6 @@ metadata:
     ai.roundtable.io/table: roundtable-dev
     ai.roundtable.io/round-table: roundtable-dev
 spec:
-  # Canary for the knights monorepo: rt-coder runs the pi-knight image built from
-  # roundtable-k8s/knights, pinned by hand, while every other knight stays on the
-  # last image from the old repos (HOLD_KNIGHT_IMAGES in the autodeploy script).
-  # Remove this pin when the hold is lifted and the default image moves over.
-  image: ghcr.io/roundtable-k8s/pi-knight:640a55f7a03ebba14380c1769ff104ba9f56bb72
   domain: coder
   model: openrouter/z-ai/glm-5.3
   skills:
