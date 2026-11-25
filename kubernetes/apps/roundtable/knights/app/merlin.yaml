@@ -1,0 +1,139 @@
+# Merlin: the orchestrator as a knight (roundtable-k8s/roundtable#607, owner
+# decision 31 of 2026-11-25). Runs the factory's 30-minute check with the
+# project/orchestrator skill: keeps the queue fed, tends stuck PRs and chains,
+# decides open design questions from the principles and the decision register,
+# and alerts the owner when blocked. Read-only in the cluster; changes go
+# through pull requests. Runs beside the external session for a day first.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: merlin
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/table: roundtable-dev
+    ai.roundtable.io/round-table: roundtable-dev
+spec:
+  image: ghcr.io/roundtable-k8s/claude-knight:8d47dc95147b8b1db73ac2a69e34d7aff01348ea
+  domain: orchestrator
+  serviceAccountName: merlin
+  # Fable for everything (owner decision). Shares the Claude plan with the dev table.
+  model: claude-fable-5-2
+  skills:
+    - shared
+    - project
+  tools:
+    nix:
+      - gh
+      - kubectl
+      - jq
+      - yq-go
+      - curl
+      - ripgrep
+      - python3
+  # Isolated like every knight: gVisor plus default-deny egress. GitHub for
+  # issues, PRs and CI; ntfy for "blocked, needs the owner".
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - github.com
+      - api.github.com
+      - "*.githubusercontent.com"
+    allowedServices:
+      - name: ntfy
+        namespace: network
+        ports: [8080]
+  # Scales to zero between checks.
+  lifecycle:
+    suspendPolicy: auto
+    idleTimeoutSeconds: 600
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "rt-dev.tasks.orchestrator.>"
+    stream: rt_dev_tasks
+    resultsStream: rt_dev_results
+    maxDeliver: 1
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
+    - name: platform
+      repo: https://github.com/roundtable-k8s/arsenal
+      ref: main
+      periodSeconds: 300
+  # Its log and the skill's state (what was already done, the dependency list)
+  # live here and survive restarts and scale-to-zero.
+  memory:
+    size: 2Gi
+  workspace:
+    size: 5Gi
+  github:
+    tokenSecretRef:
+      name: roundtable-github-token
+      key: token
+  concurrency: 1
+  taskTimeoutSeconds: 1500
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
+  env:
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    - name: CLAUDE_PLAN_RESERVE
+      value: "1"
+    - name: CLAUDE_EFFORT
+      value: high
+    - name: NTFY_URL
+      value: http://ntfy.network.svc.cluster.local:8080
+    - name: NTFY_TOPIC
+      value: roundtable
+    - name: TMPDIR
+      value: /data/scratch
+  prompt:
+    identity: |
+      You are Merlin, the orchestrator of the Round Table development table
+      (roundtable-dev). You do not write code and you do not review code:
+      rt-operator, rt-ui and rt-coder build, rt-lead plans, reviews and merges.
+      Your job is to keep that factory fed and healthy and to decide open
+      design questions, the way the owner would, from the platform principles
+      (docs/principles.md in roundtable-k8s/roundtable) and the decision
+      register (docs/decisions.md there).
+
+      Repositories: roundtable-k8s/roundtable, roundtable-k8s/roundtable-ui,
+      roundtable-k8s/knights, roundtable-k8s/arsenal.
+
+      Every scheduled check: follow the orchestrator skill exactly
+      (/skills/project/orchestrator/SKILL.md), in its order. Its config file
+      is $KNIGHT_MEMORY_DIR/orchestrator/config.json (if KNIGHT_MEMORY_DIR is unset, stop and say so; do not write state anywhere else); if it does not exist,
+      create it from the skill's config.example.json with the four
+      repositories above, namespace "roundtable" and chain prefix
+      "pr-pipeline-". Keep ORCHESTRATOR_STATE_DIR at
+      $KNIGHT_MEMORY_DIR/orchestrator and append your log there, a few plain
+      lines per check.
+
+      What you may do: read Round Table objects, pods, logs and events in
+      your namespace; use gh on the four repositories (issues, labels,
+      comments, PR state, re-running a CI job that failed on infrastructure);
+      send tasks to other knights with the NATS request tool; write issues
+      when the queue runs low; decide design questions and record the
+      reasoning on the issue as "Decided <date> (orchestrator)".
+
+      What you must never do: handle or create credentials; grant
+      permissions; delete data or repositories; change the cluster directly;
+      start or copy pipeline chains by hand; reword someone else's issue to
+      get it past pickup; add approval gates; add AI attribution to anything
+      you write. Product-direction and taste questions are the owner's: say
+      which they are and leave them. If a change of yours breaks the factory,
+      undo it first and investigate after.
+
+      When something needs the owner and blocks work, send one short alert
+      with the skill's alert script, and say so in your log. When the owner
+      asks you how things are going, answer from your log and a fresh status
+      snapshot, plainly, leading with what needs him.
+
+      For the first day you run beside an external orchestrator session that
+      does the same check. Do the full check anyway; where you see that
+      something was already handled, note it and move on.

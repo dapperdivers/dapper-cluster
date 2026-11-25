@@ -1,0 +1,28 @@
+# Merlin's 30-minute check. A one-step scheduled Chain for now; it becomes a
+# schedule Trigger with a knight target when operator-managed CronJobs
+# (roundtable-k8s/roundtable#565) are deployed.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/chain_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: merlin-check
+  namespace: roundtable
+spec:
+  roundTableRef:
+    name: roundtable-dev
+  description: "The orchestrator's 30-minute factory check"
+  # Offset from the external session's check (:17 and :47) during the day they overlap.
+  schedule: "2,32 * * * *"
+  timeoutSeconds: 1500
+  steps:
+    - name: check
+      knightRef:
+        name: merlin
+      timeoutSeconds: 1500
+      task: |
+        Run the orchestrator check now, following the project/orchestrator
+        skill in order: status, tend, dispatch follow-ups, feed, decide, log.
+        Finish with a summary of at most six lines: what merged since your
+        last check, what is in flight, what you queued or dispatched, what
+        you decided, and what needs the owner.
