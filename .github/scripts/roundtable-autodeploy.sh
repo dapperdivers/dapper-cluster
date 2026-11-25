@@ -69,11 +69,24 @@ bump_hr() { # <label> <repo> <workflow> <yq path> [image name, default = repo]
 # (workflows named after the image); the image names did not change. The first
 # knights SHA is not a descendant of the old repo's, so that one compare link
 # is empty.
-bump_hr pi-knight knights pi-knight '.spec.values.images.piKnight.tag' pi-knight
+# HOLD_KNIGHT_IMAGES=true pins the knight runtime images (pi-knight and
+# claude-knight) where they are: the operator, chart and dashboard still roll
+# out. Set while the runtimes are being restructured in roundtable-k8s/knights
+# (shared core, roundtable-k8s/roundtable#437), so a half-migrated runtime never
+# reaches the knights that run the factory. Set it back to false to resume, after
+# trying the new image on one knight first.
+HOLD_KNIGHT_IMAGES=true
+
+if [ "$HOLD_KNIGHT_IMAGES" != true ]; then
+  bump_hr pi-knight knights pi-knight '.spec.values.images.piKnight.tag' pi-knight
+fi
 bump_hr dashboard roundtable-ui 'Build & Push' '.spec.values.images.dashboard.tag'
 
 # --- claude-knight (Knight manifests) ---------------------------------------
-new_ck=$(latest_built knights claude-knight roundtable-k8s/claude-knight)
+new_ck=""
+if [ "$HOLD_KNIGHT_IMAGES" != true ]; then
+  new_ck=$(latest_built knights claude-knight roundtable-k8s/claude-knight)
+fi
 if [ -n "$new_ck" ]; then
   changed=()
   for f in $(grep -l 'image: ghcr.io/roundtable-k8s/claude-knight:' "$KNIGHTS_DIR"/*.yaml); do
