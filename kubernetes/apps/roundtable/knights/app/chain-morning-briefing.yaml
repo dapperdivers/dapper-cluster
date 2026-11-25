@@ -13,12 +13,12 @@ spec:
   roundTableRef:
     name: personal
   description: "Daily morning mission briefing — full domain reports, verified claims, cross-referenced synthesis"
-  # No schedule yet. The first run (2026-11-25, by annotation) succeeded in
-  # under 4 minutes for $0.27, but gawain wrote the synthesis to
-  # Briefings/Morning/<date>.md, the file the vault-jobs night-shift CronJob
-  # writes at 10:30 UTC. The knights' writable paths are now per folder, so
-  # that cannot happen again; add `schedule: "0 11 * * *"` after one more run
-  # by annotation lands in Briefings/Daily/. roundtable-k8s/roundtable#378.
+  # Daily at 11:00 UTC, as before the fleet was retired. Two runs by
+  # annotation on 2026-11-25 succeeded (about 4 minutes, $0.30 each); the second
+  # wrote its synthesis to Briefings/Daily/ with Briefings/Morning/ read-only.
+  # The vault-jobs night-shift brief (Morning/, 10:30 UTC) runs side by side
+  # until the owner picks one (roundtable-k8s/roundtable#382).
+  schedule: "0 11 * * *"
   timeoutSeconds: 3000
   retryPolicy:
     maxRetries: 1
