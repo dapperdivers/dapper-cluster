@@ -14,7 +14,7 @@ metadata:
     ai.roundtable.io/table: personal
 spec:
   # claude-knight main @ 2365a3a (#6 no Claude attribution; includes #4 CLI runtime, #5 token file).
-  image: ghcr.io/roundtable-k8s/claude-knight:3bcd1beab1c29e94df7fdbd92acdabef3fb455c6
+  image: ghcr.io/roundtable-k8s/claude-knight:f324b3ffe7aa6d142f380009280198e099e97319
   domain: security
   # Isolated (roundtable-k8s/roundtable#387): gVisor plus default-deny egress.
   # Tried here first for claude-knight on 2026-11-25 (galahad is outside the dev
