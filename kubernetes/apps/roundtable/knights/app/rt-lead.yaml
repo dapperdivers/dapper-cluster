@@ -80,7 +80,10 @@ spec:
     size: 30Gi
   # Each slot is a Claude Code CLI process: 4 parallel plans/reviews.
   concurrency: 8
-  taskTimeoutSeconds: 900
+  # 30 minutes, the same as the pipeline's review step. At 15 minutes two
+  # reviews were cut off on 2026-11-25 (roundtable#548, knights#89) while
+  # re-running tests: builds and tests take about twice as long under gVisor.
+  taskTimeoutSeconds: 1800
   envFrom:
     - secretRef:
         name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
