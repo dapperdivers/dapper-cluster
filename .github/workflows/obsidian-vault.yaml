@@ -46,7 +46,7 @@ jobs:
           # Pinned so a broken mise release can't float into CI on its own
           # (see ci.yaml).
           # renovate: datasource=github-releases depName=jdx/mise
-          version: v2026.11.13
+          version: v2026.11.14
           cache: false
           # Only the tools this job uses, at the versions .mise.toml pins.
           install_args: aqua:helm/helm aqua:mikefarah/yq
