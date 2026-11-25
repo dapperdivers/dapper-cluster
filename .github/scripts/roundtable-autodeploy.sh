@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Bump Round Table images in this repo to the newest roundtable-k8s main builds.
-# Pins: operator image + chart digest (chart 0.18.0 is republished on every
-# roundtable main push with appVersion = that SHA, so the operator tag is taken
-# from the chart itself and the two always match), pi-knight + dashboard tags in
+# Pins: operator image + chart tag and digest (the newest chart version is
+# republished on every roundtable main push with appVersion = that SHA, so the
+# operator tag is taken from the chart itself and the two always match), pi-knight + dashboard tags in
 # the operator HelmRelease, and the claude-knight image in Knight manifests.
 # Prints a markdown summary of what changed; exits 0 with no changes if current.
 set -euo pipefail
@@ -11,7 +11,7 @@ HR=kubernetes/apps/roundtable/operator/app/helmrelease.yaml
 OCI=kubernetes/apps/roundtable/operator/app/ocirepository.yaml
 KNIGHTS_DIR=kubernetes/apps/roundtable/knights/app
 CHART=ghcr.io/roundtable-k8s/charts/roundtable-operator
-CHART_TAG=$(yq '.spec.ref.tag' "$OCI")
+CUR_CHART_TAG=$(yq '.spec.ref.tag' "$OCI")
 
 # Set the `tag:` on the line right after `repository: <repo>` (keeps the file's
 # formatting; yq would drop blank lines).
@@ -40,6 +40,24 @@ latest_built() { # <repo> <workflow name> <image path>
   done
 }
 
+# Newest released chart version (plain x.y.z tags, highest by version sort).
+# Feature PRs bump the chart version, so following only the pinned tag would
+# leave the operator on the last build of an old version. Falls back to the
+# pinned tag if the registry cannot be listed.
+latest_chart_tag() {
+  local tok
+  tok=$(curl -fsS "https://ghcr.io/token?scope=repository:roundtable-k8s/charts/roundtable-operator:pull" | jq -r .token)
+  curl -fsS -H "Authorization: Bearer $tok" \
+    "https://ghcr.io/v2/roundtable-k8s/charts/roundtable-operator/tags/list?n=1000" 2>/dev/null \
+    | jq -r '.tags[]' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1
+}
+CHART_TAG=$(latest_chart_tag || true)
+CHART_TAG=${CHART_TAG:-$CUR_CHART_TAG}
+# Never go backwards.
+if [ "$(printf '%s\n%s\n' "$CUR_CHART_TAG" "$CHART_TAG" | sort -V | tail -1)" != "$CHART_TAG" ]; then
+  CHART_TAG=$CUR_CHART_TAG
+fi
+
 summary=()
 
 # --- operator + chart -------------------------------------------------------
@@ -50,8 +68,9 @@ if [ -n "$chart_digest" ] && [ "$chart_digest" != "$cur_digest" ]; then
   if [ -n "$app_sha" ] && [ -n "$(ghcr_digest roundtable-k8s/roundtable "$app_sha")" ]; then
     cur_op=$(yq '.spec.values.image.tag' "$HR")
     sed -i -E "s#^(\s+digest: )sha256:[0-9a-f]{64}#\1$chart_digest#" "$OCI"
+    sed -i -E "s#^(\s+tag: )$CUR_CHART_TAG\$#\1$CHART_TAG#" "$OCI"
     set_tag "$HR" ghcr.io/roundtable-k8s/roundtable "$app_sha"
-    summary+=("- **operator + chart** \`$CHART_TAG\`: [\`${cur_op:0:7}\` → \`${app_sha:0:7}\`](https://github.com/roundtable-k8s/roundtable/compare/$cur_op...$app_sha)")
+    summary+=("- **operator + chart** \`$CUR_CHART_TAG\` → \`$CHART_TAG\`: [\`${cur_op:0:7}\` → \`${app_sha:0:7}\`](https://github.com/roundtable-k8s/roundtable/compare/$cur_op...$app_sha)")
   fi
 fi
 
