@@ -36,7 +36,7 @@ spec:
     allowedHosts:
       - api.github.com
     allowedServices:
-      - name: paperless
+      - name: paperless-ngx
         namespace: selfhosted
         ports: [8000]
   # Scales to zero when idle and back up when a task arrives.

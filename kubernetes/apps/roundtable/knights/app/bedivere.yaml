@@ -33,7 +33,7 @@ spec:
       - wttr.in
     allowedServices:
       - name: home-assistant
-        namespace: home
+        namespace: home-automation
         ports: [8123]
   # Scales to zero when idle and back up when a task arrives.
   lifecycle:
