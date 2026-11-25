@@ -18,5 +18,5 @@ spec:
     # Pinned by digest too: CI republishes the same chart version on every
     # main push (roundtable-k8s/roundtable#191), so the tag alone is mutable.
     tag: 0.23.0
-    digest: sha256:a0aa59ddc03707c6bdfd317b6825dd7ce311107cc79056c36c3b99a6af0b0d75
+    digest: sha256:3cca22332db5ebc864eebe9d67ef4ce8592ba28b81ac7bdc364b1d9e2ad37497
   url: oci://ghcr.io/roundtable-k8s/charts/roundtable-operator
