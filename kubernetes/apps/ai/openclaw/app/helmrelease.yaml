@@ -128,7 +128,7 @@ spec:
           ha-mcp:
             image:
               repository: ghcr.io/homeassistant-ai/ha-mcp
-              tag: 9.2.0
+              tag: 9.3.0
             # ha-mcp 9.x dropped the fastmcp CLI; ha-mcp-web serves streamable
             # HTTP on :8086/mcp. Loopback-only: just the app container in this
             # pod talks to it.
