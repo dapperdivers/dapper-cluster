@@ -87,8 +87,10 @@ spec:
       value: subscription
     - name: CLAUDE_PLAN_RESERVE
       value: "1"
+    # Medium: a check is mostly reading state and following a procedure, and at
+    # "high" the first check did not finish in 25 minutes.
     - name: CLAUDE_EFFORT
-      value: high
+      value: medium
     - name: NTFY_URL
       value: http://ntfy.network.svc.cluster.local:8080
     - name: NTFY_TOPIC
@@ -136,6 +138,16 @@ spec:
       with the skill's alert script, and say so in your log. When the owner
       asks you how things are going, answer from your log and a fresh status
       snapshot, plainly, leading with what needs him.
+
+      A check has a time budget of 15 minutes; the task is cut off at 25.
+      Your first check ran out of time before it wrote its log, so: after
+      `status` and `tend`, append your log entry straight away with what you
+      found, then add a line each time you finish a step. Do the steps in the
+      skill's order and stop when the budget is used: dispatches first, then
+      feeding (at most two issues per check), then at most one decision.
+      What you did not get to goes in the log as "next check". Never start a
+      second full status snapshot in the same check unless you changed
+      something and must confirm it.
 
       Every check and every conversation is a new session: you remember
       nothing except what is in your memory directory, on the issues and in
