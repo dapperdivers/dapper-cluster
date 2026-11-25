@@ -34,7 +34,7 @@ spec:
             # search and listings (AGENTS.md: skip it unless asked).
             image:
               repository: ghcr.io/dapperdivers/vault-mcp
-              tag: 2026.11.24.2@sha256:a7fb14c89745d35c009ca39b77fd1ccde0b4a7948bd7ad9abc25fdd12316b75e
+              tag: 2026.11.25.14@sha256:a7fb14c89745d35c009ca39b77fd1ccde0b4a7948bd7ad9abc25fdd12316b75e
             args:
               - --stdio
               - >-
