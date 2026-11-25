@@ -55,12 +55,11 @@ spec:
     stream: rt_dev_tasks
     resultsStream: rt_dev_results
     maxDeliver: 1
-  arsenal:
-    name: personal
-    repo: https://github.com/dapperdivers/roundtable-arsenal
-    ref: main
-    periodSeconds: 300
   arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
     - name: platform
       repo: https://github.com/roundtable-k8s/arsenal
       ref: main
