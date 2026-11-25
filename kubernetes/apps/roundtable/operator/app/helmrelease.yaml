@@ -34,16 +34,6 @@ spec:
       repository: ghcr.io/roundtable-k8s/roundtable
       tag: 2ea52e4d54ff9df694bdbf2a6778e662f148da46
       pullPolicy: IfNotPresent
-    # Isolation defaults, set explicitly ahead of roundtable-k8s/roundtable#387
-    # (gVisor and default-deny egress on by default). With these two values the
-    # chart upgrade that carries #387 changes nothing here; isolation is then
-    # turned on one knight at a time in the Knight manifests (runtimeClassName
-    # and spec.egress with an allowlist), starting with rt-coder. Remove this
-    # block when every knight has its allowlist.
-    isolation:
-      runtimeClassName: ""
-      egress:
-        mode: "off"
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
     sandboxBackend: "false"
