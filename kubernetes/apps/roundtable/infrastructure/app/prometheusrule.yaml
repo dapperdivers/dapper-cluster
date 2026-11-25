@@ -116,9 +116,13 @@ spec:
           annotations:
             summary: >-
               HPA {{ $labels.horizontalpodautoscaler }} cannot read its metric
-              (ScalingActive=false, e.g. FailedGetExternalMetric).
+              (ScalingActive=false, e.g. FailedGetExternalMetric) while it has
+              pods. A knight scaled to zero by KEDA also reports
+              ScalingActive=false (ScalingDisabled); that is expected and excluded.
           expr: |
             kube_horizontalpodautoscaler_status_condition{namespace="roundtable", condition="ScalingActive", status="false"} == 1
+            and on (namespace, horizontalpodautoscaler)
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="roundtable"} > 0
           for: 15m
           labels:
             severity: warning
