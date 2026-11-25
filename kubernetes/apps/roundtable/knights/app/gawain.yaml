@@ -1,4 +1,4 @@
-# Sir Gawain: project and briefing-editor persona on the personal table (pi-knight).
+# Sir Gawain: project and briefing-editor persona on the personal table (claude-knight).
 # Restored 2026-11-25 (roundtable-k8s/roundtable#378, phase 1).
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
 ---
@@ -12,12 +12,14 @@ metadata:
     # legacy label: shared-workspace mount and the mission planner still read only this one
     ai.roundtable.io/table: personal
 spec:
+  image: ghcr.io/roundtable-k8s/claude-knight:fd6ed360c2025701400ee78e99316a5898db6946
   domain: project
   # Kimi K2.6 — gawain is the briefing SYNTHESIS knight, the one step where
   # output quality matters most, so it runs on the strongest cheap cloud model
   # while the 7 domain knights stay on the free local pool (ollama/qwen3.5:9b).
   # History: openrouter/deepseek/deepseek-v3.2 -> ollama/qwen3.5:9b -> kimi.
-  model: "openrouter/z-ai/glm-5.3"
+  # Claude plan (claude-knight, Claude Code CLI), like galahad. Decision 22, 2026-11-25.
+  model: sonnet
   skills:
     - shared
     - project # includes project/briefing-synthesis (was its own category in the old arsenal layout)
@@ -40,14 +42,19 @@ spec:
   egress:
     allowedHosts:
       - api.github.com
+  # Scales to zero when idle and back up when a task arrives (KEDA on the
+  # knight's JetStream consumer); the pod stays 15 minutes after its last task.
+  lifecycle:
+    suspendPolicy: auto
+    idleTimeoutSeconds: 900
   nats:
     url: nats://nats.database.svc:4222
     subjects:
-      - "fleet-a.tasks.project.>"
-      - "fleet-a.tasks.management.>"
-      - "fleet-a.tasks.orchestration.>"
-    stream: fleet_a_tasks
-    resultsStream: fleet_a_results
+      - "personal.tasks.project.>"
+      - "personal.tasks.management.>"
+      - "personal.tasks.orchestration.>"
+    stream: personal_tasks
+    resultsStream: personal_results
     maxDeliver: 1
   vault:
     claimName: roundtable-vault
@@ -79,13 +86,18 @@ spec:
     size: "10Gi"
   concurrency: 2
   taskTimeoutSeconds: 1800
-  # Only the OpenRouter key from the shared secret, not the whole secret.
+  envFrom:
+    - secretRef:
+        name: claude-setup-token # CLAUDE_CODE_OAUTH_TOKEN
   env:
-    - name: OPENROUTER_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: roundtable-secret
-          key: OPENROUTER_API_KEY
+    - name: CLAUDE_AUTH_MODE
+      value: subscription
+    # Stop taking tasks once any plan window is 80% used, so the personal
+    # table leaves room for the dev table on the shared plan.
+    - name: CLAUDE_PLAN_RESERVE
+      value: "0.8"
+    - name: CLAUDE_EFFORT
+      value: medium
     - name: TMPDIR
       value: "/data/scratch"
     - name: XDG_CACHE_HOME
