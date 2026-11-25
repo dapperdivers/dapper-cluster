@@ -14,7 +14,7 @@ spec:
   # claude-knight built from the roundtable-k8s/knights monorepo @ 640a55f (shared
   # knight-core). First claude-knight on the monorepo image; rt-operator and
   # rt-lead follow one at a time. Previous image: 299448cd (old claude-knight repo).
-  image: ghcr.io/roundtable-k8s/claude-knight:0b76c7fcf4d49b608bc59160dfae21a533068905
+  image: ghcr.io/roundtable-k8s/claude-knight:ba436824b6e60d5c2d0bfffdbb3cd9b9660fe841
   domain: frontend
   model: sonnet
   skills:
