@@ -41,6 +41,9 @@ spec:
   installID: "184814865"
   repositories:
     - roundtable
+    # Knight runtimes monorepo (pi-knight, claude-knight, core). The two old
+    # repos stay listed until they are archived.
+    - knights
     - pi-knight
     - roundtable-ui
     - claude-knight

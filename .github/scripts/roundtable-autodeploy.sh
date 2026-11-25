@@ -56,20 +56,24 @@ if [ -n "$chart_digest" ] && [ "$chart_digest" != "$cur_digest" ]; then
 fi
 
 # --- pi-knight / dashboard (HelmRelease values) -----------------------------
-bump_hr() { # <label> <repo> <workflow> <yq path>
-  local new cur
-  new=$(latest_built "$2" "$3" "roundtable-k8s/$2")
+bump_hr() { # <label> <repo> <workflow> <yq path> [image name, default = repo]
+  local new cur img=${5:-$2}
+  new=$(latest_built "$2" "$3" "roundtable-k8s/$img")
   cur=$(yq "$4" "$HR")
   if [ -n "$new" ] && [ "$new" != "$cur" ]; then
-    set_tag "$HR" "ghcr.io/roundtable-k8s/$2" "$new"
+    set_tag "$HR" "ghcr.io/roundtable-k8s/$img" "$new"
     summary+=("- **$1**: [\`${cur:0:7}\` → \`${new:0:7}\`](https://github.com/roundtable-k8s/$2/compare/$cur...$new)")
   fi
 }
-bump_hr pi-knight pi-knight CI '.spec.values.images.piKnight.tag'
+# pi-knight and claude-knight build from the roundtable-k8s/knights monorepo
+# (workflows named after the image); the image names did not change. The first
+# knights SHA is not a descendant of the old repo's, so that one compare link
+# is empty.
+bump_hr pi-knight knights pi-knight '.spec.values.images.piKnight.tag' pi-knight
 bump_hr dashboard roundtable-ui 'Build & Push' '.spec.values.images.dashboard.tag'
 
 # --- claude-knight (Knight manifests) ---------------------------------------
-new_ck=$(latest_built claude-knight CI roundtable-k8s/claude-knight)
+new_ck=$(latest_built knights claude-knight roundtable-k8s/claude-knight)
 if [ -n "$new_ck" ]; then
   changed=()
   for f in $(grep -l 'image: ghcr.io/roundtable-k8s/claude-knight:' "$KNIGHTS_DIR"/*.yaml); do
@@ -79,7 +83,7 @@ if [ -n "$new_ck" ]; then
       changed+=("$(basename "$f" .yaml)"); old_ck=$cur_ck
     fi
   done
-  [ ${#changed[@]} -gt 0 ] && summary+=("- **claude-knight** (${changed[*]}): [\`${old_ck:0:7}\` → \`${new_ck:0:7}\`](https://github.com/roundtable-k8s/claude-knight/compare/$old_ck...$new_ck)")
+  [ ${#changed[@]} -gt 0 ] && summary+=("- **claude-knight** (${changed[*]}): [\`${old_ck:0:7}\` → \`${new_ck:0:7}\`](https://github.com/roundtable-k8s/knights/compare/$old_ck...$new_ck)")
 fi
 
 printf '%s\n' "${summary[@]}"
