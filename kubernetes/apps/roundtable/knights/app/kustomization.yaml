@@ -10,6 +10,9 @@ resources:
   - kay.yaml
   - tristan.yaml
   - gawain.yaml
+  # Phase 2 (roundtable-k8s/roundtable#379): lancelot, gareth. patsy waits for the owner.
+  - lancelot.yaml
+  - gareth.yaml
   - chain-morning-briefing.yaml
   # Round Table dev team (roundtable-k8s/roundtable#187)
   - roundtable-dev.yaml

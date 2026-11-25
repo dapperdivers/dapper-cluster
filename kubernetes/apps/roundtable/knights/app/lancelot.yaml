@@ -1,0 +1,79 @@
+# Sir Lancelot: career persona on the personal table (pi-knight).
+# Restored 2026-11-25 (roundtable-k8s/roundtable#379, phase 2; patsy is not included).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: lancelot
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: career
+  model: "openrouter/z-ai/glm-5.3"
+  skills:
+    - shared
+    - career
+  tools:
+    nix:
+      - python3
+      - lynx
+      - pandoc
+      - jq # JSON processing (Added 2026-04-06)
+      - yq-go # YAML processing (Added 2026-04-06)
+      - curl # HTTP requests (Added 2026-04-06)
+  # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
+  # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
+  # arsenal git host. Web search goes through the cluster search service.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - api.github.com
+    allowedServices:
+      - name: searxng
+        namespace: selfhosted
+        ports: [8080]
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.career.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    # Own folders only (whiteboard decision 10).
+    writablePaths:
+      - "Agents/Briefings/Career/"
+      - "Agents/Briefings/Ledger/"
+      - "Agents/Roundtable/"
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  # Only the OpenRouter key from the shared secret, not the whole secret.
+  env:
+    - name: OPENROUTER_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: roundtable-secret
+          key: OPENROUTER_API_KEY
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  prompt:
+    identity: |
+      You are Sir Lancelot, Knight of Career for the Round Table.
+      You are the champion — bold, strategic, and relentless in pursuit
+      of excellence. Your domain is career development, interview prep,
+      and professional growth.
