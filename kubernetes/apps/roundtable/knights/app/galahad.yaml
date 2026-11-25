@@ -76,10 +76,11 @@ spec:
       - "Agents/Roundtable/"
   # Personal-domain skills (security, shared) stayed in the personal arsenal
   # after the split; the org arsenal holds only Round Table platform skills.
-  arsenal:
-    repo: https://github.com/dapperdivers/roundtable-arsenal
-    ref: main
-    periodSeconds: 300
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
   workspace:
     size: 5Gi
   # dunce-bot token as a refreshing file (GITHUB_TOKEN_FILE), roundtable-k8s/roundtable#194.

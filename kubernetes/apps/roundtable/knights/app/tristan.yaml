@@ -74,11 +74,11 @@ spec:
       - "Agents/Briefings/HomeLab/"
       - "Agents/Briefings/Ledger/"
       - "Agents/Roundtable/"
-  arsenal:
-    name: personal
-    repo: https://github.com/dapperdivers/roundtable-arsenal
-    ref: main
-    periodSeconds: 300
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
   workspace:
     size: "10Gi"
   concurrency: 2
