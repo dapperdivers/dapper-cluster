@@ -15,6 +15,22 @@ metadata:
     ai.roundtable.io/round-table: roundtable-dev
 spec:
   domain: coder
+  # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
+  # egress. The operator adds NATS, DNS, the Kubernetes API, the model
+  # providers and the arsenal git hosts; these are the extra hosts a coder
+  # needs for GitHub, npm and Go modules. First knight switched on; the others
+  # follow once this one has run tasks cleanly.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - github.com
+      - api.github.com
+      - codeload.github.com
+      - "*.githubusercontent.com"
+      - registry.npmjs.org
+      - proxy.golang.org
+      - sum.golang.org
+      - storage.googleapis.com
   model: openrouter/z-ai/glm-5.3
   skills:
     - shared
