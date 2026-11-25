@@ -19,13 +19,27 @@ spec:
   # Isolated (roundtable-k8s/roundtable#387): gVisor plus default-deny egress.
   # Tried here first for claude-knight on 2026-11-25 (galahad is outside the dev
   # pipeline): a three-minute task ran cleanly with gVisor alone and with both.
-  # The allowlist is minimal until galahad's jobs return with the fleet restore
-  # (roundtable-k8s/roundtable#378), which adds its fixed list of advisory sites.
   runtimeClassName: gvisor
   egress:
+    # Fixed list of advisory and security-news sources
+    # (roundtable-k8s/roundtable#382): galahad reads these and nothing else.
     allowedHosts:
       - github.com
       - api.github.com
+      - www.cisa.gov
+      - nvd.nist.gov
+      - services.nvd.nist.gov
+      - api.first.org
+      - msrc.microsoft.com
+      - api.msrc.microsoft.com
+      - www.bleepingcomputer.com
+      - thehackernews.com
+      - krebsonsecurity.com
+      - www.securityweek.com
+    allowedServices:
+      - name: searxng
+        namespace: selfhosted
+        ports: [8080]
   # Claude Code alias; claude-knight passes it to `claude -p --model`.
   model: sonnet
   skills:

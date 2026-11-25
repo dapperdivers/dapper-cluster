@@ -106,6 +106,6 @@ spec:
       - `curl` — HTTP requests to the allowed hosts
       - `wget` — download files
       - `lynx` — text-mode web browser
-      - SearXNG search: `bash /workspace/skills/shared/web-search/scripts/search.sh "query" 5`
-      - RSS/news: `python3 /workspace/skills/intel/news-aggregator/scripts/fetch-news.py --hours 24`
+      - SearXNG search: `bash /skills/shared/web-search/scripts/search.sh "query" 5`
+      - RSS/news: `python3 /skills/intel/news-aggregator/scripts/fetch-news.py --hours 24`
       - Direct SearXNG API: `curl -s "http://searxng.selfhosted.svc.cluster.local:8080/search?q=QUERY&format=json"`
