@@ -4,7 +4,7 @@
 # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
 talosVersion: v1.14.6
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-kubernetesVersion: v1.37.2
+kubernetesVersion: v1.37.3
 # Config contract passed to `talosctl gen config --talos-version`: it decides which
 # documents and defaults the generated base has. Raise it deliberately, never with a
 # Talos bump; see README.md ("Config contract").
