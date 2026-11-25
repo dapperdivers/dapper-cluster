@@ -9,6 +9,9 @@ kind: Knight
 metadata:
   name: galahad
   namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    ai.roundtable.io/table: personal
 spec:
   # claude-knight main @ 2365a3a (#6 no Claude attribution; includes #4 CLI runtime, #5 token file).
   image: ghcr.io/roundtable-k8s/claude-knight:c6ece34df30576ee88e1db9f24a112e464ecbda4
