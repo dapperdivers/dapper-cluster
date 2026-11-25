@@ -13,6 +13,10 @@ spec:
   # claude-knight main @ 2365a3a (#6 no Claude attribution; includes #4 CLI runtime, #5 token file).
   image: ghcr.io/roundtable-k8s/claude-knight:ba436824b6e60d5c2d0bfffdbb3cd9b9660fe841
   domain: security
+  # Test, 2026-11-25: gVisor only (no egress policy), to find why claude-knight
+  # reports finished tasks as lost when isolated. galahad is not part of the
+  # dev pipeline, so it is the safe place to try this.
+  runtimeClassName: gvisor
   # Claude Code alias; claude-knight passes it to `claude -p --model`.
   model: sonnet
   skills:
