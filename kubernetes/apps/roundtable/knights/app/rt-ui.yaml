@@ -16,13 +16,23 @@ spec:
   # rt-lead follow one at a time. Previous image: 299448cd (old claude-knight repo).
   image: ghcr.io/roundtable-k8s/claude-knight:c6ece34df30576ee88e1db9f24a112e464ecbda4
   domain: frontend
-  # Isolation (gVisor + egress allowlist, roundtable-k8s/roundtable#387) was
-  # tried twice on 2026-11-25 and taken off again. It works, but two runtime
-  # bugs make it costly for a coder that scales: claude-knight spends 8 minutes
-  # at start-up on a default mise install the allowlist blocks
-  # (roundtable-k8s/knights#77), and the first task on a new pod was reported
-  # lost after finishing (roundtable-k8s/knights#75). Turn it back on when both
-  # are fixed; the allowlist is the one on rt-coder.
+  # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
+  # egress. The operator adds NATS, DNS, the Kubernetes API, the model
+  # providers and the arsenal git hosts; these are the extra hosts for GitHub,
+  # npm and Go modules (same list as rt-coder). Third attempt: the two runtime
+  # bugs that made the first two fail are fixed in the image
+  # (roundtable-k8s/knights#76 lost-task report, #78 start-up mise install).
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - github.com
+      - api.github.com
+      - codeload.github.com
+      - "*.githubusercontent.com"
+      - registry.npmjs.org
+      - proxy.golang.org
+      - sum.golang.org
+      - storage.googleapis.com
   model: sonnet
   skills:
     - shared
