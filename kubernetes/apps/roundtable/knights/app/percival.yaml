@@ -12,7 +12,7 @@ metadata:
     # legacy label: shared-workspace mount and the mission planner still read only this one
     ai.roundtable.io/table: personal
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:8d47dc95147b8b1db73ac2a69e34d7aff01348ea
+  image: ghcr.io/roundtable-k8s/claude-knight:0b50ae185a33a76a35e8adc252cad9d61676558a
   domain: finance
   model: sonnet
   skills:
