@@ -20,6 +20,22 @@ spec:
   # (roundtable-k8s/knights @ 640a55f). Previous image: 299448cd.
   image: ghcr.io/roundtable-k8s/claude-knight:3bcd1beab1c29e94df7fdbd92acdabef3fb455c6
   domain: lead
+  # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
+  # egress, like the coders. rt-lead plans, reviews and merges, so it needs
+  # GitHub and, for checking a branch during review, the package hosts. The
+  # operator adds NATS, DNS, the Kubernetes API, the model providers and the
+  # arsenal git hosts.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - github.com
+      - api.github.com
+      - codeload.github.com
+      - "*.githubusercontent.com"
+      - registry.npmjs.org
+      - proxy.golang.org
+      - sum.golang.org
+      - storage.googleapis.com
   # Opus (latest, 5.5) for planning and review: the quality gate for every PR.
   model: opus
   skills:
@@ -49,12 +65,11 @@ spec:
   # arsenal on top: it holds the Round Table platform skills (coding/
   # roundtable-operator, roundtable-ui, pi-knight-runtime, project/*), which
   # moved there in the arsenal split. Later arsenals win per skill.
-  arsenal:
-    name: personal
-    repo: https://github.com/dapperdivers/roundtable-arsenal
-    ref: main
-    periodSeconds: 300
   arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
     - name: platform
       repo: https://github.com/roundtable-k8s/arsenal
       ref: main
