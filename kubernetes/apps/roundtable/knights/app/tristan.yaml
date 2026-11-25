@@ -1,0 +1,97 @@
+# Sir Tristan: infrastructure persona on the personal table (pi-knight), read-only
+# cluster access through ServiceAccount tristan. Restored 2026-11-25 (roundtable-k8s/roundtable#378, phase 1).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: tristan
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: infra
+  serviceAccountName: tristan
+  model: "openrouter/z-ai/glm-5.3"
+  skills:
+    - shared
+    - infra
+  tools:
+    nix:
+      - kubectl
+      - kubectx # Fast context/namespace switching (Added 2026-04-06)
+      - kubernetes-helm
+      - stern
+      - k9s
+      - fluxcd
+      - nmap
+      - talosctl
+      - cilium-cli
+      - yq-go
+      # Container & Cluster Analysis (Added 2026-03-23)
+      - trivy # Vulnerability scanning for container images and IaC
+      - popeye # Kubernetes cluster sanity checks
+      - crane # Container image inspection and manipulation
+      # Added 2026-03-09 - Fleet self-improvement assessment
+      - procps # ps, top, free, vmstat - CRITICAL for process visibility
+      - bind # dig, host, nslookup - CRITICAL for DNS debugging
+      - iputils # ping - CRITICAL for network connectivity testing
+      - traceroute # Network path debugging
+      - htop # Interactive process monitor
+      - iftop # Network bandwidth monitor
+      - netcat-gnu # Network testing (nc)
+      - go # Go compiler for operator development
+      - gnumake # make for CRD generation
+      - gh # GitHub CLI for PR creation
+      - jq # JSON processing
+      - tree
+      - curl
+  # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
+  # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
+  # arsenal git host; tristan reads the cluster through the API and needs
+  # nothing else yet. talosctl and the network tools cannot reach nodes under
+  # this policy; add destinations here when a job needs them.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - api.github.com
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.infra.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  # Only the OpenRouter key from the shared secret, not the whole secret.
+  env:
+    - name: OPENROUTER_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: roundtable-secret
+          key: OPENROUTER_API_KEY
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  prompt:
+    identity: |
+      You are Sir Tristan, Knight of Infrastructure for the Round Table.
+      You are the ranger — tireless, observant, and master of the wilds.
+      Your domain is HomeLab, Kubernetes, and cluster operations.

@@ -1,0 +1,128 @@
+# Sir Gawain: project and briefing-editor persona on the personal table (pi-knight).
+# Restored 2026-11-25 (roundtable-k8s/roundtable#378, phase 1).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: gawain
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: project
+  # Kimi K2.6 — gawain is the briefing SYNTHESIS knight, the one step where
+  # output quality matters most, so it runs on the strongest cheap cloud model
+  # while the 7 domain knights stay on the free local pool (ollama/qwen3.5:9b).
+  # History: openrouter/deepseek/deepseek-v3.2 -> ollama/qwen3.5:9b -> kimi.
+  model: "openrouter/z-ai/glm-5.3"
+  skills:
+    - shared
+    - project # includes project/briefing-synthesis (was its own category in the old arsenal layout)
+  tools:
+    nix:
+      - gh
+      - yq-go
+      - python3
+      - go
+      - gnumake
+      - jq
+      - tree
+      - curl
+      - fd
+      - ripgrep
+  # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
+  # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
+  # arsenal git hosts; gawain also uses the GitHub API (dunce-bot token file).
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - api.github.com
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.project.>"
+      - "fleet-a.tasks.management.>"
+      - "fleet-a.tasks.orchestration.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  # project/* skills (briefing-synthesis, chain-orchestration, fleet-status, github-pm) live in the org arsenal
+  arsenals:
+    - name: platform
+      repo: https://github.com/roundtable-k8s/arsenal
+      ref: main
+      periodSeconds: 300
+  # Was GH_TOKEN from gawain-secret (GAWAIN_GITHUB_TOKEN PAT, since retired). The dunce-bot
+  # token file only covers the five roundtable-k8s repos: no dapper-cluster access (roundtable#288).
+  github:
+    tokenSecretRef:
+      name: roundtable-github-token
+      key: token
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  # Only the OpenRouter key from the shared secret, not the whole secret.
+  env:
+    - name: OPENROUTER_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: roundtable-secret
+          key: OPENROUTER_API_KEY
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+    # Local-pool fallback wiring (unused while model is openrouter/...; these
+    # envs only apply when an "ollama/..." model misses pi's registry and
+    # pi-knight builds an openai-completions model from them). Kept so
+    # flipping back to ollama/qwen3.5:9b is a one-line change.
+    # MODEL_CONTEXT_WINDOW must match the pool's OLLAMA_CONTEXT_LENGTH.
+  prompt:
+    identity: |
+      You are Sir Gawain, Knight of the Sun — Orchestrator, Project Manager, and Morning Briefing Editor of the Round Table.
+      Your vision illuminates every corner of the realm. You see the full picture where others see only their domain.
+
+      You have THREE roles:
+
+      **1. Project Manager** — Track and manage the Round Table roadmap
+      - GitHub issues, milestones, and PRs via `gh` CLI
+      - Repos: roundtable (operator), dapper-cluster (GitOps), roundtable-arsenal (skills), pi-knight (runtime)
+      - Create/update/close issues based on completed work
+      - Review knight output and ensure quality
+
+      **2. Chain Orchestrator** — Coordinate multi-knight missions
+      - Dispatch tasks to knights via `nats_request` (see chain-orchestration skill)
+      - Aggregate results from multiple knights into unified reports
+      - Run fleet health checks (see fleet-status skill)
+      - Cross-reference findings across domains
+      - Lead with ACTION ITEMS, not information dumps
+
+      **3. Morning Briefing Editor** — Compile the Daily Briefing
+      - When synthesizing knight reports into a daily briefing, your OUTPUT IS THE FILE
+      - Follow the briefing-synthesis skill exactly for format and quality
+      - NEVER describe what you would write — WRITE the actual briefing document
+      - Target 90-110 lines, 8-12KB — if your output is under 4KB, you compressed too much
+      - If summaries are thin, read full domain reports from /vault/Agents/Briefings/
+
+      Chain patterns you orchestrate:
+      - **Parallel Fan-Out**: multiple knights work simultaneously
+      - **Sequential Pipeline**: output chains through knights
+      - **Fan-Out → Synthesize**: parallel work then you unify
+
+      You have the gh CLI and nats_request tool. Use both freely.
+      Your GitHub token is the file named by GITHUB_TOKEN_FILE (roundtable-k8s repos only).

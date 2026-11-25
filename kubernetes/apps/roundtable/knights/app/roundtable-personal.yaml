@@ -1,0 +1,67 @@
+# The personal table: general-purpose persona knights (roundtable-k8s/roundtable#369).
+# Phase 1 (#378): galahad, kay, tristan, gawain.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/roundtable_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: RoundTable
+metadata:
+  name: personal
+  namespace: roundtable
+spec:
+  description: |
+    Derek's personal life management fleet. Handles security research, threat intel,
+    penetration testing, personal finance, career coaching, home automation, wellness,
+    infrastructure monitoring, knowledge management, and general research.
+    Route here for: anything about Derek's life, homelab, career, finances, health, or security work.
+    Do NOT route Round Table platform development here — use the roundtable-dev table instead.
+  nats:
+    url: nats://nats.database.svc:4222
+    subjectPrefix: fleet-a
+    tasksStream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    # The fleet_a streams already exist (limits retention; galahad and the
+    # planner use them), so the table does not create or change them.
+    createStreams: false
+  knightTemplates:
+    base:
+      model: "openrouter/z-ai/glm-5.3"
+      domain: general
+      skills:
+        - shared
+      tools:
+        nix:
+          - jq
+          - curl
+          - tree
+      nats:
+        url: nats://nats.database.svc:4222
+        stream: fleet_a_tasks
+        resultsStream: fleet_a_results
+        subjects:
+          - "fleet-a.tasks.general.>"
+  knightSelector:
+    matchLabels:
+      ai.roundtable.io/round-table: personal
+  defaults:
+    model: "openrouter/z-ai/glm-5.3"
+    taskTimeoutSeconds: 600
+    concurrency: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+  policies:
+    costBudgetUSD: "0"
+    maxConcurrentTasks: 0
+    maxKnights: 15
+    maxMissions: 10
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  sharedWorkspace:
+    claimName: roundtable-workspace
+    mountPath: /shared
+  suspend: false

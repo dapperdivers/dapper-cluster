@@ -4,7 +4,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - claude-setup-token.yaml
+  # Personal table (roundtable-k8s/roundtable#369, phase 1)
+  - roundtable-personal.yaml
   - galahad.yaml
+  - kay.yaml
+  - tristan.yaml
+  - gawain.yaml
   # Round Table dev team (roundtable-k8s/roundtable#187)
   - roundtable-dev.yaml
   - rt-lead.yaml

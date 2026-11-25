@@ -1,0 +1,111 @@
+# Sir Kay: research and intelligence persona on the personal table (pi-knight).
+# Restored 2026-11-25 (roundtable-k8s/roundtable#378, phase 1). Jobs come later as Chains (#214).
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Knight
+metadata:
+  name: kay
+  namespace: roundtable
+  labels:
+    ai.roundtable.io/round-table: personal
+    # legacy label: shared-workspace mount and the mission planner still read only this one
+    ai.roundtable.io/table: personal
+spec:
+  domain: research
+  model: "openrouter/z-ai/glm-5.3"
+  skills:
+    - shared
+    - research
+    - intel
+  tools:
+    nix:
+      - whois
+      - dnsutils
+      - wget
+      - lynx
+      - newsboat
+      - bat
+      - fd
+      - eza
+      - yt-dlp
+      - pandoc
+      - python3 # Required for fetch-news.py and arsenal scripts
+      - jq # JSON processing for API responses
+      # Research & Data Processing (Added 2026-03-23)
+      - ripgrep # Faster grep alternative for large file searches
+      - httpie # User-friendly HTTP client for API research
+      - yq-go # YAML processing for structured data analysis
+      # Web Scraping (Added 2026-04-06)
+      - pup # HTML parser for cleaner web scraping
+  # Isolated by default (whiteboard decision 8): gVisor plus default-deny egress.
+  # The operator adds NATS, DNS, the Kubernetes API, the model provider and the
+  # arsenal git host. Open-web reading is a fixed list for now
+  # (roundtable-k8s/roundtable#382): the cluster's search and feed services and
+  # the public data sources kay's jobs use.
+  runtimeClassName: gvisor
+  egress:
+    allowedHosts:
+      - services.nvd.nist.gov
+      - api.first.org
+      - www.cisa.gov
+      - api.weather.gov
+      - services.swpc.noaa.gov
+      - celestrak.org
+    allowedServices:
+      - name: searxng
+        namespace: selfhosted
+        ports: [8080]
+      - name: miniflux
+        namespace: selfhosted
+        ports: [8080]
+  nats:
+    url: nats://nats.database.svc:4222
+    subjects:
+      - "fleet-a.tasks.research.>"
+      - "fleet-a.tasks.intel.>"
+    stream: fleet_a_tasks
+    resultsStream: fleet_a_results
+    maxDeliver: 1
+  vault:
+    claimName: roundtable-vault
+    readOnly: true
+    writablePaths:
+      - "Agents/Briefings/"
+      - "Agents/Roundtable/"
+  arsenal:
+    name: personal
+    repo: https://github.com/dapperdivers/roundtable-arsenal
+    ref: main
+    periodSeconds: 300
+  workspace:
+    size: "10Gi"
+  concurrency: 2
+  taskTimeoutSeconds: 1800
+  # Only the OpenRouter key from the shared secret, not the whole secret.
+  env:
+    - name: OPENROUTER_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: roundtable-secret
+          key: OPENROUTER_API_KEY
+    - name: TMPDIR
+      value: "/data/scratch"
+    - name: XDG_CACHE_HOME
+      value: "/data/scratch/.cache"
+  prompt:
+    identity: |
+      You are Sir Kay, Knight of Research and Intelligence for the Round Table.
+      You are the seneschal — resourceful, thorough, and ever-curious.
+      Your domain is research, entertainment, and media curation.
+
+      ## Internet Access
+      You reach the web through an allowlist: the cluster search and feed services and a
+      fixed list of public data sources (NVD, FIRST, CISA, weather.gov, NOAA, CelesTrak).
+      Other sites are blocked. When a source is out of reach, say so; do not guess. Tools:
+      - `curl` — HTTP requests to the allowed hosts
+      - `wget` — download files
+      - `lynx` — text-mode web browser
+      - SearXNG search: `bash /workspace/skills/shared/web-search/scripts/search.sh "query" 5`
+      - RSS/news: `python3 /workspace/skills/intel/news-aggregator/scripts/fetch-news.py --hours 24`
+      - Direct SearXNG API: `curl -s "http://searxng.selfhosted.svc.cluster.local:8080/search?q=QUERY&format=json"`
