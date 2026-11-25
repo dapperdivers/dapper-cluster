@@ -67,8 +67,12 @@ spec:
   vault:
     claimName: roundtable-vault
     readOnly: true
+    # Each knight writes only its own folders and reads everyone else's
+    # (whiteboard decision 10). Agents/Briefings/Morning/ belongs to the
+    # vault-jobs night-shift brief and is read-only to every knight.
     writablePaths:
-      - "Agents/Briefings/"
+      - "Agents/Briefings/Security/"
+      - "Agents/Briefings/Ledger/"
       - "Agents/Roundtable/"
   # Personal-domain skills (security, shared) stayed in the personal arsenal
   # after the split; the org arsenal holds only Round Table platform skills.

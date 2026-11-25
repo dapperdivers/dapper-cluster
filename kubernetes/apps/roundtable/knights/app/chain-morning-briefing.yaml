@@ -13,9 +13,12 @@ spec:
   roundTableRef:
     name: personal
   description: "Daily morning mission briefing — full domain reports, verified claims, cross-referenced synthesis"
-  # No schedule yet: one run is started by annotation first
-  # (ai.roundtable.io/run), and the daily 11:00 UTC schedule is added once
-  # that brief has been read. roundtable-k8s/roundtable#378.
+  # No schedule yet. The first run (2026-11-25, by annotation) succeeded in
+  # under 4 minutes for $0.27, but gawain wrote the synthesis to
+  # Briefings/Morning/<date>.md, the file the vault-jobs night-shift CronJob
+  # writes at 10:30 UTC. The knights' writable paths are now per folder, so
+  # that cannot happen again; add `schedule: "0 11 * * *"` after one more run
+  # by annotation lands in Briefings/Daily/. roundtable-k8s/roundtable#378.
   timeoutSeconds: 3000
   retryPolicy:
     maxRetries: 1
@@ -333,6 +336,9 @@ spec:
         a target. Over 150 lines = too long, tighten it.
 
         MANDATORY FILE WRITE — THIS IS THE MOST IMPORTANT STEP:
+        The ONLY place you may write the briefing is /vault/Agents/Briefings/Daily/.
+        Never write under /vault/Agents/Briefings/Morning/: that folder belongs to
+        another job and is read-only to you, whatever a skill or an older note says.
         After composing the briefing, you MUST use your `write` tool to save the complete
         briefing text to /vault/Agents/Briefings/Daily/YYYY-MM-DD.md (use today's actual date).
         The NATS response alone does NOT create the file. If you skip this write, the

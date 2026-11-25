@@ -70,8 +70,12 @@ spec:
   vault:
     claimName: roundtable-vault
     readOnly: true
+    # Each knight writes only its own folders and reads everyone else's
+    # (whiteboard decision 10). Agents/Briefings/Morning/ belongs to the
+    # vault-jobs night-shift brief and is read-only to every knight.
     writablePaths:
-      - "Agents/Briefings/"
+      - "Agents/Briefings/Intel/"
+      - "Agents/Briefings/Ledger/"
       - "Agents/Roundtable/"
   arsenal:
     name: personal
