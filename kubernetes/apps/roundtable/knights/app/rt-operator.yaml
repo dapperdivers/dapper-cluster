@@ -65,12 +65,11 @@ spec:
   # arsenal on top: it holds the Round Table platform skills (coding/
   # roundtable-operator, roundtable-ui, pi-knight-runtime, project/*), which
   # moved there in the arsenal split. Later arsenals win per skill.
-  arsenal:
-    name: personal
-    repo: https://github.com/dapperdivers/roundtable-arsenal
-    ref: main
-    periodSeconds: 300
   arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
     - name: platform
       repo: https://github.com/roundtable-k8s/arsenal
       ref: main
