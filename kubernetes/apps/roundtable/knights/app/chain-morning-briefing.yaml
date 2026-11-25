@@ -1,0 +1,349 @@
+# Daily morning briefing for the personal table, phase 1 cut: galahad (security),
+# kay (intel), tristan (infra), then gawain writes the synthesis. Task text is the
+# owner's original, with vault paths under /vault/Agents/. galahad has no OpenCTI
+# or Shodan credentials yet (phase 3), so its step uses public advisory sources.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/chain_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Chain
+metadata:
+  name: morning-briefing-phase1
+  namespace: roundtable
+spec:
+  roundTableRef:
+    name: personal
+  description: "Daily morning mission briefing — full domain reports, verified claims, cross-referenced synthesis"
+  # No schedule yet: one run is started by annotation first
+  # (ai.roundtable.io/run), and the daily 11:00 UTC schedule is added once
+  # that brief has been read. roundtable-k8s/roundtable#378.
+  timeoutSeconds: 3000
+  retryPolicy:
+    maxRetries: 1
+    backoffSeconds: 60
+  outputKnightRef:
+    name: gawain
+  steps:
+    - name: security_intel
+      knightRef:
+        name: galahad
+      continueOnFailure: true
+      task: |
+        Generate your daily THREAT INTELLIGENCE briefing.
+        AUDIENCE: Derek, a working security professional. This brief supports
+        his WORK — emerging threats in the world — NOT cluster health.
+        Cluster/infra security posture is Tristan's beat now; do not spend
+        your run on certs, Kyverno, or pod health.
+        FIRST: Check /vault/Agents/Briefings/Security/ for yesterday's report and note deltas.
+
+        SOURCES — use your purpose-built kit:
+        1) OpenCTI ($OPENCTI_URL, token $OPENCTI_TOKEN): query the GraphQL API
+           at $OPENCTI_URL/graphql for intrusion sets, campaigns, malware, and
+           vulnerabilities created or updated in the last 24-48h.
+        2) Shodan ($SHODAN_API_KEY): exposure counts/trends for products tied
+           to today's threats (e.g. internet-facing instances of a
+           newly-exploited product).
+        3) Web research (you have a browser): vendor advisories, CISA KEV
+           additions, breach reporting. Cross-check single-source claims.
+
+        REPORT — what a security professional should know today:
+        - Actively exploited vulnerabilities (new KEV entries, in-the-wild
+          exploitation reports) with affected products/versions
+        - New or shifted threat-actor campaigns and notable TTP changes
+        - Significant breaches/incidents and the failure mode behind them
+        - Exposure trends worth citing at work (Shodan numbers)
+        For EVERY item, set cluster_relevant true/false: does it also touch
+        software running in OUR cluster? (kubectl get deploy,sts -A to check
+        if unsure.) Cluster relevance is a FLAG for routing, NOT a filter —
+        a major world threat belongs in this brief either way.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Agents/Briefings/Ledger/security.json. Track threats
+        with an open follow-up (unpatched actively-exploited CVEs, ongoing
+        campaigns); re-check open items TODAY before carrying them; compute
+        any Day-N from first_seen (never increment from memory); concluded
+        threats (patched, campaign ended, story closed) become
+        status: resolved; update meta.last_report.
+
+        Write your full report to /vault/Agents/Briefings/Security/YYYY-MM-DD.md (use today's actual date).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "galahad",
+          "domain": "security",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<OpenCTI/Shodan query or advisory URL + 1-line result>", "severity": "low|medium|high", "cluster_relevant": false} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what closed it — patch shipped, campaign concluded>"} ],
+          "vault_report": "/vault/Agents/Briefings/Security/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for anything previously reported that
+          is now closed — a resolution that goes missing here becomes a
+          phantom threat in every future briefing.
+        - Every "open" entry must reflect a check you ran TODAY
+          (reconfirmed: true); if you could not check it, reconfirmed: false.
+        - "new" carries at most 8 items, most important first; evidence required.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
+      timeoutSeconds: 900
+
+    - name: intel_digest
+      knightRef:
+        name: kay
+      continueOnFailure: true
+      task: |
+        Generate today's intelligence digest. Research current events, technology news,
+        and anything relevant to Derek's interests (security, AI, homelab, career).
+        FIRST: Read yesterday's report in /vault/Agents/Briefings/Intel/ (most recent YYYY-MM-DD.md).
+        Note what's NEW vs what carried over. Only expand on new findings.
+        If a topic appeared yesterday with no update, give it one line: "Unchanged."
+
+        HARD RULES:
+        - Report FACTS only. No revenue projections, market sizing, or business opportunities.
+        - No "$X potential" or "launch service in N hours" language. You are a reporter, not a startup pitch deck.
+        - If a previous report contained speculative projections, do NOT carry them forward.
+        - Focus on: What happened? What does it affect? What should Derek know?
+        - Date the report file with TODAY's actual date — never tomorrow's.
+        - Security/threat stories: Galahad's threat-intel brief owns that beat.
+          Give at most a one-line pointer, and only when a story has a
+          non-security angle (business, AI, homelab, career) Derek needs.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Agents/Briefings/Ledger/intel.json. Track only stories
+        with an open follow-up; conclude items via "resolved" when a story ends.
+        Update meta.last_report.
+
+        Write your full report to /vault/Agents/Briefings/Intel/YYYY-MM-DD.md (use today's actual date).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "kay",
+          "domain": "intel",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one-line story + why it matters>", "evidence": "<source>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<how it concluded>"} ],
+          "vault_report": "/vault/Agents/Briefings/Intel/<today>.md"
+        }
+        - "new" carries at most 10 stories, most important first.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
+      timeoutSeconds: 900
+
+    - name: infra_status
+      knightRef:
+        name: tristan
+      continueOnFailure: true
+      task: |
+        Generate today's infrastructure report. Check cluster health, node status,
+        failing pods, resource pressure, Flux reconciliation state, and any deployment issues.
+        FIRST: Read yesterday's report in /vault/Agents/Briefings/HomeLab/ (most recent YYYY-MM-DD.md).
+        Focus on CHANGES: new failures, resolved issues, status transitions.
+
+        EVIDENCE RULES — VIOLATION = A FABRICATED BRIEFING:
+        1) The kubectl AGE column is the RESOURCE's age, NOT how long a problem
+           has existed. NEVER report AGE as a stall/failure duration. Get
+           durations from status.conditions lastTransitionTime or from events.
+        2) Before carrying any tracked item, RE-RUN the check that originally
+           found it. If it no longer reproduces, resolve it in the ledger.
+        3) Flux not-ready ≠ workload down. A False Kustomization/HelmRelease
+           does NOT mean the workload is degraded. kubectl get the actual pods
+           BEFORE claiming any user-facing impact; if the pods are Running and
+           Ready, say so and scope the finding to GitOps reconciliation only.
+        4) A chronic unresolved failure (e.g. a node down for days) is STILL a
+           headline item every day until fixed — "focus on changes" never
+           demotes an ongoing outage below new cosmetic findings.
+
+        CLUSTER SECURITY POSTURE — yours now (Galahad covers world threat
+        intel for Derek's work, not cluster health):
+        - Expiring/failed certificates: kubectl get certificates -A
+        - Kyverno violations: kubectl get policyreports -A (nonzero FAIL counts)
+        - Security stack pod health (authentik, opencti, vaultwarden)
+        Fold posture findings into the same report, ledger, and summary as
+        your infra findings — they are infra items now.
+
+        LEDGER — MANDATORY (protocol: shared/open-items-ledger skill):
+        Your ledger is /vault/Agents/Briefings/Ledger/infra.json. Re-verify every open
+        item TODAY (run its verification.command); compute any Day-N from
+        first_seen; items that no longer reproduce become status: resolved; add
+        new items with today's first_seen and the exact command that found
+        them; update meta.last_report.
+
+        Write your full report to /vault/Agents/Briefings/HomeLab/YYYY-MM-DD.md (use today's actual date).
+        FILENAME MUST be exactly YYYY-MM-DD.md — no prefixes, no suffixes, no variations.
+
+        SUMMARY FORMAT — MANDATORY (structured JSON):
+        Your NATS response must be EXACTLY one JSON object — no prose before or
+        after it, no code fences:
+        {
+          "knight": "tristan",
+          "domain": "infra",
+          "date": "<today, YYYY-MM-DD>",
+          "status": "green|yellow|red",
+          "new": [ {"claim": "<one line>", "evidence": "<command you ran + 1-line result>", "severity": "low|medium|high"} ],
+          "open": [ {"id": "<ledger item id>", "reconfirmed": true} ],
+          "resolved": [ {"id": "<ledger item id>", "evidence": "<what proved it fixed>"} ],
+          "vault_report": "/vault/Agents/Briefings/HomeLab/<today>.md"
+        }
+        - "resolved" entries are MANDATORY for anything previously reported that
+          is now fixed — losing a resolution creates a phantom issue.
+        - Every "open" entry must reflect a check you ran TODAY
+          (reconfirmed: true); if you could not check it, reconfirmed: false.
+        - "new" carries at most 8 items, most important first; evidence required.
+        - If you cannot produce valid JSON, fall back to prose bullets leading
+          with "RESOLVED: " lines — the pipeline will tag it [unstructured].
+
+        CRITICAL — FINAL OUTPUT RULE: Your response message must be EXACTLY one
+        JSON object with NO text before or after it. Do NOT include headings,
+        markdown code blocks (```json), prose, or reasoning surrounding the JSON.
+        The JSON alone must be the ENTIRE final message. Violation = the pipeline
+        treats your output as garbled and the briefing degrades.
+      timeoutSeconds: 900
+
+    - name: synthesize
+      knightRef:
+        name: gawain
+      # outputPath removed — Gawain writes the file himself via write tool.
+      # Having outputPath caused the controller to OVERWRITE the good file
+      # with Gawain's .Output meta-summary text, destroying the briefing.
+      dependsOn:
+        - security_intel
+        - intel_digest
+        - infra_status
+      task: |
+        MORNING BRIEFING SYNTHESIS — Assemble today's Daily Briefing.
+
+        Knight summaries (JSON; may be prose fallback or empty on timeout):
+        Security (Galahad): {{ .Steps.security_intel.Output }}
+        Intel (Kay): {{ .Steps.intel_digest.Output }}
+        Infrastructure (Tristan): {{ .Steps.infra_status.Output }}
+        Home (Bedivere): (not restored yet: no report today)
+        Finance (Percival): (not restored yet: no report today)
+        Career (Lancelot): (not restored yet: no report today)
+        Wellness (Gareth): (not restored yet: no report today)
+
+        VERIFICATION REPORT (Patsy — authoritative):
+        (not restored yet: no report today)
+
+        FIRST: Read yesterday's Daily Briefing at /vault/Agents/Briefings/Daily/ (most recent YYYY-MM-DD.md).
+        Your job is to surface what CHANGED, not repeat yesterday's briefing.
+
+        PARSING:
+        - Each knight summary should be one JSON object (new/open/resolved).
+          If a summary is not valid JSON, treat it as prose and tag that
+          domain's snapshot [unstructured].
+        - The verification report is AUTHORITATIVE for: which knights actually
+          reported (its liveness map beats any impression from the summaries),
+          whether a claim re-verified, and every Day-N value.
+        - TRUNCATION DETECTION: Before trying to parse the verification report,
+          check for controller-truncation signals:
+          • Contains the word "truncated" (any case)
+          • Ends with `...` (string trails off mid-JSON)
+          • First non-whitespace character is not `{` (prose preamble)
+          • Does not end with `}` (missing closing brace from truncation)
+          Any of these = the controller truncated or garbled Patsy's output.
+          IGNORE the inline report entirely and proceed to vault-fallback.
+
+        - VERIFIER DOWN / TRUNCATION RECOVERY: If the verification report is
+          missing, empty, not valid JSON, OR triggered any truncation signal:
+          1) Read /vault/Agents/Briefings/Ledger/verification-YYYY-MM-DD.json (today's
+             actual date). This is Patsy's disk-persisted report — it exists even
+             when the NATS response failed (timeout, output-size truncation,
+             garbled prose/code-fence responses).
+          2) If found and valid JSON: use its liveness map, verified claims,
+             anomalies, Day-N counts, and resolved_confirmed entries. Tag
+             the source "[vault-fallback]" in MISSING REPORTS.
+          3) If not found (verifier never ran or disk write also failed):
+             proceed, tag every claim [unverified], and say "Verifier down
+             — no verification data, no disk fallback."
+
+        DATA PRECEDENCE — THE MOST IMPORTANT RULE:
+        Today's knight summaries + the verification report are FRESH DATA and
+        always beat yesterday's briefing. Yesterday's briefing is context only,
+        never a source of facts.
+        - An item may only be carried forward (⏳ Day N) if TODAY's summary for
+          that domain lists it in "open" — and its Day N comes from the
+          verification report, never from yesterday's briefing.
+        - Anything in a summary's "resolved" list WINS over any history —
+          render "✅ RESOLVED: [item]" in that domain's snapshot today, and do
+          not carry it into future briefings.
+        - A claim the verification report marks verified: false renders as
+          "⚠️ [failed verification]: [claim]" and may NOT be a headline or a
+          TOP 3 item. verified: "error" or unverified personal claims render
+          with [unverified].
+        - EVIDENCE FOR NUMBERS: every number you print (Day counts, durations,
+          versions, counts of anything) must appear in the verification report
+          or in a specific bullet of today's summaries. No source, no number.
+
+        HARD RULES — VIOLATION = FAILURE:
+        1) DO NOT read individual knight vault reports. The summaries and
+           verification report above are your ONLY inputs — EXCEPT: when the
+           verification report is missing/empty, read ONLY the vault-fallback
+           file at /vault/Agents/Briefings/Ledger/verification-YYYY-MM-DD.json.
+           Never read any other vault file.
+        2) DO NOT copy knight text verbatim — synthesize and connect dots.
+        3) Only ACTION items. Zero informational filler.
+        4) If a domain has no changes, give it ONE line: "🟢 No change."
+        5) Stale items (⏳ Day 5+, confirmed today) with NO status change: collapse into a single "Stale Items" line at the bottom of domain snapshots.
+        6) Galahad's domain is WORK threat intelligence — world threats belong
+           in the briefing even when they don't touch our cluster; never drop
+           them for cluster-irrelevance. Items he flags cluster_relevant: true
+           are prime cross-domain material with Tristan's infra snapshot.
+        7) CROSS-DOMAIN CONNECTIONS must describe real cause→effect between domains Derek manages, not invented business opportunities or revenue projections. If no real connections exist, write: "No actionable cross-domain connections today."
+        8) Do NOT editorially amplify: report findings at the severity the knight
+           gave them. Never upgrade "reconciliation not ready" into "degraded" or
+           "failing" on your own.
+
+        STRUCTURE (exactly this, no additions):
+
+        # Daily Briefing — YYYY-MM-DD
+
+        ## 🚨 TOP 3 ACTION ITEMS
+        Each: what + why + deadline. 2-3 lines per item. Verified or
+        [unverified]-personal items only — never failed-verification claims. (~12 lines total)
+
+        ## 🔗 CROSS-DOMAIN CONNECTIONS
+        2-4 connections where domains intersect. Show cause → effect. (~10 lines total)
+
+        ## 📊 DOMAIN SNAPSHOTS
+        EVERY domain gets a status line (🔴/🟡/🟢) + bullets only if action needed.
+        Include "✅ RESOLVED:" lines for today's resolutions.
+        Domains with changes: expand with specific bullets and next steps.
+        Static domains: one line is fine.
+
+        ## ❌ MISSING REPORTS
+        From the verification report's liveness map ONLY — today's
+        missing/reported per domain, plus any domain whose last report is
+        2+ days old (trailing week), e.g. "infra: last reported 3 days ago".
+        "None — all knights reported." if clean. If the verifier itself was
+        down, state that here.
+
+        ---
+        **Read time: [estimate]**
+
+        LENGTH: There is NO minimum length. A quiet day should produce a SHORT
+        briefing — that is a feature. Never pad, never expand a snapshot to hit
+        a target. Over 150 lines = too long, tighten it.
+
+        MANDATORY FILE WRITE — THIS IS THE MOST IMPORTANT STEP:
+        After composing the briefing, you MUST use your `write` tool to save the complete
+        briefing text to /vault/Agents/Briefings/Daily/YYYY-MM-DD.md (use today's actual date).
+        The NATS response alone does NOT create the file. If you skip this write, the
+        briefing is LOST — it only exists in NATS KV where nobody reads it.
+
+        After writing the file, verify it exists:
+        bash ls -la /vault/Agents/Briefings/Daily/YYYY-MM-DD.md
+
+        Your NATS response text should be a SHORT summary (5-10 lines):
+        - Confirm file was written with path and line count
+        - List the Top 3 action items as one-liners
+        - Note any missing reports, failed verifications, or quality issues
+        This summary is what gets stored in NATS KV for chain diagnostics.
+      timeoutSeconds: 900

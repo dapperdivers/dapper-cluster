@@ -10,6 +10,7 @@ resources:
   - kay.yaml
   - tristan.yaml
   - gawain.yaml
+  - chain-morning-briefing.yaml
   # Round Table dev team (roundtable-k8s/roundtable#187)
   - roundtable-dev.yaml
   - rt-lead.yaml
