@@ -32,7 +32,7 @@ spec:
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 0c60bbffad2f573eb2101da364262232d14ea55e
+      tag: cf8c56178d6c0dafc473e6bd2383d91203cda947
       pullPolicy: IfNotPresent
     # Isolation defaults, set explicitly ahead of roundtable-k8s/roundtable#387
     # (gVisor and default-deny egress on by default). With these two values the
@@ -53,7 +53,7 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: 0b76c7fcf4d49b608bc59160dfae21a533068905
+        tag: ba436824b6e60d5c2d0bfffdbb3cd9b9660fe841
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
         tag: ba1e834b78331c7785e00eeaf6b66cca29b483bc

@@ -18,7 +18,7 @@ metadata:
 spec:
   # Same claude-knight pin as rt-operator / rt-ui: the monorepo image
   # (roundtable-k8s/knights @ 640a55f). Previous image: 299448cd.
-  image: ghcr.io/roundtable-k8s/claude-knight:0b76c7fcf4d49b608bc59160dfae21a533068905
+  image: ghcr.io/roundtable-k8s/claude-knight:ba436824b6e60d5c2d0bfffdbb3cd9b9660fe841
   domain: lead
   # Opus (latest, 5.5) for planning and review: the quality gate for every PR.
   model: opus
