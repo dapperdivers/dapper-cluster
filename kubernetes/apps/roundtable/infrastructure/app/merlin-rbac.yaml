@@ -1,0 +1,45 @@
+# Merlin, the orchestrator knight (roundtable-k8s/roundtable#607): read-only
+# on Round Table objects, pods, logs and events in this namespace. Nothing
+# cluster-wide, no Secrets, no writes: every change it wants goes through a PR.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: merlin
+  namespace: roundtable
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: merlin-read-only
+  namespace: roundtable
+rules:
+  - apiGroups: ["ai.roundtable.io"]
+    resources: ["knights", "chains", "missions", "roundtables", "triggers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: merlin-read-only
+  namespace: roundtable
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: merlin-read-only
+subjects:
+  - kind: ServiceAccount
+    name: merlin
+    namespace: roundtable

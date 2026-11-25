@@ -30,3 +30,6 @@ resources:
   - rt-ui.yaml
   - rt-operator.yaml
   - rt-coder.yaml
+  # The orchestrator knight (roundtable-k8s/roundtable#607)
+  - merlin.yaml
+  - chain-merlin-check.yaml
