@@ -82,9 +82,12 @@ spec:
     # ephemeral-storage covers the emptyDir workspace + /tmp: the namespace
     # LimitRange default (4Gi) evicted rt-operator mid-envtest on 2026-11-23.
     requests:
-      # 6 CPU each left no room to surge on rollouts (Pending: Insufficient
-      # cpu). Burst to the limit; pin to large nodes via nodeSelector (#242).
-      cpu: "2"
+      # 1 CPU each. Coders idle under half a CPU and burst to the limit. Since
+      # isolation they only fit on the three gVisor nodes (large-1/2/3), and at
+      # 2 CPU each three of six rt-ui pods sat Pending on 2026-11-25. Placement
+      # on the large nodes now comes from the gvisor RuntimeClass, not from a
+      # big request.
+      cpu: "1"
       memory: 6Gi
       ephemeral-storage: 10Gi
     limits:
