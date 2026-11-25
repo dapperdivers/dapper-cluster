@@ -61,11 +61,39 @@ spec:
       - name: miniflux
         namespace: selfhosted
         ports: [8080]
+      # MCP servers (see mcpServers below).
+      - name: miniflux-mcp
+        namespace: kagent
+        ports: [8080]
+      - name: web-fetch
+        namespace: kagent
+        ports: [8000]
   # Scales to zero when idle and back up when a task arrives (KEDA on the
   # knight's JetStream consumer); the pod stays 15 minutes after its last task.
   lifecycle:
     suspendPolicy: auto
     idleTimeoutSeconds: 900
+  # The owner's MCP servers, as kagent used them: the feed reader, and web-fetch
+  # as the one way to read arbitrary pages (roundtable-k8s/roundtable#382).
+  mcpServers:
+    - name: miniflux
+      transport: streamable-http
+      url: http://miniflux-mcp.kagent.svc.cluster.local:8080/mcp
+      headersFrom:
+        - name: Authorization
+          valueFrom:
+            secretKeyRef:
+              name: mcp-miniflux-auth
+              key: Authorization
+    - name: web-fetch
+      transport: streamable-http
+      url: http://web-fetch.kagent.svc.cluster.local:8000/mcp
+      headersFrom:
+        - name: Authorization
+          valueFrom:
+            secretKeyRef:
+              name: mcp-web-fetch-auth
+              key: Authorization
   nats:
     url: nats://nats.database.svc:4222
     subjects:

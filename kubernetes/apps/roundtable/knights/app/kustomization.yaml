@@ -4,6 +4,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - claude-setup-token.yaml
+  - mcp-auth.yaml
   # Personal table (roundtable-k8s/roundtable#369, phase 1)
   - roundtable-personal.yaml
   - galahad.yaml
