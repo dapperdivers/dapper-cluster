@@ -57,12 +57,17 @@ spec:
       - nmap
       - testssl
       - whois
+  # Scales to zero when idle and back up when a task arrives (KEDA on the
+  # knight's JetStream consumer); the pod stays 15 minutes after its last task.
+  lifecycle:
+    suspendPolicy: auto
+    idleTimeoutSeconds: 900
   nats:
     url: nats://nats.database.svc:4222
     subjects:
-      - "fleet-a.tasks.security.>"
-    stream: fleet_a_tasks
-    resultsStream: fleet_a_results
+      - "personal.tasks.security.>"
+    stream: personal_tasks
+    resultsStream: personal_results
     maxDeliver: 1
   vault:
     claimName: roundtable-vault

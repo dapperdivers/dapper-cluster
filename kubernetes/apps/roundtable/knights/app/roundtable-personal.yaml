@@ -16,12 +16,13 @@ spec:
     Do NOT route Round Table platform development here — use the roundtable-dev table instead.
   nats:
     url: nats://nats.database.svc:4222
-    subjectPrefix: fleet-a
-    tasksStream: fleet_a_tasks
-    resultsStream: fleet_a_results
-    # The fleet_a streams already exist (limits retention; galahad and the
-    # planner use them), so the table does not create or change them.
-    createStreams: false
+    # Own names since 2026-11-25 (decision 23); the table creates its streams.
+    # The old fleet_a streams are left in place for the chart's planner.
+    subjectPrefix: personal
+    tasksStream: personal_tasks
+    resultsStream: personal_results
+    createStreams: true
+    streamRetention: WorkQueue
   knightTemplates:
     base:
       model: "openrouter/z-ai/glm-5.3"
@@ -35,15 +36,15 @@ spec:
           - tree
       nats:
         url: nats://nats.database.svc:4222
-        stream: fleet_a_tasks
-        resultsStream: fleet_a_results
+        stream: personal_tasks
+        resultsStream: personal_results
         subjects:
-          - "fleet-a.tasks.general.>"
+          - "personal.tasks.general.>"
   knightSelector:
     matchLabels:
       ai.roundtable.io/round-table: personal
   defaults:
-    model: "openrouter/z-ai/glm-5.3"
+    model: sonnet
     taskTimeoutSeconds: 600
     concurrency: 2
     resources:
