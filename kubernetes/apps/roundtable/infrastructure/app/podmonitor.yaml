@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/podmonitor_v1.json
-# Scrape pi-knight runtime metrics (pi_knight_tasks_total, pi_knight_llm_cost_dollars_total, ...)
+# Scrape pi-knight runtime metrics (roundtable_knight_tasks_total, roundtable_knight_llm_cost_usd_total, ...)
 # Knight pods are operator-managed and declare no container ports, so
 # `portNumber` matched nothing (the operator keeps only targets whose declared
 # port is 3000): KnightMetricsAbsent fired. Scrape podIP:3000 directly instead.
