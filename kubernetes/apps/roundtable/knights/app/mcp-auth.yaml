@@ -1,0 +1,53 @@
+# Bearer tokens knights present to the in-cluster MCP servers. One ExternalSecret
+# per server, holding ONLY the Authorization header for that server's MCP
+# endpoint (not the upstream service's own API key, which stays with the server).
+# The values come from the same Infisical entries the servers themselves read.
+# To give knights another MCP server: add an ExternalSecret here, allow knights
+# in that server's network policy, and list the server on each knight that uses
+# it (spec.mcpServers + spec.egress.allowedServices). A table-level catalogue
+# that does the last two automatically is roundtable-k8s/roundtable (see the
+# "MCP server catalogue" issue).
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: mcp-miniflux-auth
+spec:
+  refreshInterval: 5m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: mcp-miniflux-auth
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        Authorization: "Bearer {{ .MINIFLUX_MCP_TOKEN }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^MINIFLUX_MCP_TOKEN$
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: mcp-web-fetch-auth
+spec:
+  refreshInterval: 5m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: mcp-web-fetch-auth
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        Authorization: "Bearer {{ .WEB_FETCH_MCP_TOKEN }}"
+  dataFrom:
+    - find:
+        name:
+          regexp: ^WEB_FETCH_MCP_TOKEN$

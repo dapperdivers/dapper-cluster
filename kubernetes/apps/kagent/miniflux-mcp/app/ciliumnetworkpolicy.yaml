@@ -7,7 +7,7 @@ kind: CiliumNetworkPolicy
 metadata:
   name: miniflux-mcp
 spec:
-  description: Miniflux MCP server; callable by kagent only, egress to Miniflux only.
+  description: Miniflux MCP server; callable by kagent and Round Table knights, egress to Miniflux only.
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: miniflux-mcp
@@ -19,6 +19,10 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: ate-system
             app: atenet-egress
+        # Round Table knights (any knight pod; the bearer token is the gate).
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: roundtable
+            app.kubernetes.io/name: knight
       toPorts:
         - ports:
             - port: "8080"
