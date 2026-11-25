@@ -33,7 +33,7 @@ uv = "latest"
 "aqua:yannh/kubeconform" = "0.8.0"
 "aqua:kyverno/kyverno" = "1.20.0"
 "ubi:BeryJu/korb" = "latest"
-"aqua:evilmartians/lefthook" = "2.2.2"
+"aqua:evilmartians/lefthook" = "2.2.3"
 # Formatting & linting (run via lefthook git hooks)
 oxfmt = "0.72.0"
 gitleaks = "8.30.1"
