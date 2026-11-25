@@ -59,11 +59,11 @@ spec:
       - "Agents/Briefings/Daily/"
       - "Agents/Briefings/Ledger/"
       - "Agents/Roundtable/"
-  arsenal:
-    name: personal
-    repo: https://github.com/dapperdivers/roundtable-arsenal
-    ref: main
-    periodSeconds: 300
+  arsenals:
+    - name: personal
+      repo: https://github.com/dapperdivers/roundtable-arsenal
+      ref: main
+      periodSeconds: 300
   # project/* skills (briefing-synthesis, chain-orchestration, fleet-status, github-pm) live in the org arsenal
   arsenals:
     - name: platform
