@@ -68,6 +68,9 @@ spec:
   # live here and survive restarts and scale-to-zero.
   memory:
     size: 2Gi
+    # The memory volume is ReadWriteMany; the default class (ceph-rbd) cannot
+    # provision that, so name the shared filesystem class.
+    storageClassName: cephfs-shared
   workspace:
     size: 5Gi
   github:
