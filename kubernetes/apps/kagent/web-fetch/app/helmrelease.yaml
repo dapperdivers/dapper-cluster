@@ -34,7 +34,7 @@ spec:
             # pure-Python (keeps text and headings, drops link targets).
             image:
               repository: ghcr.io/dapperdivers/mcp-servers
-              tag: 2026.11.24.4@sha256:31f82a4252d65da18bbb7cbcc151d51eee2d7aba3550d81cb659bd7bd64d67b7
+              tag: 2026.11.25.8@sha256:01cf3f3c00d9c717ff226b3d3e6386f5ac3f4af450be85fd6ddcc8d8e83470c2
             args: [web-fetch]
             env:
               TZ: ${TIME_ZONE}
