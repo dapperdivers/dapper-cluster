@@ -1,5 +1,8 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+# Metric names follow the roundtable_knight_* scheme (roundtable-k8s/knights#33):
+# every series carries table, knight and runtime. Subscription-billed (Claude
+# plan) cost is notional, so the spend alert counts API-billed models only.
 # Night Watch alert surface: these rules double as the watchman knight's
 # query menu — it reads ALERTS{namespace="roundtable"} during the nightly sweep.
 apiVersion: monitoring.coreos.com/v1
@@ -16,7 +19,7 @@ spec:
             summary: >-
               Knight {{ $labels.knight }} failed {{ $value }} tasks in the last hour.
           expr: |
-            sum by (namespace, knight) (increase({__name__=~"(pi|claude)_knight_tasks_total", status=~"error|timeout"}[1h])) > 2
+            sum by (namespace, knight) (increase(roundtable_knight_tasks_total{status=~"error|timeout"}[1h])) > 2
           for: 5m
           labels:
             severity: warning
@@ -25,7 +28,7 @@ spec:
             summary: >-
               Knight {{ $labels.knight }} has lost its NATS connection.
           expr: |
-            {__name__=~"(pi|claude)_knight_nats_connected"} == 0
+            roundtable_knight_nats_connected == 0
           for: 10m
           labels:
             severity: warning
@@ -34,7 +37,7 @@ spec:
             summary: >-
               No knight metrics are being scraped — PodMonitor or knights are down.
           expr: |
-            absent({__name__=~"(pi|claude)_knight_nats_connected"})
+            absent(roundtable_knight_nats_connected)
           for: 30m
           labels:
             severity: warning
@@ -44,7 +47,7 @@ spec:
               Knight {{ $labels.knight }} lost {{ $value }} tasks in the last hour
               (delivered to a knight that stopped before finishing).
           expr: |
-            sum by (namespace, knight) (increase({__name__=~"(pi|claude)_knight_tasks_total", status="lost"}[1h])) > 0
+            sum by (namespace, knight) (increase(roundtable_knight_tasks_total{status="lost"}[1h])) > 0
           labels:
             severity: warning
         - alert: KnightLLMCostSpike
@@ -53,7 +56,7 @@ spec:
               Fleet LLM spend rose {{ $value | humanize }} USD in 24h — above
               the Night Watch budget envelope; possible runaway loop.
           expr: |
-            sum(increase(pi_knight_llm_cost_dollars_total[24h])) > 15
+            sum(increase(roundtable_knight_llm_cost_usd_total{billing!="subscription"}[24h])) > 15
           for: 15m
           labels:
             # Spend overshoot is an act-today problem (review/suspend knights),
