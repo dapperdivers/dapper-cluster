@@ -43,7 +43,7 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: 07c7236a2788079919f856df66f85f9f78239ebd
+        tag: e4c68ac9c053de5c6fffc45828093cdb1a65dd78
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
         tag: 71f462e1ff8b8f78ec986bd4d473dd90b1b0a87f
