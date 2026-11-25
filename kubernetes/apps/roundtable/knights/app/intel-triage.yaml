@@ -11,7 +11,7 @@ metadata:
     ai.roundtable.io/round-table: personal
     ai.roundtable.io/table: personal
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:07c7236a2788079919f856df66f85f9f78239ebd
+  image: ghcr.io/roundtable-k8s/claude-knight:e4c68ac9c053de5c6fffc45828093cdb1a65dd78
   domain: intel-triage
   model: haiku # kagent ModelConfig claude-haiku
   skills:
