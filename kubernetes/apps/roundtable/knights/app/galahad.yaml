@@ -17,6 +17,12 @@ spec:
   # reports finished tasks as lost when isolated. galahad is not part of the
   # dev pipeline, so it is the safe place to try this.
   runtimeClassName: gvisor
+  # Second half of the test: add the default-deny egress policy (gVisor alone
+  # ran a three-minute task cleanly at 07:36 UTC).
+  egress:
+    allowedHosts:
+      - github.com
+      - api.github.com
   # Claude Code alias; claude-knight passes it to `claude -p --model`.
   model: sonnet
   skills:
