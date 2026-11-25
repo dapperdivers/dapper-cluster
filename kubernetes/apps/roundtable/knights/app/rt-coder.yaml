@@ -18,7 +18,7 @@ spec:
   # roundtable-k8s/knights, pinned by hand, while every other knight stays on the
   # last image from the old repos (HOLD_KNIGHT_IMAGES in the autodeploy script).
   # Remove this pin when the hold is lifted and the default image moves over.
-  image: ghcr.io/roundtable-k8s/pi-knight:ce11e3b0831c761ce7642dbc8e436ac923ce091b
+  image: ghcr.io/roundtable-k8s/pi-knight:640a55f7a03ebba14380c1769ff104ba9f56bb72
   domain: coder
   model: openrouter/z-ai/glm-5.3
   skills:
