@@ -24,6 +24,8 @@ resources:
   - librarian.yaml
   - intel-triage.yaml
   - chain-morning-briefing.yaml
+  # Native nightwatch: a scheduled task for tristan (operator-owned CronJob)
+  - trigger-nightwatch.yaml
   # Round Table dev team (roundtable-k8s/roundtable#187)
   - roundtable-dev.yaml
   - rt-lead.yaml

@@ -96,7 +96,7 @@ spec:
       ref: main
       periodSeconds: 300
     # The owner's job scripts, straight from the public vault-jobs image (the
-    # repo stays private): mounted read-only at /arsenal/vault-jobs/scripts.
+    # repo stays private): mounted read-only at /arsenal-oci/vault-jobs/scripts.
     # Used by the native nightwatch (roundtable-k8s/roundtable#570).
     - name: vault-jobs
       oci:

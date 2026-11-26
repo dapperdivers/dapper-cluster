@@ -1,0 +1,55 @@
+# Native nightwatch (roundtable-k8s/roundtable#570, #214; owner decisions 21 and
+# 25): a scheduled TASK for tristan that names the script, not a chain. The
+# operator runs the schedule as a Kubernetes CronJob it owns. The collecting,
+# the ledger and the filing stay in the owner's script (vault-jobs image,
+# mounted on tristan as an OCI arsenal); tristan only does the judgement in
+# the middle.
+#
+# Runs beside the kagent-based vault-jobs CronJob (selfhosted/vault-jobs-nightwatch,
+# same time) and writes to its own folder, Agents/NightWatch-rt/, with its own
+# ledger, so the two can be compared night by night before the old one retires.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/trigger_v1alpha1.json
+---
+apiVersion: ai.roundtable.io/v1alpha1
+kind: Trigger
+metadata:
+  name: nightwatch
+  namespace: roundtable
+spec:
+  roundTableRef:
+    name: personal
+  source:
+    schedule:
+      cron: "0 3 * * *"
+      timeZone: America/Chicago
+      # A run missed by more than two hours is skipped, not run late.
+      startingDeadlineSeconds: 7200
+  concurrency:
+    policy: Forbid
+  target:
+    knight:
+      name: tristan
+      timeoutSeconds: 1800
+      task: |
+        Run tonight's nightwatch. The script does the collecting and the
+        filing; you do the triage in between. Do not write to the vault
+        yourself.
+
+        1. Collect:
+           python3 /arsenal-oci/vault-jobs/scripts/nightwatch.py --collect
+           It prints JSON: counts, a "to_triage" list, the answer shape
+           ("answer_for_each") and where it saved its state. If it prints
+           nothing and exits 0, the vault is not ready: say so and stop.
+        2. For each item in "to_triage", investigate with read-only kubectl
+           (describe, events, logs, recent changes) until you can say what is
+           wrong, how severe it is and what to do. Do not change anything in
+           the cluster.
+        3. Write one JSON object {fp: answer} covering every to_triage item,
+           in the shape the script asked for, to $TMPDIR/nightwatch-answers.json.
+           If to_triage is empty, write {}.
+        4. File:
+           python3 /arsenal-oci/vault-jobs/scripts/nightwatch.py --file $TMPDIR/nightwatch-answers.json
+           Fix and re-run if it rejects an answer; it tells you why.
+
+        Reply with the counts from step 1, one line per item you triaged
+        (object, severity, cause), and the last lines the --file step printed.
