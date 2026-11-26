@@ -43,10 +43,10 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: eed9209251b547f8aecc8907235c81d1755f2c66
+        tag: 59b73c69b6db87750a30de04db6d54531b545124
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
-        tag: 3e539ed942a8b264ab7798d9b56710a3bf0076aa
+        tag: 948435b6320a1ea62f0bc261f73f43dc8e9e7e1d
 
     # Operator manager. The chart default memory limit is 128Mi; the old
     # deployment ran with 256Mi. Pending the crashloop investigation
