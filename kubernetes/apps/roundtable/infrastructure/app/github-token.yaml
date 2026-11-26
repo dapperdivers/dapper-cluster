@@ -53,6 +53,13 @@ spec:
     pull_requests: write
     issues: write
     metadata: read
+    # TRIAL, owner decision 2026-11-25: "Let the knights tinker with the
+    # workflows for a limited time so we can iron things out." The knights
+    # could not add or fix CI checks (a kind-based test, the real-NATS job),
+    # so every such issue escalated to the owner. REMOVE this line again by
+    # 2026-11-28 unless the owner extends it; the risk it reopens is the one
+    # in the header: a workflow pushed to a branch runs with repo secrets.
+    workflows: write
   auth:
     privateKey:
       secretRef:
