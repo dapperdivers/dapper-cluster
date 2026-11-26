@@ -81,7 +81,10 @@ spec:
     # put back: - '\.github/workflows'
     humanPatterns:
       - "a^b"
-    maxActive: 12
+    # 18 since 2026-11-26 (owner: use the plan fully before the limit resets).
+    # Coders have 28 slots (rt-operator 6x2, rt-ui 6x2, rt-coder 4); the per-repo
+    # cap below still limits merge conflicts within one repo.
+    maxActive: 18
     # 6 since 2026-11-25: most queued work is in the operator repo, and at 4
     # the scheduling issues the kagent migration waits on sat ready for two
     # hours behind other chains. rt-operator has 6 pods x 2 slots for it.
