@@ -13,7 +13,7 @@ metadata:
 spec:
   # Monorepo image (roundtable-k8s/knights @ 640a55f, shared knight-core).
   # Previous image: 299448cd (old claude-knight repo).
-  image: ghcr.io/roundtable-k8s/claude-knight:d038f1880e783a2247126f027fed61d515db35d2
+  image: ghcr.io/roundtable-k8s/claude-knight:576abbdf1f2694efa2d3594d777dd761f5112fbc
   domain: operator
   # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
   # egress. The operator adds NATS, DNS, the Kubernetes API, the model
