@@ -14,8 +14,6 @@ spec:
   description: "The orchestrator's 30-minute factory check"
   # Offset from the external session's check (:17 and :47) during the day they overlap.
   schedule: "2,32 * * * *"
-  # PAUSED 2026-11-26 with the rest of the factory (see roundtable-dev.yaml).
-  suspend: true
   # Longer than the knight's 25 minute task limit, so a slow start (cold pod)
   # does not fail the run while the task is still going.
   timeoutSeconds: 1740
