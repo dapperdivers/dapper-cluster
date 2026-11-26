@@ -671,7 +671,7 @@ url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/780885
 provenance = "github-attestations"
 
 [[tools.kubectl]]
-version = "1.37.2"
+version = "1.37.3"
 backend = "aqua:kubernetes/kubernetes/kubectl"
 
 [tools.kubectl."platforms.linux-arm64"]
