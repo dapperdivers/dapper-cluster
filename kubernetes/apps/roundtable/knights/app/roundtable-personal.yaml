@@ -53,8 +53,6 @@ spec:
         memory: 512Mi
   policies:
     costBudgetUSD: "0"
-    maxConcurrentTasks: 0
-    maxKnights: 15
     maxMissions: 10
   vault:
     claimName: roundtable-vault

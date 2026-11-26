@@ -45,7 +45,6 @@ spec:
     taskTimeoutSeconds: 2700
     concurrency: 1
   policies:
-    maxKnights: 10
     maxMissions: 3
   sharedWorkspace:
     claimName: roundtable-workspace
