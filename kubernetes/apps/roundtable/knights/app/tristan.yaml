@@ -100,7 +100,7 @@ spec:
     # Used by the native nightwatch (roundtable-k8s/roundtable#570).
     - name: vault-jobs
       oci:
-        reference: ghcr.io/dapperdivers/vault-jobs:2026.11.25.17@sha256:34ba8df6c5a9829acfdc57793813d735ceca00d4051d9f9d1877bd85866f7ad6
+        reference: ghcr.io/dapperdivers/vault-jobs:2026.11.26.19@sha256:eb35df725aa5a13bc9922b726a3caa9b87990ffc418c05baf99777b4d21df4e1
         pullPolicy: IfNotPresent
   workspace:
     size: "10Gi"
