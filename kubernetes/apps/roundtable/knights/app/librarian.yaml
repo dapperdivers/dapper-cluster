@@ -12,7 +12,7 @@ metadata:
     ai.roundtable.io/round-table: personal
     ai.roundtable.io/table: personal
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:9b00696eaf2034c9a105a73d480d5cba0d8e5b8d
+  image: ghcr.io/roundtable-k8s/claude-knight:845d2089cfca97d9ae7fa04857b22ac46179114b
   domain: librarian
   model: haiku
   skills:
