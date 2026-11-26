@@ -42,11 +42,9 @@ spec:
   repositories:
     - roundtable
     # Knight runtimes monorepo (pi-knight, claude-knight, core). The two old
-    # repos stay listed until they are archived.
+    # repos were archived on 2026-11-26 (roundtable-k8s/knights#1).
     - knights
-    - pi-knight
     - roundtable-ui
-    - claude-knight
     - arsenal
   permissions:
     contents: write
