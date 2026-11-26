@@ -94,7 +94,9 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
   image-pull:
-    if: ${{ needs.image-pull-extract.outputs.images != '[]' }}
+    # Knight pull requests (branch `knight/...`, roundtable-k8s/roundtable#288)
+    # never reach the self-hosted runner, which can talk to the nodes.
+    if: ${{ needs.image-pull-extract.outputs.images != '[]' && !startsWith(github.head_ref, 'knight/') }}
     needs: image-pull-extract
     name: Image Pull - Pull Images
     runs-on: ${{ github.event.repository.name }}-runner
@@ -168,6 +170,36 @@ jobs:
       - name: Validate Round Table manifests
         run: .github/scripts/validate-roundtable.sh
 
+  # Knights open pull requests from `knight/...` branches
+  # (roundtable-k8s/roundtable#288). Such a pull request may only touch the
+  # Round Table's own config, and never its RBAC, tokens or encrypted files.
+  # Knights share dunce-bot's identity with Renovate and autodeploy, so this
+  # rests on the branch name: a convention the owner accepted, not a boundary.
+  knight-pr-paths:
+    if: ${{ startsWith(github.head_ref, 'knight/') }}
+    name: Round Table - Knight PR Paths
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check changed paths
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.number }}
+        run: |
+          gh api "repos/${REPO}/pulls/${PR}/files" --paginate \
+            --jq '.[] | .filename, (.previous_filename // empty)' | sort -u > files.txt
+          bad=$(grep -v -E '^kubernetes/apps/roundtable/' files.txt || true)
+          bad="${bad}$(printf '\n'; grep -E '(\.sops\.|rbac|github-token\.yaml$|/namespace\.yaml$)' files.txt || true)"
+          bad=$(printf '%s\n' "$bad" | sed '/^$/d' | sort -u)
+          if [ -n "$bad" ]; then
+            echo "::error::a knight pull request may not change these paths:"
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+          echo "All $(wc -l < files.txt) changed files are allowed."
+
   # Single aggregate check: the one to mark required in a branch ruleset.
   status:
     if: ${{ !cancelled() }}
@@ -178,6 +210,7 @@ jobs:
       - image-pull
       - zizmor
       - roundtable-validate
+      - knight-pr-paths
     runs-on: ubuntu-latest
     permissions: {}
     steps:

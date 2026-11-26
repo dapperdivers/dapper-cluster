@@ -80,3 +80,48 @@ spec:
           apiVersion: generators.external-secrets.io/v1alpha1
           kind: GithubAccessToken
           name: dunce-bot-roundtable
+---
+# Token for knight pull requests in dapperdivers/dapper-cluster
+# (roundtable-k8s/roundtable#288, owner decision 2026-11-26). Same app, but the
+# installation on the dapperdivers account, narrowed to this one repository and
+# to contents and pull requests: no `workflows`, no `issues`.
+# Knights share dunce-bot's identity with Renovate and autodeploy, so the path
+# limit in .github/workflows/ci.yaml ("Round Table - Knight PR Paths") rests on
+# knights using `knight/` branches: the owner accepted that on trust.
+# Nothing mounts this yet: the knights need a second token file for another
+# owner first (roundtable-k8s/roundtable, tracked from #288).
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: GithubAccessToken
+metadata:
+  name: dunce-bot-dapper-cluster
+  namespace: roundtable
+spec:
+  appID: "1040936"
+  installID: "56558271"
+  repositories:
+    - dapper-cluster
+  permissions:
+    contents: write
+    pull_requests: write
+    metadata: read
+  auth:
+    privateKey:
+      secretRef:
+        name: dunce-bot-key
+        key: privateKey
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: dapper-cluster-github-token
+  namespace: roundtable
+spec:
+  refreshInterval: 30m
+  target:
+    name: dapper-cluster-github-token
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: GithubAccessToken
+          name: dunce-bot-dapper-cluster
