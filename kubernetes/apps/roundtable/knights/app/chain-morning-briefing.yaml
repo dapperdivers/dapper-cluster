@@ -16,8 +16,8 @@ spec:
   # Daily at 11:00 UTC, as before the fleet was retired. Two runs by
   # annotation on 2026-11-25 succeeded (about 4 minutes, $0.30 each); the second
   # wrote its synthesis to Briefings/Daily/ with Briefings/Morning/ read-only.
-  # The vault-jobs night-shift brief (Morning/, 10:30 UTC) runs side by side
-  # until the owner picks one (roundtable-k8s/roundtable#382).
+  # The owner picked this chain as the one morning brief on 2026-11-26
+  # (roundtable-k8s/roundtable#382); the vault-jobs night-shift job is suspended.
   schedule: "0 11 * * *"
   timeoutSeconds: 3000
   retryPolicy:

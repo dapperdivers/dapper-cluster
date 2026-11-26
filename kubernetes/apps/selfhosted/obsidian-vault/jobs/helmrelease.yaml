@@ -129,6 +129,10 @@ spec:
       night-shift:
         type: cronjob
         cronjob:
+          # Suspended 2026-11-26: the owner picked the Round Table morning-briefing
+          # chain as the one morning brief (roundtable-k8s/roundtable#382). Removed
+          # with the rest of the kagent jobs (roundtable-k8s/roundtable#214).
+          suspend: true
           schedule: "30 4 * * *"
           timeZone: *timeZone
           concurrencyPolicy: Forbid

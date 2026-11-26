@@ -1,5 +1,6 @@
-# Patsy: vault curator persona on the personal table (claude-knight). Reads the whole vault and
-# writes only the folders listed below; cluster read through ServiceAccount patsy.
+# Patsy: vault curator persona on the personal table (claude-knight). Reads and writes the whole
+# vault (owner decision 2026-11-26, roundtable-k8s/roundtable#382); cluster read through
+# ServiceAccount patsy.
 # Restored 2026-11-25 on the owner's instruction to bring the whole roster back.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/knight_v1alpha1.json
 ---
@@ -57,13 +58,10 @@ spec:
     maxDeliver: 1
   vault:
     claimName: roundtable-vault
-    # Read-only base with these writable folders (owner: bring the whole
-    # roster back; recommendation (b) on roundtable-k8s/roundtable#379).
-    readOnly: true
-    writablePaths:
-      - "Agents/"
-      - "Zettels/"
-      - "Inbox/"
+    # Whole vault, read and write: the owner chose this over the three-folder
+    # limit on 2026-11-26 (roundtable-k8s/roundtable#382). Patsy is the only
+    # knight with it.
+    readOnly: false
   arsenals:
     - name: personal
       repo: https://github.com/dapperdivers/roundtable-arsenal
