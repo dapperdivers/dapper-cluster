@@ -36,10 +36,13 @@ spec:
         yourself.
 
         1. Collect:
-           python3 /arsenal-oci/vault-jobs/scripts/nightwatch.py --collect
+           python3 /arsenal-oci/vault-jobs/scripts/nightwatch.py /vault --collect
+           The vault folder (/vault) must come first: without it the script
+           takes the next argument for the vault and skips the run.
            It prints JSON: counts, a "to_triage" list, the answer shape
-           ("answer_for_each") and where it saved its state. If it prints
-           nothing and exits 0, the vault is not ready: say so and stop.
+           ("answer_for_each") and where it saved its state. If it prints no
+           JSON, whatever the exit code, nothing was collected: reply that
+           the run FAILED, quote what it printed on stderr, and stop.
         2. For each item in "to_triage", investigate with read-only kubectl
            (describe, events, logs, recent changes) until you can say what is
            wrong, how severe it is and what to do. Do not change anything in
@@ -48,8 +51,11 @@ spec:
            in the shape the script asked for, to $TMPDIR/nightwatch-answers.json.
            If to_triage is empty, write {}.
         4. File:
-           python3 /arsenal-oci/vault-jobs/scripts/nightwatch.py --file $TMPDIR/nightwatch-answers.json
+           python3 /arsenal-oci/vault-jobs/scripts/nightwatch.py /vault --file $TMPDIR/nightwatch-answers.json
            Fix and re-run if it rejects an answer; it tells you why.
+           It must print "wrote Agents/NightWatch-rt/<date>.md: ...". If
+           it does not, or that file is not in /vault/Agents/NightWatch-rt/,
+           reply that the run FAILED and quote its output.
 
         Reply with the counts from step 1, one line per item you triaged
         (object, severity, cause), and the last lines the --file step printed.
