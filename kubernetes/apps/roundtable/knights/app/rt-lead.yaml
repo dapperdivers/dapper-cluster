@@ -172,10 +172,15 @@ spec:
   resources:
     # Reviews run the PR's tests (go test + envtest, npm test); 1 CPU starved
     # 3 parallel reviews to 10x their normal time on 2026-11-23.
+    # Requests lowered 2026-11-26: at 2 CPU and 10Gi the lead's replacement pod
+    # sat Pending during knight rollouts (the three gVisor nodes are full while
+    # old coder pods drain for up to an hour), and with no lead nothing gets
+    # reviewed or merged. The limits below still let reviews burst; real node
+    # use is far under the requested totals.
     requests:
-      cpu: "2"
+      cpu: 400m
       memory: 2Gi
-      ephemeral-storage: 10Gi
+      ephemeral-storage: 4Gi
     limits:
       # 4 parallel reviews, each a Claude Code CLI plus test runs.
       cpu: "6"
