@@ -125,3 +125,47 @@ spec:
           apiVersion: generators.external-secrets.io/v1alpha1
           kind: GithubAccessToken
           name: dunce-bot-dapper-cluster
+---
+# Token for bors, the personal table's own builder (owner decision 2026-11-26:
+# "create a knight that we're allowing dapperdivers work in"). Same app and
+# installation as dunce-bot-dapper-cluster, for the three repositories the
+# owner named: the cluster repo, the personal arsenal and the vault jobs.
+# Contents and pull requests only: no `workflows`, no `issues`.
+# Only the Knight bors mounts it (spec.github.tokenSecretRef on the knight).
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: GithubAccessToken
+metadata:
+  name: dunce-bot-dapperdivers
+  namespace: roundtable
+spec:
+  appID: "1040936"
+  installID: "56558271"
+  repositories:
+    - dapper-cluster
+    - roundtable-arsenal
+    - vault-jobs
+  permissions:
+    contents: write
+    pull_requests: write
+    metadata: read
+  auth:
+    privateKey:
+      secretRef:
+        name: dunce-bot-key
+        key: privateKey
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: dapperdivers-github-token
+  namespace: roundtable
+spec:
+  refreshInterval: 30m
+  target:
+    name: dapperdivers-github-token
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: GithubAccessToken
+          name: dunce-bot-dapperdivers

@@ -8,6 +8,7 @@ resources:
   - watchman-rbac.yaml
   - patsy-rbac.yaml
   - merlin-rbac.yaml
+  - bors-rbac.yaml
   - roundtable-secret.yaml
   - github-token.yaml
   - vault-pv.yaml
