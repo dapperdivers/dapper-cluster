@@ -81,17 +81,19 @@ spec:
     # put back: - '\.github/workflows'
     humanPatterns:
       - "a^b"
-    # 18 since 2026-11-26 (owner: use the plan fully before the limit resets).
+    # 24 total / 12 per repo for the last hours before the plan limit resets at
+    # 02:00 UTC on 2026-11-27 (owner: use the plan fully). All 28 coder slots are
+    # already running; put back 18 / 9 or lower afterwards if conflicts climb.
     # Coders have 28 slots (rt-operator 6x2, rt-ui 6x2, rt-coder 4); the per-repo
     # cap below still limits merge conflicts within one repo.
-    maxActive: 18
+    maxActive: 24
     # 6 since 2026-11-25: most queued work is in the operator repo, and at 4
     # the scheduling issues the kagent migration waits on sat ready for two
     # hours behind other chains. rt-operator has 6 pods x 2 slots for it.
     # 9 since 2026-11-26 evening: the other three repos ran dry while 31 ready
     # operator issues waited behind the cap of 6. Back to 6 if merge conflicts
     # in the operator repo climb.
-    maxActivePerRepo: 9
+    maxActivePerRepo: 12
     intervalSeconds: 60
     suspend: false
   # Failure feedback (roundtable-k8s/roundtable#226, docs/pr-feedback.md):
