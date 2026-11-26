@@ -15,7 +15,7 @@ metadata:
     ai.roundtable.io/table: roundtable-dev
     ai.roundtable.io/round-table: roundtable-dev
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:59b73c69b6db87750a30de04db6d54531b545124
+  image: ghcr.io/roundtable-k8s/claude-knight:9b00696eaf2034c9a105a73d480d5cba0d8e5b8d
   domain: orchestrator
   serviceAccountName: merlin
   # Fable for everything (owner decision). Shares the Claude plan with the dev table.
