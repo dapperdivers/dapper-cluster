@@ -88,13 +88,16 @@ spec:
     # hours behind other chains. rt-operator has 6 pods x 2 slots for it.
     maxActivePerRepo: 6
     intervalSeconds: 60
-    suspend: false
+    # PAUSED 2026-11-26 ~04:15 UTC at the owner's request ("pause everything,
+    # pick things up tomorrow"). To resume: suspend: false here, enabled: true
+    # under prFeedback, and remove suspend from chain-merlin-check.yaml.
+    suspend: true
   # Failure feedback (roundtable-k8s/roundtable#226, docs/pr-feedback.md):
   # watch knight PRs for red CI and merge-queue rejections and send them back
   # to the author knight (pr-pipeline-feedback Chain); flaky runs get an issue,
   # exhausted retries get needs-human. PRs no chain opened go to rt-operator.
   prFeedback:
-    enabled: true
+    enabled: false # paused with issue pickup, see above
     repos:
       - roundtable-k8s/roundtable
       - roundtable-k8s/roundtable-ui
