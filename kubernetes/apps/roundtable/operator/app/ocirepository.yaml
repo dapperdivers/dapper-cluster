@@ -17,6 +17,6 @@ spec:
     # 0.16.0's spec.github.tokenSecretRef (#194) and the #186 fix.
     # Pinned by digest too: CI republishes the same chart version on every
     # main push (roundtable-k8s/roundtable#191), so the tag alone is mutable.
-    tag: 0.25.0-dev.1d6ffb7
-    digest: sha256:7b3155f5cb747dc9721cce9fb1817639a85b3ed59812611d1eccb26482128e44
+    tag: 0.25.0-dev.3dd20e8
+    digest: sha256:70ae7f265bc5518695070970641edb4a17ada7e05bec8a04477a9803cc9471f7
   url: oci://ghcr.io/roundtable-k8s/charts/roundtable-operator
