@@ -52,7 +52,9 @@ latest_chart_tag() {
     "https://ghcr.io/v2/roundtable-k8s/charts/roundtable-operator/tags/list?n=10000" 2>/dev/null | jq -r '.tags[]')
   for sha in $(gh run list -R roundtable-k8s/roundtable --branch main --event push --workflow CI \
       --status success -L 8 --json headSha --jq '.[].headSha'); do
-    t=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+-dev\.${sha:0:7}\$" <<<"$tags" | sort -V | tail -1 || true)
+    # Both forms: -dev.<sha> (today) and -dev.g<sha> (roundtable-k8s/roundtable#1120:
+    # an all-digit short SHA with a leading zero is not valid SemVer without the g).
+    t=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+-dev\.g?${sha:0:7}\$" <<<"$tags" | sort -V | tail -1 || true)
     if [ -n "$t" ]; then echo "$t"; return; fi
   done
   grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' <<<"$tags" | sort -V | tail -1
