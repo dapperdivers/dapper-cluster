@@ -14,7 +14,7 @@ spec:
   # claude-knight built from the roundtable-k8s/knights monorepo @ 640a55f (shared
   # knight-core). First claude-knight on the monorepo image; rt-operator and
   # rt-lead follow one at a time. Previous image: 299448cd (old claude-knight repo).
-  image: ghcr.io/roundtable-k8s/claude-knight:7a417e9397310f8bb41d69c4ecc15478eb586b9f
+  image: ghcr.io/roundtable-k8s/claude-knight:259ba2b5b71c03a0a96edadaf8a7439d70808874
   domain: frontend
   # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
   # egress. The operator adds NATS, DNS, the Kubernetes API, the model
