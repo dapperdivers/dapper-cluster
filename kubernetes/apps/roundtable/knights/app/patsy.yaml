@@ -14,7 +14,7 @@ metadata:
     # legacy label: shared-workspace mount and the mission planner still read only this one
     ai.roundtable.io/table: personal
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:157c04c3e78051e762c1259b1eb0024b50ceb064
+  image: ghcr.io/roundtable-k8s/claude-knight:56e5f552c9d67817abc23a3430cf2b9309d2c1a9
   domain: vault
   serviceAccountName: patsy
   # Kimi K2.6 (was openrouter/deepseek/deepseek-v3.2).
