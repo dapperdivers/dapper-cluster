@@ -12,7 +12,7 @@ metadata:
     # legacy label: shared-workspace mount and the mission planner still read only this one
     ai.roundtable.io/table: personal
 spec:
-  image: ghcr.io/roundtable-k8s/claude-knight:b766207d86274bb14cec60a9826c37cbade66bb9
+  image: ghcr.io/roundtable-k8s/claude-knight:157c04c3e78051e762c1259b1eb0024b50ceb064
   domain: infra
   serviceAccountName: tristan
   # Claude plan (claude-knight, Claude Code CLI), like galahad. Decision 22, 2026-11-25.
