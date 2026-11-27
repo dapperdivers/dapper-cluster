@@ -137,12 +137,15 @@ spec:
     # Round Table UI, exposed on the internal gateway by httproute.yaml.
     dashboard:
       enabled: true
+      # 512Mi since 2026-11-27: at 128Mi the dashboard was OOM-killed two
+      # seconds after start (build 1c554cc). It now keeps watch caches of every
+      # Knight and Chain, and this namespace holds several hundred Chain runs.
       resources:
         requests:
           cpu: 50m
-          memory: 64Mi
-        limits:
           memory: 128Mi
+        limits:
+          memory: 512Mi
       vault:
         enabled: true
         claimName: roundtable-vault
