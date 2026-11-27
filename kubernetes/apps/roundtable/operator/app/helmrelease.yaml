@@ -134,6 +134,15 @@ spec:
         - secretRef:
             name: roundtable-secret
 
+    # The chart turned gateway.knightSnapshots on by default on 2026-11-27
+    # (roundtable-k8s/roundtable#986): it gives the gateway's ServiceAccount get
+    # and patch on every Knight in the namespace, so anything that can call the
+    # gateway could change a knight's image or ServiceAccount through it. New
+    # cluster permissions are the owner's to grant: off until he says so.
+    gateway:
+      knightSnapshots:
+        enabled: false
+
     # Round Table UI, exposed on the internal gateway by httproute.yaml.
     dashboard:
       enabled: true
