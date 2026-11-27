@@ -9,16 +9,26 @@ spec:
   chartRef:
     kind: OCIRepository
     name: roundtable-operator
+  # No Helm wait: the chart ships Chain objects (pr-pipeline-feedback), and a
+  # Chain that is running reads as "InProgress", so every upgrade that landed
+  # while the feedback chain was busy timed out and rolled back (2026-11-27:
+  # "timeout waiting for: [Chain/roundtable/pr-pipeline-feedback status:
+  # 'InProgress']"). The Deployments' own rollouts and the operator's readiness
+  # alerts cover health.
   install:
     crds: CreateReplace
+    disableWait: true
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     crds: CreateReplace
+    disableWait: true
     remediation:
       strategy: rollback
       retries: 3
+  rollback:
+    disableWait: true
   values:
     # Images are pinned by full git SHA (immutable tags) from the
     # roundtable-k8s org registry.

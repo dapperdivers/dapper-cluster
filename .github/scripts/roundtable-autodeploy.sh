@@ -40,21 +40,29 @@ latest_built() { # <repo> <workflow name> <image path>
   done
 }
 
-# Newest released chart version (plain x.y.z tags, highest by version sort).
-# Feature PRs bump the chart version, so following only the pinned tag would
-# leave the operator on the last build of an old version. Falls back to the
-# pinned tag if the registry cannot be listed.
+# Newest chart of the newest main build. Since roundtable-k8s/roundtable#706
+# main builds publish the chart as a pre-release of the Chart.yaml version,
+# <x.y.z>-dev.<short sha>, and plain x.y.z tags are releases only. So: walk the
+# newest successful main builds and take the first whose dev chart exists; fall
+# back to the highest plain x.y.z tag, then to the pinned tag.
 latest_chart_tag() {
-  local tok
+  local tok tags sha t
   tok=$(curl -fsS "https://ghcr.io/token?scope=repository:roundtable-k8s/charts/roundtable-operator:pull" | jq -r .token)
-  curl -fsS -H "Authorization: Bearer $tok" \
-    "https://ghcr.io/v2/roundtable-k8s/charts/roundtable-operator/tags/list?n=1000" 2>/dev/null \
-    | jq -r '.tags[]' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1
+  tags=$(curl -fsS -H "Authorization: Bearer $tok" \
+    "https://ghcr.io/v2/roundtable-k8s/charts/roundtable-operator/tags/list?n=10000" 2>/dev/null | jq -r '.tags[]')
+  for sha in $(gh run list -R roundtable-k8s/roundtable --branch main --event push --workflow CI \
+      --status success -L 8 --json headSha --jq '.[].headSha'); do
+    t=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+-dev\.${sha:0:7}\$" <<<"$tags" | sort -V | tail -1 || true)
+    if [ -n "$t" ]; then echo "$t"; return; fi
+  done
+  grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' <<<"$tags" | sort -V | tail -1
 }
 CHART_TAG=$(latest_chart_tag || true)
 CHART_TAG=${CHART_TAG:-$CUR_CHART_TAG}
-# Never go backwards.
-if [ "$(printf '%s\n%s\n' "$CUR_CHART_TAG" "$CHART_TAG" | sort -V | tail -1)" != "$CHART_TAG" ]; then
+# Never go back to an older chart version (x.y.z, ignoring the -dev suffix:
+# builds of the same version are ordered by the CI runs above, not by name).
+base() { echo "${1%%-dev.*}"; }
+if [ "$(printf '%s\n%s\n' "$(base "$CUR_CHART_TAG")" "$(base "$CHART_TAG")" | sort -V | tail -1)" != "$(base "$CHART_TAG")" ]; then
   CHART_TAG=$CUR_CHART_TAG
 fi
 
