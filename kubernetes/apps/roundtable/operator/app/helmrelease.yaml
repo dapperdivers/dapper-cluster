@@ -42,7 +42,7 @@ spec:
     # served. Earlier builds crashloop without agent-sandbox v1alpha1 (#186).
     image:
       repository: ghcr.io/roundtable-k8s/roundtable
-      tag: 22bb328c96f750d64a0ecaae243ed3fbb3cea904
+      tag: 86e0e6a7e4b882e06f79114c7dfec21fc94ed31f
       pullPolicy: IfNotPresent
     # agent-sandbox is not installed here (returns in M2, #163): run
     # Deployment-only and skip discovery.
@@ -53,10 +53,10 @@ spec:
     images:
       piKnight:
         repository: ghcr.io/roundtable-k8s/pi-knight
-        tag: 696c2ebcb1a42a0bf1e96648fe197b53212ea494
+        tag: 3f4cadb7c7d8c50c4c888a1971a4ee8cde0875c6
       dashboard:
         repository: ghcr.io/roundtable-k8s/roundtable-ui
-        tag: 21f2179c179f3d2498f64e8ccf7c0f7d1cd88b4d
+        tag: 2d4310efa5e6fccdd20f8aaa0d0b4abde4ff12b1
 
     # Operator manager. The chart default memory limit is 128Mi; the old
     # deployment ran with 256Mi. Pending the crashloop investigation
