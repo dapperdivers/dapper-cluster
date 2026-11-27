@@ -18,7 +18,7 @@ metadata:
 spec:
   # Same claude-knight pin as rt-operator / rt-ui: the monorepo image
   # (roundtable-k8s/knights @ 640a55f). Previous image: 299448cd.
-  image: ghcr.io/roundtable-k8s/claude-knight:2b7271e9e2452f7ca0d38f2898b2d0d687e1609e
+  image: ghcr.io/roundtable-k8s/claude-knight:6516ca1d6b1fafa51b01a7f1cc32fbebd4cea634
   domain: lead
   # Isolated (roundtable-k8s/roundtable#387): gVisor sandbox plus default-deny
   # egress, like the coders. rt-lead plans, reviews and merges, so it needs
