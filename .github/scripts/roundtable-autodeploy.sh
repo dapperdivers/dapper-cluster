@@ -102,7 +102,13 @@ bump_hr() { # <label> <repo> <workflow> <yq path> [image name, default = repo]
 # one knight before setting it back to false. Held 2026-11-25 for the move to
 # the roundtable-k8s/knights monorepo and shared core; lifted the same day after
 # all four dev knights passed a task on the monorepo image.
-HOLD_KNIGHT_IMAGES=false
+# Held 2026-11-27 04:30 UTC: with the knights repo merging every 20 minutes,
+# every merge rolled all knight pods. Old pods drain for up to an hour, the
+# three gVisor nodes fill up, replacements sit Pending, and rt-lead (a single
+# pod) is away for the length of its drain, so reviews and merges stall. Release
+# knight images in one step at a quiet moment (set false for one run, then true
+# again) until rollouts are limited (roundtable-k8s/roundtable#780).
+HOLD_KNIGHT_IMAGES=true
 
 if [ "$HOLD_KNIGHT_IMAGES" != true ]; then
   bump_hr pi-knight knights pi-knight '.spec.values.images.piKnight.tag' pi-knight
