@@ -142,6 +142,16 @@ spec:
     gateway:
       knightSnapshots:
         enabled: false
+      # 512Mi since 2026-11-27: at the chart's 128Mi the gateway was OOM-killed
+      # a few seconds after start, on its first GET /v1/schedules, once this
+      # namespace held about 800 Chain runs. Every gateway-backed dashboard
+      # view (schedules, runs, dead letters) returned 502 while it restarted.
+      resources:
+        requests:
+          cpu: 20m
+          memory: 64Mi
+        limits:
+          memory: 512Mi
 
     # Round Table UI, exposed on the internal gateway by httproute.yaml.
     dashboard:
