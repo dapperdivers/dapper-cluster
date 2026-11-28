@@ -290,7 +290,12 @@ spec:
               MINIFLUX_API_KEY: *minifluxKey
               SYNCTHING_URL: *syncthingUrl
               SYNCTHING_API_KEY: *syncthingKey
-            resources: *jobResources
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 512Mi # scoring the 30-day sample OOMs at the shared 256Mi
             securityContext: *jobSecurityContext
 
       # Hourly: each new article note under Inbox/Reading gets a "Digest" section from the
