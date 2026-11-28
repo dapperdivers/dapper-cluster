@@ -1,4 +1,4 @@
-# Merlin's 30-minute check. A one-step scheduled Chain for now; it becomes a
+# Merlin's hourly check. A one-step scheduled Chain for now; it becomes a
 # schedule Trigger with a knight target when operator-managed CronJobs
 # (roundtable-k8s/roundtable#565) are deployed.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/ai.roundtable.io/chain_v1alpha1.json
@@ -12,14 +12,11 @@ spec:
   roundTableRef:
     name: roundtable-dev
   description: "The orchestrator's 30-minute factory check"
-  # Offset from the external session's check (:17 and :47) during the day they overlap.
-  schedule: "2,32 * * * *"
-  # SUSPENDED 2026-11-27 at the owner's word. The external session runs the
-  # same check, and merlin's own (Fable, up to 25 minutes every 30) ran almost
-  # continuously and often timed out under load. merlin still takes one-off
-  # tasks. To turn the timer back on: remove this line; consider an hourly
-  # schedule and a cheaper model for the routine check first.
-  suspend: true
+  # Hourly since 2026-11-28 (owner). It was every 30 minutes until it was
+  # suspended on 2026-11-27: on Fable, with a 25 minute limit, it ran almost
+  # continuously and often timed out under load. Offset from the external
+  # session's check (:17 and :47) while both run.
+  schedule: "2 * * * *"
   # Longer than the knight's 25 minute task limit, so a slow start (cold pod)
   # does not fail the run while the task is still going.
   timeoutSeconds: 1740
